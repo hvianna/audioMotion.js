@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<!--
+/**
+ * audioMotion.js
+ * A real-time graphic spectrum analyzer and audio player using WebAudio API and canvas
+ *
+ * Copyright (C) 2018 Henrique Vianna <hvianna@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+ -->
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="styles.css" type="text/css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<script type="text/javascript" src="audioMotion.js"></script>
+</head>
+
+<body>
+	<a href="https://github.com/hvianna" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+
+	<canvas id="c" width="1920" height="1080"></canvas>
+
+	<audio id="player" controls="controls" crossorigin="anonymous"></audio>
+
+	<div class="main-config config-block">
+		<div>
+			<span class="help">FFT size:
+				<span class="tooltip">
+				Number of samples used for the FFT. Larger values will provide greater detail on lower frequencies,
+				but will require more CPU power.
+				</span>
+			</span>
+			<select id="fft_size" onchange="javascript:setFFTsize();">
+				<option value="512">512</option>
+				<option value="1024">1024</option>
+				<option value="2048">2048</option>
+				<option value="4096">4096</option>
+				<option value="8192">8192</option>
+				<option value="16384">16384</option>
+				<option value="32768">32768</option>
+			</select>
+		</div>
+
+		<div>
+			Range:
+			<select id="freq_min" onchange="javascript:preCalcPosX();">
+				<option value="20">20</option>
+				<option value="40">40</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+				<option value="500">500</option>
+				<option value="1000">1k</option>
+			</select>
+			-
+			<select id="freq_max" onchange="javascript:preCalcPosX();">
+				<option value="1000">1k</option>
+				<option value="2000">2k</option>
+				<option value="5000">5k</option>
+				<option value="10000">10k</option>
+				<option value="16000">16k</option>
+				<option value="22000">22k</option>
+			</select>
+			Hz
+		</div>
+
+		<div>
+			<span class="help">Smoothing:
+				<span class="tooltip">
+				Average constant used to smooth values between analysis frames. Lower values may produce better
+				results for faster tempo songs.
+				</span>
+			</span>
+			<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="javascript:setSmoothing();">
+		</div>
+
+		<div>
+			Gradient:
+			<select id="gradient">
+				<option value="0">Classic</option>
+				<option value="1">Aurora</option>
+				<option value="2">Dusk</option>
+				<option value="3">Rainbow</option>
+			</select>
+		</div>
+
+		<div>
+			<input type="checkbox" id="log_scale" onchange="javascript:preCalcPosX();">
+			<span class="help">Logarithmic scale
+				<span class="tooltip">
+				The logarithmic scale provides much better visualization of lower frequencies. Keep this checked
+				if you wanna see that bass moving!
+				</span>
+			</span>
+		</div>
+
+		<div>
+			<input type="checkbox" id="show_scale" onchange="javascript:drawScale();"> Show scale
+		</div>
+
+		<div>
+			<input type="checkbox" id="sensitivity" onchange="javascript:setSensitivity();">
+			<span class="help">High sensitivity
+				<span class="tooltip">
+				Check this to improve visualization of low volume songs.
+				</span>
+			</span>
+		</div>
+
+		<div>
+			<input type="checkbox" id="show_peaks"> Show peaks
+		</div>
+	</div>
+
+	<div class="config-block">
+		<div>
+			Load song or playlist:
+			<input type="text" id="playlist-path" placeholder="local or remote file">
+			<input type="button" value=" Load " onclick="javascript:loadPlaylist();">
+			<div class="config-block button-bar">
+				<input type="button" value=" Shuffle playlist " onclick="javascript:shufflePlaylist();">
+				<input type="button" value=" Clear playlist " onclick="javascript:clearPlaylist();">
+			</div>
+			<select id="playlist" size="10" onchange="javascript:playSong( this.selectedIndex );">
+			</select>
+		</div>
+		<div>
+			<div class="config-block button-bar">
+				<input type="button" value=" Fullscreen visualization " onclick="javascript:fullscreen();">
+			</div>
+			<div class="player-controls">
+				<i class="fas fa-fast-backward" onclick="javascript:playPreviousSong();"></i>
+				<i class="fas fa-play" onclick="javascript:playPause();"></i>
+				<i class="fas fa-pause" onclick="javascript:playPause();"></i>
+				<i class="fas fa-stop" onclick="javascript:stop();"></i>
+				<i class="fas fa-fast-forward" onclick="javascript:playNextSong();"></i>
+			</div>
+		</div>
+		<div>
+			<div class="center">
+				Audio source:
+				<select id="source" onchange="javascript:setSource();">
+					<option value="player">built-in Player</option>
+					<option value="mic">Microphone (experimental)</option>
+				</select>
+			</div>
+			<div id="console"></div>
+		</div>
+	</div>
+
+</body>
+</html>
