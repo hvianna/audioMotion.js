@@ -342,8 +342,8 @@ function playPause() {
 function stop() {
 	if ( cfgSource == 'mic' )
 		return;
-	loadSong( 0 );
 	audioElement.pause();
+	loadSong( 0 );
 }
 
 function playPreviousSong() {
@@ -431,9 +431,11 @@ function draw() {
 	if ( cfgShowScale.checked )
 		drawScale();
 
-	// after playback stops, keep updating the canvas for a while to allow time for all peak dots to fall down nicely :)
-	// timer is set by the 'play' event listener
-	if ( cfgSource == 'player' && ! isPlaying() )
+	// after playback stops, start counting down timer until we stop redrawing the canvas
+	// this allows enough time for all peak dots to fall down nicely :)
+	if ( isPlaying() || cfgSource == 'mic' )
+		timer = 300;
+	else
 		timer--;
 
 	// schedule next canvas update if cooldown timer hasn't reached 0
@@ -465,10 +467,8 @@ function setSource() {
 			if ( isPlaying() )
 				audioElement.pause();
 			sourceMic.connect( analyser );
-			if ( ! timer ) {
-				timer = 120;
+			if ( ! timer )
 				requestAnimationFrame( draw );
-			}
 		}
 		else { // if sourceMic is not set yet, ask user's permission to the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
@@ -506,9 +506,17 @@ function initialize() {
 	consoleLog( 'audioMotion.js version ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
-	// create audio context and analyser (WebAudio API)
+	// create audio context
 
-	audioCtx = new window.AudioContext();
+	try {
+		audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+	}
+	catch( err ) {
+		consoleLog( 'Could not create audio context. WebAudio API not supported?', true );
+		consoleLog( 'Aborting.' );
+		return false;
+	}
+
 	consoleLog( 'Audio context sample rate is ' + audioCtx.sampleRate + 'Hz' );
 
 	audioElement = document.getElementById('player');
@@ -520,13 +528,15 @@ function initialize() {
 		else
 			loadSong( 0 );
 	});
-	audioElement.addEventListener( 'play', function() {
-		// playback started
-		if ( ! timer ) { // check it's not in cooldown period before (re)starting the animation
-			timer = 120; // set cooldown timer to 120 frames (2 seconds)
+
+	audioElement.addEventListener( 'playing', function() {
+		// playback requested and media is ready to play
+		if ( ! timer ) { // check it's not in cooldown period before (re)starting the canvas animation
+			timer = 300; // set cooldown timer to 300 frames (5s)
 			requestAnimationFrame( draw );
 		}
 	});
+
 	audioElement.addEventListener( 'error', function() {
 		consoleLog( 'Error loading ' + this.src, true );
 	});
