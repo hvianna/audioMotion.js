@@ -12,6 +12,10 @@ A real-time graphic spectrum analyser and audio player using WebAudio API and ca
 * Visualize audio input from your microphone as well, or "stereo mix" if your soundcard supports it
 * Native JavaScript, with no external libraries or dependencies
 
+## Demo
+
+https://hvianna.github.io/audioMotion.js/
+
 ## Usage
 
 In order to play and visualize music files located in your own computer, you'll need to set up a local web server, since JavaScript 
