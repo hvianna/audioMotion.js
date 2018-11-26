@@ -47,7 +47,7 @@ var playlist, playlistPos,
 	posx, peaks, hold, gravity,
 	iMin, iMax, deltaX, bandWidth,
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
-	c, canvasCtx, gradients;
+	c, canvasCtx, gradients, pixelRatio;
 
 
 /**
@@ -156,8 +156,9 @@ function drawScale() {
 
 	var bands, freq, incr, label, posX;
 
+	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.fillStyle = '#000';
-	canvasCtx.fillRect( 0, c.height-20, c.width, 20 );
+	canvasCtx.fillRect( 0, c.height - 20 * pixelRatio, c.width, 20 * pixelRatio );
 
 	if ( ! cfgShowScale.checked )
 		return;
@@ -190,10 +191,10 @@ function drawScale() {
 				label = freq / 1000 + 'k';
 			else
 				label = String( freq );
-			canvasCtx.fillText( label, posX > 10 ? posX - label.length * 2.75 : posX, c.height - 5 );
+			canvasCtx.fillText( label, posX > 10 * pixelRatio ? posX - label.length * 2.75 * pixelRatio : posX, c.height - 5 * pixelRatio );
 		}
 		else
-			canvasCtx.fillRect( posX, c.height-5, 1, -10 );
+			canvasCtx.fillRect( posX, c.height - 5 * pixelRatio, 1, -10 * pixelRatio );
 
 		freq += incr;
 	}
@@ -528,14 +529,28 @@ function initialize() {
 	sourcePlayer.connect( analyser );
 	analyser.connect( audioCtx.destination );
 
+	// fix for iOS suspended audio context
+	window.addEventListener( 'touchstart', function() {
+		if ( audioCtx.state == 'suspended' )
+			audioCtx.resume();
+	});
+
 	// canvas
 
 	c = document.getElementById('c');
 
+	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
+
 	// Adjust canvas width and height to match the display's resolution
-	// window.devicePixelRatio needed for hiDPI/retina displays
-	c.width = window.screen.width * window.devicePixelRatio;
-	c.height = window.screen.height * window.devicePixelRatio;
+	c.width = window.screen.width * pixelRatio;
+	c.height = window.screen.height * pixelRatio;
+
+	// Always consider landscape orientation
+	if ( c.height > c.width ) {
+		var tmp = c.width;
+		c.width = c.height;
+		c.height = tmp;
+	}
 
 	consoleLog( 'Canvas size is ' + c.width + 'x' + c.height + ' pixels' );
 
