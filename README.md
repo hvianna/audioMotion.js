@@ -77,13 +77,13 @@ Check this option to retain each frequency peak value for a short time. Default 
 
 ## Screenshots
 
-![screenshot1](screenshot1.png "audioMotion.js visualizer interface")
+![img/screenshot1](screenshot1.png "audioMotion.js visualizer interface")
 audioMotion.js visualizer interface
 
-![screenshot2](screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient")
+![img/screenshot2](screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient")
 Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient
 
-![screenshot3](screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient")
+![img/screenshot3](screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient")
 Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient
 
 ## References and acknowledgments
