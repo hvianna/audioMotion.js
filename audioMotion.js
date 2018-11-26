@@ -40,12 +40,12 @@ var defaults = {
 /**
  * Global variables
  */
-var playlist, playlistPos, timer,
+var playlist, playlistPos,
 	cfgSource, cfgFFTsize, cfgRangeMin, cfgRangeMax, cfgSmoothing,
 	cfgGradient, cfgShowScale, cfgLogScale, cfgHighSens, cfgShowPeaks,
 	bufferLength, dataArray,
 	posx, peaks, hold, gravity,
-	deltaX, bandWidth,
+	iMin, iMax, deltaX, bandWidth,
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
 	c, canvasCtx, gradients;
 
@@ -107,18 +107,18 @@ function setFFTsize() {
 }
 
 /**
- * Pre-calculate the actual X-coordinate on screen for each frequency returned by the FFT
+ * Pre-calculate the actual X-coordinate on screen for each frequency
  */
 function preCalcPosX() {
 
 	var freq,
 		posant = -1,
-		// lowest and highest frequencies we want to visualize
 		fMin = cfgRangeMin[ cfgRangeMin.selectedIndex ].value,
-		fMax = cfgRangeMax[ cfgRangeMax.selectedIndex ].value, 
-		// indexes of these frequencies in the data array returned by the analyzer node
-		iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate ),
-		iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
+		fMax = cfgRangeMax[ cfgRangeMax.selectedIndex ].value;
+
+	// indexes corresponding to the frequency range we want to visualize in the data array returned by the FFT
+	iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate );
+	iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
 
 	if ( cfgLogScale.checked ) {
 		deltaX = Math.log10( fMin );
@@ -399,7 +399,7 @@ function draw() {
 	// so we show wider bars when possible
 	barWidth = ( ! cfgLogScale.checked && bandWidth > 1 ) ? Math.floor( bandWidth ) - 1 : 1;
 
-	for ( var i = 0; i < bufferLength; i++ ) {
+	for ( var i = iMin; i <= iMax; i++ ) {
 		barHeight = dataArray[i] / 255 * c.height;
 
 		if ( barHeight > peaks[i] ) {
@@ -431,16 +431,8 @@ function draw() {
 	if ( cfgShowScale.checked )
 		drawScale();
 
-	// after playback stops, start counting down timer until we stop redrawing the canvas
-	// this allows enough time for all peak dots to fall down nicely :)
-	if ( isPlaying() || cfgSource == 'mic' )
-		timer = 300;
-	else
-		timer--;
-
-	// schedule next canvas update if cooldown timer hasn't reached 0
-	if ( timer )
-		requestAnimationFrame( draw );
+	// schedule next canvas update
+	requestAnimationFrame( draw );
 }
 
 /**
@@ -467,8 +459,6 @@ function setSource() {
 			if ( isPlaying() )
 				audioElement.pause();
 			sourceMic.connect( analyser );
-			if ( ! timer )
-				requestAnimationFrame( draw );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
@@ -527,14 +517,6 @@ function initialize() {
 			playSong( playlistPos + 1 );
 		else
 			loadSong( 0 );
-	});
-
-	audioElement.addEventListener( 'playing', function() {
-		// playback requested and media is ready to play
-		if ( ! timer ) { // check it's not in cooldown period before (re)starting the canvas animation
-			timer = 300; // set cooldown timer to 300 frames (5s)
-			requestAnimationFrame( draw );
-		}
 	});
 
 	audioElement.addEventListener( 'error', function() {
@@ -628,6 +610,9 @@ function initialize() {
 
 	document.getElementById('playlist-path').value = defaults.playlist;
 	loadPlaylist();
+
+	// start canvas animation
+	requestAnimationFrame( draw );
 }
 
 
