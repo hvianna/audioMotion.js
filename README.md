@@ -39,7 +39,7 @@ individual files/URLs from its contents. Check the playlist.m3u in the `demo` fo
 
 ## Configuration options
 
-Most of these are self-explanatory. You can change the default values in the `defaults` array at the very beginning of [`audioMotion.js`](https://github.com/hvianna/audioMotion.js/blob/master/audioMotion.js#L26) file.
+Below is a brief description of the configuration options. You can change the default values in the `defaults` array at the very beginning of [`audioMotion.js`](https://github.com/hvianna/audioMotion.js/blob/master/audioMotion.js#L26) file.
 
 ### FFT Size
 
@@ -59,7 +59,9 @@ Several options of color gradients for the analyzer bars. Default is "Classic".
 
 ### Logarithmic scale
 
-The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Unchecking this option will use a linear distribution of frequencies in the horizontal axis. Default checked.
+The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default checked.
+
+Unchecking this option will use a linear distribution of frequencies in the horizontal axis. Select a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
 
 ### Show scale
 
