@@ -39,56 +39,60 @@ individual files/URLs from its contents. Check the playlist.m3u in the `demo` fo
 
 ## Configuration options
 
+Most of these are self-explanatory. You can change the default values in the `defaults` array at the very beginning of [`audioMotion.js`](https://github.com/hvianna/audioMotion.js/blob/master/audioMotion.js#L26) file.
+
 ### FFT Size
 
-The number of samples used for the FFT performed by the analyzer. Larger values will provide greater detail on lower frequencies, but will require more CPU power.
+The number of samples used for the FFT performed by the analyzer. Larger values will provide greater detail on lower frequencies, but will require more CPU power. Default is 8192 samples.
 
 ### Range
 
-The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this to zoom in a specific frequency range.
+The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this to zoom in a specific frequency range. Default is 20Hz - 16KHz.
 
 ### Smoothing
 
-Average constant used to smooth values between analysis frames. Lower values may produce better	results for faster tempo songs.
+Average constant used to smooth values between analysis frames. Lower values may produce better	results for faster tempo songs. Default is 0.5.
 
 ### Gradient
 
-Several options of color gradients for the analyzer bars.
+Several options of color gradients for the analyzer bars. Default is "Classic".
 
 ### Logarithmic scale
 
-The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Unchecking this option will use a linear distribution of frequencies in the horizontal axis.
+The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Unchecking this option will use a linear distribution of frequencies in the horizontal axis. Default checked.
 
 ### Show scale
 
-This option toggles the display of the frequency scale.
+This option toggles the display of the frequency scale. Default checked.
 
 ### High sensitivity
 
-Check this option to increase the analyzer sensitivity and improve the visualization of low volume songs.
+Check this option to increase the analyzer sensitivity and improve the visualization of low volume songs. Default unchecked.
 
 ### Show peaks
 
-Check this option to retain each frequency peak value for a short time.
+Check this option to retain each frequency peak value for a short time. Default checked.
 
 ## Screenshots
 
-![screenshot1](screenshot1.png)
+![screenshot1](screenshot1.png "audioMotion.js visualizer interface")
 audioMotion.js visualizer interface
 
-![screenshot2](screenshot2.png)
+![screenshot2](screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient")
 Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient
 
-![screenshot3](screenshot3.png)
+![screenshot3](screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient")
 Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient
 
 ## References and acknowledgments
 
 * audioMotion.js was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
-* Icons provided by [Font Awesome](https://fontawesome.com/)
 * [WebAudio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 * [WebAudio API Specification](https://webaudio.github.io/web-audio-api/)
-* And of course, the community at [StackOverflow](https://stackoverflow.com/a/14789992/2370385)! :D
+* [What does the FFT data in the Web Audio API correspond to?](https://stackoverflow.com/a/14789992/2370385)
+* [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
+* [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
+* Icons provided by [Font Awesome](https://fontawesome.com/)
 
 ## Song credits
 
