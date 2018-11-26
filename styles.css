@@ -12,6 +12,10 @@ body {
 	height: 540px;
 }
 
+#c:-webkit-full-screen {
+	height: auto;
+}
+
 #playlist {
 	display: block;
 	margin: 10px auto;
