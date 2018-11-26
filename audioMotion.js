@@ -398,7 +398,7 @@ function draw() {
 
 	// in the linear scale each frequency gets an equal portion of the canvas,
 	// so we show wider bars when possible
-	barWidth = ( ! cfgLogScale.checked && bandWidth > 1 ) ? Math.floor( bandWidth ) - 1 : 1;
+	barWidth = ( ! cfgLogScale.checked && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
 	for ( var i = iMin; i <= iMax; i++ ) {
 		barHeight = dataArray[i] / 255 * c.height;
