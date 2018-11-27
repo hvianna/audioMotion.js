@@ -1,7 +1,7 @@
 audioMotion.js
 ==============
 
-A real-time graphic spectrum analyser and audio player using WebAudio API and canvas.
+A real-time graphic spectrum analyzer and audio player using WebAudio API and canvas.
 
 ## Features
 
@@ -24,7 +24,7 @@ Since JavaScript can't read files directly from the client's hard disk, you'll n
 
 and you should be able to access the player at `localhost:8000` in your browser.
 
-The provided configuration file maps the folder "music" in your user directory to inside the web server document root, so audioMotion can access its files as "music/song.mp3", for example. This should work for the default "Music" folder on Windows. If you want to map a different folder or drive, edit the line below in `docker-compose.yml`:
+The provided configuration file maps the folder "music" in your user directory to the web server document root, so audioMotion can access files inside it as "music/song.mp3", for example. This should work for the default "Music" folder on Windows. If you want to map a different folder or drive, edit the line below in `docker-compose.yml`:
 
 ```
     - ~/music:/usr/local/apache2/htdocs/music/
@@ -47,7 +47,7 @@ Vince Guaraldi | music/jazz/vince guaraldi/playlist.m3u
 Herbie Hancock | music/jazz/herbie hancock/playlist.m3u
 ```
 
-Playlists themselves are also plain text files, containing one song filename per line. The playlist file extension must be `.m3u` or `.m3u8` for it to be recognized by audioMotion.
+Playlists themselves are also plain text files, containing one song per line. File extension must be `.m3u` or `.m3u8` for audioMotion.js to recognize it as a playlist.
 
 You can use a music player software that supports m3u playlists, like [foobar2000](https://www.foobar2000.org/) or [VLC](https://www.videolan.org/vlc/), to arrange your songs more easily and generate the playlist. Just make sure the playlist entries do not contain absolute paths or drive letters - they should be relative to the location of the playlist file itself, or audioMotion won't be able to load the songs. And remember all files must be located below your mapped "music" folder.
 
@@ -101,7 +101,7 @@ Check this option to increase the analyzer sensitivity and improve the visualiza
 
 ### Show peaks
 
-Check this option to retain each frequency peak value for a short time. Default checked.
+Check this option to retain each frequency peak value on screen for a short time. Default checked.
 
 ## Screenshots
 
@@ -140,7 +140,7 @@ Songs included in the demo playlist:
 
   Licensed under [Creative Commons: By Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)
   
-* "Funky Chunk" by Kevin MacLeod (incompetech.com)
+* "Funky Chunk" by Kevin MacLeod ([incompetech.com](https://incompetech.com))
 
   Licensed under [Creative Commons: By Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)
   
