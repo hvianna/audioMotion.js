@@ -34,11 +34,11 @@ and change `~/music` for your desired local path, for example `j:\media\music` o
 
 You can add your own playlists to the `playlists.cfg` file, so you can easily load songs into audioMotion.
 
-## Playlists formats
+## Playlists
 
-The `playlists.cfg` file is where you register all the playlists you want available inside audioMotion. This is a plain text file with one playlist per line, in the format `playlist title | playlist path and filename` (that's a "pipe" character between the title and the path). You can edit the playlists.cfg file in any plain text editor, like Windows' Notepad.
+The `playlists.cfg` file is where you register all the playlists you want available inside audioMotion. This is a plain text file with one playlist per line, in the format `playlist title | playlist path and filename` (that's a "pipe" character between the title and the path). You can edit the `playlists.cfg` file in any plain text editor, like Windows' Notepad.
 
-Example of playlists.cfg file:
+Example of `playlists.cfg` file:
 
 ```
 Pink Floyd albums | music/Rock/Pink Floyd/all-albums.m3u
@@ -51,7 +51,7 @@ Playlists themselves are also plain text files, containing one song per line. Fi
 
 You can use a music player software that supports m3u playlists, like [foobar2000](https://www.foobar2000.org/) or [VLC](https://www.videolan.org/vlc/), to arrange your songs more easily and generate the playlist. Just make sure the playlist entries do not contain absolute paths or drive letters - they should be relative to the location of the playlist file itself, or audioMotion won't be able to load the songs. And remember all files must be located below your mapped "music" folder.
 
-Example of playlist file:
+Example of a playlist file:
 
 ```
 (1971) Meddle\05 Seamus.flac
@@ -63,7 +63,7 @@ Example of playlist file:
 
 Note that you can use both Windows-style backslashes `\` and Linux-style forward slashes `/` in your pathnames. See the provided playlist files inside the `demo` folder for more examples.
 
-As for the audio files themselves, codec support may depend on your web browser and operating system, but you should be able to play most mainstream formats, like mp3, ogg, m4a and flac.
+As for the audio files themselves, audioMotion.js should be able to play most mainstream formats, like mp3, ogg, m4a and flac, but codec support may vary, depending on your web browser and operating system.
 
 ## Configuration options
 
@@ -105,14 +105,14 @@ Check this option to retain each frequency peak value on screen for a short time
 
 ## Screenshots
 
-![screenshot1](img/screenshot1.png "audioMotion.js visualizer interface")
 audioMotion.js visualizer interface
+![screenshot1](img/screenshot1.png "audioMotion.js visualizer interface")
 
-![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient")
 Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient
+![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient")
 
-![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient")
 Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient
+![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient")
 
 ## References and acknowledgments
 
@@ -126,7 +126,7 @@ Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic 
 
 ## Song credits
 
-Songs included in the demo playlist:
+Songs included in the demo playlists:
 
 * Albinoni's Adagio in G minor, Arr for alto saxophone and piano by David Hernando Vitores ([source](https://commons.wikimedia.org/wiki/File:Tomaso_Giovanni_Albinoni_-_Adagio_in_G_minor_-_Arr_for_alto_saxophone_and_piano_-_David_Hernando_Vitores.ogg))
 
