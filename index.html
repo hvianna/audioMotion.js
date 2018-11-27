@@ -130,13 +130,15 @@
 
 	<div class="config-block">
 		<div>
-			Load song or playlist:
-			<input type="text" id="playlist-path" placeholder="local or remote file">
-			<input type="button" value=" Load " onclick="javascript:loadPlaylist();">
-			<div class="config-block button-bar">
-				<input type="button" value=" Shuffle playlist " onclick="javascript:shufflePlaylist();">
-				<input type="button" value=" Clear playlist " onclick="javascript:clearPlaylist();">
+			<div class="button-bar">
+				<select id="playlists">
+					<option value="">Select a playlist to load</option>
+				</select>
+				<input type="button" value=" LOAD " onclick="javascript:loadPlaylist();">
 			</div>
+			<span class="playlist-label">Current playlist &nbsp;<i class="fas fa-angle-down"></i></span>
+			<input type="button" value="Shuffle" class="playlist-button" onclick="javascript:shufflePlaylist();">
+			<input type="button" value="Clear" class="playlist-button" onclick="javascript:clearPlaylist();">
 			<select id="playlist" size="10" onchange="javascript:playSong( this.selectedIndex );">
 			</select>
 		</div>

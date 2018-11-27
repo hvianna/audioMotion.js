@@ -32,8 +32,7 @@ var defaults = {
 	showScale 	: true,		// true or false - show x-axis scale?
 	logScale	: true,		// true or false - use logarithmic scale?
 	highSens	: false,	// true or false - high sensitivity?
-	showPeaks 	: true,		// true or false - show peaks?
-	playlist	: 'demo/playlist.m3u'	// path or URL of default playlist to load
+	showPeaks 	: true		// true or false - show peaks?
 }
 
 
@@ -42,7 +41,7 @@ var defaults = {
  */
 var playlist, playlistPos,
 	cfgSource, cfgFFTsize, cfgRangeMin, cfgRangeMax, cfgSmoothing,
-	cfgGradient, cfgShowScale, cfgLogScale, cfgHighSens, cfgShowPeaks,
+	cfgGradient, cfgShowScale, cfgLogScale, cfgHighSens, cfgShowPeaks, cfgPlaylists,
 	bufferLength, dataArray,
 	posx, peaks, hold, gravity,
 	iMin, iMax, deltaX, bandWidth,
@@ -210,11 +209,48 @@ function clearPlaylist() {
 }
 
 /**
+ * Read contents from playlists.cfg
+ */
+function loadPlaylistsCfg() {
+
+	var list, item, n = 0;
+
+	cfgPlaylists = document.getElementById('playlists');
+
+	fetch( 'playlists.cfg' )
+		.then( function( response ) {
+			if ( response.status == 200 )
+				return response.text();
+			else
+				consoleLog( 'No playlists.cfg file found', true );
+		})
+		.then( function( content ) {
+			list = content.split(/[\r\n]+/);
+			for ( var i = 0; i < list.length; i++ ) {
+				if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
+					item = list[ i ].split(/\|/);
+					if ( item.length == 2 ) {
+						cfgPlaylists.options[ cfgPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
+						n++;
+					}
+				}
+			}
+			if ( n )
+				consoleLog( n + ' playlists found in playlists.cfg' );
+			else
+				consoleLog( 'No playlists found in playlists.cfg', true );
+		})
+		.catch( function( err ) {
+			consoleLog( 'Could not read from playlists.cfg', true );
+		});
+}
+
+/**
  * Load a song or playlist file into the current playlist
  */
 function loadPlaylist() {
 
-	var path = document.getElementById('playlist-path').value.trim(),
+	var path = cfgPlaylists[ cfgPlaylists.selectedIndex ].value,
 		tmplist, ext,
 		n = 0;
 
@@ -245,7 +281,7 @@ function loadPlaylist() {
 				}
 				consoleLog( 'Loaded ' + n + ' files into the playlist' );
 				updatePlaylistUI();
-				if ( audioElement.src == '' )
+				if ( ! isPlaying() )
 					loadSong( 0 );
 			})
 			.catch( function( err ) {
@@ -256,11 +292,10 @@ function loadPlaylist() {
 		playlist.push( path ); // single file
 		consoleLog( 'Loaded 1 file into the playlist' );
 		updatePlaylistUI();
-		if ( audioElement.src == '' )
+		if ( ! isPlaying() )
 			loadSong( 0 );
 	}
 
-	document.getElementById('playlist-path').value = '';
 }
 
 /**
@@ -295,10 +330,12 @@ function shufflePlaylist() {
 		temp = playlist[ i ];
 		playlist[ i ] = playlist[ r ];
 		playlist[ r ] = temp;
-		if ( playlistPos == i )
-			playlistPos = r;
-		else if ( playlistPos == r )
-			playlistPos = i;
+		if ( isPlaying() ) {
+			if ( playlistPos == i )
+				playlistPos = r;
+			else if ( playlistPos == r )
+				playlistPos = i;
+		}
 	}
 
 	updatePlaylistUI();
@@ -512,6 +549,13 @@ function initialize() {
 
 	audioElement = document.getElementById('player');
 
+	audioElement.addEventListener( 'play', function() {
+		if ( playlist.length == 0 && audioElement.src == '' ) {
+			consoleLog( 'Playlist is empty', true );
+			audioElement.pause();
+		}
+	});
+
 	audioElement.addEventListener( 'ended', function() {
 		// song ended, skip to next one if available
 		if ( playlistPos < playlist.length - 1 )
@@ -621,10 +665,11 @@ function initialize() {
 	cfgShowPeaks = document.getElementById('show_peaks');
 	cfgShowPeaks.checked = defaults.showPeaks;
 
+	// set audio source to built-in player
 	setSource();
 
-	document.getElementById('playlist-path').value = defaults.playlist;
-	loadPlaylist();
+	// load playlists from playlists.cfg
+	loadPlaylistsCfg();
 
 	// start canvas animation
 	requestAnimationFrame( draw );

@@ -18,12 +18,30 @@ body {
 
 #playlist {
 	display: block;
-	margin: 10px auto;
 	width: 450px;
 }
 
-#playlist-path {
-	width: 220px;
+#playlists {
+	width: 360px;
+}
+
+.playlist-label {
+	background-color: #888;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+	color: #fff;
+	display: inline-block;
+	font-size: 11px;
+	height: 20px;
+	padding: 10px;
+	text-transform: uppercase;
+}
+
+.playlist-button {
+	font-size: 11px;
+	margin-left: 50px;
+	text-transform: uppercase;
+	width: 100px;
 }
 
 .config-block {
@@ -32,11 +50,11 @@ body {
 }
 
 .main-config {
-	margin: 10px 0 40px;
+	margin: 10px 0 50px;
 }
 
 .button-bar {
-	margin: 10px 0;
+	margin-bottom: 20px;
 }
 
 .center {

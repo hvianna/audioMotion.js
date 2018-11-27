@@ -1,28 +1,6 @@
-# add one song per line
+# add one file per line
 # you can use a local path or remote URL (if the remote server allows cross-origin requests)
-# lines beginning with # are used for comments and will be ignored by the player
-
-# Brazilian National Anthem - Choral
-# Public domain
-# source: http://www.dominiopublico.gov.br/pesquisa/DetalheObraForm.do?select_action=&co_obra=2480
-#
-Hino Nacional Brasileiro - Coral (Ministério da Educação).mp3
-
-# "The Factory" by Multifaros
-# Licensed under Creative Commons: By Attribution 3.0 License
-# http://creativecommons.org/licenses/by/3.0/
-#
-# source: https://archive.org/details/The_Factory-3613
-#
-https://archive.org/download/The_Factory-3613/Multifaros_-_05_-_The_Factory.mp3
-
-# "Spell" by Rolemusic
-# Licensed under Creative Commons: Attribution-Noncommercial-Share Alike 3.0 United States
-# http://creativecommons.org/licenses/by-nc-sa/3.0/us/
-#
-# source: https://archive.org/details/Straw_Fields-8753
-#
-Rolemusic_-_01_-_Spell.mp3
+# use a # at the begin of a line to add comments or disable songs - these will be ignored by the player
 
 # "Funky Chunk" Kevin MacLeod (incompetech.com)
 # Licensed under Creative Commons: By Attribution 3.0 License
@@ -32,16 +10,17 @@ Rolemusic_-_01_-_Spell.mp3
 #
 Kevin MacLeod - Funky Chunk.mp3
 
+# Brazilian National Anthem
+# Public domain
+# source: http://www.dominiopublico.gov.br/pesquisa/DetalheObraForm.do?select_action=&co_obra=2480
+#
+Hino Nacional Brasileiro - Coral (Ministério da Educação).mp3
+
 # Albinoni's Adagio in G minor, Arr for alto saxophone and piano by David Hernando Vitores
 # Licensed under Creative Commons: Attribution-Share Alike 4.0 International
 # https://creativecommons.org/licenses/by-sa/4.0/deed.en
 #
 # source: https://commons.wikimedia.org/wiki/File:Tomaso_Giovanni_Albinoni_-_Adagio_in_G_minor_-_Arr_for_alto_saxophone_and_piano_-_David_Hernando_Vitores.ogg
 #
-https://upload.wikimedia.org/wikipedia/commons/e/e1/Tomaso_Giovanni_Albinoni_-_Adagio_in_G_minor_-_Arr_for_alto_saxophone_and_piano_-_David_Hernando_Vitores.ogg
+Tomaso_Giovanni_Albinoni_-_Adagio_in_G_minor_-_Arr_for_alto_saxophone_and_piano_-_David_Hernando_Vitores.ogg
 
-# single tone files
-# FLAC support may vary depending on your browser
-#
-A4 (440Hz) (sine wave).flac
-C4 (261.626Hz) (sawtooth).flac
