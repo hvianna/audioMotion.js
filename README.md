@@ -67,7 +67,7 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration options
 
-Below is a brief description of the configuration options. You can change the default values in the `defaults` array at the very beginning of [`audioMotion.js`](https://github.com/hvianna/audioMotion.js/blob/master/audioMotion.js#L26) file.
+Below is a brief description of the configuration options. Your preferences are saved in browser cookies and restored the next time you open audioMotion.
 
 ### FFT Size
 
@@ -116,43 +116,27 @@ Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic 
 
 ## References and acknowledgments
 
+* [cookies.js](https://github.com/madmurphy/cookies.js) licensed under [GPL 3.0](http://www.gnu.org/licenses/gpl-3.0-standalone.html)
+* Icons provided by [Font Awesome Free](https://fontawesome.com/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
 * audioMotion.js was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
 * [WebAudio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 * [WebAudio API Specification](https://webaudio.github.io/web-audio-api/)
 * [What does the FFT data in the Web Audio API correspond to?](https://stackoverflow.com/a/14789992/2370385)
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
-* Icons provided by [Font Awesome](https://fontawesome.com/)
 
 ## Song credits
 
 Songs included in the demo playlists:
 
-* Albinoni's Adagio in G minor, Arr for alto saxophone and piano by David Hernando Vitores ([source](https://commons.wikimedia.org/wiki/File:Tomaso_Giovanni_Albinoni_-_Adagio_in_G_minor_-_Arr_for_alto_saxophone_and_piano_-_David_Hernando_Vitores.ogg))
-
-  Licensed under [Creative Commons: Attribution-Share Alike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/deed.en)
-
-* Brazilian National Anthem - Choral ([source](http://www.dominiopublico.gov.br/pesquisa/DetalheObraForm.do?select_action=&co_obra=2480))
-  
-  Public domain
-  
-* "The Factory" by Multifaros ([source](https://archive.org/details/The_Factory-3613))
-
-  Licensed under [Creative Commons: By Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)
-  
-* "Funky Chunk" by Kevin MacLeod ([incompetech.com](https://incompetech.com))
-
-  Licensed under [Creative Commons: By Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)
-  
-* "Spell" by Rolemusic ([source](https://archive.org/details/Straw_Fields-8753))
-
-  Licensed under [Creative Commons: Attribution-Noncommercial-Share Alike 3.0 United States](http://creativecommons.org/licenses/by-nc-sa/3.0/us/)
-  
-* "We Come Together" by LukHash ([source](https://archive.org/details/ShMusic-DigitalMemories/))
-
-  Licensed under [Creative Commons: Attribution-Noncommercial-No Derivative Works 3.0](http://creativecommons.org/licenses/by-nc-nd/3.0/)
-
-Test tones created with [Audacity](https://www.audacityteam.org/).
+* Albinoni — Adagio in G minor, Arr for alto saxophone and piano by David Hernando Vitores ([source](https://commons.wikimedia.org/wiki/File:Tomaso_Giovanni_Albinoni_-_Adagio_in_G_minor_-_Arr_for_alto_saxophone_and_piano_-_David_Hernando_Vitores.ogg))<br>Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.en)
+* Brazilian National Anthem - Choral ([source](http://www.dominiopublico.gov.br/pesquisa/DetalheObraForm.do?select_action=&co_obra=2480)) - Public domain
+* "The Factory" by Multifaros ([source](https://archive.org/details/The_Factory-3613)) - Licensed under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/)
+* "Funky Chunk" by Kevin MacLeod ([incompetech.com](https://incompetech.com)) - Licensed under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/)
+* "Spell" by Rolemusic ([source](https://archive.org/details/Straw_Fields-8753)) - Licensed under [CC BY-NC-SA 3.0 US](http://creativecommons.org/licenses/by-nc-sa/3.0/us/)
+* "We Come Together" by LukHash ([source](https://archive.org/details/ShMusic-DigitalMemories/)) - Licensed under [CC BY-NC-ND 3.0](http://creativecommons.org/licenses/by-nc-nd/3.0/)
+* Test tones created with [Audacity](https://www.audacityteam.org/).
 
 ## License
 

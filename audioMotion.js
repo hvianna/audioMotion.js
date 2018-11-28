@@ -20,21 +20,6 @@
 var _VERSION = '18.11-RC';
 
 
-/**
- * Default options - set your preferences here
- */
-var defaults = {
-	fftSize		: 4,		// 0 to 6 for [ 512, 1024, 2048, 4096, 8192, 16384, 32768] - number of FFT samples
-	freqMin		: 0,		// 0 to 5 for [ 20, 40, 50, 100, 500, 1k  ] - lowest frequency represented in the x-axis
-	freqMax		: 4,		// 0 to 5 for [ 1k, 2k, 5k, 10k, 16k, 22k ] - highest frequency represented in the x-axis
-	smoothing	: 0.5,		// 0 to 0.9 in .1 steps - smoothing time constant
-	gradient	: 0,		// 0 to 3 for [ classic, aurora, dusk, rainbow ] - color gradient used for the analyzer bars
-	showScale 	: true,		// true or false - show x-axis scale?
-	logScale	: true,		// true or false - use logarithmic scale?
-	highSens	: false,	// true or false - high sensitivity?
-	showPeaks 	: true		// true or false - show peaks?
-}
-
 
 /**
  * Global variables
@@ -47,6 +32,21 @@ var playlist, playlistPos,
 	iMin, iMax, deltaX, bandWidth,
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
 	c, canvasCtx, gradients, pixelRatio;
+
+/**
+ * Default options
+ */
+var defaults = {
+	fftSize		: 4,		// 0 to 6 for [ 512, 1024, 2048, 4096, 8192, 16384, 32768] - number of FFT samples
+	freqMin		: 0,		// 0 to 5 for [ 20, 40, 50, 100, 500, 1k  ] - lowest frequency represented in the x-axis
+	freqMax		: 4,		// 0 to 5 for [ 1k, 2k, 5k, 10k, 16k, 22k ] - highest frequency represented in the x-axis
+	smoothing	: 0.5,		// 0 to 0.9 in .1 steps - smoothing time constant
+	gradient	: 0,		// 0 to 3 for [ classic, aurora, dusk, rainbow ] - color gradient used for the analyzer bars
+	showScale 	: true,		// true or false - show x-axis scale?
+	logScale	: true,		// true or false - use logarithmic scale?
+	highSens	: false,	// true or false - high sensitivity?
+	showPeaks 	: true		// true or false - show peaks?
+}
 
 
 /**
@@ -75,6 +75,7 @@ function setSensitivity() {
 		analyser.minDecibels = -85;
 		analyser.maxDecibels = -25;
 	}
+	docCookies.setItem( 'highSens', Number( cfgHighSens.checked ), Infinity );
 }
 
 /**
@@ -83,6 +84,7 @@ function setSensitivity() {
 function setSmoothing() {
 	analyser.smoothingTimeConstant = document.getElementById('smoothing').value;
 	consoleLog( 'smoothingTimeConstant is ' + analyser.smoothingTimeConstant );
+	docCookies.setItem( 'smoothing', analyser.smoothingTimeConstant, Infinity );
 }
 
 /**
@@ -101,8 +103,39 @@ function setFFTsize() {
 	gravity = new Array( bufferLength ).fill(0);
 
 	consoleLog( 'FFT size is ' + analyser.fftSize + ' samples' );
+	docCookies.setItem( 'fftSize', cfgFFTsize.selectedIndex, Infinity );
 
 	preCalcPosX();
+}
+
+/**
+ * Save desired frequency range
+ */
+function setFreqRange() {
+
+	docCookies.setItem( 'freqMin', cfgRangeMin.selectedIndex, Infinity );
+	docCookies.setItem( 'freqMax', cfgRangeMax.selectedIndex, Infinity );
+
+	preCalcPosX();
+}
+
+/**
+ * Save scale preferences
+ */
+function setScale() {
+
+	docCookies.setItem( 'showScale', Number( cfgShowScale.checked ), Infinity );
+	docCookies.setItem( 'logScale', Number( cfgLogScale.checked ), Infinity );
+
+	preCalcPosX();
+}
+
+/**
+ * Save show peaks preference
+ */
+function setShowPeaks() {
+
+	docCookies.setItem( 'showPeaks', Number( cfgShowPeaks.checked ), Infinity );
 }
 
 /**
@@ -520,6 +553,14 @@ function setSource() {
 
 }
 
+/**
+ * Save gradient preference
+ */
+function setGradient() {
+
+	docCookies.setItem( 'gradient', cfgGradient.selectedIndex, Infinity );
+}
+
 
 /**
  * Initialization
@@ -637,35 +678,46 @@ function initialize() {
 
 	// visualizer configuration
 
+	var cookie;
+
+	cookie = docCookies.getItem( 'freqMin' );
 	cfgRangeMin = document.getElementById('freq_min');
-	cfgRangeMin.selectedIndex = defaults.freqMin;
+	cfgRangeMin.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMin;
 
+	cookie = docCookies.getItem( 'freqMax' );
 	cfgRangeMax = document.getElementById('freq_max');
-	cfgRangeMax.selectedIndex = defaults.freqMax;
+	cfgRangeMax.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMax;
 
+	cookie = docCookies.getItem( 'logScale' );
 	cfgLogScale = document.getElementById('log_scale');
-	cfgLogScale.checked = defaults.logScale;
+	cfgLogScale.checked = ( cookie !== null ) ? Number( cookie ) : defaults.logScale;
 
+	cookie = docCookies.getItem( 'showScale' );
 	cfgShowScale = document.getElementById('show_scale');
-	cfgShowScale.checked = defaults.showScale;
+	cfgShowScale.checked = ( cookie !== null ) ? Number( cookie ) : defaults.showScale;
 
+	cookie = docCookies.getItem( 'fftSize' );
 	cfgFFTsize = document.getElementById('fft_size');
-	cfgFFTsize.selectedIndex = defaults.fftSize;
+	cfgFFTsize.selectedIndex = ( cookie !== null ) ? cookie : defaults.fftSize;
 	setFFTsize();
 
+	cookie = docCookies.getItem( 'smoothing' );
 	cfgSmoothing = document.getElementById('smoothing');
-	cfgSmoothing.value = defaults.smoothing;
+	cfgSmoothing.value = ( cookie !== null ) ? cookie : defaults.smoothing;
 	setSmoothing();
 
+	cookie = docCookies.getItem( 'gradient' );
 	cfgGradient = document.getElementById('gradient');
-	cfgGradient.selectedIndex = defaults.gradient;
+	cfgGradient.selectedIndex = ( cookie !== null ) ? cookie : defaults.gradient;
 
+	cookie = docCookies.getItem( 'highSens' );
 	cfgHighSens = document.getElementById('sensitivity');
-	cfgHighSens.checked = defaults.highSens;
+	cfgHighSens.checked = ( cookie !== null ) ? Number( cookie ) : defaults.highSens;
 	setSensitivity();
 
+	cookie = docCookies.getItem( 'showPeaks' );
 	cfgShowPeaks = document.getElementById('show_peaks');
-	cfgShowPeaks.checked = defaults.showPeaks;
+	cfgShowPeaks.checked = ( cookie !== null ) ? Number( cookie ) : defaults.showPeaks;
 
 	// set audio source to built-in player
 	setSource();

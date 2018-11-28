@@ -38,6 +38,7 @@
 	<meta property="og:type" content="website">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="twitter:site" content="@HenriqueVianna">
+	<script type="text/javascript" src="cookies.js"></script>
 	<script type="text/javascript" src="audioMotion.js"></script>
 </head>
 
@@ -69,7 +70,7 @@
 
 		<div>
 			Range:
-			<select id="freq_min" onchange="javascript:preCalcPosX();">
+			<select id="freq_min" onchange="javascript:setFreqRange();">
 				<option value="20">20</option>
 				<option value="40">40</option>
 				<option value="50">50</option>
@@ -78,7 +79,7 @@
 				<option value="1000">1k</option>
 			</select>
 			-
-			<select id="freq_max" onchange="javascript:preCalcPosX();">
+			<select id="freq_max" onchange="javascript:setFreqRange();">
 				<option value="1000">1k</option>
 				<option value="2000">2k</option>
 				<option value="5000">5k</option>
@@ -101,7 +102,7 @@
 
 		<div>
 			Gradient:
-			<select id="gradient">
+			<select id="gradient" onchange="javascript:setGradient();">
 				<option value="0">Classic</option>
 				<option value="1">Aurora</option>
 				<option value="2">Dusk</option>
@@ -110,7 +111,7 @@
 		</div>
 
 		<div>
-			<input type="checkbox" id="log_scale" onchange="javascript:preCalcPosX();">
+			<input type="checkbox" id="log_scale" onchange="javascript:setScale();">
 			<span class="help">Logarithmic scale
 				<span class="tooltip">
 				The logarithmic scale provides much better visualization of lower frequencies. Keep this checked
@@ -120,7 +121,7 @@
 		</div>
 
 		<div>
-			<input type="checkbox" id="show_scale" onchange="javascript:drawScale();"> Show scale
+			<input type="checkbox" id="show_scale" onchange="javascript:setScale();"> Show scale
 		</div>
 
 		<div>
@@ -133,7 +134,7 @@
 		</div>
 
 		<div>
-			<input type="checkbox" id="show_peaks"> Show peaks
+			<input type="checkbox" id="show_peaks" onchange="javascript:setShowPeaks();"> Show peaks
 		</div>
 	</div>
 
