@@ -93,8 +93,8 @@
 		<div>
 			<span class="help">Smoothing:
 				<span class="tooltip">
-				Average constant used to smooth values between analysis frames. Lower values may produce better
-				results for faster tempo songs.
+				Lower values may produce better	results for faster tempo songs.
+				Increase it if the animation looks too "jumpy".
 				</span>
 			</span>
 			<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="javascript:setSmoothing();">
@@ -128,7 +128,7 @@
 			<input type="checkbox" id="sensitivity" onchange="javascript:setSensitivity();">
 			<span class="help">High sensitivity
 				<span class="tooltip">
-				Check this to improve visualization of low volume songs.
+				Check this to improve visualization of songs too quiet.
 				</span>
 			</span>
 		</div>

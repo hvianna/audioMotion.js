@@ -49,7 +49,7 @@ Herbie Hancock | music/jazz/herbie hancock/playlist.m3u
 
 Playlists themselves are also plain text files, containing one song per line. File extension must be `.m3u` or `.m3u8` for audioMotion.js to recognize it as a playlist.
 
-You can use a music player software that supports m3u playlists, like [foobar2000](https://www.foobar2000.org/) or [VLC](https://www.videolan.org/vlc/), to arrange your songs more easily and generate the playlist. Just make sure the playlist entries do not contain absolute paths or drive letters - they should be relative to the location of the playlist file itself, or audioMotion won't be able to load the songs. And remember all files must be located below your mapped "music" folder.
+You can use a music player software that supports [M3U](https://en.wikipedia.org/wiki/M3U) playlists, like [foobar2000](https://www.foobar2000.org/) or [VLC](https://www.videolan.org/vlc/), to arrange your songs more easily and generate the playlist. Just make sure the playlist entries do not contain absolute paths or drive letters - they should be relative to the location of the playlist file itself, or audioMotion won't be able to load the songs. And remember all files must be located below your mapped "music" folder.
 
 Example of an m3u playlist file:
 
@@ -79,7 +79,7 @@ The lowest and highest frequencies you want to see in the graphic spectrum analy
 
 ### Smoothing
 
-Average constant used to smooth values between analysis frames. Lower values may produce better	results for faster tempo songs. Default is 0.5.
+Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy". Default is 0.5.
 
 ### Gradient
 
@@ -89,7 +89,7 @@ Several options of color gradients for the analyzer bars. Default is "Classic".
 
 The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default checked.
 
-Unchecking this option will use a linear distribution of frequencies in the horizontal axis. Select a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
+Unchecking this option will use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
 
 ### Show scale
 
@@ -97,7 +97,7 @@ This option toggles the display of the frequency scale. Default checked.
 
 ### High sensitivity
 
-Check this option to increase the analyzer sensitivity and improve the visualization of low volume songs. Default unchecked.
+Check this option to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default unchecked.
 
 ### Show peaks
 
@@ -118,7 +118,6 @@ Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic 
 
 * [cookies.js](https://github.com/madmurphy/cookies.js) licensed under [GPL 3.0](http://www.gnu.org/licenses/gpl-3.0-standalone.html)
 * Icons provided by [Font Awesome Free](https://fontawesome.com/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-
 * audioMotion.js was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
 * [WebAudio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 * [WebAudio API Specification](https://webaudio.github.io/web-audio-api/)
