@@ -136,7 +136,8 @@
 				</select>
 				<input type="button" value=" LOAD " onclick="javascript:loadPlaylist();">
 			</div>
-			<span class="playlist-label">Current playlist &nbsp;<i class="fas fa-angle-down"></i></span>
+			<span class="playlist-tab">Playlist</span>
+			<input type="checkbox" id="repeat"><span class="playlist-label">Repeat</span>
 			<input type="button" value="Shuffle" class="playlist-button" onclick="javascript:shufflePlaylist();">
 			<input type="button" value="Clear" class="playlist-button" onclick="javascript:clearPlaylist();">
 			<select id="playlist" size="10" onchange="javascript:playSong( this.selectedIndex );">

@@ -25,22 +25,26 @@ body {
 	width: 360px;
 }
 
+.playlist-tab,
+.playlist-button,
 .playlist-label {
+	font-size: 11px;
+	text-transform: uppercase;
+}
+
+.playlist-tab {
 	background-color: #888;
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
 	color: #fff;
 	display: inline-block;
-	font-size: 11px;
 	height: 20px;
-	padding: 10px;
-	text-transform: uppercase;
+	margin-right: 30px;
+	padding: 10px 20px;
 }
 
 .playlist-button {
-	font-size: 11px;
-	margin-left: 50px;
-	text-transform: uppercase;
+	margin-left: 30px;
 	width: 100px;
 }
 

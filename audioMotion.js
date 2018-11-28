@@ -560,6 +560,8 @@ function initialize() {
 		// song ended, skip to next one if available
 		if ( playlistPos < playlist.length - 1 )
 			playSong( playlistPos + 1 );
+		else if ( document.getElementById('repeat').checked )
+			playSong( 0 );
 		else
 			loadSong( 0 );
 	});
