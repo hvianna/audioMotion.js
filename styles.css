@@ -3,16 +3,16 @@ body {
 	margin: 0;
 }
 
-#c, #player {
+#canvas, #player {
 	display: block;
 	width: 100%;
 }
 
-#c {
+#canvas {
 	height: 540px;
 }
 
-#c:-webkit-full-screen {
+#canvas:-webkit-full-screen {
 	height: auto;
 }
 

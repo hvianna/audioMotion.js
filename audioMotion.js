@@ -2,6 +2,8 @@
  * audioMotion.js
  * A real-time graphic spectrum analyzer and audio player using WebAudio API and canvas
  *
+ * https://github.com/hvianna/audioMotion.js
+ *
  * Copyright (C) 2018 Henrique Vianna <hvianna@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,7 +22,6 @@
 var _VERSION = '18.11-RC';
 
 
-
 /**
  * Global variables
  */
@@ -31,7 +32,7 @@ var playlist, playlistPos,
 	posx, peaks, hold, gravity,
 	iMin, iMax, deltaX, bandWidth,
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
-	c, canvasCtx, gradients, pixelRatio;
+	canvas, canvasCtx, gradients, pixelRatio;
 
 /**
  * Default options
@@ -53,14 +54,14 @@ var defaults = {
  * Display the canvas in full-screen mode
  */
 function fullscreen() {
-	if ( c.requestFullscreen )
-		c.requestFullscreen();
-	else if ( c.webkitRequestFullscreen )
-		c.webkitRequestFullscreen();
-	else if ( c.mozRequestFullScreen )
-		c.mozRequestFullScreen();
-	else if ( c.msRequestFullscreen )
-		c.msRequestFullscreen();
+	if ( canvas.requestFullscreen )
+		canvas.requestFullscreen();
+	else if ( canvas.webkitRequestFullscreen )
+		canvas.webkitRequestFullscreen();
+	else if ( canvas.mozRequestFullScreen )
+		canvas.mozRequestFullScreen();
+	else if ( canvas.msRequestFullscreen )
+		canvas.msRequestFullscreen();
 }
 
 /**
@@ -154,11 +155,11 @@ function preCalcPosX() {
 
 	if ( cfgLogScale.checked ) {
 		deltaX = Math.log10( fMin );
-		bandWidth = c.width / ( Math.log10( fMax ) - deltaX );
+		bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 	}
 	else {
 		deltaX = iMin;
-		bandWidth = c.width / ( iMax - iMin + 1 );
+		bandWidth = canvas.width / ( iMax - iMin + 1 );
 	}
 
 	for ( var i = 0; i < bufferLength; i++ ) {
@@ -190,7 +191,7 @@ function drawScale() {
 
 	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.fillStyle = '#000';
-	canvasCtx.fillRect( 0, c.height - 20 * pixelRatio, c.width, 20 * pixelRatio );
+	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
 
 	if ( ! cfgShowScale.checked )
 		return;
@@ -223,10 +224,10 @@ function drawScale() {
 				label = freq / 1000 + 'k';
 			else
 				label = String( freq );
-			canvasCtx.fillText( label, posX > 10 * pixelRatio ? posX - label.length * 2.75 * pixelRatio : posX, c.height - 5 * pixelRatio );
+			canvasCtx.fillText( label, posX > 10 * pixelRatio ? posX - label.length * 2.75 * pixelRatio : posX, canvas.height - 5 * pixelRatio );
 		}
 		else
-			canvasCtx.fillRect( posX, c.height - 5 * pixelRatio, 1, -10 * pixelRatio );
+			canvasCtx.fillRect( posX, canvas.height - 5 * pixelRatio, 1, -10 * pixelRatio );
 
 		freq += incr;
 	}
@@ -461,7 +462,7 @@ function draw() {
 		canvasCtx.fillStyle = '#111';
 	else
 		canvasCtx.fillStyle = '#0e172a';
-	canvasCtx.fillRect( 0, 0, c.width, c.height );
+	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
 
 	// get a new array of data from the FFT
 	analyser.getByteFrequencyData( dataArray );
@@ -471,7 +472,7 @@ function draw() {
 	barWidth = ( ! cfgLogScale.checked && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
 	for ( var i = iMin; i <= iMax; i++ ) {
-		barHeight = dataArray[i] / 255 * c.height;
+		barHeight = dataArray[i] / 255 * canvas.height;
 
 		if ( barHeight > peaks[i] ) {
 			peaks[i] = barHeight;
@@ -482,11 +483,11 @@ function draw() {
 		canvasCtx.fillStyle = gradients[ grad ];
 
 		if ( posx[ i ] >= 0 ) {	// ignore negative positions
-			canvasCtx.fillRect( posx[ i ], c.height, barWidth, -barHeight );
+			canvasCtx.fillRect( posx[ i ], canvas.height, barWidth, -barHeight );
 			if ( cfgShowPeaks.checked && peaks[i] > 0 ) {
-				canvasCtx.fillRect( posx[ i ], c.height - peaks[i], barWidth, 2 );
+				canvasCtx.fillRect( posx[ i ], canvas.height - peaks[i], barWidth, 2 );
 // debug/calibration - show frequency for each bar (warning: super slow!)
-//				canvasCtx.fillText( String( i * audioCtx.sampleRate / analyser.fftSize ), posx[ i ], c.height - peaks[i] - 5 );
+//				canvasCtx.fillText( String( i * audioCtx.sampleRate / analyser.fftSize ), posx[ i ], canvas.height - peaks[i] - 5 );
 			}
 			if ( peaks[i] > 0 ) {
 				if ( hold[i] )
@@ -624,26 +625,26 @@ function initialize() {
 
 	// canvas
 
-	c = document.getElementById('c');
+	canvas = document.getElementById('canvas');
 
 	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
 
 	// Adjust canvas width and height to match the display's resolution
-	c.width = window.screen.width * pixelRatio;
-	c.height = window.screen.height * pixelRatio;
+	canvas.width = window.screen.width * pixelRatio;
+	canvas.height = window.screen.height * pixelRatio;
 
 	// Always consider landscape orientation
-	if ( c.height > c.width ) {
-		var tmp = c.width;
-		c.width = c.height;
-		c.height = tmp;
+	if ( canvas.height > canvas.width ) {
+		var tmp = canvas.width;
+		canvas.width = canvas.height;
+		canvas.height = tmp;
 	}
 
-	consoleLog( 'Canvas size is ' + c.width + 'x' + c.height + ' pixels' );
+	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels' );
 
-	canvasCtx = c.getContext('2d');
+	canvasCtx = canvas.getContext('2d');
 	canvasCtx.fillStyle = '#000';
-	canvasCtx.fillRect(0, 0, c.width, c.height);
+	canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// create gradients
 
@@ -651,26 +652,26 @@ function initialize() {
 	var grad;
 
 	// Classic
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, c.height );
+	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 	grad.addColorStop( .1, 'hsl( 0, 100%, 50% )' );
 	grad.addColorStop( .6, 'hsl( 60, 100%, 50% )' );
 	grad.addColorStop( 1, 'hsl( 120, 100%, 50% )' );
 	gradients.push( grad );
 
 	// Aurora
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, c.height );
+	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 	grad.addColorStop( .1, 'hsl( 120, 100%, 50% )' );
 	grad.addColorStop( 1, 'hsl( 216, 100%, 50% )' ); // 268
 	gradients.push( grad );
 
 	// Dusk
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, c.height );
+	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 	grad.addColorStop( .2, 'hsl(55, 100%, 50%)' );
 	grad.addColorStop( 1, 'hsl(16, 100%, 50%)' );
 	gradients.push( grad );
 
 	// Rainbow
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, c.height );
+	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 	for ( var i = 0; i <= 230; i += 15 )
 		grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
 	gradients.push( grad );
