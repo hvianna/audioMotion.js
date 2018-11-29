@@ -458,7 +458,7 @@ function draw() {
 		grad = cfgGradient[ cfgGradient.selectedIndex ].value;
 
 	// clear the canvas
-	if ( grad == 0 || grad == 3 )
+	if ( grad == 0 || grad == 4 )
 		canvasCtx.fillStyle = '#111';
 	else
 		canvasCtx.fillStyle = '#0e172a';
@@ -661,7 +661,13 @@ function initialize() {
 	// Aurora
 	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 	grad.addColorStop( .1, 'hsl( 120, 100%, 50% )' );
-	grad.addColorStop( 1, 'hsl( 216, 100%, 50% )' ); // 268
+	grad.addColorStop( 1, 'hsl( 216, 100%, 50% )' );
+	gradients.push( grad );
+
+	// Aurora 2
+	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
+	grad.addColorStop( .1, 'hsl( 120, 100%, 50% )' );
+	grad.addColorStop( 1, 'hsl( 320, 100%, 50% )' );
 	gradients.push( grad );
 
 	// Dusk
