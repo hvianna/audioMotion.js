@@ -1,6 +1,6 @@
 /**
  * audioMotion.js
- * A real-time graphic spectrum analyzer and audio player using WebAudio API and canvas
+ * A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -38,15 +38,15 @@ var playlist, playlistPos,
  * Default options
  */
 var defaults = {
-	fftSize		: 4,		// 0 to 6 for [ 512, 1024, 2048, 4096, 8192, 16384, 32768] - number of FFT samples
-	freqMin		: 0,		// 0 to 5 for [ 20, 40, 50, 100, 500, 1k  ] - lowest frequency represented in the x-axis
-	freqMax		: 4,		// 0 to 5 for [ 1k, 2k, 5k, 10k, 16k, 22k ] - highest frequency represented in the x-axis
-	smoothing	: 0.5,		// 0 to 0.9 in .1 steps - smoothing time constant
-	gradient	: 0,		// 0 to 3 for [ classic, aurora, dusk, rainbow ] - color gradient used for the analyzer bars
-	showScale 	: true,		// true or false - show x-axis scale?
-	logScale	: true,		// true or false - use logarithmic scale?
-	highSens	: false,	// true or false - high sensitivity?
-	showPeaks 	: true		// true or false - show peaks?
+	fftSize		: 4,		// index of #fft_size select element
+	freqMin		: 0,		// index of #freq_min select element
+	freqMax		: 4,		// index of #freq_max select element
+	smoothing	: 0.5,		// 0 to 0.9 - smoothing time constant
+	gradient	: 0,		// index of #gradient select element
+	showScale 	: true,		// true to show x-axis scale
+	logScale	: true,		// true to use logarithmic scale
+	highSens	: false,	// true for high sensitivity
+	showPeaks 	: true		// true to show peaks
 }
 
 
@@ -455,13 +455,10 @@ function isPlaying() {
 function draw() {
 
 	var barWidth, barHeight,
-		grad = cfgGradient[ cfgGradient.selectedIndex ].value;
+		grad = cfgGradient.selectedIndex;
 
-	// clear the canvas
-	if ( grad == 0 || grad == 4 )
-		canvasCtx.fillStyle = '#111';
-	else
-		canvasCtx.fillStyle = '#0e172a';
+	// clear the canvas, using the background color stored in the selected gradient option
+	canvasCtx.fillStyle = cfgGradient[ grad ].value;
 	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
 
 	// get a new array of data from the FFT
@@ -532,7 +529,7 @@ function setSource() {
 				audioElement.pause();
 			sourceMic.connect( analyser );
 		}
-		else { // if sourceMic is not set yet, ask user's permission to the microphone
+		else { // if sourceMic is not set yet, ask user's permission to use the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
 			.then( function( stream ) {
 				sourceMic = audioCtx.createMediaStreamSource( stream );
@@ -649,38 +646,66 @@ function initialize() {
 	// create gradients
 
 	gradients = [];
-	var grad;
 
-	// Classic
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-	grad.addColorStop( .1, 'hsl( 0, 100%, 50% )' );
-	grad.addColorStop( .6, 'hsl( 60, 100%, 50% )' );
-	grad.addColorStop( 1, 'hsl( 120, 100%, 50% )' );
-	gradients.push( grad );
+	var gradinfo = [
+		// gradient name, background color, and color stops
+		{ name: 'Classic', bg: '#111', colorstops: [
+				{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
+				{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
+				{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
+		] },
+		{ name: 'Aurora 1', bg: '#0e172a', colorstops: [
+				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
+		] },
+		{ name: 'Aurora 2', bg: '#0e172a', colorstops: [
+				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ stop:  1, color: 'hsla( 320, 100%, 50%, .4 )' }
+		] },
+		{ name: 'Aurora 3', bg: '#0e172a', colorstops: [
+				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ stop: .7, color: 'hsla( 189, 100%, 50%, .8 )' },
+				{ stop:  1, color: 'hsla( 245, 80%, 50%, .4 )' }
+		] },
+		{ name: 'Aurora 4', bg: '#0e172a', colorstops: [
+				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ stop: .5, color: 'hsl( 189, 100%, 40% )' },
+				{ stop:  1, color: 'hsl( 290, 60%, 40% )' }
+		] },
+		{ name: 'Dusk', bg: '#0e172a', colorstops: [
+				{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
+				{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
+		] }
+	];
 
-	// Aurora
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-	grad.addColorStop( .1, 'hsl( 120, 100%, 50% )' );
-	grad.addColorStop( 1, 'hsl( 216, 100%, 50% )' );
-	gradients.push( grad );
+	var grad, i, j;
 
-	// Aurora 2
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-	grad.addColorStop( .1, 'hsl( 120, 100%, 50% )' );
-	grad.addColorStop( 1, 'hsl( 320, 100%, 50% )' );
-	gradients.push( grad );
+	cfgGradient = document.getElementById('gradient');
 
-	// Dusk
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-	grad.addColorStop( .2, 'hsl(55, 100%, 50%)' );
-	grad.addColorStop( 1, 'hsl(16, 100%, 50%)' );
-	gradients.push( grad );
+	for ( i = 0; i < gradinfo.length; i++ ) {
+		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
+		for ( j = 0; j < gradinfo[ i ].colorstops.length; j++ )
+			grad.addColorStop( gradinfo[ i ].colorstops[ j ].stop, gradinfo[ i ].colorstops[ j ].color );
+		// add the option to the html select element
+		// we'll know which gradient to use by the selectedIndex - bg color is stored in the option value
+		cfgGradient.options[ i ] = new Option( gradinfo[ i ].name, gradinfo[ i ].bg );
+		// push the actual gradient into the gradients array
+		gradients.push( grad );
+	}
 
-	// Rainbow
+	// Rainbow gradients are easily created iterating over the hue value
+
 	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-	for ( var i = 0; i <= 230; i += 15 )
+	for ( i = 0; i <= 230; i += 15 )
 		grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
 	gradients.push( grad );
+	cfgGradient.options[ cfgGradient.options.length ] = new Option( 'Rainbow', '#111' );
+
+	grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 );
+	for ( i = 0; i <= 360; i += 15 )
+		grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
+	gradients.push( grad );
+	cfgGradient.options[ cfgGradient.options.length ] = new Option( 'Rainbow 2', '#111' );
 
 
 	// visualizer configuration
@@ -714,7 +739,6 @@ function initialize() {
 	setSmoothing();
 
 	cookie = docCookies.getItem( 'gradient' );
-	cfgGradient = document.getElementById('gradient');
 	cfgGradient.selectedIndex = ( cookie !== null ) ? cookie : defaults.gradient;
 
 	cookie = docCookies.getItem( 'highSens' );

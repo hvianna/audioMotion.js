@@ -1,16 +1,15 @@
 audioMotion.js
 ==============
 
-A real-time graphic spectrum analyzer and audio player using WebAudio API and canvas.
+A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs.
 
 ## Features
 
-* Beautiful high-resolution graphic spectrum analyzer with fullscreen display
-* Customizable logarithmic scale, for improved visualization of specific frequency ranges
+* Beautiful high-resolution (retina / HiDPI ready) graphic spectrum analyzer with fullscreen display
+* Customizable logarithmic frequency scale, for improved visualization of specific ranges
 * Customizable WebAudio API parameters (FFT size, sensitivity and time-smoothing)
 * HTML5 audio player with playlist support
-* You can also visualize audio input from your microphone, or "stereo mix" if your soundcard supports it
-* Native JavaScript, with no external libraries or dependencies
+* Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)
 
 ## Demo
 
@@ -116,14 +115,15 @@ Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic 
 
 ## References and acknowledgments
 
-* [cookies.js](https://github.com/madmurphy/cookies.js) licensed under [GPL 3.0](http://www.gnu.org/licenses/gpl-3.0-standalone.html)
-* Icons provided by [Font Awesome Free](https://fontawesome.com/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 * audioMotion.js was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
 * [WebAudio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 * [WebAudio API Specification](https://webaudio.github.io/web-audio-api/)
+* [HTML Canvas Reference @W3Schools](https://www.w3schools.com/tags/ref_canvas.asp)
 * [What does the FFT data in the Web Audio API correspond to?](https://stackoverflow.com/a/14789992/2370385)
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
+* [cookies.js](https://github.com/madmurphy/cookies.js) licensed under [GPL 3.0](http://www.gnu.org/licenses/gpl-3.0-standalone.html)
+* [Font Awesome Free](https://fontawesome.com/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ## Song credits
 
