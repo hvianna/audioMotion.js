@@ -17,7 +17,9 @@ https://hvianna.github.io/audioMotion.js/
 
 ## Usage
 
-Since JavaScript can't read files directly from the client's hard disk, you'll need to set up a local web server in order to actually play your own music. The easiest way to do this is by using [Docker](https://www.docker.com/). Once you have Docker installed and running, simply open a command prompt in the folder where you downloaded audioMotion.js to and run:
+**audioMotion.js** lets you play music from playlists previously registered in the `playlists.cfg` file (see next topic for details). On Firefox you may be able to simply open the index.html and load playlists and music files located inside audioMotion's folder. If you use Chrome, or want to play music from another folder or hard disk, you'll need to set up a local web server.
+
+The easiest way to do this is by using [Docker](https://www.docker.com/). Once you have Docker installed and running, simply open a command prompt in the folder where you downloaded audioMotion.js to, and run:
 
 `docker-compose up -d`
 
@@ -30,8 +32,6 @@ The provided configuration file maps the folder "music" in your user directory t
 ```
 
 and change `~/music` for your desired local path, for example `j:\media\music` or `/j/media/music`. On Windows, if you're using a drive other than C: you might need to add it to the shared drives in Docker's configuration.
-
-You can add your own playlists to the `playlists.cfg` file, so you can easily load songs into audioMotion.
 
 ## Playlists
 
