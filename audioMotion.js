@@ -526,6 +526,7 @@ function setSource() {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
 				audioElement.pause();
+			sourcePlayer.disconnect( analyser );
 			sourceMic.connect( analyser );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
@@ -544,6 +545,8 @@ function setSource() {
 		}
 	}
 	else {
+		if ( typeof sourceMic == 'object' )
+			sourceMic.disconnect( analyser );
 		sourcePlayer.connect( analyser );
 		consoleLog( 'Audio source set to built-in player' );
 	}
