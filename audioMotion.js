@@ -30,7 +30,7 @@ var playlist, playlistPos,
 	cfgSource, cfgFFTsize, cfgRangeMin, cfgRangeMax, cfgSmoothing,
 	cfgGradient, cfgShowScale, cfgLogScale, cfgHighSens, cfgShowPeaks, cfgPlaylists,
 	bufferLength, dataArray,
-	posx, peaks, hold, gravity,
+	posx, peaks, hold, accel,
 	iMin, iMax, deltaX, bandWidth,
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
 	canvas, canvasCtx, gradients, pixelRatio;
@@ -100,10 +100,6 @@ function setFFTsize() {
 	bufferLength = analyser.frequencyBinCount;
 	dataArray = new Uint8Array( bufferLength );
 
-	peaks = new Array( bufferLength ).fill(0);
-	hold = new Array( bufferLength ).fill(30);
-	gravity = new Array( bufferLength ).fill(0);
-
 	consoleLog( 'FFT size is ' + analyser.fftSize + ' samples' );
 	docCookies.setItem( 'fftSize', cfgFFTsize.selectedIndex, Infinity );
 
@@ -146,13 +142,18 @@ function setShowPeaks() {
 function preCalcPosX() {
 
 	var freq,
-		posant = -1,
+		lastPos = -1,
 		fMin = cfgRangeMin[ cfgRangeMin.selectedIndex ].value,
 		fMax = cfgRangeMax[ cfgRangeMax.selectedIndex ].value;
 
 	// indexes corresponding to the frequency range we want to visualize in the data array returned by the FFT
 	iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate );
 	iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
+
+	// value, hold time and acceleration for each frequency peak
+	peaks = new Array();
+	hold = new Array();
+	accel = new Array();
 
 	if ( cfgLogScale.checked ) {
 		deltaX = Math.log10( fMin );
@@ -163,21 +164,19 @@ function preCalcPosX() {
 		bandWidth = canvas.width / ( iMax - iMin + 1 );
 	}
 
-	for ( var i = 0; i < bufferLength; i++ ) {
-		// find which frequency is represented in this bin
-		freq = i * audioCtx.sampleRate / analyser.fftSize;
-
-		// for a sharper look, we avoid fractionary pixel values
-		if ( cfgLogScale.checked )
-			posx[ i ] = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) );
+	for ( var i = iMin; i <= iMax; i++ ) {
+		if ( cfgLogScale.checked ) {
+			freq = i * audioCtx.sampleRate / analyser.fftSize; // find which frequency is represented in this bin
+			posx[ i ] = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
+		}
 		else
 			posx[ i ] = Math.round( bandWidth * ( i - deltaX ) );
 
 		// ignore overlapping positions for improved performance
-		if ( posx[ i ] == posant )
+		if ( posx[ i ] == lastPos )
 			posx[ i ] = -1;
 		else
-			posant = posx[ i ];
+			lastPos = posx[ i ];
 	}
 
 	drawScale();
@@ -465,34 +464,33 @@ function draw() {
 	// get a new array of data from the FFT
 	analyser.getByteFrequencyData( dataArray );
 
-	// in the linear scale each frequency gets an equal portion of the canvas,
-	// so we show wider bars when possible
+	// for log scale, bar width is always 1; for linear scale we show wider bars when possible
 	barWidth = ( ! cfgLogScale.checked && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
 	for ( var i = iMin; i <= iMax; i++ ) {
-		barHeight = dataArray[i] / 255 * canvas.height;
+		barHeight = dataArray[ i ] / 255 * canvas.height;
 
-		if ( barHeight > peaks[i] ) {
-			peaks[i] = barHeight;
-			hold[i] = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
-			gravity[i] = 0;
+		if ( peaks[ i ] === undefined || barHeight > peaks[ i ] ) {
+			peaks[ i ] = barHeight;
+			hold[ i ] = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
+			accel[ i ] = 0;
 		}
 
 		canvasCtx.fillStyle = gradients[ grad ];
 
 		if ( posx[ i ] >= 0 ) {	// ignore negative positions
 			canvasCtx.fillRect( posx[ i ], canvas.height, barWidth, -barHeight );
-			if ( cfgShowPeaks.checked && peaks[i] > 0 ) {
-				canvasCtx.fillRect( posx[ i ], canvas.height - peaks[i], barWidth, 2 );
+			if ( cfgShowPeaks.checked && peaks[ i ] > 0 ) {
+				canvasCtx.fillRect( posx[ i ], canvas.height - peaks[ i ], barWidth, 2 );
 // debug/calibration - show frequency for each bar (warning: super slow!)
 //				canvasCtx.fillText( String( i * audioCtx.sampleRate / analyser.fftSize ), posx[ i ], canvas.height - peaks[i] - 5 );
 			}
-			if ( peaks[i] > 0 ) {
-				if ( hold[i] )
-					hold[i]--;
+			if ( peaks[ i ] > 0 ) {
+				if ( hold[ i ] )
+					hold[ i ]--;
 				else {
-					peaks[i] -= gravity[i];
-					gravity[i] += .5;
+					accel[ i ]++;
+					peaks[ i ] -= accel[ i ];
 				}
 			}
 		}
