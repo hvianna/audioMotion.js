@@ -288,6 +288,10 @@ function loadPlaylist() {
 		tmplist, ext,
 		n = 0;
 
+	// fix for suspended audio context on Safari
+	if ( audioCtx.state == 'suspended' )
+		audioCtx.resume();
+
 	if ( ! path )
 		return;
 
@@ -615,12 +619,6 @@ function initialize() {
 	sourcePlayer = audioCtx.createMediaElementSource( audioElement );
 	sourcePlayer.connect( analyser );
 	analyser.connect( audioCtx.destination );
-
-	// fix for iOS suspended audio context
-	window.addEventListener( 'touchstart', function() {
-		if ( audioCtx.state == 'suspended' )
-			audioCtx.resume();
-	});
 
 	// canvas
 
