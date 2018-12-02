@@ -3,6 +3,8 @@ audioMotion.js
 
 A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs.
 
+[![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
+
 ## Features
 
 * Beautiful high-resolution (retina / HiDPI ready) graphic spectrum analyzer with fullscreen display
