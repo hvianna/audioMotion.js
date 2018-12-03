@@ -68,9 +68,9 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration options
 
-![config-bar](img/configuration-bar.png "configuration options")
+Below is a brief description of the configuration options. Your preferences will be saved in browser cookies and restored the next time you open audioMotion.
 
-Below is a brief description of the configuration options. Your preferences are saved in browser cookies and restored the next time you open audioMotion.
+![config-bar](img/configuration-bar.png "Analyzer configuration options")
 
 ### FFT Size
 
@@ -88,25 +88,25 @@ Average constant used to smooth values between analysis frames. Lower values mak
 
 Several options of color gradients for the analyzer bars. Default is "Classic".
 
-### LOG (Logarithmic scale)
+### LOG button (Logarithmic scale)
 
 The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default on.
 
-Turning this option off will make audioMotion.js use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
+Turn this option off to make audioMotion.js use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
 
-### SCALE (Show scale)
+### SCALE button (Toggle scale)
 
 This option toggles the display of the frequency scale. Default on.
 
-Clicking on the canvas will also toggle the display of the frequency scale. Useful when you're on fullscreen mode.
+Clicking on the canvas will also toggle the scale. Useful when you're on fullscreen mode.
 
-### HI-SENS (High sensitivity)
+### HI-SENS button (High sensitivity)
 
-Check this option to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default off.
+Turn this option on to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default off.
 
-### PEAKS (Show peaks)
+### PEAKS button (Show peaks)
 
-Check this option to retain each frequency volume peak on screen for a short time. Default on.
+Turn this option on to retain volume peaks on screen for a short time. Default on.
 
 ## Screenshots
 
