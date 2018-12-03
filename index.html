@@ -108,25 +108,24 @@
 			</select>
 		</div>
 
-		<div>
-			<div class="switch" onclick="javascript:toggleCheckbox(this);setScale();">
-				<input type="checkbox" id="log_scale">
+		<ul class="switch-bar">
+			<li class="switch">
+				<input type="checkbox" id="log_scale" onclick="javascript:setScale();">
 				Log
-				<span class="tooltip">The logarithmic scale provides much better visualization of lower frequencies. Keep this checked if you wanna see that bass moving!</span>
-			</div><div class="switch" onclick="javascript:toggleCheckbox(this);setScale();">
-				<input type="checkbox" id="show_scale">
+				<span class="tooltip">Use a logarithmic scale to enhance visualization of low frequencies</span>
+			<li class="switch">
+				<input type="checkbox" id="show_scale" onclick="javascript:setScale();">
 				Scale
 				<span class="tooltip">Show / hide the frequency scale</span>
-			</div><div class="switch" onclick="javascript:toggleCheckbox(this);setSensitivity();">
-				<input type="checkbox" id="sensitivity">
+			<li class="switch">
+				<input type="checkbox" id="sensitivity" onclick="javascript:setSensitivity();">
 				Hi-sens
-				<span class="tooltip">Check this to improve visualization of songs too quiet.</span>
-			</div><div class="switch" onclick="javascript:toggleCheckbox(this);setShowPeaks();">
-				<input type="checkbox" id="show_peaks">
+				<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
+			<li class="switch">
+				<input type="checkbox" id="show_peaks" onclick="javascript:setShowPeaks();">
 				Peaks
-				<span class="tooltip">Show value peaks for each frequency.</span>
-			</div>
-		</div>
+				<span class="tooltip">Show volume peaks for each frequency</span>
+		</ul>
 	</div>
 
 	<div class="config-block">
@@ -138,7 +137,12 @@
 				<input type="button" value=" LOAD " onclick="javascript:loadPlaylist();">
 			</div>
 			<span class="playlist-tab">Playlist</span>
-			<input type="checkbox" id="repeat"><span class="playlist-label">Repeat</span>
+			<ul class="switch-bar">
+				<li class="switch">
+					<input type="checkbox" id="repeat">
+					Repeat
+				</li>
+			</ul>
 			<input type="button" value="Shuffle" class="playlist-button" onclick="javascript:shufflePlaylist();">
 			<input type="button" value="Clear" class="playlist-button" onclick="javascript:clearPlaylist();">
 			<select id="playlist" size="10" onchange="javascript:playSong( this.selectedIndex );">

@@ -78,7 +78,6 @@ function setSensitivity() {
 		analyser.maxDecibels = -25;
 	}
 	docCookies.setItem( 'highSens', Number( cfgHighSens.checked ), Infinity );
-	toggleSwitch( cfgHighSens );
 }
 
 /**
@@ -122,8 +121,6 @@ function setFreqRange() {
 function setScale() {
 	docCookies.setItem( 'showScale', Number( cfgShowScale.checked ), Infinity );
 	docCookies.setItem( 'logScale', Number( cfgLogScale.checked ), Infinity );
-	toggleSwitch( cfgShowScale );
-	toggleSwitch( cfgLogScale );
 	preCalcPosX();
 }
 
@@ -132,7 +129,6 @@ function setScale() {
  */
 function setShowPeaks() {
 	docCookies.setItem( 'showPeaks', Number( cfgShowPeaks.checked ), Infinity );
-	toggleSwitch( cfgShowPeaks );
 }
 
 /**
@@ -569,7 +565,7 @@ function setGradient() {
  */
 function toggleCheckbox( elem ) {
 	var elCheckbox = elem.getElementsByTagName('input')[0];
-	elCheckbox.checked = ! elCheckbox.checked;
+	elCheckbox.click();
 }
 
 /**
@@ -724,6 +720,18 @@ function initialize() {
 	gradients.push( grad );
 	cfgGradient.options[ cfgGradient.options.length ] = new Option( 'Rainbow 2', '#111' );
 
+	// Add event listeners to the custom checkboxes
+
+	var switches = document.querySelectorAll('.switch');
+	for ( i = 0; i < switches.length; i++ ) {
+		switches[ i ].addEventListener( 'click', function( e ) {
+			if ( e.target && e.target.matches('.switch') )
+				toggleCheckbox( e.target );
+		});
+		switches[ i ].getElementsByTagName('input')[0].addEventListener( 'click', function( e ) {
+			toggleSwitch( e.target );
+		});
+	}
 
 	// visualizer configuration
 
@@ -740,10 +748,12 @@ function initialize() {
 	cookie = docCookies.getItem( 'logScale' );
 	cfgLogScale = document.getElementById('log_scale');
 	cfgLogScale.checked = ( cookie !== null ) ? Number( cookie ) : defaults.logScale;
+	toggleSwitch( cfgLogScale );
 
 	cookie = docCookies.getItem( 'showScale' );
 	cfgShowScale = document.getElementById('show_scale');
 	cfgShowScale.checked = ( cookie !== null ) ? Number( cookie ) : defaults.showScale;
+	toggleSwitch( cfgShowScale );
 
 	cookie = docCookies.getItem( 'fftSize' );
 	cfgFFTsize = document.getElementById('fft_size');
@@ -762,10 +772,12 @@ function initialize() {
 	cfgHighSens = document.getElementById('sensitivity');
 	cfgHighSens.checked = ( cookie !== null ) ? Number( cookie ) : defaults.highSens;
 	setSensitivity();
+	toggleSwitch( cfgHighSens );
 
 	cookie = docCookies.getItem( 'showPeaks' );
 	cfgShowPeaks = document.getElementById('show_peaks');
 	cfgShowPeaks.checked = ( cookie !== null ) ? Number( cookie ) : defaults.showPeaks;
+	toggleSwitch( cfgShowPeaks );
 
 	// set audio source to built-in player
 	setSource();

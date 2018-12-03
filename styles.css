@@ -111,13 +111,21 @@ input[type="range"] {
 	display: block;
 }
 
+.switch-bar {
+	display: inline-block;
+	margin: 0;
+	padding: 0;
+}
 .switch {
 	border: 1px solid #ccc;
 	border-left-width: 0;
+	cursor: pointer;
 	display: inline-block;
+	font-size: 11px;
 	padding: 4px;
 	position: relative;
 	text-align: center;
+	text-transform: uppercase;
 	width: 45px;
 }
 .switch input {
