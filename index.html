@@ -53,7 +53,7 @@
 
 	<div class="main-config config-block">
 		<div>
-			<span class="help">FFT size:
+			<span class="help"><span class="config-label">FFT size:</span>
 				<span class="tooltip">
 				Number of samples used for the FFT. Larger values will provide greater detail on lower frequencies,
 				but will require more CPU power.
@@ -71,7 +71,7 @@
 		</div>
 
 		<div>
-			Range:
+			<span class="config-label">Range:</span>
 			<select id="freq_min" onchange="javascript:setFreqRange();">
 				<option value="20">20</option>
 				<option value="40">40</option>
@@ -93,9 +93,9 @@
 		</div>
 
 		<div>
-			<span class="help">Smoothing:
+			<span class="help"><span class="config-label">Smoothing:</span>
 				<span class="tooltip">
-				Lower values may produce better	results for faster tempo songs.
+				Lower values make the analyzer respond faster to changes.
 				Increase it if the animation looks too "jumpy".
 				</span>
 			</span>
@@ -103,7 +103,7 @@
 		</div>
 
 		<div>
-			Gradient:
+			<span class="config-label">Gradient:</span>
 			<select id="gradient" onchange="javascript:setGradient();">
 			</select>
 		</div>
@@ -113,10 +113,10 @@
 				<span class="tooltip">Use a logarithmic scale to enhance visualization of low frequencies</span>
 			<li class="switch" id="show_scale">Scale
 				<span class="tooltip">Show / hide the frequency scale</span>
-			<li class="switch" id="sensitivity">Hi-sens
+			<li class="switch" id="sensitivity">Sens
 				<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
-			<li class="switch" id="show_peaks">Peaks
-				<span class="tooltip">Show volume peaks for each frequency</span>
+			<li class="switch" id="show_peaks">Peak
+				<span class="tooltip">Hold volume peaks on screen for a short time</span>
 		</ul>
 	</div>
 

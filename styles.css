@@ -40,7 +40,7 @@ input[type="range"] {
 
 .playlist-tab,
 .playlist-button,
-.playlist-label {
+.config-label {
 	font-size: 11px;
 	text-transform: uppercase;
 }
@@ -69,7 +69,6 @@ input[type="range"] {
 .main-config {
 	font-size: 11px;
 	margin: 10px 0 50px;
-	text-transform: uppercase;
 }
 .main-config select {
 	font-size: 11px;
@@ -159,6 +158,7 @@ input[type="range"] {
 	display: none;
 	padding: 10px;
 	position: absolute;
+	text-align: center;
 	text-transform: none;
 	top: 25px;
 	width: 200px;

@@ -82,7 +82,7 @@ The lowest and highest frequencies you want to see in the graphic spectrum analy
 
 ### Smoothing
 
-Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy". Default is 0.5.
+Average constant used to smooth values between analysis frames. Lower values make the analyzer respond faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy". Default is 0.5.
 
 ### Gradient
 
@@ -100,13 +100,13 @@ This option toggles the display of the frequency scale. Default on.
 
 Clicking on the canvas will also toggle the scale. Useful when you're on fullscreen mode.
 
-### HI-SENS button (High sensitivity)
+### SENS button (Sensitivity)
 
 Turn this option on to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default off.
 
-### PEAKS button (Show peaks)
+### PEAK button (Show peaks)
 
-Turn this option on to retain volume peaks on screen for a short time. Default on.
+Turn this option on to hold volume peaks on screen for a short time. Default on.
 
 ## Screenshots
 
