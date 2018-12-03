@@ -69,7 +69,7 @@ function fullscreen() {
  * Adjust the analyser's sensitivity
  */
 function setSensitivity() {
-	if ( cfgHighSens.checked ) {
+	if ( cfgHighSens.dataset.active == '1' ) {
 		analyser.minDecibels = -100; // WebAudio API defaults
 		analyser.maxDecibels = -30;
 	}
@@ -77,7 +77,7 @@ function setSensitivity() {
 		analyser.minDecibels = -85;
 		analyser.maxDecibels = -25;
 	}
-	docCookies.setItem( 'highSens', Number( cfgHighSens.checked ), Infinity );
+	docCookies.setItem( 'highSens', cfgHighSens.dataset.active, Infinity );
 }
 
 /**
@@ -119,8 +119,8 @@ function setFreqRange() {
  * Save scale preferences
  */
 function setScale() {
-	docCookies.setItem( 'showScale', Number( cfgShowScale.checked ), Infinity );
-	docCookies.setItem( 'logScale', Number( cfgLogScale.checked ), Infinity );
+	docCookies.setItem( 'showScale', cfgShowScale.dataset.active, Infinity );
+	docCookies.setItem( 'logScale', cfgLogScale.dataset.active, Infinity );
 	preCalcPosX();
 }
 
@@ -128,7 +128,7 @@ function setScale() {
  * Save show peaks preference
  */
 function setShowPeaks() {
-	docCookies.setItem( 'showPeaks', Number( cfgShowPeaks.checked ), Infinity );
+	docCookies.setItem( 'showPeaks', cfgShowPeaks.dataset.active, Infinity );
 }
 
 /**
@@ -150,7 +150,7 @@ function preCalcPosX() {
 	hold = new Array();
 	accel = new Array();
 
-	if ( cfgLogScale.checked ) {
+	if ( cfgLogScale.dataset.active == '1' ) {
 		deltaX = Math.log10( fMin );
 		bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 	}
@@ -160,7 +160,7 @@ function preCalcPosX() {
 	}
 
 	for ( var i = iMin; i <= iMax; i++ ) {
-		if ( cfgLogScale.checked ) {
+		if ( cfgLogScale.dataset.active == '1' ) {
 			freq = i * audioCtx.sampleRate / analyser.fftSize; // find which frequency is represented in this bin
 			posx[ i ] = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
 		}
@@ -188,7 +188,7 @@ function drawScale() {
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
 
-	if ( ! cfgShowScale.checked )
+	if ( cfgShowScale.dataset.active != '1' )
 		return;
 
 	canvasCtx.fillStyle = '#fff';
@@ -196,14 +196,14 @@ function drawScale() {
 	bands = [0, 20, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000];
 	freq = 0;
 
-	if ( cfgLogScale.checked )
+	if ( cfgLogScale.dataset.active == '1' )
 		incr = 10;
 	else
 		incr = 500;
 
 	while ( freq <= bands[ bands.length - 1 ] ) {
 
-		if ( cfgLogScale.checked ) {
+		if ( cfgLogScale.dataset.active == '1' ) {
 			posX = bandWidth * ( Math.log10( freq ) - deltaX );
 			if ( freq == 100 || freq == 1000 )
 				incr *= 10;
@@ -464,7 +464,7 @@ function draw() {
 	analyser.getByteFrequencyData( dataArray );
 
 	// for log scale, bar width is always 1; for linear scale we show wider bars when possible
-	barWidth = ( ! cfgLogScale.checked && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
+	barWidth = ( cfgLogScale.dataset.active != '1' && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
 	for ( var i = iMin; i <= iMax; i++ ) {
 		barHeight = dataArray[ i ] / 255 * canvas.height;
@@ -479,7 +479,7 @@ function draw() {
 
 		if ( posx[ i ] >= 0 ) {	// ignore negative positions
 			canvasCtx.fillRect( posx[ i ], canvas.height, barWidth, -barHeight );
-			if ( cfgShowPeaks.checked && peaks[ i ] > 0 ) {
+			if ( cfgShowPeaks.dataset.active == '1' && peaks[ i ] > 0 ) {
 				canvasCtx.fillRect( posx[ i ], canvas.height - peaks[ i ], barWidth, 2 );
 // debug/calibration - show frequency for each bar (warning: super slow!)
 //				canvasCtx.fillText( String( i * audioCtx.sampleRate / analyser.fftSize ), posx[ i ], canvas.height - peaks[i] - 5 );
@@ -495,7 +495,7 @@ function draw() {
 		}
 	}
 
-	if ( cfgShowScale.checked )
+	if ( cfgShowScale.dataset.active == '1' )
 		drawScale();
 
 	// schedule next canvas update
@@ -560,24 +560,6 @@ function setGradient() {
 	docCookies.setItem( 'gradient', cfgGradient.selectedIndex, Infinity );
 }
 
-/**
- * Toggle checkbox inside a switch div
- */
-function toggleCheckbox( elem ) {
-	var elCheckbox = elem.getElementsByTagName('input')[0];
-	elCheckbox.click();
-}
-
-/**
- * Set or remove active class from a switch div
- */
-function toggleSwitch( elem ) {
-	if ( elem.checked )
-		elem.closest('.switch').className="switch active";
-	else
-		elem.closest('.switch').className="switch";
-}
-
 
 /**
  * Initialization
@@ -618,7 +600,7 @@ function initialize() {
 		// song ended, skip to next one if available
 		if ( playlistPos < playlist.length - 1 )
 			playSong( playlistPos + 1 );
-		else if ( document.getElementById('repeat').checked )
+		else if ( document.getElementById('repeat').dataset.active == '1' )
 			playSong( 0 );
 		else
 			loadSong( 0 );
@@ -725,11 +707,7 @@ function initialize() {
 	var switches = document.querySelectorAll('.switch');
 	for ( i = 0; i < switches.length; i++ ) {
 		switches[ i ].addEventListener( 'click', function( e ) {
-			if ( e.target && e.target.matches('.switch') )
-				toggleCheckbox( e.target );
-		});
-		switches[ i ].getElementsByTagName('input')[0].addEventListener( 'click', function( e ) {
-			toggleSwitch( e.target );
+			e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
 		});
 	}
 
@@ -747,13 +725,13 @@ function initialize() {
 
 	cookie = docCookies.getItem( 'logScale' );
 	cfgLogScale = document.getElementById('log_scale');
-	cfgLogScale.checked = ( cookie !== null ) ? Number( cookie ) : defaults.logScale;
-	toggleSwitch( cfgLogScale );
+	cfgLogScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.logScale );
+	cfgLogScale.addEventListener( 'click', setScale );
 
 	cookie = docCookies.getItem( 'showScale' );
 	cfgShowScale = document.getElementById('show_scale');
-	cfgShowScale.checked = ( cookie !== null ) ? Number( cookie ) : defaults.showScale;
-	toggleSwitch( cfgShowScale );
+	cfgShowScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showScale );
+	cfgShowScale.addEventListener( 'click', setScale );
 
 	cookie = docCookies.getItem( 'fftSize' );
 	cfgFFTsize = document.getElementById('fft_size');
@@ -770,14 +748,14 @@ function initialize() {
 
 	cookie = docCookies.getItem( 'highSens' );
 	cfgHighSens = document.getElementById('sensitivity');
-	cfgHighSens.checked = ( cookie !== null ) ? Number( cookie ) : defaults.highSens;
+	cfgHighSens.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.highSens );
+	cfgHighSens.addEventListener( 'click', setSensitivity );
 	setSensitivity();
-	toggleSwitch( cfgHighSens );
 
 	cookie = docCookies.getItem( 'showPeaks' );
 	cfgShowPeaks = document.getElementById('show_peaks');
-	cfgShowPeaks.checked = ( cookie !== null ) ? Number( cookie ) : defaults.showPeaks;
-	toggleSwitch( cfgShowPeaks );
+	cfgShowPeaks.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showPeaks );
+	cfgShowPeaks.addEventListener( 'click', setShowPeaks );
 
 	// set audio source to built-in player
 	setSource();

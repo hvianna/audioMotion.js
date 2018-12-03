@@ -115,15 +115,16 @@ input[type="range"] {
 	display: inline-block;
 	margin: 0;
 	padding: 0;
+	position: relative;
 }
 .switch {
 	border: 1px solid #ccc;
 	border-left-width: 0;
+	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.4);
 	cursor: pointer;
 	display: inline-block;
 	font-size: 11px;
 	padding: 4px;
-	position: relative;
 	text-align: center;
 	text-transform: uppercase;
 	width: 45px;
@@ -140,9 +141,14 @@ input[type="range"] {
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 }
-.switch.active {
-	background: #f0f0f0;
+.switch[data-active="1"] {
+	background: #888;
 	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
+	color: #fff;
+}
+.switch:only-child[data-active="1"] {
+	background: #666;
+	color: #0f0;
 }
 
 .tooltip {
@@ -158,7 +164,8 @@ input[type="range"] {
 	width: 200px;
 }
 .switch .tooltip {
-	right: 0;
+	left: 0;
+	top: 30px;
 }
 
 #console {
