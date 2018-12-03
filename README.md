@@ -1,9 +1,9 @@
 audioMotion.js
 ==============
 
-A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs.
-
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
+
+A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs.
 
 ## Features
 
@@ -68,6 +68,8 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration options
 
+![config-bar](img/configuration-bar.png "configuration options")
+
 Below is a brief description of the configuration options. Your preferences are saved in browser cookies and restored the next time you open audioMotion.
 
 ### FFT Size
@@ -86,23 +88,25 @@ Average constant used to smooth values between analysis frames. Lower values mak
 
 Several options of color gradients for the analyzer bars. Default is "Classic".
 
-### Logarithmic scale
+### LOG (Logarithmic scale)
 
-The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default checked.
+The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default on.
 
-Unchecking this option will use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
+Turning this option off will make audioMotion.js use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
 
-### Show scale
+### SCALE (Show scale)
 
-This option toggles the display of the frequency scale. Default checked.
+This option toggles the display of the frequency scale. Default on.
 
-### High sensitivity
+Clicking on the canvas will also toggle the display of the frequency scale. Useful when you're on fullscreen mode.
 
-Check this option to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default unchecked.
+### HI-SENS (High sensitivity)
 
-### Show peaks
+Check this option to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default off.
 
-Check this option to retain each frequency peak value on screen for a short time. Default checked.
+### PEAKS (Show peaks)
+
+Check this option to retain each frequency volume peak on screen for a short time. Default on.
 
 ## Screenshots
 
