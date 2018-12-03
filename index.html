@@ -109,30 +109,23 @@
 		</div>
 
 		<div>
-			<input type="checkbox" id="log_scale" onchange="javascript:setScale();">
-			<span class="help">Logarithmic scale
-				<span class="tooltip">
-				The logarithmic scale provides much better visualization of lower frequencies. Keep this checked
-				if you wanna see that bass moving!
-				</span>
-			</span>
-		</div>
-
-		<div>
-			<input type="checkbox" id="show_scale" onchange="javascript:setScale();"> Show scale
-		</div>
-
-		<div>
-			<input type="checkbox" id="sensitivity" onchange="javascript:setSensitivity();">
-			<span class="help">High sensitivity
-				<span class="tooltip">
-				Check this to improve visualization of songs too quiet.
-				</span>
-			</span>
-		</div>
-
-		<div>
-			<input type="checkbox" id="show_peaks" onchange="javascript:setShowPeaks();"> Show peaks
+			<div class="switch" onclick="javascript:toggleCheckbox(this);setScale();">
+				<input type="checkbox" id="log_scale">
+				Log
+				<span class="tooltip">The logarithmic scale provides much better visualization of lower frequencies. Keep this checked if you wanna see that bass moving!</span>
+			</div><div class="switch" onclick="javascript:toggleCheckbox(this);setScale();">
+				<input type="checkbox" id="show_scale">
+				Scale
+				<span class="tooltip">Show / hide the frequency scale</span>
+			</div><div class="switch" onclick="javascript:toggleCheckbox(this);setSensitivity();">
+				<input type="checkbox" id="sensitivity">
+				Hi-sens
+				<span class="tooltip">Check this to improve visualization of songs too quiet.</span>
+			</div><div class="switch" onclick="javascript:toggleCheckbox(this);setShowPeaks();">
+				<input type="checkbox" id="show_peaks">
+				Peaks
+				<span class="tooltip">Show value peaks for each frequency.</span>
+			</div>
 		</div>
 	</div>
 

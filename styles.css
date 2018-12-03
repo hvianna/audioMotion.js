@@ -3,6 +3,19 @@ body {
 	margin: 0;
 }
 
+select,
+input[type="text"] {
+	padding: 6px;
+}
+
+input[type="button"] {
+	padding: 6px 16px;
+}
+
+input[type="range"] {
+	vertical-align: middle;
+}
+
 #canvas, #player {
 	display: block;
 	width: 100%;
@@ -54,7 +67,13 @@ body {
 }
 
 .main-config {
+	font-size: 11px;
 	margin: 10px 0 50px;
+	text-transform: uppercase;
+}
+.main-config select {
+	font-size: 11px;
+	padding: 4px;
 }
 
 .button-bar {
@@ -65,25 +84,11 @@ body {
 	text-align: center;
 }
 
-select,
-input[type="text"] {
-	padding: 6px;
-}
-
-input[type="button"] {
-	padding: 6px 16px;
-}
-
-input[type="range"] {
-	vertical-align: middle;
-}
-
 .player-controls {
 	background-color: #f0f0f0;
 	margin: 40px 0;
 	padding: 10px;
 }
-
 .player-controls i {
 	cursor: pointer;
 	display: inline-block;
@@ -101,8 +106,35 @@ input[type="range"] {
 	position: relative;
 	text-decoration: none;
 }
-.help:hover > .tooltip {
+.help:hover > .tooltip,
+.switch:hover > .tooltip {
 	display: block;
+}
+
+.switch {
+	border: 1px solid #ccc;
+	border-left-width: 0;
+	display: inline-block;
+	padding: 4px;
+	position: relative;
+	text-align: center;
+	width: 45px;
+}
+.switch input {
+	display: none;
+}
+.switch:first-child {
+	border-left-width: 1px;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
+.switch:last-child {
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+.switch.active {
+	background: #f0f0f0;
+	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
 }
 
 .tooltip {
@@ -111,11 +143,14 @@ input[type="range"] {
 	border-radius: 5px;
 	color: #444;
 	display: none;
-	font-size: 11px;
 	padding: 10px;
 	position: absolute;
+	text-transform: none;
 	top: 25px;
 	width: 200px;
+}
+.switch .tooltip {
+	right: 0;
 }
 
 #console {

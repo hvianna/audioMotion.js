@@ -78,6 +78,7 @@ function setSensitivity() {
 		analyser.maxDecibels = -25;
 	}
 	docCookies.setItem( 'highSens', Number( cfgHighSens.checked ), Infinity );
+	toggleSwitch( cfgHighSens );
 }
 
 /**
@@ -110,10 +111,8 @@ function setFFTsize() {
  * Save desired frequency range
  */
 function setFreqRange() {
-
 	docCookies.setItem( 'freqMin', cfgRangeMin.selectedIndex, Infinity );
 	docCookies.setItem( 'freqMax', cfgRangeMax.selectedIndex, Infinity );
-
 	preCalcPosX();
 }
 
@@ -121,10 +120,10 @@ function setFreqRange() {
  * Save scale preferences
  */
 function setScale() {
-
 	docCookies.setItem( 'showScale', Number( cfgShowScale.checked ), Infinity );
 	docCookies.setItem( 'logScale', Number( cfgLogScale.checked ), Infinity );
-
+	toggleSwitch( cfgShowScale );
+	toggleSwitch( cfgLogScale );
 	preCalcPosX();
 }
 
@@ -132,8 +131,8 @@ function setScale() {
  * Save show peaks preference
  */
 function setShowPeaks() {
-
 	docCookies.setItem( 'showPeaks', Number( cfgShowPeaks.checked ), Infinity );
+	toggleSwitch( cfgShowPeaks );
 }
 
 /**
@@ -563,6 +562,24 @@ function setSource() {
 function setGradient() {
 
 	docCookies.setItem( 'gradient', cfgGradient.selectedIndex, Infinity );
+}
+
+/**
+ * Toggle checkbox inside a switch div
+ */
+function toggleCheckbox( elem ) {
+	var elCheckbox = elem.getElementsByTagName('input')[0];
+	elCheckbox.checked = ! elCheckbox.checked;
+}
+
+/**
+ * Set or remove active class from a switch div
+ */
+function toggleSwitch( elem ) {
+	if ( elem.checked )
+		elem.closest('.switch').className="switch active";
+	else
+		elem.closest('.switch').className="switch";
 }
 
 
