@@ -732,6 +732,10 @@ function initialize() {
 	cfgShowScale = document.getElementById('show_scale');
 	cfgShowScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showScale );
 	cfgShowScale.addEventListener( 'click', setScale );
+	// clicks on canvas also toggle scale on/off
+	canvas.addEventListener( 'click', function() {
+		cfgShowScale.click();
+	});
 
 	cookie = docCookies.getItem( 'fftSize' );
 	cfgFFTsize = document.getElementById('fft_size');
