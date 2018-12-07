@@ -19,7 +19,10 @@ https://hvianna.github.io/audioMotion.js/
 
 ## Usage
 
-**audioMotion.js** lets you play music from playlists previously registered in the `playlists.cfg` file (see next topic for details). On Firefox you may be able to simply open the index.html and load playlists and music files located inside audioMotion's folder. If you use Chrome, or want to play music from another folder or hard disk, you'll need to set up a local web server.
+On the demo website you can load individual songs from your PC and try the pre-configured demo playlists.
+
+In order to use your own playlists and get the best out of audioMotion, you'll need to set up a local web server.<br>
+<sub>(Note: on Firefox, as of version 63, you *may be* able to load playlists and music files stored *inside audioMotion's folder,* but everything else will require the files to be loaded via HTTP protocol, that's why you need a web server).</sub>
 
 The easiest way to do this is by using [Docker](https://www.docker.com/). Once you have Docker installed and running, simply open a command prompt in the folder where you downloaded audioMotion.js to, and run:
 
@@ -62,13 +65,13 @@ Example of an m3u playlist file:
 (1973) The Dark Side of the Moon\03 Time.flac
 ```
 
-Note that you can use both Windows-style backslashes `\` and Linux-style forward slashes `/` in your pathnames. See the provided playlist files inside the `demo` folder for more examples.
+Note that you can use either Windows-style backslashes `\` or Linux-style forward slashes `/` in your pathnames. See the provided playlist files inside the `demo` folder for more examples.
 
 As for the audio files themselves, audioMotion.js should be able to play most mainstream formats, like mp3, ogg, m4a and flac, but codec support may vary, depending on your web browser and operating system.
 
 ## Configuration options
 
-Below is a brief description of the configuration options. Your preferences will be saved in browser cookies and restored the next time you open audioMotion.
+Below you'll find a brief description of the configuration options. Your preferences will be saved in browser cookies and restored the next time you open audioMotion.
 
 ![config-bar](img/configuration-bar.png "Analyzer configuration options")
 
@@ -82,29 +85,29 @@ The lowest and highest frequencies you want to see in the graphic spectrum analy
 
 ### Smoothing
 
-Average constant used to smooth values between analysis frames. Lower values make the analyzer respond faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy". Default is 0.5.
+Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy". Default is 0.5.
 
 ### Gradient
 
 Several options of color gradients for the analyzer bars. Default is "Classic".
 
-### LOG button (Logarithmic scale)
+### LOG switch (Logarithmic scale)
 
 The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default on.
 
 Turn this option off to make audioMotion.js use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
 
-### SCALE button (Toggle scale)
+### SCALE switch (Toggle scale)
 
 This option toggles the display of the frequency scale. Default on.
 
-Clicking on the canvas will also toggle the scale. Useful when you're on fullscreen mode.
+Clicking on the canvas will also toggle the scale on and off. Useful when you're on fullscreen mode.
 
-### SENS button (Sensitivity)
+### SENS switch (Sensitivity)
 
 Turn this option on to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default off.
 
-### PEAK button (Show peaks)
+### PEAK switch (Show peaks)
 
 Turn this option on to hold volume peaks on screen for a short time. Default on.
 
@@ -129,7 +132,7 @@ Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic 
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
 * [cookies.js](https://github.com/madmurphy/cookies.js) licensed under [GPL 3.0](http://www.gnu.org/licenses/gpl-3.0-standalone.html)
-* [Font Awesome Free](https://fontawesome.com/) licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+* Icons by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/).
 
 ## Song credits
 
