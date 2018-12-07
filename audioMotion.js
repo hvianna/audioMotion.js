@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '18.12-dev';
+var _VERSION = '18.12-dev.1';
 
 
 /**
@@ -558,6 +558,20 @@ function setSource() {
 function setGradient() {
 
 	docCookies.setItem( 'gradient', cfgGradient.selectedIndex, Infinity );
+}
+
+/**
+ * Load a music file from the user's computer
+ */
+function loadLocalFile( obj ) {
+
+	var reader = new FileReader();
+
+	reader.onload = function() {
+		audioElement.src = reader.result;
+	}
+
+	reader.readAsDataURL( obj.files[0] );
 }
 
 

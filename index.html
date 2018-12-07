@@ -122,6 +122,9 @@
 	<div class="config-block">
 		<div>
 			<div class="button-bar">
+				Load a song: <input type="file" accept="audio/*" onchange="javascript:loadLocalFile( this );">
+			</div>
+			<div class="button-bar">
 				<select id="playlists">
 					<option value="">Select a playlist to load</option>
 				</select>
@@ -147,9 +150,6 @@
 				<i class="fas fa-stop" onclick="javascript:stop();"></i>
 				<i class="fas fa-fast-forward" onclick="javascript:playNextSong();"></i>
 			</div>
-			<div class="button-bar center">
-				<a href="https://github.com/hvianna/audioMotion.js#audiomotionjs" target="_blank">Source code and Documentation</a>
-			</div>
 		</div>
 		<div>
 			<div class="center">
@@ -160,6 +160,11 @@
 				</select>
 			</div>
 			<div id="console"></div>
+			<div class="credits">
+				<strong>audioMotion.js</strong> Copyright &copy; 2018 Henrique Vianna<br>
+				Source code available on <a href="https://github.com/hvianna/audioMotion.js/">GitHub</a>. Licensed under the <a href="https://www.gnu.org/licenses/agpl.html">GNU AGPL-3.0 license</a>.<br>
+				<a href="https://github.com/hvianna/audioMotion.js/#song-credits">Song credits</a>. Icons by <a href="https://icons8.com/">icons8</a>. 
+			</div>
 		</div>
 	</div>
 

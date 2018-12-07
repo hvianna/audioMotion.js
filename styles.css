@@ -202,3 +202,11 @@ input[type="range"] {
 	background-color: #080;
 }
 
+.credits {
+	color: #030;
+	font-size: 12px;
+	margin: 20px 0;
+}
+.credits a {
+	color: #090;
+}
