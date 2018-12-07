@@ -22,7 +22,7 @@ https://hvianna.github.io/audioMotion.js/
 On the demo website you can load individual songs from your PC and try the pre-configured demo playlists.
 
 In order to use your own playlists and get the best out of audioMotion, you'll need to set up a local web server.<br>
-<sub>(Note: on Firefox, as of version 63, you *may be* able to load playlists and music files stored *inside audioMotion's folder,* but everything else will require the files to be loaded via HTTP protocol, that's why you need a web server).</sub>
+<sub>(Note: on Firefox, as of version 63, you *may be* able to simply open the index.html page and load playlists and music files stored *inside audioMotion's folder,* but everything else will require the files to be loaded via HTTP protocol, that's why you need a web server).</sub>
 
 The easiest way to do this is by using [Docker](https://www.docker.com/). Once you have Docker installed and running, simply open a command prompt in the folder where you downloaded audioMotion.js to, and run:
 
