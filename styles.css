@@ -68,11 +68,19 @@ input[type="range"] {
 
 .main-config {
 	font-size: 11px;
-	margin: 10px 0 50px;
+	margin: 10px 0 40px;
 }
 .main-config select {
 	font-size: 11px;
 	padding: 4px;
+}
+
+.fullscreen-button {
+	width: 200px;
+}
+
+.local-file-selection {
+	margin-top: -6px;
 }
 
 .button-bar {
@@ -83,19 +91,26 @@ input[type="range"] {
 	text-align: center;
 }
 
+.top40 {
+	margin-top: 40px;
+}
+
 .player-controls {
-	background-color: #f0f0f0;
-	margin: 40px 0;
+	margin-bottom: 40px;
 	padding: 10px;
 }
 .player-controls i {
+	background: #f0f0f0;
+	border-radius: 5px;
+	box-shadow: 1px 1px 1px 0 #999;
 	cursor: pointer;
 	display: inline-block;
-	font-size: 32px;
-	margin: 10px;
+	font-size: 40px;
+	margin: 5px;
+	padding: 0 8px;
 }
-.player-controls i.fa-pause {
-	margin-left: -10px;
+.player-controls i.icons8-pause-button {
+	margin-left: -25px;
 }
 
 .help {
@@ -175,7 +190,6 @@ input[type="range"] {
 	font-size: 13px;
 	height: 200px;
 	line-height: 1.3;
-	margin-top: 20px;
 	overflow-y: scroll;
 	padding: 10px;
 	width: 400px;
@@ -184,7 +198,8 @@ input[type="range"] {
 	scrollbar-width: thin;
 }
 
-#console .fas {
+#console i[class^="icons8-"] {
+	font-size: 1.2em;
 	vertical-align: middle;
 }
 
@@ -209,4 +224,15 @@ input[type="range"] {
 }
 .credits a {
 	color: #090;
+}
+
+@media screen and (max-width: 1220px) {
+	.config-block:not(.main-config) {
+		display: block;
+	}
+	.config-block:not(.main-config) > div {
+		display: inline-block;
+		margin: 0 20px 20px;
+		vertical-align: top;
+	}
 }

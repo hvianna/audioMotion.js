@@ -26,8 +26,8 @@
  */
  -->
 	<title>audioMotion.js</title>
-	<link rel="stylesheet" href="styles.css" type="text/css">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="vendor/icons8/audioMotion/css/styles.css">
 	<link rel="icon" type="image/png" sizes="32x32" href="img/favicon32.png">
 	<link rel="apple-touch-icon" href="img/favicon512.png">
 	<meta name="msapplication-TileImage" content="img/favicon512.png">
@@ -39,8 +39,8 @@
 	<meta property="og:type" content="website">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="twitter:site" content="@HenriqueVianna">
-	<script type="text/javascript" src="vendor/cookies.js/cookies_min.js"></script>
-	<script type="text/javascript" src="audioMotion.js"></script>
+	<script src="vendor/cookies.js/cookies_min.js"></script>
+	<script src="audioMotion.js"></script>
 </head>
 
 <body>
@@ -121,7 +121,7 @@
 
 	<div class="config-block">
 		<div>
-			<div class="button-bar">
+			<div class="local-file button-bar">
 				Load a song: <input type="file" accept="audio/*" onchange="javascript:loadLocalFile( this );">
 			</div>
 			<div class="button-bar">
@@ -140,25 +140,25 @@
 			</select>
 		</div>
 		<div>
-			<div class="config-block button-bar">
-				<input type="button" value=" Fullscreen visualization " onclick="javascript:fullscreen();">
+			<div class="button-bar center">
+				<input type="button" value=" Fullscreen Analyzer " class="fullscreen-button" onclick="javascript:fullscreen();">
 			</div>
 			<div class="player-controls">
-				<i class="fas fa-fast-backward" onclick="javascript:playPreviousSong();"></i>
-				<i class="fas fa-play" onclick="javascript:playPause();"></i>
-				<i class="fas fa-pause" onclick="javascript:playPause();"></i>
-				<i class="fas fa-stop" onclick="javascript:stop();"></i>
-				<i class="fas fa-fast-forward" onclick="javascript:playNextSong();"></i>
+				<i class="icons8-previous-track-2" onclick="javascript:playPreviousSong();"></i>
+				<i class="icons8-play-button" onclick="javascript:playPause();"></i>
+				<i class="icons8-pause-button" onclick="javascript:playPause();"></i>
+				<i class="icons8-stop-symbol" onclick="javascript:stop();"></i>
+				<i class="icons8-skip-this-track-2" onclick="javascript:playNextSong();"></i>
 			</div>
-		</div>
-		<div>
-			<div class="center">
+			<div class="top40 center">
 				Audio source:
 				<select id="source" onchange="javascript:setSource();">
 					<option value="player">built-in Player</option>
 					<option value="mic">Microphone</option>
 				</select>
 			</div>
+		</div>
+		<div>
 			<div id="console"></div>
 			<div class="credits">
 				<strong>audioMotion.js</strong> Copyright &copy; 2018 Henrique Vianna<br>

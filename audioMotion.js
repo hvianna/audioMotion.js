@@ -508,7 +508,7 @@ function draw() {
 function consoleLog( msg, error = false ) {
 	var elConsole = document.getElementById( 'console' );
 	if ( error )
-		msg = '<span class="error"><i class="fas fa-exclamation-triangle"></i> ' + msg + '</span>';
+		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
 	elConsole.innerHTML += msg + '<br>';
 	elConsole.scrollTop = elConsole.scrollHeight;
 }
