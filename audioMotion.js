@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '18.12-dev.2';
+var _VERSION = '18.12';
 
 
 /**
@@ -579,6 +579,7 @@ function loadLocalFile( obj ) {
 
 	reader.onload = function() {
 		audioElement.src = reader.result;
+		audioElement.play();
 	}
 
 	reader.readAsDataURL( obj.files[0] );
