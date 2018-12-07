@@ -20,20 +20,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '18.12-dev.1';
+var _VERSION = '18.12-dev.2';
 
 
 /**
  * Global variables
  */
 var playlist, playlistPos,
-	cfgSource, cfgFFTsize, cfgRangeMin, cfgRangeMax, cfgSmoothing,
-	cfgGradient, cfgShowScale, cfgLogScale, cfgHighSens, cfgShowPeaks, cfgPlaylists,
+	// our playlist and index to its current position
+	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale, elHighSens, elShowPeaks, elPlaylists,
+	// HTML elements from the UI
+	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks,
+	// flags for things we need to check too often (inside the draw function)
 	bufferLength, dataArray,
-	posx, peaks, hold, accel,
-	iMin, iMax, deltaX, bandWidth,
+	// analyzer FFT data
+	peaks, hold, accel,
+	// peak value, hold time and fall acceleration (arrays)
+	posx, iMin, iMax, deltaX, bandWidth,
+	// frequency range and scale related variables
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
+	// Web Audio API related variables
 	canvas, canvasCtx, gradients, pixelRatio;
+	// canvas stuff
 
 /**
  * Default options
@@ -69,7 +77,7 @@ function fullscreen() {
  * Adjust the analyser's sensitivity
  */
 function setSensitivity() {
-	if ( cfgHighSens.dataset.active == '1' ) {
+	if ( elHighSens.dataset.active == '1' ) {
 		analyser.minDecibels = -100; // WebAudio API defaults
 		analyser.maxDecibels = -30;
 	}
@@ -77,14 +85,14 @@ function setSensitivity() {
 		analyser.minDecibels = -85;
 		analyser.maxDecibels = -25;
 	}
-	docCookies.setItem( 'highSens', cfgHighSens.dataset.active, Infinity );
+	docCookies.setItem( 'highSens', elHighSens.dataset.active, Infinity );
 }
 
 /**
  * Set the smoothing time constant
  */
 function setSmoothing() {
-	analyser.smoothingTimeConstant = document.getElementById('smoothing').value;
+	analyser.smoothingTimeConstant = elSmoothing.value;
 	consoleLog( 'smoothingTimeConstant is ' + analyser.smoothingTimeConstant );
 	docCookies.setItem( 'smoothing', analyser.smoothingTimeConstant, Infinity );
 }
@@ -94,14 +102,14 @@ function setSmoothing() {
  */
 function setFFTsize() {
 
-	analyser.fftSize = cfgFFTsize[ cfgFFTsize.selectedIndex ].value;
+	analyser.fftSize = elFFTsize.value;
 
 	// update all variables that depend on the FFT size
 	bufferLength = analyser.frequencyBinCount;
 	dataArray = new Uint8Array( bufferLength );
 
 	consoleLog( 'FFT size is ' + analyser.fftSize + ' samples' );
-	docCookies.setItem( 'fftSize', cfgFFTsize.selectedIndex, Infinity );
+	docCookies.setItem( 'fftSize', elFFTsize.selectedIndex, Infinity );
 
 	preCalcPosX();
 }
@@ -110,8 +118,8 @@ function setFFTsize() {
  * Save desired frequency range
  */
 function setFreqRange() {
-	docCookies.setItem( 'freqMin', cfgRangeMin.selectedIndex, Infinity );
-	docCookies.setItem( 'freqMax', cfgRangeMax.selectedIndex, Infinity );
+	docCookies.setItem( 'freqMin', elRangeMin.selectedIndex, Infinity );
+	docCookies.setItem( 'freqMax', elRangeMax.selectedIndex, Infinity );
 	preCalcPosX();
 }
 
@@ -119,8 +127,8 @@ function setFreqRange() {
  * Save scale preferences
  */
 function setScale() {
-	docCookies.setItem( 'showScale', cfgShowScale.dataset.active, Infinity );
-	docCookies.setItem( 'logScale', cfgLogScale.dataset.active, Infinity );
+	docCookies.setItem( 'showScale', elShowScale.dataset.active, Infinity );
+	docCookies.setItem( 'logScale', elLogScale.dataset.active, Infinity );
 	preCalcPosX();
 }
 
@@ -128,7 +136,8 @@ function setScale() {
  * Save show peaks preference
  */
 function setShowPeaks() {
-	docCookies.setItem( 'showPeaks', cfgShowPeaks.dataset.active, Infinity );
+	cfgShowPeaks = ( elShowPeaks.dataset.active == '1' );
+	docCookies.setItem( 'showPeaks', elShowPeaks.dataset.active, Infinity );
 }
 
 /**
@@ -138,29 +147,34 @@ function preCalcPosX() {
 
 	var freq,
 		lastPos = -1,
-		fMin = cfgRangeMin[ cfgRangeMin.selectedIndex ].value,
-		fMax = cfgRangeMax[ cfgRangeMax.selectedIndex ].value;
+		fMin = elRangeMin.value,
+		fMax = elRangeMax.value;
+
+	cfgShowScale = ( elShowScale.dataset.active == '1' );
+	cfgLogScale = ( elLogScale.dataset.active == '1' );
 
 	// indexes corresponding to the frequency range we want to visualize in the data array returned by the FFT
 	iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate );
 	iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
 
-	// value, hold time and acceleration for each frequency peak
+	// clear / initialize peak data
 	peaks = new Array();
 	hold = new Array();
 	accel = new Array();
 
-	if ( cfgLogScale.dataset.active == '1' ) {
+	if ( cfgLogScale ) {
+		// if using the log scale, we divide the canvas space by log(fmax) - log(fmin)
 		deltaX = Math.log10( fMin );
 		bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 	}
 	else {
+		// in the linear scale, we simply divide it by the number of frequencies we have to display
 		deltaX = iMin;
 		bandWidth = canvas.width / ( iMax - iMin + 1 );
 	}
 
 	for ( var i = iMin; i <= iMax; i++ ) {
-		if ( cfgLogScale.dataset.active == '1' ) {
+		if ( cfgLogScale ) {
 			freq = i * audioCtx.sampleRate / analyser.fftSize; // find which frequency is represented in this bin
 			posx[ i ] = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
 		}
@@ -188,7 +202,7 @@ function drawScale() {
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
 
-	if ( cfgShowScale.dataset.active != '1' )
+	if ( ! cfgShowScale )
 		return;
 
 	canvasCtx.fillStyle = '#fff';
@@ -196,14 +210,14 @@ function drawScale() {
 	bands = [0, 20, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000];
 	freq = 0;
 
-	if ( cfgLogScale.dataset.active == '1' )
+	if ( cfgLogScale )
 		incr = 10;
 	else
 		incr = 500;
 
 	while ( freq <= bands[ bands.length - 1 ] ) {
 
-		if ( cfgLogScale.dataset.active == '1' ) {
+		if ( cfgLogScale ) {
 			posX = bandWidth * ( Math.log10( freq ) - deltaX );
 			if ( freq == 100 || freq == 1000 )
 				incr *= 10;
@@ -244,8 +258,6 @@ function loadPlaylistsCfg() {
 
 	var list, item, n = 0;
 
-	cfgPlaylists = document.getElementById('playlists');
-
 	fetch( 'playlists.cfg' )
 		.then( function( response ) {
 			if ( response.status == 200 )
@@ -259,7 +271,7 @@ function loadPlaylistsCfg() {
 				if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
 					item = list[ i ].split(/\|/);
 					if ( item.length == 2 ) {
-						cfgPlaylists.options[ cfgPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
+						elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
 						n++;
 					}
 				}
@@ -279,7 +291,7 @@ function loadPlaylistsCfg() {
  */
 function loadPlaylist() {
 
-	var path = cfgPlaylists[ cfgPlaylists.selectedIndex ].value,
+	var path = elPlaylists.value,
 		tmplist, ext,
 		n = 0;
 
@@ -454,17 +466,17 @@ function isPlaying() {
 function draw() {
 
 	var barWidth, barHeight,
-		grad = cfgGradient.selectedIndex;
+		grad = elGradient.selectedIndex;
 
 	// clear the canvas, using the background color stored in the selected gradient option
-	canvasCtx.fillStyle = cfgGradient[ grad ].value;
+	canvasCtx.fillStyle = elGradient.value;
 	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
 
 	// get a new array of data from the FFT
 	analyser.getByteFrequencyData( dataArray );
 
 	// for log scale, bar width is always 1; for linear scale we show wider bars when possible
-	barWidth = ( cfgLogScale.dataset.active != '1' && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
+	barWidth = ( ! cfgLogScale && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
 	for ( var i = iMin; i <= iMax; i++ ) {
 		barHeight = dataArray[ i ] / 255 * canvas.height;
@@ -479,7 +491,7 @@ function draw() {
 
 		if ( posx[ i ] >= 0 ) {	// ignore negative positions
 			canvasCtx.fillRect( posx[ i ], canvas.height, barWidth, -barHeight );
-			if ( cfgShowPeaks.dataset.active == '1' && peaks[ i ] > 0 ) {
+			if ( cfgShowPeaks && peaks[ i ] > 0 ) {
 				canvasCtx.fillRect( posx[ i ], canvas.height - peaks[ i ], barWidth, 2 );
 // debug/calibration - show frequency for each bar (warning: super slow!)
 //				canvasCtx.fillText( String( i * audioCtx.sampleRate / analyser.fftSize ), posx[ i ], canvas.height - peaks[i] - 5 );
@@ -495,7 +507,7 @@ function draw() {
 		}
 	}
 
-	if ( cfgShowScale.dataset.active == '1' )
+	if ( cfgShowScale )
 		drawScale();
 
 	// schedule next canvas update
@@ -518,8 +530,7 @@ function consoleLog( msg, error = false ) {
  */
 function setSource() {
 
-	cfgSource = document.getElementById('source');
-	cfgSource = cfgSource[ cfgSource.selectedIndex ].value;
+	cfgSource = elSource.value;
 
 	if ( cfgSource == 'mic' ) {
 		if ( typeof sourceMic == 'object' ) {
@@ -537,9 +548,8 @@ function setSource() {
 			})
 			.catch( function( err ) {
 				consoleLog( 'Could not change audio source', true );
-				cfgSource = document.getElementById('source');
-				cfgSource.selectedIndex = 0;
-				cfgSource = cfgSource[0].value;
+				elSource.selectedIndex = 0; // revert to player
+				cfgSource = 'player';
 			});
 		}
 	}
@@ -557,7 +567,7 @@ function setSource() {
  */
 function setGradient() {
 
-	docCookies.setItem( 'gradient', cfgGradient.selectedIndex, Infinity );
+	docCookies.setItem( 'gradient', elGradient.selectedIndex, Infinity );
 }
 
 /**
@@ -689,7 +699,7 @@ function initialize() {
 
 	var grad, i, j;
 
-	cfgGradient = document.getElementById('gradient');
+	elGradient = document.getElementById('gradient');
 
 	for ( i = 0; i < gradinfo.length; i++ ) {
 		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
@@ -697,7 +707,7 @@ function initialize() {
 			grad.addColorStop( gradinfo[ i ].colorstops[ j ].stop, gradinfo[ i ].colorstops[ j ].color );
 		// add the option to the html select element
 		// we'll know which gradient to use by the selectedIndex - bg color is stored in the option value
-		cfgGradient.options[ i ] = new Option( gradinfo[ i ].name, gradinfo[ i ].bg );
+		elGradient.options[ i ] = new Option( gradinfo[ i ].name, gradinfo[ i ].bg );
 		// push the actual gradient into the gradients array
 		gradients.push( grad );
 	}
@@ -708,13 +718,13 @@ function initialize() {
 	for ( i = 0; i <= 230; i += 15 )
 		grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
 	gradients.push( grad );
-	cfgGradient.options[ cfgGradient.options.length ] = new Option( 'Rainbow', '#111' );
+	elGradient.options[ elGradient.options.length ] = new Option( 'Rainbow', '#111' );
 
 	grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 );
 	for ( i = 0; i <= 360; i += 15 )
 		grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
 	gradients.push( grad );
-	cfgGradient.options[ cfgGradient.options.length ] = new Option( 'Rainbow 2', '#111' );
+	elGradient.options[ elGradient.options.length ] = new Option( 'Rainbow 2', '#111' );
 
 	// Add event listeners to the custom checkboxes
 
@@ -730,55 +740,58 @@ function initialize() {
 	var cookie;
 
 	cookie = docCookies.getItem( 'freqMin' );
-	cfgRangeMin = document.getElementById('freq_min');
-	cfgRangeMin.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMin;
+	elRangeMin = document.getElementById('freq_min');
+	elRangeMin.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMin;
 
 	cookie = docCookies.getItem( 'freqMax' );
-	cfgRangeMax = document.getElementById('freq_max');
-	cfgRangeMax.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMax;
+	elRangeMax = document.getElementById('freq_max');
+	elRangeMax.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMax;
 
 	cookie = docCookies.getItem( 'logScale' );
-	cfgLogScale = document.getElementById('log_scale');
-	cfgLogScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.logScale );
-	cfgLogScale.addEventListener( 'click', setScale );
+	elLogScale = document.getElementById('log_scale');
+	elLogScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.logScale );
+	elLogScale.addEventListener( 'click', setScale );
 
 	cookie = docCookies.getItem( 'showScale' );
-	cfgShowScale = document.getElementById('show_scale');
-	cfgShowScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showScale );
-	cfgShowScale.addEventListener( 'click', setScale );
+	elShowScale = document.getElementById('show_scale');
+	elShowScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showScale );
+	elShowScale.addEventListener( 'click', setScale );
 	// clicks on canvas also toggle scale on/off
 	canvas.addEventListener( 'click', function() {
-		cfgShowScale.click();
+		elShowScale.click();
 	});
 
 	cookie = docCookies.getItem( 'fftSize' );
-	cfgFFTsize = document.getElementById('fft_size');
-	cfgFFTsize.selectedIndex = ( cookie !== null ) ? cookie : defaults.fftSize;
+	elFFTsize = document.getElementById('fft_size');
+	elFFTsize.selectedIndex = ( cookie !== null ) ? cookie : defaults.fftSize;
 	setFFTsize();
 
 	cookie = docCookies.getItem( 'smoothing' );
-	cfgSmoothing = document.getElementById('smoothing');
-	cfgSmoothing.value = ( cookie !== null ) ? cookie : defaults.smoothing;
+	elSmoothing = document.getElementById('smoothing');
+	elSmoothing.value = ( cookie !== null ) ? cookie : defaults.smoothing;
 	setSmoothing();
 
 	cookie = docCookies.getItem( 'gradient' );
-	cfgGradient.selectedIndex = ( cookie !== null ) ? cookie : defaults.gradient;
+	elGradient.selectedIndex = ( cookie !== null ) ? cookie : defaults.gradient;
 
 	cookie = docCookies.getItem( 'highSens' );
-	cfgHighSens = document.getElementById('sensitivity');
-	cfgHighSens.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.highSens );
-	cfgHighSens.addEventListener( 'click', setSensitivity );
+	elHighSens = document.getElementById('sensitivity');
+	elHighSens.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.highSens );
+	elHighSens.addEventListener( 'click', setSensitivity );
 	setSensitivity();
 
 	cookie = docCookies.getItem( 'showPeaks' );
-	cfgShowPeaks = document.getElementById('show_peaks');
-	cfgShowPeaks.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showPeaks );
-	cfgShowPeaks.addEventListener( 'click', setShowPeaks );
+	elShowPeaks = document.getElementById('show_peaks');
+	elShowPeaks.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showPeaks );
+	elShowPeaks.addEventListener( 'click', setShowPeaks );
+	setShowPeaks();
 
 	// set audio source to built-in player
+	elSource = document.getElementById('source');
 	setSource();
 
 	// load playlists from playlists.cfg
+	elPlaylists = document.getElementById('playlists');
 	loadPlaylistsCfg();
 
 	// start canvas animation
