@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '18.12';
+var _VERSION = '19.1-dev';
 
 
 /**
@@ -198,7 +198,6 @@ function drawScale() {
 
 	var bands, freq, incr, label, posX;
 
-	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
 
@@ -207,7 +206,7 @@ function drawScale() {
 
 	canvasCtx.fillStyle = '#fff';
 
-	bands = [0, 20, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000];
+	bands = [0, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000];
 	freq = 0;
 
 	if ( cfgLogScale )
@@ -233,7 +232,7 @@ function drawScale() {
 				label = freq / 1000 + 'k';
 			else
 				label = String( freq );
-			canvasCtx.fillText( label, posX > 10 * pixelRatio ? posX - label.length * 2.75 * pixelRatio : posX, canvas.height - 5 * pixelRatio );
+			canvasCtx.fillText( label, posX, canvas.height - 5 * pixelRatio );
 		}
 		else
 			canvasCtx.fillRect( posX, canvas.height - 5 * pixelRatio, 1, -10 * pixelRatio );
@@ -662,6 +661,8 @@ function initialize() {
 	canvasCtx = canvas.getContext('2d');
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
+	canvasCtx.textAlign = 'center';
 
 	// create gradients
 
