@@ -50,13 +50,33 @@
 
 	<div class="main-config config-block">
 		<div>
+			<span class="help">
+				<span class="tooltip">
+					Loads a configuration preset.<br>
+					"Last session" restores the options used in the previous session.
+				</span>
+				<select id="preset" onchange="loadPreset( this.value );">
+					<option value="">Load Preset</option>
+					<option value="log">Logarithmic</option>
+					<option value="linear">Linear</option>
+					<option value="custom">Custom</option>
+					<option value="last">Last session</option>
+				</select>
+			</span>
+			<span class="help">
+				<input type="button" value="Save to Custom" onclick="updateCustomPreset();">
+				<span class="tooltip">Saves the current configuration options to the "Custom" preset.</span>
+			</span>
+		</div>
+
+		<div>
 			<span class="help"><span class="config-label">FFT size:</span>
 				<span class="tooltip">
 				Number of samples used for the FFT. Larger values will provide greater detail on lower frequencies,
 				but will require more CPU power.
 				</span>
 			</span>
-			<select id="fft_size" onchange="javascript:setFFTsize();">
+			<select id="fft_size" onchange="setFFTsize();">
 				<option value="512">512</option>
 				<option value="1024">1024</option>
 				<option value="2048">2048</option>
@@ -69,7 +89,7 @@
 
 		<div>
 			<span class="config-label">Range:</span>
-			<select id="freq_min" onchange="javascript:setFreqRange();">
+			<select id="freq_min" onchange="setFreqRange();">
 				<option value="20">20</option>
 				<option value="40">40</option>
 				<option value="50">50</option>
@@ -78,7 +98,7 @@
 				<option value="1000">1k</option>
 			</select>
 			-
-			<select id="freq_max" onchange="javascript:setFreqRange();">
+			<select id="freq_max" onchange="setFreqRange();">
 				<option value="1000">1k</option>
 				<option value="2000">2k</option>
 				<option value="5000">5k</option>
@@ -96,12 +116,12 @@
 				Increase it if the animation looks too "jumpy".
 				</span>
 			</span>
-			<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="javascript:setSmoothing();">
+			<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
 		</div>
 
 		<div>
 			<span class="config-label">Gradient:</span>
-			<select id="gradient" onchange="javascript:setGradient();">
+			<select id="gradient" onchange="setGradient();">
 			</select>
 		</div>
 
@@ -120,37 +140,37 @@
 	<div class="config-block">
 		<div>
 			<div class="local-file button-bar">
-				Load a song: <input type="file" accept="audio/*" onchange="javascript:loadLocalFile( this );">
+				Load a song: <input type="file" accept="audio/*" onchange="loadLocalFile( this );">
 			</div>
 			<div class="button-bar">
 				<select id="playlists">
 					<option value="">Select a playlist to load</option>
 				</select>
-				<input type="button" value=" LOAD " onclick="javascript:loadPlaylist();">
+				<input type="button" value=" LOAD " onclick="loadPlaylist();">
 			</div>
 			<span class="playlist-tab">Playlist</span>
 			<ul class="switch-bar">
 				<li id="repeat" class="switch">Repeat</li>
 			</ul>
-			<input type="button" value="Shuffle" class="playlist-button" onclick="javascript:shufflePlaylist();">
-			<input type="button" value="Clear" class="playlist-button" onclick="javascript:clearPlaylist();">
-			<select id="playlist" size="10" onchange="javascript:playSong( this.selectedIndex );">
+			<input type="button" value="Shuffle" class="playlist-button" onclick="shufflePlaylist();">
+			<input type="button" value="Clear" class="playlist-button" onclick="clearPlaylist();">
+			<select id="playlist" size="10" onchange="playSong( this.selectedIndex );">
 			</select>
 		</div>
 		<div>
 			<div class="button-bar center">
-				<input type="button" value=" Fullscreen Analyzer " class="fullscreen-button" onclick="javascript:fullscreen();">
+				<input type="button" value=" Fullscreen Analyzer " class="fullscreen-button" onclick="fullscreen();">
 			</div>
 			<div class="player-controls">
-				<i class="icons8-previous-track-2" onclick="javascript:playPreviousSong();"></i>
-				<i class="icons8-play-button" onclick="javascript:playPause();"></i>
-				<i class="icons8-pause-button" onclick="javascript:playPause();"></i>
-				<i class="icons8-stop-symbol" onclick="javascript:stop();"></i>
-				<i class="icons8-skip-this-track-2" onclick="javascript:playNextSong();"></i>
+				<i class="icons8-previous-track-2" onclick="playPreviousSong();"></i>
+				<i class="icons8-play-button" onclick="playPause();"></i>
+				<i class="icons8-pause-button" onclick="playPause();"></i>
+				<i class="icons8-stop-symbol" onclick="stop();"></i>
+				<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
 			</div>
 			<div class="top40 center">
 				Audio source:
-				<select id="source" onchange="javascript:setSource();">
+				<select id="source" onchange="setSource();">
 					<option value="player">built-in Player</option>
 					<option value="mic">Microphone</option>
 				</select>

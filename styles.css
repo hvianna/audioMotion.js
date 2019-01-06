@@ -14,6 +14,7 @@ input[type="button"] {
 
 input[type="range"] {
 	vertical-align: middle;
+	width: 80px;
 }
 
 #canvas, #player {
@@ -70,7 +71,8 @@ input[type="range"] {
 	font-size: 11px;
 	margin: 10px 0 40px;
 }
-.main-config select {
+.main-config select,
+.main-config input[type="button"] {
 	font-size: 11px;
 	padding: 4px;
 }
