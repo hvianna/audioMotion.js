@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev';
+var _VERSION = '19.1-dev.1';
 
 
 /**
@@ -44,19 +44,32 @@ var playlist, playlistPos,
 	// canvas stuff
 
 /**
- * Default options
+ * Configuration presets
  */
-var defaults = {
-	fftSize		: 4,		// index of #fft_size select element
-	freqMin		: 0,		// index of #freq_min select element
-	freqMax		: 4,		// index of #freq_max select element
-	smoothing	: 0.5,		// 0 to 0.9 - smoothing time constant
-	gradient	: 0,		// index of #gradient select element
-	showScale 	: true,		// true to show x-axis scale
-	logScale	: true,		// true to use logarithmic scale
-	highSens	: false,	// true for high sensitivity
-	showPeaks 	: true		// true to show peaks
-}
+var presets = {
+	log: {
+		fftSize     : 8192,		// FFT size
+		freqMin     : 20,		// lowest frequency
+		freqMax     : 16000,	// highest frequency
+		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+		gradient    : 0,		// index of #gradient select element
+		showScale   : true,		// true to show x-axis scale
+		logScale    : true,		// true to use logarithmic scale
+		highSens    : false,	// true for high sensitivity
+		showPeaks   : true		// true to show peaks
+	},
+	linear: {
+		fftSize     : 4096,
+		freqMin     : 20,
+		freqMax     : 2000,
+		smoothing   : 0.5,
+		gradient    : 0,
+		showScale   : false,
+		logScale    : false,
+		highSens    : false,
+		showPeaks   : true
+	}
+};
 
 
 /**
@@ -85,7 +98,7 @@ function setSensitivity() {
 		analyser.minDecibels = -85;
 		analyser.maxDecibels = -25;
 	}
-	docCookies.setItem( 'highSens', elHighSens.dataset.active, Infinity );
+	updateLastConfig();
 }
 
 /**
@@ -94,7 +107,7 @@ function setSensitivity() {
 function setSmoothing() {
 	analyser.smoothingTimeConstant = elSmoothing.value;
 	consoleLog( 'smoothingTimeConstant is ' + analyser.smoothingTimeConstant );
-	docCookies.setItem( 'smoothing', analyser.smoothingTimeConstant, Infinity );
+	updateLastConfig();
 }
 
 /**
@@ -109,7 +122,7 @@ function setFFTsize() {
 	dataArray = new Uint8Array( bufferLength );
 
 	consoleLog( 'FFT size is ' + analyser.fftSize + ' samples' );
-	docCookies.setItem( 'fftSize', elFFTsize.selectedIndex, Infinity );
+	updateLastConfig();
 
 	preCalcPosX();
 }
@@ -118,8 +131,7 @@ function setFFTsize() {
  * Save desired frequency range
  */
 function setFreqRange() {
-	docCookies.setItem( 'freqMin', elRangeMin.selectedIndex, Infinity );
-	docCookies.setItem( 'freqMax', elRangeMax.selectedIndex, Infinity );
+	updateLastConfig();
 	preCalcPosX();
 }
 
@@ -127,8 +139,7 @@ function setFreqRange() {
  * Save scale preferences
  */
 function setScale() {
-	docCookies.setItem( 'showScale', elShowScale.dataset.active, Infinity );
-	docCookies.setItem( 'logScale', elLogScale.dataset.active, Infinity );
+	updateLastConfig();
 	preCalcPosX();
 }
 
@@ -137,7 +148,7 @@ function setScale() {
  */
 function setShowPeaks() {
 	cfgShowPeaks = ( elShowPeaks.dataset.active == '1' );
-	docCookies.setItem( 'showPeaks', elShowPeaks.dataset.active, Infinity );
+	updateLastConfig();
 }
 
 /**
@@ -565,8 +576,7 @@ function setSource() {
  * Save gradient preference
  */
 function setGradient() {
-
-	docCookies.setItem( 'gradient', elGradient.selectedIndex, Infinity );
+	updateLastConfig();
 }
 
 /**
@@ -582,6 +592,70 @@ function loadLocalFile( obj ) {
 	}
 
 	reader.readAsDataURL( obj.files[0] );
+}
+
+/**
+ * Load a configuration preset
+ */
+function loadPreset( name ) {
+
+	if ( ! Object.keys( presets ).includes( name ) )
+		return;
+
+	elRangeMin.value = presets[ name ].freqMin;
+	elRangeMax.value = presets[ name ].freqMax;
+
+	elLogScale.dataset.active = Number( presets[ name ].logScale );
+	elShowScale.dataset.active = Number( presets[ name ].showScale );
+
+	elFFTsize.value = presets[ name ].fftSize;
+	setFFTsize();
+
+	elSmoothing.value = presets[ name ].smoothing;
+	setSmoothing();
+
+	elGradient.selectedIndex = presets[ name ].gradient;
+
+	elHighSens.dataset.active = Number( presets[ name ].highSens );
+	setSensitivity();
+
+	elShowPeaks.dataset.active = Number( presets[ name ].showPeaks );
+	setShowPeaks();
+}
+
+/**
+ * Save / update a configuration cookie
+ */
+function saveConfigCookie( cookie ) {
+
+	var config = {
+		fftSize		: elFFTsize.value,
+		freqMin		: elRangeMin.value,
+		freqMax		: elRangeMax.value,
+		smoothing	: analyser.smoothingTimeConstant,
+		gradient	: elGradient.selectedIndex,
+		showScale 	: elShowScale.dataset.active == 1,
+		logScale	: elLogScale.dataset.active == 1,
+		highSens	: elHighSens.dataset.active == 1,
+		showPeaks 	: elShowPeaks.dataset.active == 1
+	}
+
+	docCookies.setItem( cookie, JSON.stringify( config ), Infinity );
+}
+
+/**
+ * Update last used configuration
+ */
+function updateLastConfig() {
+	saveConfigCookie( 'last-config' );
+}
+
+/**
+ * Update custom preset
+ */
+function updateCustomPreset() {
+	saveConfigCookie( 'custom-preset' );
+	document.getElementById('preset').value = 'custom';
 }
 
 
@@ -639,7 +713,7 @@ function initialize() {
 	sourcePlayer.connect( analyser );
 	analyser.connect( audioCtx.destination );
 
-	// canvas
+	// Canvas
 
 	canvas = document.getElementById('canvas');
 
@@ -664,7 +738,9 @@ function initialize() {
 	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
-	// create gradients
+	// Create gradients
+
+	elGradient  = document.getElementById('gradient');
 
 	gradients = [];
 
@@ -701,8 +777,6 @@ function initialize() {
 
 	var grad, i, j;
 
-	elGradient = document.getElementById('gradient');
-
 	for ( i = 0; i < gradinfo.length; i++ ) {
 		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 		for ( j = 0; j < gradinfo[ i ].colorstops.length; j++ )
@@ -737,56 +811,40 @@ function initialize() {
 		});
 	}
 
-	// visualizer configuration
+	// Load / initialize configuration options
 
-	var cookie;
-
-	cookie = docCookies.getItem( 'freqMin' );
-	elRangeMin = document.getElementById('freq_min');
-	elRangeMin.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMin;
-
-	cookie = docCookies.getItem( 'freqMax' );
-	elRangeMax = document.getElementById('freq_max');
-	elRangeMax.selectedIndex = ( cookie !== null ) ? cookie : defaults.freqMax;
-
-	cookie = docCookies.getItem( 'logScale' );
-	elLogScale = document.getElementById('log_scale');
-	elLogScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.logScale );
+	elFFTsize   = document.getElementById('fft_size');
+	elRangeMin  = document.getElementById('freq_min');
+	elRangeMax  = document.getElementById('freq_max');
+	elSmoothing = document.getElementById('smoothing');
+	elLogScale  = document.getElementById('log_scale');
 	elLogScale.addEventListener( 'click', setScale );
-
-	cookie = docCookies.getItem( 'showScale' );
 	elShowScale = document.getElementById('show_scale');
-	elShowScale.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showScale );
 	elShowScale.addEventListener( 'click', setScale );
 	// clicks on canvas also toggle scale on/off
 	canvas.addEventListener( 'click', function() {
 		elShowScale.click();
 	});
-
-	cookie = docCookies.getItem( 'fftSize' );
-	elFFTsize = document.getElementById('fft_size');
-	elFFTsize.selectedIndex = ( cookie !== null ) ? cookie : defaults.fftSize;
-	setFFTsize();
-
-	cookie = docCookies.getItem( 'smoothing' );
-	elSmoothing = document.getElementById('smoothing');
-	elSmoothing.value = ( cookie !== null ) ? cookie : defaults.smoothing;
-	setSmoothing();
-
-	cookie = docCookies.getItem( 'gradient' );
-	elGradient.selectedIndex = ( cookie !== null ) ? cookie : defaults.gradient;
-
-	cookie = docCookies.getItem( 'highSens' );
-	elHighSens = document.getElementById('sensitivity');
-	elHighSens.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.highSens );
+	elHighSens  = document.getElementById('sensitivity');
 	elHighSens.addEventListener( 'click', setSensitivity );
-	setSensitivity();
-
-	cookie = docCookies.getItem( 'showPeaks' );
 	elShowPeaks = document.getElementById('show_peaks');
-	elShowPeaks.dataset.active = ( cookie !== null ) ? cookie : Number( defaults.showPeaks );
 	elShowPeaks.addEventListener( 'click', setShowPeaks );
-	setShowPeaks();
+
+	var cookie;
+
+	cookie = docCookies.getItem( 'last-config' );
+	if ( cookie !== null )
+		presets['last'] = JSON.parse( cookie );
+	else
+		presets['last'] = JSON.parse( JSON.stringify( presets['log'] ) ); // if no data from last session, use 'log' preset as default
+
+	cookie = docCookies.getItem( 'custom-preset' );
+	if ( cookie !== null )
+		presets['custom'] = JSON.parse( cookie );
+	else
+		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
+
+	loadPreset('last');
 
 	// set audio source to built-in player
 	elSource = document.getElementById('source');
