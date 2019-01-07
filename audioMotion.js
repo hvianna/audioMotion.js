@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.1';
+var _VERSION = '19.1-dev.2';
 
 
 /**
@@ -44,6 +44,11 @@ var playlist, playlistPos,
 	// canvas stuff
 	gradients = {
 		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
+					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
+					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
+					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
+				  ] },
+		classic1:  { name: 'Classic (fundo verde)', bgColor: '#001a00', colorStops: [
 					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
@@ -72,6 +77,53 @@ var playlist, playlistPos,
 				  ] },
 		rainbow:  { name: 'Rainbow', bgColor: '#111' },
 		rainbow2: { name: 'Rainbow 2', bgColor: '#111' },
+		prism:    { name: 'Prism', bgColor: '#00041a' },
+		quepal: { name: 'Quepal', bgColor: '#031917', colorStops: [
+				 	{ stop: .1, color: '#38ef7d' },
+				 	{ stop: 1, color: '#11998e' }
+				]},
+		rblue: { name: 'Rainbow Blue', bgColor: '#000d19', colorStops: [
+				 	{ stop: .1, color: '#00f260' },
+				 	{ stop: 1, color: '#0575e6' }
+				]},
+		brady: { name: 'Brady Brady Fun Fun', bgColor: '#001319', colorStops: [
+				 	{ stop: .1, color: '#ffff1c' },
+				 	{ stop: 1, color: '#00c3ff' }
+				]},
+		shahabi: { name: 'Shahabi', bgColor: '#190011', colorStops: [
+				 	{ stop: .1, color: '#66ff00' },
+				 	{ stop: 1, color: '#a80077' }
+				]},
+		sunset: { name: 'Sunset', bgColor: '#021119', colorStops: [
+				 	{ stop: .1, color: '#f56217' },
+				 	{ stop: 1, color: '#0b486b' }
+				]},
+		summer: { name: 'Summer', bgColor: '#041919', colorStops: [
+				 	{ stop: .1, color: '#fdbb2d' },
+				 	{ stop: 1, color: '#22c1c3' }
+				]},
+		duskn: { name: 'Dusk (novo)', bgColor: '#0e1319', colorStops: [
+				 	{ stop: .1, color: '#fd746c' },
+				 	{ stop: 1, color: '#2c3e50' }
+				]},
+		opa: { name: 'Opa', bgColor: '#091219', colorStops: [
+				 	{ stop: .1, color: '#ffe47a' },
+				 	{ stop: 1, color: '#3d7eaa' }
+				]},
+		pdream: { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
+				 	{ stop: .1, color: '#34e89e' },
+				 	{ stop: 1, color: '#0f3443' }
+				]},
+		hunt1: { name: 'Hunt 1', bgColor: '#081819', colorStops: [
+				 	{ stop: .2, color: '#b6f492' },
+				 	{ stop: 1, color: '#338b93' }
+				]},
+		hunt2: { name: 'Hunt 2', bgColor: '#0d0619', colorStops: [
+				 	{ stop: .1, color: '#ffaf7b' },
+				 	{ stop: .5, color: '#d76d77' },
+				 	{ stop: 1, color: '#3a1c71' }
+				]},
+
 	};
 
 
@@ -784,7 +836,7 @@ function initialize() {
 				grad.addColorStop( gradients[ key ].colorStops[ i ].stop, gradients[ key ].colorStops[ i ].color );
 		}
 		// rainbow gradients are easily created iterating over the hue value
-		else if ( key == 'rainbow' ) {
+		else if ( key == 'rainbow' || key == 'prism' ) {
 			for ( i = 0; i <= 230; i += 15 )
 				grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
 		}
