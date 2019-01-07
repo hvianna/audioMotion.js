@@ -40,7 +40,7 @@ var playlist, playlistPos,
 	// frequency range and scale related variables
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
 	// Web Audio API related variables
-	canvas, canvasCtx, pixelRatio,
+	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer,
 	// canvas stuff
 	gradients = {
 		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
@@ -300,6 +300,8 @@ function drawScale() {
 		return;
 
 	canvasCtx.fillStyle = '#fff';
+	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
+	canvasCtx.textAlign = 'center';
 
 	bands = [0, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000];
 	freq = 0;
@@ -604,6 +606,24 @@ function draw() {
 	if ( cfgShowScale )
 		drawScale();
 
+	if ( canvasMsgTimer ) {
+		if ( canvasMsgTimer > 60 )
+			canvasCtx.fillStyle = '#fff';
+		else
+			canvasCtx.fillStyle = `rgba( 255, 255, 255, ${ canvasMsgTimer / 60 })`;
+		if ( canvasMsgPos == 'top' ) {
+			canvasCtx.font = `bold ${ 25 * pixelRatio }px sans-serif`;
+			canvasCtx.textAlign = 'center';
+			canvasCtx.fillText( canvasMsg, canvas.width / 2, 50 * pixelRatio );
+		}
+		else {
+			canvasCtx.font = `bold ${ 35 * pixelRatio }px sans-serif`;
+			canvasCtx.textAlign = 'left';
+			canvasCtx.fillText( canvasMsg, 70 * pixelRatio, canvas.height - 70 * pixelRatio );
+		}
+		canvasMsgTimer--;
+	}
+
 	// schedule next canvas update
 	requestAnimationFrame( draw );
 }
@@ -743,6 +763,58 @@ function updateCustomPreset() {
 	document.getElementById('preset').value = 'custom';
 }
 
+/**
+ * Set message to display on canvas
+ */
+function setCanvasMsg( msg, pos, secs ) {
+	canvasMsg = msg;
+	canvasMsgPos = pos;
+	canvasMsgTimer = secs * 60;
+}
+
+/**
+ * Keyboard controls
+ */
+function keyboardControls( event ) {
+
+	var key = event.which || event.keyCode;
+
+	var gradIdx = elGradient.selectedIndex;
+	console.log( event );
+	console.log( key );
+
+	switch ( key ) {
+		case 32: // space bar - play/pause
+			playPause();
+			break;
+		case 37: // arrow left  - previous song
+			playPreviousSong();
+			break;
+		case 38: // arrow up - previous gradient
+			if ( gradIdx == 0 )
+				elGradient.selectedIndex = elGradient.options.length - 1;
+			else
+				elGradient.selectedIndex = gradIdx - 1;
+			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
+			break;
+		case 39: // arrow right - next song
+			playNextSong();
+			break;
+		case 40: // arrow down - next gradient
+			if ( gradIdx == elGradient.options.length - 1 )
+				elGradient.selectedIndex = 0;
+			else
+				elGradient.selectedIndex = gradIdx + 1;
+			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
+			break;
+		case 78: // N key - show song name
+			setCanvasMsg( document.getElementById( 'playlist' ).value, 'bottom', 2 );
+			break;
+		case 83: // S key - toggle scale
+			elShowScale.click();
+			break;
+	}
+}
 
 /**
  * Initialization
@@ -820,8 +892,6 @@ function initialize() {
 	canvasCtx = canvas.getContext('2d');
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
-	canvasCtx.textAlign = 'center';
 
 	// Create gradients
 
@@ -902,6 +972,9 @@ function initialize() {
 	// load playlists from playlists.cfg
 	elPlaylists = document.getElementById('playlists');
 	loadPlaylistsCfg();
+
+	// add event listener for keyboard controls
+	window.addEventListener( 'keyup', keyboardControls );
 
 	// start canvas animation
 	requestAnimationFrame( draw );
