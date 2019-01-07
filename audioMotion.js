@@ -40,8 +40,40 @@ var playlist, playlistPos,
 	// frequency range and scale related variables
 	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
 	// Web Audio API related variables
-	canvas, canvasCtx, gradients, pixelRatio;
+	canvas, canvasCtx, pixelRatio,
 	// canvas stuff
+	gradients = {
+		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
+					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
+					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
+					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
+				  ] },
+		aurora1:  { name: 'Aurora 1', bgColor: '#0e172a', colorStops: [
+					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
+				  ] },
+		aurora2:  { name: 'Aurora 2', bgColor: '#0e172a', colorStops: [
+					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ stop:  1, color: 'hsla( 320, 100%, 50%, .4 )' }
+				  ] },
+		aurora3:  { name: 'Aurora 3', bgColor: '#0e172a', colorStops: [
+					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ stop: .7, color: 'hsla( 189, 100%, 50%, .8 )' },
+					{ stop:  1, color: 'hsla( 245, 80%, 50%, .4 )' }
+				  ] },
+		aurora4:  { name: 'Aurora 4', bgColor: '#0e172a', colorStops: [
+					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ stop: .5, color: 'hsl( 189, 100%, 40% )' },
+					{ stop:  1, color: 'hsl( 290, 60%, 40% )' }
+				  ] },
+		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
+					{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
+					{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
+				  ] },
+		rainbow:  { name: 'Rainbow', bgColor: '#111' },
+		rainbow2: { name: 'Rainbow 2', bgColor: '#111' },
+	};
+
 
 /**
  * Configuration presets
@@ -52,7 +84,7 @@ var presets = {
 		freqMin     : 20,		// lowest frequency
 		freqMax     : 16000,	// highest frequency
 		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-		gradient    : 0,		// index of #gradient select element
+		gradient    : null,		// gradient name (null to not change current selection)
 		showScale   : true,		// true to show x-axis scale
 		logScale    : true,		// true to use logarithmic scale
 		highSens    : false,	// true for high sensitivity
@@ -63,7 +95,7 @@ var presets = {
 		freqMin     : 20,
 		freqMax     : 2000,
 		smoothing   : 0.5,
-		gradient    : 0,
+		gradient    : null,
 		showScale   : false,
 		logScale    : false,
 		highSens    : false,
@@ -476,10 +508,10 @@ function isPlaying() {
 function draw() {
 
 	var barWidth, barHeight,
-		grad = elGradient.selectedIndex;
+		grad = elGradient.value;
 
 	// clear the canvas, using the background color stored in the selected gradient option
-	canvasCtx.fillStyle = elGradient.value;
+	canvasCtx.fillStyle = gradients[ grad ].bgColor;
 	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
 
 	// get a new array of data from the FFT
@@ -497,7 +529,7 @@ function draw() {
 			accel[ i ] = 0;
 		}
 
-		canvasCtx.fillStyle = gradients[ grad ];
+		canvasCtx.fillStyle = gradients[ grad ].gradient;
 
 		if ( posx[ i ] >= 0 ) {	// ignore negative positions
 			canvasCtx.fillRect( posx[ i ], canvas.height, barWidth, -barHeight );
@@ -614,7 +646,8 @@ function loadPreset( name ) {
 	elSmoothing.value = presets[ name ].smoothing;
 	setSmoothing();
 
-	elGradient.selectedIndex = presets[ name ].gradient;
+	if ( presets[ name ].gradient )
+		elGradient.value = presets[ name ].gradient;
 
 	elHighSens.dataset.active = Number( presets[ name ].highSens );
 	setSensitivity();
@@ -633,7 +666,7 @@ function saveConfigCookie( cookie ) {
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
 		smoothing	: analyser.smoothingTimeConstant,
-		gradient	: elGradient.selectedIndex,
+		gradient	: elGradient.value,
 		showScale 	: elShowScale.dataset.active == 1,
 		logScale	: elLogScale.dataset.active == 1,
 		highSens	: elHighSens.dataset.active == 1,
@@ -742,65 +775,29 @@ function initialize() {
 
 	elGradient  = document.getElementById('gradient');
 
-	gradients = [];
+	var grad, i;
 
-	var gradinfo = [
-		// gradient name, background color, and color stops
-		{ name: 'Classic', bg: '#111', colorstops: [
-				{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
-				{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
-				{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
-		] },
-		{ name: 'Aurora 1', bg: '#0e172a', colorstops: [
-				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-				{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
-		] },
-		{ name: 'Aurora 2', bg: '#0e172a', colorstops: [
-				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-				{ stop:  1, color: 'hsla( 320, 100%, 50%, .4 )' }
-		] },
-		{ name: 'Aurora 3', bg: '#0e172a', colorstops: [
-				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-				{ stop: .7, color: 'hsla( 189, 100%, 50%, .8 )' },
-				{ stop:  1, color: 'hsla( 245, 80%, 50%, .4 )' }
-		] },
-		{ name: 'Aurora 4', bg: '#0e172a', colorstops: [
-				{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-				{ stop: .5, color: 'hsl( 189, 100%, 40% )' },
-				{ stop:  1, color: 'hsl( 290, 60%, 40% )' }
-		] },
-		{ name: 'Dusk', bg: '#0e172a', colorstops: [
-				{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
-				{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
-		] }
-	];
-
-	var grad, i, j;
-
-	for ( i = 0; i < gradinfo.length; i++ ) {
+	Object.keys( gradients ).forEach((key) => {
 		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-		for ( j = 0; j < gradinfo[ i ].colorstops.length; j++ )
-			grad.addColorStop( gradinfo[ i ].colorstops[ j ].stop, gradinfo[ i ].colorstops[ j ].color );
-		// add the option to the html select element
-		// we'll know which gradient to use by the selectedIndex - bg color is stored in the option value
-		elGradient.options[ i ] = new Option( gradinfo[ i ].name, gradinfo[ i ].bg );
-		// push the actual gradient into the gradients array
-		gradients.push( grad );
-	}
-
-	// Rainbow gradients are easily created iterating over the hue value
-
-	grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-	for ( i = 0; i <= 230; i += 15 )
-		grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
-	gradients.push( grad );
-	elGradient.options[ elGradient.options.length ] = new Option( 'Rainbow', '#111' );
-
-	grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 );
-	for ( i = 0; i <= 360; i += 15 )
-		grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
-	gradients.push( grad );
-	elGradient.options[ elGradient.options.length ] = new Option( 'Rainbow 2', '#111' );
+		if ( gradients[ key ].hasOwnProperty( 'colorStops' ) ) {
+			for ( i = 0; i < gradients[ key ].colorStops.length; i++ )
+				grad.addColorStop( gradients[ key ].colorStops[ i ].stop, gradients[ key ].colorStops[ i ].color );
+		}
+		// rainbow gradients are easily created iterating over the hue value
+		else if ( key == 'rainbow' ) {
+			for ( i = 0; i <= 230; i += 15 )
+				grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
+		}
+		else if ( key == 'rainbow2' ) {
+			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 );
+			for ( i = 0; i <= 360; i += 15 )
+				grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
+		}
+		// add the option to the html select element for the user interface
+		elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+		// save the actual gradient back into the gradients array
+		gradients[ key ].gradient = grad;
+	});
 
 	// Add event listeners to the custom checkboxes
 
