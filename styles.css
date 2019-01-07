@@ -116,11 +116,13 @@ input[type="range"] {
 }
 
 .help {
-	border-bottom: 1px dotted #080;
-	color: #080;
 	cursor: help;
 	position: relative;
 	text-decoration: none;
+}
+.help .config-label {
+	border-bottom: 1px dotted #080;
+	color: #080;
 }
 .help:hover > .tooltip,
 .switch:hover > .tooltip {
