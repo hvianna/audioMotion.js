@@ -57,6 +57,11 @@ var	// playlist and index to the current song
 					{ stop: .5, color: '#00adcc' },
 					{ stop:  1, color: '#8f29a3' }
 				  ] },
+		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
+				 	{ stop: .1, color: '#ffaf7b' },
+				 	{ stop: .5, color: '#d76d77' },
+				 	{ stop: 1, color: '#3a1c71' }
+				  ]},
 		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
 					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
@@ -89,12 +94,6 @@ var	// playlist and index to the current song
 				 	{ stop: .1, color: '#f56217' },
 				 	{ stop: 1, color: '#0b486b' }
 				  ]},
-		hunt2:    { name: 'Hunt 2', bgColor: '#0d0619', colorStops: [
-				 	{ stop: .1, color: '#ffaf7b' },
-				 	{ stop: .5, color: '#d76d77' },
-				 	{ stop: 1, color: '#3a1c71' }
-				  ]},
-
 	};
 
 
@@ -752,20 +751,19 @@ function setCanvasMsg( msg, pos, secs ) {
  */
 function keyboardControls( event ) {
 
-	var key = event.which || event.keyCode;
-
 	var gradIdx = elGradient.selectedIndex;
-//	console.log( event );
-//	console.log( key );
+//	console.log( event.keyCode );
 
-	switch ( key ) {
+	switch ( event.keyCode ) {
 		case 32: // space bar - play/pause
 			playPause();
 			break;
-		case 37: // arrow left  - previous song
+		case 37: // arrow left - previous song
+		case 74: // J (alternative)
 			playPreviousSong();
 			break;
 		case 38: // arrow up - previous gradient
+		case 73: // I (alternative)
 			if ( gradIdx == 0 )
 				elGradient.selectedIndex = elGradient.options.length - 1;
 			else
@@ -773,23 +771,25 @@ function keyboardControls( event ) {
 			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
 			break;
 		case 39: // arrow right - next song
+		case 75: // K (alternative)
 			playNextSong();
 			break;
 		case 40: // arrow down - next gradient
+		case 77: // M (alternative)
 			if ( gradIdx == elGradient.options.length - 1 )
 				elGradient.selectedIndex = 0;
 			else
 				elGradient.selectedIndex = gradIdx + 1;
 			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
 			break;
+		case 66: // B key - toggle black background
+			blackBg = ! blackBg;
+			break;
 		case 78: // N key - show song name
 			setCanvasMsg( document.getElementById( 'playlist' ).value, 'bottom', 2 );
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
-			break;
-		case 66: // B key - toggle black background
-			blackBg = ! blackBg;
 			break;
 	}
 }

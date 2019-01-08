@@ -175,6 +175,7 @@ input[type="range"] {
 	border-radius: 5px;
 	color: #444;
 	display: none;
+	font-size: 11px;
 	padding: 10px;
 	position: absolute;
 	text-align: center;
@@ -185,6 +186,33 @@ input[type="range"] {
 .switch .tooltip {
 	left: 0;
 	top: 30px;
+}
+.tooltip.center {
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.kbd-table tr td:first-child {
+	width: 50px;
+}
+
+.key {
+	background: #f0f0f0;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	box-shadow: 1px 1px 0 1px rgba(0,0,0,.5);
+	display: inline-block;
+	font-weight: bold;
+	height: 16px;
+	min-width: 16px;
+	text-align: center;
+}
+.key-big {
+	font-size: 130%;
+	line-height: 1;
+}
+.key-wide {
+	width: 50px;
 }
 
 #console {
