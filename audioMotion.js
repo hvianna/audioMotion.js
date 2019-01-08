@@ -20,109 +20,80 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.2';
+var _VERSION = '19.1-dev.3';
 
 
 /**
  * Global variables
  */
-var playlist, playlistPos,
-	// our playlist and index to its current position
-	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale, elHighSens, elShowPeaks, elPlaylists,
+var	// playlist and index to the current song
+	playlist, playlistPos,
 	// HTML elements from the UI
+	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale, elHighSens, elShowPeaks, elPlaylists,
+	// configuration options we need to check inside the draw function - for better performance
 	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks,
-	// flags for things we need to check too often (inside the draw function)
-	bufferLength, dataArray,
-	// analyzer FFT data
+	// peak value, hold time and fall acceleration for each frequency (arrays)
 	peaks, hold, accel,
-	// peak value, hold time and fall acceleration (arrays)
-	posx, iMin, iMax, deltaX, bandWidth,
 	// frequency range and scale related variables
-	audioCtx, analyser, audioElement, sourcePlayer, sourceMic,
+	posx, iMin, iMax, deltaX, bandWidth,
 	// Web Audio API related variables
-	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer,
-	// canvas stuff
+	audioCtx, analyser, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
+	// canvas related variables
+	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer, blackBg,
+	// gradients
 	gradients = {
+		aurora1:  { name: 'Aurora 1', bgColor: '#0e172a', colorStops: [
+					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
+				  ] },
+		aurora3:  { name: 'Aurora 3', bgColor: '#0e172a', colorStops: [
+					{ stop: .1, color: '#0f0' },
+					{ stop: .6, color: '#008ebc' },
+//					{ stop: .5, color: '#00c8ff' },
+					{ stop:  1, color: '#110d5e' }
+				  ] },
+		borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
+					{ stop: .1, color: '#0f0' },
+					{ stop: .5, color: '#00adcc' },
+					{ stop:  1, color: '#8f29a3' }
+				  ] },
 		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
 					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
 				  ] },
-		classic1:  { name: 'Classic (fundo verde)', bgColor: '#001a00', colorStops: [
-					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
-					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
-					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
-				  ] },
-		aurora1:  { name: 'Aurora 1', bgColor: '#0e172a', colorStops: [
-					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
-				  ] },
-		aurora2:  { name: 'Aurora 2', bgColor: '#0e172a', colorStops: [
-					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ stop:  1, color: 'hsla( 320, 100%, 50%, .4 )' }
-				  ] },
-		aurora3:  { name: 'Aurora 3', bgColor: '#0e172a', colorStops: [
-					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ stop: .7, color: 'hsla( 189, 100%, 50%, .8 )' },
-					{ stop:  1, color: 'hsla( 245, 80%, 50%, .4 )' }
-				  ] },
-		aurora4:  { name: 'Aurora 4', bgColor: '#0e172a', colorStops: [
-					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ stop: .5, color: 'hsl( 189, 100%, 40% )' },
-					{ stop:  1, color: 'hsl( 290, 60%, 40% )' }
-				  ] },
 		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
 					{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
 				  ] },
-		rainbow:  { name: 'Rainbow', bgColor: '#111' },
-		rainbow2: { name: 'Rainbow 2', bgColor: '#111' },
-		prism:    { name: 'Prism', bgColor: '#00041a' },
-		quepal: { name: 'Quepal', bgColor: '#031917', colorStops: [
-				 	{ stop: .1, color: '#38ef7d' },
-				 	{ stop: 1, color: '#11998e' }
-				]},
-		rblue: { name: 'Rainbow Blue', bgColor: '#000d19', colorStops: [
-				 	{ stop: .1, color: '#00f260' },
-				 	{ stop: 1, color: '#0575e6' }
-				]},
-		brady: { name: 'Brady Brady Fun Fun', bgColor: '#001319', colorStops: [
-				 	{ stop: .1, color: '#ffff1c' },
-				 	{ stop: 1, color: '#00c3ff' }
-				]},
-		shahabi: { name: 'Shahabi', bgColor: '#190011', colorStops: [
-				 	{ stop: .1, color: '#66ff00' },
-				 	{ stop: 1, color: '#a80077' }
-				]},
-		sunset: { name: 'Sunset', bgColor: '#021119', colorStops: [
-				 	{ stop: .1, color: '#f56217' },
-				 	{ stop: 1, color: '#0b486b' }
-				]},
-		summer: { name: 'Summer', bgColor: '#041919', colorStops: [
-				 	{ stop: .1, color: '#fdbb2d' },
-				 	{ stop: 1, color: '#22c1c3' }
-				]},
-		duskn: { name: 'Dusk (novo)', bgColor: '#0e1319', colorStops: [
-				 	{ stop: .1, color: '#fd746c' },
-				 	{ stop: 1, color: '#2c3e50' }
-				]},
-		opa: { name: 'Opa', bgColor: '#091219', colorStops: [
-				 	{ stop: .1, color: '#ffe47a' },
-				 	{ stop: 1, color: '#3d7eaa' }
-				]},
-		pdream: { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
+		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
 				 	{ stop: .1, color: '#34e89e' },
 				 	{ stop: 1, color: '#0f3443' }
-				]},
-		hunt1: { name: 'Hunt 1', bgColor: '#081819', colorStops: [
-				 	{ stop: .2, color: '#b6f492' },
-				 	{ stop: 1, color: '#338b93' }
-				]},
-		hunt2: { name: 'Hunt 2', bgColor: '#0d0619', colorStops: [
+				  ]},
+		prism:    { name: 'Prism', bgColor: '#00041a' },
+		rainbow:  { name: 'Rainbow', bgColor: '#111' },
+		shahabi:  { name: 'Shahabi', bgColor: '#190011', colorStops: [
+				 	{ stop: .1, color: '#66ff00' },
+				 	{ stop: 1, color: '#a80077' }
+				  ] },
+
+		brady:    { name: 'Brady Brady Fun Fun', bgColor: '#001319', colorStops: [
+				 	{ stop: .1, color: '#ffff1c' },
+				 	{ stop: 1, color: '#00c3ff' }
+				  ]},
+		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
+				 	{ stop: .1, color: '#fdbb2d' },
+				 	{ stop: 1, color: '#22c1c3' }
+				  ]},
+		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
+				 	{ stop: .1, color: '#f56217' },
+				 	{ stop: 1, color: '#0b486b' }
+				  ]},
+		hunt2:    { name: 'Hunt 2', bgColor: '#0d0619', colorStops: [
 				 	{ stop: .1, color: '#ffaf7b' },
 				 	{ stop: .5, color: '#d76d77' },
 				 	{ stop: 1, color: '#3a1c71' }
-				]},
+				  ]},
 
 	};
 
@@ -564,8 +535,11 @@ function draw() {
 	var barWidth, barHeight,
 		grad = elGradient.value;
 
-	// clear the canvas, using the background color stored in the selected gradient option
-	canvasCtx.fillStyle = gradients[ grad ].bgColor;
+	if ( blackBg )	// use black background
+		canvasCtx.fillStyle = '#000';
+	else 			// use background color defined by gradient
+		canvasCtx.fillStyle = gradients[ grad ].bgColor;
+	// clear the canvas
 	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
 
 	// get a new array of data from the FFT
@@ -606,10 +580,11 @@ function draw() {
 	if ( cfgShowScale )
 		drawScale();
 
-	if ( canvasMsgTimer ) {
+	// display message on canvas
+	if ( canvasMsgTimer > 0 ) {
 		if ( canvasMsgTimer > 60 )
 			canvasCtx.fillStyle = '#fff';
-		else
+		else 	// during the last 60 frames decrease opacity for fade-out effect
 			canvasCtx.fillStyle = `rgba( 255, 255, 255, ${ canvasMsgTimer / 60 })`;
 		if ( canvasMsgPos == 'top' ) {
 			canvasCtx.font = `bold ${ 25 * pixelRatio }px sans-serif`;
@@ -764,7 +739,7 @@ function updateCustomPreset() {
 }
 
 /**
- * Set message to display on canvas
+ * Set message to be displayed on canvas
  */
 function setCanvasMsg( msg, pos, secs ) {
 	canvasMsg = msg;
@@ -780,8 +755,8 @@ function keyboardControls( event ) {
 	var key = event.which || event.keyCode;
 
 	var gradIdx = elGradient.selectedIndex;
-	console.log( event );
-	console.log( key );
+//	console.log( event );
+//	console.log( key );
 
 	switch ( key ) {
 		case 32: // space bar - play/pause
@@ -812,6 +787,9 @@ function keyboardControls( event ) {
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
+			break;
+		case 66: // B key - toggle black background
+			blackBg = ! blackBg;
 			break;
 	}
 }
@@ -873,6 +851,7 @@ function initialize() {
 	// Canvas
 
 	canvas = document.getElementById('canvas');
+	canvasCtx = canvas.getContext('2d');
 
 	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
 
@@ -886,12 +865,7 @@ function initialize() {
 		canvas.width = canvas.height;
 		canvas.height = tmp;
 	}
-
 	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels' );
-
-	canvasCtx = canvas.getContext('2d');
-	canvasCtx.fillStyle = '#000';
-	canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// Create gradients
 
@@ -906,12 +880,12 @@ function initialize() {
 				grad.addColorStop( gradients[ key ].colorStops[ i ].stop, gradients[ key ].colorStops[ i ].color );
 		}
 		// rainbow gradients are easily created iterating over the hue value
-		else if ( key == 'rainbow' || key == 'prism' ) {
+		else if ( key == 'prism' ) {
 			for ( i = 0; i <= 230; i += 15 )
 				grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
 		}
-		else if ( key == 'rainbow2' ) {
-			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 );
+		else if ( key == 'rainbow' ) {
+			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 ); // this one is a horizontal gradient
 			for ( i = 0; i <= 360; i += 15 )
 				grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
 		}
@@ -954,8 +928,10 @@ function initialize() {
 	cookie = docCookies.getItem( 'last-config' );
 	if ( cookie !== null )
 		presets['last'] = JSON.parse( cookie );
-	else
-		presets['last'] = JSON.parse( JSON.stringify( presets['log'] ) ); // if no data from last session, use 'log' preset as default
+	else { // if no data found from last session, use 'log' preset as default
+		presets['last'] = JSON.parse( JSON.stringify( presets['log'] ) );
+		presets['last'].gradient = 'prism';
+	}
 
 	cookie = docCookies.getItem( 'custom-preset' );
 	if ( cookie !== null )
