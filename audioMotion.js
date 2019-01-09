@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.3';
+var _VERSION = '19.1-dev.4';
 
 
 /**
@@ -42,26 +42,20 @@ var	// playlist and index to the current song
 	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer, blackBg,
 	// gradients
 	gradients = {
-		aurora1:  { name: 'Aurora 1', bgColor: '#0e172a', colorStops: [
+		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
 					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
 				  ] },
-		aurora3:  { name: 'Aurora 3', bgColor: '#0e172a', colorStops: [
-					{ stop: .1, color: '#0f0' },
-					{ stop: .6, color: '#008ebc' },
-//					{ stop: .5, color: '#00c8ff' },
-					{ stop:  1, color: '#110d5e' }
-				  ] },
 		borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
-					{ stop: .1, color: '#0f0' },
-					{ stop: .5, color: '#00adcc' },
-					{ stop:  1, color: '#8f29a3' }
+					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ stop: .5, color: 'hsl( 189, 100%, 40% )' },
+					{ stop:  1, color: 'hsl( 290, 60%, 40% )' }
 				  ] },
 		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
 				 	{ stop: .1, color: '#ffaf7b' },
 				 	{ stop: .5, color: '#d76d77' },
 				 	{ stop: 1, color: '#3a1c71' }
-				  ]},
+				  ] },
 		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
 					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
@@ -71,29 +65,46 @@ var	// playlist and index to the current song
 					{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
 				  ] },
+		miami:    { name: 'Miami', bgColor: '#111', colorStops: [
+				    { stop: .024, color: 'rgb( 251, 198, 6 )' },
+				    { stop: .283, color: 'rgb( 224, 82, 95 )' },
+				    { stop: .462, color: 'rgb( 194, 78, 154 )' },
+				    { stop: .794, color: 'rgb( 32, 173, 190 )' },
+				    { stop: 1, color: 'rgb( 22, 158, 95 )' }
+				  ] },
+		outrun:   { name: 'Outrun', bgColor: '#111', colorStops: [
+					{ stop: 0, color: 'rgb( 255, 223, 67 )' },
+					{ stop: .182, color: 'rgb( 250, 84, 118 )' },
+					{ stop: .364, color: 'rgb( 198, 59, 243 )' },
+					{ stop: .525, color: 'rgb( 133, 80, 255 )' },
+					{ stop: .688, color: 'rgb( 74, 104, 247 )' },
+					{ stop: 1, color: 'rgb( 35, 210, 255 )' }
+		          ] },
 		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
 				 	{ stop: .1, color: '#34e89e' },
 				 	{ stop: 1, color: '#0f3443' }
-				  ]},
-		prism:    { name: 'Prism', bgColor: '#00041a' },
+				  ] },
+		prism:    { name: 'Prism', bgColor: '#111' },
 		rainbow:  { name: 'Rainbow', bgColor: '#111' },
-		shahabi:  { name: 'Shahabi', bgColor: '#190011', colorStops: [
+		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
 				 	{ stop: .1, color: '#66ff00' },
 				 	{ stop: 1, color: '#a80077' }
 				  ] },
-
-		brady:    { name: 'Brady Brady Fun Fun', bgColor: '#001319', colorStops: [
-				 	{ stop: .1, color: '#ffff1c' },
-				 	{ stop: 1, color: '#00c3ff' }
-				  ]},
 		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
 				 	{ stop: .1, color: '#fdbb2d' },
 				 	{ stop: 1, color: '#22c1c3' }
-				  ]},
+				  ] },
 		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
 				 	{ stop: .1, color: '#f56217' },
 				 	{ stop: 1, color: '#0b486b' }
-				  ]},
+				  ] },
+		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
+					{ stop: .038, color: 'rgb( 15, 209, 165 )' },
+					{ stop: .208, color: 'rgb( 15, 157, 209 )' },
+					{ stop: .519, color: 'rgb( 133, 13, 230 )' },
+					{ stop: .731, color: 'rgb( 230, 13, 202 )' },
+					{ stop: .941, color: 'rgb( 242, 180, 107 )' }
+		          ] },
 	};
 
 
@@ -106,7 +117,6 @@ var presets = {
 		freqMin     : 20,		// lowest frequency
 		freqMax     : 16000,	// highest frequency
 		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-		gradient    : null,		// gradient name (null to not change current selection)
 		showScale   : true,		// true to show x-axis scale
 		logScale    : true,		// true to use logarithmic scale
 		highSens    : false,	// true for high sensitivity
@@ -116,8 +126,7 @@ var presets = {
 		fftSize     : 4096,
 		freqMin     : 20,
 		freqMax     : 2000,
-		smoothing   : 0.5,
-		gradient    : null,
+		smoothing   : 0.7,
 		showScale   : false,
 		logScale    : false,
 		highSens    : false,
@@ -881,12 +890,12 @@ function initialize() {
 		}
 		// rainbow gradients are easily created iterating over the hue value
 		else if ( key == 'prism' ) {
-			for ( i = 0; i <= 230; i += 15 )
-				grad.addColorStop( i/230, `hsl( ${i}, 100%, 50% )` );
+			for ( i = 0; i <= 240; i += 60 )
+				grad.addColorStop( i/240, `hsl( ${i}, 100%, 50% )` );
 		}
 		else if ( key == 'rainbow' ) {
 			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 ); // this one is a horizontal gradient
-			for ( i = 0; i <= 360; i += 15 )
+			for ( i = 0; i <= 360; i += 60 )
 				grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
 		}
 		// add the option to the html select element for the user interface
