@@ -135,9 +135,9 @@ input[type="range"] {
 	position: relative;
 }
 .switch {
+	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
 	border: 1px solid #ccc;
 	border-left-width: 0;
-	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.4);
 	cursor: pointer;
 	display: inline-block;
 	font-size: 11px;
@@ -159,13 +159,9 @@ input[type="range"] {
 	border-bottom-right-radius: 5px;
 }
 .switch[data-active="1"] {
-	background: #888;
+	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
 	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
 	color: #fff;
-}
-.switch:only-child[data-active="1"] {
-	background: #666;
-	color: #0f0;
 }
 
 .tooltip {
