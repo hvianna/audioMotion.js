@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.5';
+var _VERSION = '19.1-dev.6';
 
 
 /**
@@ -467,6 +467,11 @@ function shufflePlaylist() {
 	}
 
 	updatePlaylistUI();
+
+	if ( ! isPlaying() ) {
+		playlistPos = 0;
+		loadSong(0);
+	}
 }
 
 /**
