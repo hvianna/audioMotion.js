@@ -119,12 +119,6 @@
 			<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
 		</div>
 
-		<div>
-			<span class="config-label">Gradient:</span>
-			<select id="gradient" onchange="setGradient();">
-			</select>
-		</div>
-
 		<ul class="switch-bar">
 			<li class="switch" id="log_scale">Log
 				<span class="tooltip">Use a logarithmic scale to enhance visualization of low frequencies</span>
@@ -148,16 +142,37 @@
 				</select>
 				<input type="button" value=" LOAD " onclick="loadPlaylist();">
 			</div>
-			<span class="playlist-tab">Playlist</span>
-			<ul class="switch-bar">
-				<li id="repeat" class="switch">Repeat</li>
-			</ul>
-			<input type="button" value="Shuffle" class="playlist-button" onclick="shufflePlaylist();">
-			<input type="button" value="Clear" class="playlist-button" onclick="clearPlaylist();">
+			<div class="playlist-area">
+				<div class="playlist-title">Playlist</div>
+				<ul class="switch-bar">
+					<li id="repeat" class="switch">Repeat
+						<span class="tooltip">Repeat playlist</span>
+					<li id="show_song" class="switch">Display
+						<span class="tooltip">Display song name in the visualization area on every track change
+				</ul>
+				<div>
+					<input type="button" value="Shuffle" class="playlist-button" onclick="shufflePlaylist();">
+					<input type="button" value="Clear" class="playlist-button" onclick="clearPlaylist();">
+				</div>
+			</div>
 			<select id="playlist" size="10" onchange="playSong( this.selectedIndex );">
 			</select>
 		</div>
+
 		<div>
+			<div class="main-config center">
+				<span class="config-label">Gradient:</span>
+				<select id="gradient" onchange="updateLastConfig();">
+				</select>
+
+				<ul class="switch-bar">
+					<li class="switch" id="black_bg">Black
+						<span class="tooltip">Use black background instead of background color defined by gradient</span>
+					<li class="switch" id="cycle_grad">Cycle
+						<span class="tooltip">Cycle gradient on every track change</span>
+				</ul>
+			</div>
+
 			<div class="button-bar center">
 				<input type="button" value=" Fullscreen Analyzer " class="fullscreen-button" onclick="fullscreen();">
 				<br>
@@ -184,15 +199,16 @@
 				<i class="icons8-stop-symbol" onclick="stop();"></i>
 				<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
 			</div>
-			<div class="top40 center">
-				Audio source:
+		</div>
+
+		<div>
+			<div class="main-config center">
+				AUDIO SOURCE:
 				<select id="source" onchange="setSource();">
 					<option value="player">built-in Player</option>
 					<option value="mic">Microphone</option>
 				</select>
 			</div>
-		</div>
-		<div>
 			<div id="console"></div>
 			<div class="credits">
 				<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Vianna<br>

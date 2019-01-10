@@ -25,9 +25,12 @@ input[type="range"] {
 #canvas {
 	height: 540px;
 }
-
 #canvas:-webkit-full-screen {
 	height: auto;
+}
+
+#player {
+	margin-bottom: 10px;
 }
 
 #playlist {
@@ -39,26 +42,22 @@ input[type="range"] {
 	width: 360px;
 }
 
-.playlist-tab,
 .playlist-button,
 .config-label {
 	font-size: 11px;
 	text-transform: uppercase;
 }
 
-.playlist-tab {
-	background-color: #888;
-	border-top-left-radius: 6px;
-	border-top-right-radius: 6px;
-	color: #fff;
-	display: inline-block;
-	height: 20px;
-	margin-right: 30px;
-	padding: 10px 20px;
+.playlist-area {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
 }
-
+.playlist-title {
+	font-weight: bold;
+}
 .playlist-button {
-	margin-left: 30px;
 	width: 100px;
 }
 
@@ -69,7 +68,7 @@ input[type="range"] {
 
 .main-config {
 	font-size: 11px;
-	margin: 10px 0 40px;
+	margin-bottom: 30px;
 }
 .main-config select,
 .main-config input[type="button"] {

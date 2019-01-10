@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.4';
+var _VERSION = '19.1-dev.5';
 
 
 /**
@@ -29,9 +29,10 @@ var _VERSION = '19.1-dev.4';
 var	// playlist and index to the current song
 	playlist, playlistPos,
 	// HTML elements from the UI
-	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale, elHighSens, elShowPeaks, elPlaylists,
+	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale,
+	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong,
 	// configuration options we need to check inside the draw function - for better performance
-	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks,
+	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
 	// peak value, hold time and fall acceleration for each frequency (arrays)
 	peaks, hold, accel,
 	// frequency range and scale related variables
@@ -39,7 +40,7 @@ var	// playlist and index to the current song
 	// Web Audio API related variables
 	audioCtx, analyser, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
-	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer, blackBg,
+	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer,
 	// gradients
 	gradients = {
 		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
@@ -118,9 +119,7 @@ var presets = {
 		freqMax     : 16000,	// highest frequency
 		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
 		showScale   : true,		// true to show x-axis scale
-		logScale    : true,		// true to use logarithmic scale
-		highSens    : false,	// true for high sensitivity
-		showPeaks   : true		// true to show peaks
+		logScale    : true		// true to use logarithmic scale
 	},
 	linear: {
 		fftSize     : 4096,
@@ -128,9 +127,7 @@ var presets = {
 		freqMax     : 2000,
 		smoothing   : 0.7,
 		showScale   : false,
-		logScale    : false,
-		highSens    : false,
-		showPeaks   : true
+		logScale    : false
 	}
 };
 
@@ -191,7 +188,7 @@ function setFFTsize() {
 }
 
 /**
- * Save desired frequency range
+ * Set desired frequency range
  */
 function setFreqRange() {
 	updateLastConfig();
@@ -199,7 +196,7 @@ function setFreqRange() {
 }
 
 /**
- * Save scale preferences
+ * Set scale preferences
  */
 function setScale() {
 	updateLastConfig();
@@ -207,12 +204,21 @@ function setScale() {
 }
 
 /**
- * Save show peaks preference
+ * Set show peaks preference
  */
 function setShowPeaks() {
 	cfgShowPeaks = ( elShowPeaks.dataset.active == '1' );
 	updateLastConfig();
 }
+
+/**
+ * Set background color preference
+ */
+function setBlackBg() {
+	cfgBlackBg = ( elBlackBg.dataset.active == '1' );
+	updateLastConfig();
+}
+
 
 /**
  * Pre-calculate the actual X-coordinate on screen for each frequency
@@ -479,10 +485,23 @@ function loadSong( n ) {
  * Play a song from the playlist
  */
 function playSong( n ) {
+
+	var gradIdx;
+
 	if ( cfgSource == 'mic' )
 		return;
-	if ( loadSong( n ) )
+
+	if ( loadSong( n ) ) {
 		audioElement.play();
+		if ( elCycleGrad.dataset.active == '1' ) {
+			gradIdx = elGradient.selectedIndex;
+			if ( gradIdx < elGradient.options.length - 1 )
+				gradIdx++;
+			else
+				gradIdx = 0;
+			elGradient.selectedIndex = gradIdx;
+		}
+	}
 }
 
 /**
@@ -543,9 +562,9 @@ function draw() {
 	var barWidth, barHeight,
 		grad = elGradient.value;
 
-	if ( blackBg )	// use black background
+	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
-	else 			// use background color defined by gradient
+	else 				// use background color defined by gradient
 		canvasCtx.fillStyle = gradients[ grad ].bgColor;
 	// clear the canvas
 	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
@@ -660,13 +679,6 @@ function setSource() {
 }
 
 /**
- * Save gradient preference
- */
-function setGradient() {
-	updateLastConfig();
-}
-
-/**
  * Load a music file from the user's computer
  */
 function loadLocalFile( obj ) {
@@ -686,29 +698,42 @@ function loadLocalFile( obj ) {
  */
 function loadPreset( name ) {
 
-	if ( ! Object.keys( presets ).includes( name ) )
+	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
 	elRangeMin.value = presets[ name ].freqMin;
 	elRangeMax.value = presets[ name ].freqMax;
-
 	elLogScale.dataset.active = Number( presets[ name ].logScale );
 	elShowScale.dataset.active = Number( presets[ name ].showScale );
-
 	elFFTsize.value = presets[ name ].fftSize;
-	setFFTsize();
-
 	elSmoothing.value = presets[ name ].smoothing;
-	setSmoothing();
 
-	if ( presets[ name ].gradient )
+	if ( presets[ name ].gradient && gradients[ presets[ name ].gradient ] )
 		elGradient.value = presets[ name ].gradient;
 
-	elHighSens.dataset.active = Number( presets[ name ].highSens );
-	setSensitivity();
+	if ( presets[ name ].highSens )
+		elHighSens.dataset.active = Number( presets[ name ].highSens );
 
-	elShowPeaks.dataset.active = Number( presets[ name ].showPeaks );
+	if ( presets[ name ].showPeaks )
+		elShowPeaks.dataset.active = Number( presets[ name ].showPeaks );
+
+	if ( presets[ name ].blackBg )
+		elBlackBg.dataset.active = Number( presets[ name ].blackBg );
+
+	if ( presets[ name ].cycleGrad )
+		elCycleGrad.dataset.active = Number( presets[ name ].cycleGrad );
+
+	if ( presets[ name ].repeat )
+		elRepeat.dataset.active = Number( presets[ name ].repeat );
+
+	if ( presets[ name ].showSong )
+		elShowSong.dataset.active = Number( presets[ name ].showSong );
+
+	setFFTsize();
+	setSmoothing();
+	setSensitivity();
 	setShowPeaks();
+	setBlackBg();
 }
 
 /**
@@ -722,10 +747,14 @@ function saveConfigCookie( cookie ) {
 		freqMax		: elRangeMax.value,
 		smoothing	: analyser.smoothingTimeConstant,
 		gradient	: elGradient.value,
-		showScale 	: elShowScale.dataset.active == 1,
-		logScale	: elLogScale.dataset.active == 1,
-		highSens	: elHighSens.dataset.active == 1,
-		showPeaks 	: elShowPeaks.dataset.active == 1
+		showScale 	: elShowScale.dataset.active == '1',
+		logScale	: elLogScale.dataset.active == '1',
+		highSens	: elHighSens.dataset.active == '1',
+		showPeaks 	: elShowPeaks.dataset.active == '1',
+		blackBg     : elBlackBg.dataset.active == '1',
+		cycleGrad   : elCycleGrad.dataset.active == '1',
+		repeat      : elRepeat.dataset.active == '1',
+		showSong    : elShowSong.dataset.active == '1'
 	}
 
 	docCookies.setItem( cookie, JSON.stringify( config ), Infinity );
@@ -792,7 +821,7 @@ function keyboardControls( event ) {
 			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
 			break;
 		case 66: // B key - toggle black background
-			blackBg = ! blackBg;
+			elBlackBg.click();
 			break;
 		case 78: // N key - show song name
 			setCanvasMsg( document.getElementById( 'playlist' ).value, 'bottom', 2 );
@@ -836,13 +865,15 @@ function initialize() {
 			consoleLog( 'Playlist is empty', true );
 			audioElement.pause();
 		}
+		else if ( elShowSong.dataset.active == '1' )
+			setCanvasMsg( document.getElementById( 'playlist' ).value, 'bottom', 2 );
 	});
 
 	audioElement.addEventListener( 'ended', function() {
 		// song ended, skip to next one if available
 		if ( playlistPos < playlist.length - 1 )
 			playSong( playlistPos + 1 );
-		else if ( document.getElementById('repeat').dataset.active == '1' )
+		else if ( elRepeat.dataset.active == '1' )
 			playSong( 0 );
 		else
 			loadSong( 0 );
@@ -931,15 +962,26 @@ function initialize() {
 	elHighSens.addEventListener( 'click', setSensitivity );
 	elShowPeaks = document.getElementById('show_peaks');
 	elShowPeaks.addEventListener( 'click', setShowPeaks );
+	elBlackBg   = document.getElementById('black_bg');
+	elBlackBg.addEventListener( 'click', setBlackBg );
+	elCycleGrad = document.getElementById('cycle_grad');
+	elCycleGrad.addEventListener( 'click', updateLastConfig );
+	elRepeat    = document.getElementById('repeat');
+	elRepeat.addEventListener( 'click', updateLastConfig );
+	elShowSong  = document.getElementById('show_song');
+	elShowSong.addEventListener( 'click', updateLastConfig );
 
 	var cookie;
 
 	cookie = docCookies.getItem( 'last-config' );
 	if ( cookie !== null )
 		presets['last'] = JSON.parse( cookie );
-	else { // if no data found from last session, use 'log' preset as default
+	else { // if no data found from last session, use 'log' preset as base
 		presets['last'] = JSON.parse( JSON.stringify( presets['log'] ) );
+		// set additional default options
 		presets['last'].gradient = 'prism';
+		presets['last'].highSens = false;
+		presets['last'].showPeaks = true;
 	}
 
 	cookie = docCookies.getItem( 'custom-preset' );
