@@ -373,7 +373,7 @@ function loadPlaylistsCfg() {
 function loadPlaylist() {
 
 	var path = elPlaylists.value,
-		tmplist, ext,
+		tmplist, ext, songInfo,
 		n = 0;
 
 	// fix for suspended audio context on Safari
@@ -399,11 +399,17 @@ function loadPlaylist() {
 				for ( var i = 0; i < tmplist.length; i++ ) {
 					if ( tmplist[ i ].charAt(0) != '#' && tmplist[ i ].trim() != '' ) { // not a comment or blank line?
 						n++;
+						if ( ! songInfo ) { // if no #EXTINF tag, extract info from the filename
+							songInfo = tmplist[ i ].substring( tmplist[ i ].lastIndexOf('/') + 1 );
+							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+						}
 						if ( tmplist[ i ].substring( 0, 4 ) != 'http' )
-							playlist.push( path + tmplist[ i ] );
-						else
-							playlist.push( tmplist[ i ] );
+							tmplist[ i ] = path + tmplist[ i ];
+						playlist.push( { file: tmplist[ i ], info: songInfo } );
+						songInfo = '';
 					}
+					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
+						songInfo = tmplist[ i ].split(',')[1]; // this will be saved for the next iteration
 				}
 				consoleLog( 'Loaded ' + n + ' files into the playlist' );
 				updatePlaylistUI();
@@ -429,17 +435,13 @@ function loadPlaylist() {
  */
 function updatePlaylistUI() {
 
-	var	elPlaylist = document.getElementById('playlist'),
-		songname;
+	var	elPlaylist = document.getElementById('playlist');
 
 	while ( elPlaylist.hasChildNodes() )
 		elPlaylist.removeChild( elPlaylist.firstChild );
 
-	for ( var i = 0; i < playlist.length; i++ ) {
-		songname = playlist[ i ].substring( playlist[ i ].lastIndexOf('/') + 1 );
-		songname = songname.substring( 0, songname.lastIndexOf('.') ).replace( /_/g, ' ' );
-		elPlaylist.appendChild( new Option( songname ) );
-	}
+	for ( var i = 0; i < playlist.length; i++ )
+		elPlaylist.appendChild( new Option( playlist[ i ].info ) );
 
 	elPlaylist.selectedIndex = playlistPos;
 }
@@ -473,7 +475,7 @@ function shufflePlaylist() {
 function loadSong( n ) {
 	if ( playlist[ n ] !== undefined ) {
 		playlistPos = n;
-		audioElement.src = playlist[ playlistPos ];
+		audioElement.src = playlist[ playlistPos ].file;
 		document.getElementById('playlist').selectedIndex = playlistPos;
 		return true;
 	}
@@ -824,7 +826,7 @@ function keyboardControls( event ) {
 			elBlackBg.click();
 			break;
 		case 78: // N key - show song name
-			setCanvasMsg( document.getElementById( 'playlist' ).value, 'bottom', 2 );
+			setCanvasMsg( playlist[ playlistPos ].info, 'bottom', 2 );
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
@@ -866,7 +868,7 @@ function initialize() {
 			audioElement.pause();
 		}
 		else if ( elShowSong.dataset.active == '1' )
-			setCanvasMsg( document.getElementById( 'playlist' ).value, 'bottom', 2 );
+			setCanvasMsg( playlist[ playlistPos ].info, 'bottom', 2 );
 	});
 
 	audioElement.addEventListener( 'ended', function() {
