@@ -51,9 +51,11 @@ Vince Guaraldi | music/jazz/vince guaraldi/playlist.m3u
 Herbie Hancock | music/jazz/herbie hancock/playlist.m3u
 ```
 
-Playlists themselves are also plain text files, containing one song per line. File extension must be `.m3u` or `.m3u8` for audioMotion.js to recognize it as a playlist.
+Playlists themselves are also plain text files, containing one song per line. File extension must be `.m3u` or `.m3u8` for audioMotion.js to recognize it as a playlist. The [Extended M3U](https://en.wikipedia.org/wiki/M3U#Extended_M3U) #EXTINF directive is also supported to provide track information (artist and song name).
 
-You can use a music player software that supports [M3U](https://en.wikipedia.org/wiki/M3U) playlists, like [foobar2000](https://www.foobar2000.org/) or [VLC](https://www.videolan.org/vlc/), to arrange your songs more easily and generate the playlist. Just make sure the playlist entries do not contain absolute paths or drive letters - they should be relative to the location of the playlist file itself, or audioMotion won't be able to load the songs. And remember all files must be located below your mapped "music" folder.
+You can use a music player software that supports M3U playlists, like [foobar2000](https://www.foobar2000.org/) or [VLC](https://www.videolan.org/vlc/), to arrange your songs more easily and generate the playlist. On foobar2000, as of version 1.4.1, EXTM3U support can be enabled via *Preferences* > *Advanced* > *Tools* > *Write EXTM3U playlists*.
+
+Make sure playlist entries do not contain absolute paths or drive letters - all paths should be relative to the location of the playlist file itself. And remember all files must be located below your mapped "music" folder so audioMotion can read them.
 
 Example of an m3u playlist file:
 
@@ -69,47 +71,64 @@ Note that you can use either Windows-style backslashes `\` or Linux-style forwar
 
 As for the audio files themselves, audioMotion.js should be able to play most mainstream formats, like mp3, ogg, m4a and flac, but codec support may vary, depending on your web browser and operating system.
 
+## Configuration Presets
+
+The **Logarithmic** and **Linear** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for best visualization in logarithmic and linear frequency scale. These presets can't be changed.
+
+You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by selecting the **Custom** preset.
+
+Additionally, your last used configuration will be automatically saved to the **Last session** preset and restored the next time your open audioMotion. You can also select the **Last session** preset
+to undo any changes made during the current session.
+
 ## Configuration options
 
-Below you'll find a brief description of the configuration options. Your preferences will be saved in browser cookies and restored the next time you open audioMotion.
+Below you'll find a brief description of each configuration option.
 
 ![config-bar](img/configuration-bar.png "Analyzer configuration options")
 
 ### FFT Size
 
-The number of samples used for the FFT performed by the analyzer. Larger values will provide greater detail on lower frequencies, but will require more CPU power. Default is 8192 samples.
+The number of samples used for the FFT performed by the analyzer. Larger values will provide greater detail of lower frequencies, but will require more CPU power.
 
 ### Range
 
-The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this to zoom in a specific frequency range. Default is 20Hz - 16KHz.
+The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this to zoom in a specific frequency range.
 
 ### Smoothing
 
-Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy". Default is 0.5.
-
-### Gradient
-
-Several options of color gradients for the analyzer bars. Default is "Classic".
+Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy".
 
 ### LOG switch (Logarithmic scale)
 
-The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals. Default on.
+The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals.
 
 Turn this option off to make audioMotion.js use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
 
 ### SCALE switch (Toggle scale)
 
-This option toggles the display of the frequency scale. Default on.
+This option toggles the display of the frequency scale.
 
 Clicking on the canvas will also toggle the scale on and off. Useful when you're on fullscreen mode.
 
 ### SENS switch (Sensitivity)
 
-Turn this option on to increase the analyzer sensitivity and improve the visualization of songs too quiet. Default off.
+Turn this option on to increase the analyzer sensitivity and improve the visualization of songs too quiet.
 
 ### PEAK switch (Show peaks)
 
-Turn this option on to hold volume peaks on screen for a short time. Default on.
+Turn this option on to show volume peaks for each frequency.
+
+### Gradient
+
+Several options of color gradients for the analyzer bars.
+
+### BLACK switch
+
+Turn this option on to always use a black background, instead of the background color defined by each gradient.
+
+### CYCLE switch
+
+Turn this option on to automatically select the next gradient on each track change.
 
 ## Screenshots
 
@@ -135,6 +154,7 @@ Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic 
 * Icons by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
+* Gradients used in the UI buttons from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
 
 ## Song credits
 
