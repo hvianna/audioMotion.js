@@ -792,12 +792,14 @@ function setCanvasMsg( msg, pos, secs ) {
 }
 
 /**
- * Keyboard controls
+ * Process keyboard shortcuts
  */
 function keyboardControls( event ) {
 
+	if ( event.target.tagName.toLowerCase() != 'body' && event.target.className != 'fullscreen-button' )
+		return;
+
 	var gradIdx = elGradient.selectedIndex;
-//	console.log( event.keyCode );
 
 	switch ( event.keyCode ) {
 		case 32: // space bar - play/pause
