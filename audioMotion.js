@@ -628,7 +628,7 @@ function draw() {
 		else {
 			canvasCtx.font = `bold ${ 35 * pixelRatio }px sans-serif`;
 			canvasCtx.textAlign = 'left';
-			canvasCtx.fillText( canvasMsg, 70 * pixelRatio, canvas.height - 70 * pixelRatio );
+			canvasCtx.fillText( canvasMsg, 35 * pixelRatio, canvas.height - 70 * pixelRatio );
 		}
 		canvasMsgTimer--;
 	}
@@ -875,7 +875,7 @@ function initialize() {
 			audioElement.pause();
 		}
 		else if ( elShowSong.dataset.active == '1' )
-			setCanvasMsg( playlist[ playlistPos ].info, 'bottom', 2 );
+			setCanvasMsg( playlist[ playlistPos ].info, 'bottom', 5 );
 	});
 
 	audioElement.addEventListener( 'ended', function() {
