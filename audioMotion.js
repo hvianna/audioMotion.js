@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.6';
+var _VERSION = '19.1-dev.7';
 
 
 /**
@@ -368,7 +368,7 @@ function loadPlaylistsCfg() {
 }
 
 /**
- * Load a song or playlist file into the current playlist
+ * Load a playlist file into the current playlist
  */
 function loadPlaylist() {
 
@@ -383,7 +383,7 @@ function loadPlaylist() {
 	if ( ! path )
 		return;
 
-	ext = path.substring( path.lastIndexOf('.') + 1 );
+	ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
 
 	if ( ext == 'm3u' || ext == 'm3u8' ) {
 		fetch( path )
@@ -405,11 +405,12 @@ function loadPlaylist() {
 						}
 						if ( tmplist[ i ].substring( 0, 4 ) != 'http' )
 							tmplist[ i ] = path + tmplist[ i ];
+						tmplist[ i ] = tmplist[ i ].replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 						playlist.push( { file: tmplist[ i ], info: songInfo } );
 						songInfo = '';
 					}
 					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
-						songInfo = tmplist[ i ].split(',')[1]; // this will be saved for the next iteration
+						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // this will be saved for the next iteration
 				}
 				consoleLog( 'Loaded ' + n + ' files into the playlist' );
 				updatePlaylistUI();
@@ -420,14 +421,8 @@ function loadPlaylist() {
 				consoleLog( err, true );
 			});
 	}
-	else {
-		playlist.push( path ); // single file
-		consoleLog( 'Loaded 1 file into the playlist' );
-		updatePlaylistUI();
-		if ( ! isPlaying() )
-			loadSong( 0 );
-	}
-
+	else
+		consoleLog( 'Unrecognized playlist file - ' + path, true );
 }
 
 /**
