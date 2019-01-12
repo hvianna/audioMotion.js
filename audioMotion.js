@@ -373,7 +373,7 @@ function loadPlaylistsCfg() {
 function loadPlaylist() {
 
 	var path = elPlaylists.value,
-		tmplist, ext, songInfo,
+		tmplist, ext, songInfo, t,
 		n = 0;
 
 	// fix for suspended audio context on Safari
@@ -399,18 +399,22 @@ function loadPlaylist() {
 				for ( var i = 0; i < tmplist.length; i++ ) {
 					if ( tmplist[ i ].charAt(0) != '#' && tmplist[ i ].trim() != '' ) { // not a comment or blank line?
 						n++;
-						if ( ! songInfo ) { // if no #EXTINF tag, extract info from the filename
-							songInfo = tmplist[ i ].substring( tmplist[ i ].lastIndexOf('/') + 1 );
+						if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
+							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\') ) + 1 );
 							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 						}
 						if ( tmplist[ i ].substring( 0, 4 ) != 'http' )
 							tmplist[ i ] = path + tmplist[ i ];
 						tmplist[ i ] = tmplist[ i ].replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
-						playlist.push( { file: tmplist[ i ], info: songInfo } );
+						t = songInfo.indexOf(' - ');
+						if ( t == -1 )
+							playlist.push( { file: tmplist[ i ], artist: '', song: songInfo } );
+						else
+							playlist.push( { file: tmplist[ i ], artist: songInfo.substring( 0, t ), song: songInfo.substring( t + 3 ) } );
 						songInfo = '';
 					}
 					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
-						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // this will be saved for the next iteration
+						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 				}
 				consoleLog( 'Loaded ' + n + ' files into the playlist' );
 				updatePlaylistUI();
@@ -435,8 +439,12 @@ function updatePlaylistUI() {
 	while ( elPlaylist.hasChildNodes() )
 		elPlaylist.removeChild( elPlaylist.firstChild );
 
-	for ( var i = 0; i < playlist.length; i++ )
-		elPlaylist.appendChild( new Option( playlist[ i ].info ) );
+	for ( var i = 0; i < playlist.length; i++ ) {
+		if ( playlist[ i ].artist )
+			elPlaylist.appendChild( new Option( playlist[ i ].artist + ' - ' + playlist[ i ].song ) );
+		else
+			elPlaylist.appendChild( new Option( playlist[ i ].song ) );
+	}
 
 	elPlaylist.selectedIndex = playlistPos;
 }
@@ -554,6 +562,32 @@ function isPlaying() {
 //		&& audioElement.readyState > 2;
 }
 
+/**
+ * Display message on canvas
+ */
+function displayCanvasMsg() {
+
+	var info = canvasMsg.split('|'),
+		threshold = 60 * ( ( canvasMsgPos == 'bottom' ) + 1 ); // for fade-out
+
+	if ( canvasMsgTimer > threshold )
+		canvasCtx.fillStyle = '#fff';
+	else
+		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsgTimer / threshold ) + ')';
+
+	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
+
+	if ( canvasMsgPos == 'top' ) {
+		canvasCtx.textAlign = 'center';
+		canvasCtx.fillText( canvasMsg, canvas.width / 2, 50 * pixelRatio );
+	}
+	else {
+		canvasCtx.textAlign = 'left';
+		canvasCtx.fillText( info[0], 35 * pixelRatio, canvas.height - 120 * pixelRatio );
+		canvasCtx.font = 'bold ' + ( 35 * pixelRatio ) + 'px sans-serif';
+		canvasCtx.fillText( info[1], 35 * pixelRatio, canvas.height - 70 * pixelRatio );
+	}
+}
 
 /**
  * Redraw the canvas
@@ -609,22 +643,8 @@ function draw() {
 	if ( cfgShowScale )
 		drawScale();
 
-	// display message on canvas
 	if ( canvasMsgTimer > 0 ) {
-		if ( canvasMsgTimer > 60 )
-			canvasCtx.fillStyle = '#fff';
-		else 	// during the last 60 frames decrease opacity for fade-out effect
-			canvasCtx.fillStyle = `rgba( 255, 255, 255, ${ canvasMsgTimer / 60 })`;
-		if ( canvasMsgPos == 'top' ) {
-			canvasCtx.font = `bold ${ 25 * pixelRatio }px sans-serif`;
-			canvasCtx.textAlign = 'center';
-			canvasCtx.fillText( canvasMsg, canvas.width / 2, 50 * pixelRatio );
-		}
-		else {
-			canvasCtx.font = `bold ${ 35 * pixelRatio }px sans-serif`;
-			canvasCtx.textAlign = 'left';
-			canvasCtx.fillText( canvasMsg, 35 * pixelRatio, canvas.height - 70 * pixelRatio );
-		}
+		displayCanvasMsg();
 		canvasMsgTimer--;
 	}
 
@@ -828,7 +848,10 @@ function keyboardControls( event ) {
 			elBlackBg.click();
 			break;
 		case 78: // N key - show song name
-			setCanvasMsg( playlist[ playlistPos ].info, 'bottom', 2 );
+			if ( canvasMsgTimer > 0 ) // if info is already been displayed, then hide it
+				canvasMsgTimer = 0;
+			else
+				setCanvasMsg( playlist[ playlistPos ].artist + '|' + playlist[ playlistPos ].song, 'bottom', 4 );
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
@@ -870,7 +893,7 @@ function initialize() {
 			audioElement.pause();
 		}
 		else if ( elShowSong.dataset.active == '1' )
-			setCanvasMsg( playlist[ playlistPos ].info, 'bottom', 5 );
+			setCanvasMsg( playlist[ playlistPos ].artist + '|' + playlist[ playlistPos ].song, 'bottom', 8 );
 	});
 
 	audioElement.addEventListener( 'ended', function() {
