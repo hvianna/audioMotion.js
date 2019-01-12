@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.7';
+var _VERSION = '19.1-dev.8';
 
 
 /**
@@ -30,7 +30,7 @@ var	// playlist and index to the current song
 	playlist, playlistPos,
 	// HTML elements from the UI
 	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale,
-	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong,
+	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw function - for better performance
 	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
 	// peak value, hold time and fall acceleration for each frequency (arrays)
@@ -237,10 +237,10 @@ function preCalcPosX() {
 	iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate );
 	iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
 
-	// clear / initialize peak data
-	peaks = new Array();
-	hold = new Array();
-	accel = new Array();
+	// clear peak data
+	peaks = [];
+	hold = [];
+	accel = [];
 
 	if ( cfgLogScale ) {
 		// if using the log scale, we divide the canvas space by log(fmax) - log(fmin)
@@ -655,7 +655,7 @@ function draw() {
 /**
  * Output messages to the UI "console"
  */
-function consoleLog( msg, error = false ) {
+function consoleLog( msg, error ) {
 	var elConsole = document.getElementById( 'console' );
 	if ( error )
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
@@ -710,7 +710,7 @@ function loadLocalFile( obj ) {
 	reader.onload = function() {
 		audioElement.src = reader.result;
 		audioElement.play();
-	}
+	};
 
 	reader.readAsDataURL( obj.files[0] );
 }
@@ -777,7 +777,7 @@ function saveConfigCookie( cookie ) {
 		cycleGrad   : elCycleGrad.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
 		showSong    : elShowSong.dataset.active == '1'
-	}
+	};
 
 	docCookies.setItem( cookie, JSON.stringify( config ), Infinity );
 }
@@ -874,8 +874,10 @@ function initialize() {
 
 	// create audio context
 
+	var AudioContext = window.AudioContext || window.webkitAudioContext;
+
 	try {
-		audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+		audioCtx = new AudioContext();
 	}
 	catch( err ) {
 		consoleLog( 'Could not create audio context. WebAudio API not supported?', true );
@@ -940,7 +942,7 @@ function initialize() {
 
 	var grad, i;
 
-	Object.keys( gradients ).forEach((key) => {
+	Object.keys( gradients ).forEach( function( key ) {
 		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
 		if ( gradients[ key ].hasOwnProperty( 'colorStops' ) ) {
 			for ( i = 0; i < gradients[ key ].colorStops.length; i++ )
@@ -949,12 +951,12 @@ function initialize() {
 		// rainbow gradients are easily created iterating over the hue value
 		else if ( key == 'prism' ) {
 			for ( i = 0; i <= 240; i += 60 )
-				grad.addColorStop( i/240, `hsl( ${i}, 100%, 50% )` );
+				grad.addColorStop( i/240, 'hsl( ' + i + ', 100%, 50% )' );
 		}
 		else if ( key == 'rainbow' ) {
 			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 ); // this one is a horizontal gradient
 			for ( i = 0; i <= 360; i += 60 )
-				grad.addColorStop( i/360, `hsl( ${i}, 100%, 50% )` );
+				grad.addColorStop( i/360, 'hsl( ' + i + ', 100%, 50% )' );
 		}
 		// add the option to the html select element for the user interface
 		elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
