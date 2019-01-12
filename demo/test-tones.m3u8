@@ -1,0 +1,13 @@
+#EXTM3U
+#
+# single tone files
+# FLAC support may vary depending on your browser
+#
+#EXTINF 15,Test tone - A4 (440Hz) - Sine wave
+A4 (440Hz) (sine wave).flac
+#EXTINF 15,Test tone - C4 (261.626Hz) - Sawtooth wave
+C4 (261.626Hz) (sawtooth wave).flac
+#EXTINF 15,Test tone - G6 (1567.982 Hz) - Sine wave
+G6 (1567.982 Hz) (sine wave).flac
+#EXTINF 15,Test tone - B2 (123.4708Hz) - Square wave
+B2 (123.4708Hz) (square wave).flac
