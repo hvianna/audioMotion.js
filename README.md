@@ -17,14 +17,27 @@ A real-time graphic spectrum analyzer and audio player using Web Audio and Canva
 
 https://hvianna.github.io/audioMotion.js/
 
-## Usage
+## Basic usage
 
-On the demo website you can load individual songs from your PC and try the pre-configured demo playlists.
+You can load individual songs from your PC using the **Load a song** option. This allows for quick visualization of any song, but you can't enqueue songs for playback this way, because the binary data is loaded directly into the HTML5 audio element.
+
+For a more practical listening / visualization session, the idea is that you use pre-defined playlists. You can load a playlist by selecting it from the list and clicking the **LOAD** button.
+This will **add** the selected playlist's content into the current playlist, shown under **Playlist**.
+
+You can then use the player controls to play, pause and skip through songs in the playlist.
+
+The **SHUFFLE** button will shuffle the contents of the current playlist. **CLEAR** clears the playlist for loading new content.
+
+The **Repeat** option, when active, will make the player loop back to the first song after playing the last song on the playlist.
+
+The **Display** option toggles the display of song title and artist (when #EXTINF tag provided in the playlist - more about this below) on every track change.
+
+## Using your own playlists
 
 In order to use your own playlists and get the best out of audioMotion, you'll need to set up a local web server.<br>
 <sub>(Note: on Firefox, as of version 63, you *may be* able to simply open the index.html page and load playlists and music files stored *inside audioMotion's folder,* but everything else will require the files to be loaded via HTTP protocol, that's why you need a web server).</sub>
 
-The easiest way to do this is by using [Docker](https://www.docker.com/). Once you have Docker installed and running, simply open a command prompt in the folder where you downloaded audioMotion.js to, and run:
+The easiest way to do this is by using [Docker](https://www.docker.com/). Once you have Docker installed and running, simply open a command prompt in the folder where you downloaded audioMotion.js to (if you haven't yet, you can download the package from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/latest)), and run:
 
 `docker-compose up -d`
 
@@ -82,9 +95,9 @@ to undo any changes made during the current session.
 
 ## Configuration options
 
-Below you'll find a brief description of each configuration option.
-
 ![config-bar](img/configuration-bar.png "Analyzer configuration options")
+
+Below you'll find a brief description of each configuration option.
 
 ### FFT Size
 
@@ -98,25 +111,29 @@ The lowest and highest frequencies you want to see in the graphic spectrum analy
 
 Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy".
 
-### LOG switch (Logarithmic scale)
+### LOG switch
+
+This option toggles between logarithmic (when on) and linear (when off) distribution of frequencies in the horizontal axis.
 
 The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals.
 
-Turn this option off to make audioMotion.js use a linear distribution of frequencies in the horizontal axis. Combine it with a narrower frequency range and lower FFT size for a more classic-looking analyzer, with wider bars (see screenshot 2 below).
+The linear scale works better when combined it with a narrower frequency range and lower FFT size, resulting in a more classic-looking analyzer with wider bars.
 
-### SCALE switch (Toggle scale)
+You can load the **Logarithmic** and **Linear** presets for suggested configurations for both scales.
+
+### SCALE switch
 
 This option toggles the display of the frequency scale.
 
 Clicking on the canvas will also toggle the scale on and off. Useful when you're on fullscreen mode.
 
-### SENS switch (Sensitivity)
+### SENS switch
 
-Turn this option on to increase the analyzer sensitivity and improve the visualization of songs too quiet.
+When on, analyzer sensitivity is increased, improving visualization of songs too quiet.
 
-### PEAK switch (Show peaks)
+### PEAK switch
 
-Turn this option on to show volume peaks for each frequency.
+When on, the analyzer shows volume peaks for each frequency.
 
 ### Gradient
 
@@ -124,22 +141,39 @@ Several options of color gradients for the analyzer bars.
 
 ### BLACK switch
 
-Turn this option on to always use a black background, instead of the background color defined by each gradient.
+Turn this option on to always use a black background for the analyzer, instead of the background color defined by each gradient. This should improve contrast on some displays.
 
 ### CYCLE switch
 
-Turn this option on to automatically select the next gradient on each track change.
+When on, the next gradient is automatically selected on each track change.
+
+## Fullscreen mode and keyboard shortcuts
+
+Click the **Fullscreen Analyzer** button to display the spectrum analyzer in fullscreen.
+
+You can use the keyboard shortcuts below to control the player and some display settings without leaving fullscreen mode:
+
+| key | action |
+|-----|--------|
+**left arrow**<br>or **J** | play previous song
+**right arrow**<br>or **K** | play next song
+**Space** | play / pause
+**up arrow**<br>or **I** | select previous gradient
+**down arrow**<br>or **M** | select next gradient
+**B** | toggle black background
+**N** | display current song information on screen
+**S** | toggle frequency scale display on/off
 
 ## Screenshots
 
 audioMotion.js user interface
 ![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 
-Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient
-![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, dusk gradient")
+Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, "Dusk" gradient
+![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, 'Dusk' gradient")
 
-Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient
-![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, classic gradient")
+Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, "Classic" gradient
+![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, 'Classic' gradient")
 
 ## References and acknowledgments
 
@@ -170,4 +204,5 @@ Songs included in the demo playlists:
 
 ## License
 
-audioMotion.js is licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
+audioMotion.js copyright (c) 2018-2019 Henrique Vianna<br>
+Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
