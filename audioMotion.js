@@ -530,6 +530,7 @@ function stop() {
 	if ( cfgSource == 'mic' )
 		return;
 	audioElement.pause();
+	canvasMsgTimer = Math.min( canvasMsgTimer, 60 );
 	loadSong( 0 );
 }
 
@@ -570,10 +571,14 @@ function displayCanvasMsg() {
 	var info = canvasMsg.split('|'),
 		threshold = 60 * ( ( canvasMsgPos == 'bottom' ) + 1 ); // for fade-out
 
-	if ( canvasMsgTimer > threshold )
+	if ( canvasMsgTimer > threshold ) {
 		canvasCtx.fillStyle = '#fff';
-	else
+		canvasCtx.shadowColor = '#000';
+	}
+	else {
 		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsgTimer / threshold ) + ')';
+		canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsgTimer / threshold ) + ')';
+	}
 
 	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
 
@@ -583,9 +588,11 @@ function displayCanvasMsg() {
 	}
 	else {
 		canvasCtx.textAlign = 'left';
-		canvasCtx.fillText( info[0], 35 * pixelRatio, canvas.height - 120 * pixelRatio );
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 2 * pixelRatio;
+		canvasCtx.fillText( info[0].toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio );
 		canvasCtx.font = 'bold ' + ( 35 * pixelRatio ) + 'px sans-serif';
 		canvasCtx.fillText( info[1], 35 * pixelRatio, canvas.height - 70 * pixelRatio );
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
 	}
 }
 
