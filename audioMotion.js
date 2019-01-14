@@ -33,10 +33,8 @@ var	// playlist and index to the current song
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw function - for better performance
 	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
-	// peak value, hold time and fall acceleration for each frequency (arrays)
-	peaks, hold, accel,
-	// frequency range and scale related variables
-	posx, iMin, iMax, deltaX, bandWidth,
+	// information for each analyzer bar and scale related variables
+	analyzerBars, deltaX, bandWidth,
 	// Web Audio API related variables
 	audioCtx, analyser, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
@@ -225,7 +223,7 @@ function setBlackBg() {
  */
 function preCalcPosX() {
 
-	var freq,
+	var freq, pos,
 		lastPos = -1,
 		fMin = elRangeMin.value,
 		fMax = elRangeMax.value;
@@ -237,10 +235,7 @@ function preCalcPosX() {
 	iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate );
 	iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
 
-	// clear peak data
-	peaks = [];
-	hold = [];
-	accel = [];
+	analyzerBars = [];
 
 	if ( cfgLogScale ) {
 		// if using the log scale, we divide the canvas space by log(fmax) - log(fmin)
@@ -254,18 +249,17 @@ function preCalcPosX() {
 	}
 
 	for ( var i = iMin; i <= iMax; i++ ) {
-		if ( cfgLogScale ) {
-			freq = i * audioCtx.sampleRate / analyser.fftSize; // find which frequency is represented in this bin
-			posx[ i ] = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
-		}
+		freq = i * audioCtx.sampleRate / analyser.fftSize; // find which frequency is represented in this bin
+		if ( cfgLogScale )
+			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
 		else
-			posx[ i ] = Math.round( bandWidth * ( i - deltaX ) );
+			pos = Math.round( bandWidth * ( i - deltaX ) );
 
-		// ignore overlapping positions for improved performance
-		if ( posx[ i ] == lastPos )
-			posx[ i ] = -1;
-		else
-			lastPos = posx[ i ];
+		// only add this bar if it doesn't overlap the previous one on screen
+		if ( pos > lastPos ) {
+			analyzerBars.push( { posX: pos, dataIdx: i, freq: freq, peak: 0, hold: 0, accel: 0 } );
+			lastPos = pos;
+		}
 	}
 
 	drawScale();
@@ -618,31 +612,30 @@ function draw() {
 	// for log scale, bar width is always 1; for linear scale we show wider bars when possible
 	barWidth = ( ! cfgLogScale && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
-	for ( var i = iMin; i <= iMax; i++ ) {
-		barHeight = dataArray[ i ] / 255 * canvas.height;
+	for ( var i = 0; i < analyzerBars.length; i++ ) {
+		barHeight = dataArray[ analyzerBars[ i ].dataIdx ] / 255 * canvas.height;
 
-		if ( peaks[ i ] === undefined || barHeight > peaks[ i ] ) {
-			peaks[ i ] = barHeight;
-			hold[ i ] = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
-			accel[ i ] = 0;
+		if ( barHeight > analyzerBars[ i ].peak ) {
+			analyzerBars[ i ].peak = barHeight;
+			analyzerBars[ i ].hold = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
+			analyzerBars[ i ].accel = 0;
 		}
 
 		canvasCtx.fillStyle = gradients[ grad ].gradient;
 
-		if ( posx[ i ] >= 0 ) {	// ignore negative positions
-			canvasCtx.fillRect( posx[ i ], canvas.height, barWidth, -barHeight );
-			if ( cfgShowPeaks && peaks[ i ] > 0 ) {
-				canvasCtx.fillRect( posx[ i ], canvas.height - peaks[ i ], barWidth, 2 );
-// debug/calibration - show frequency for each bar (warning: super slow!)
-//				canvasCtx.fillText( String( i * audioCtx.sampleRate / analyser.fftSize ), posx[ i ], canvas.height - peaks[i] - 5 );
-			}
-			if ( peaks[ i ] > 0 ) {
-				if ( hold[ i ] )
-					hold[ i ]--;
-				else {
-					accel[ i ]++;
-					peaks[ i ] -= accel[ i ];
-				}
+		canvasCtx.fillRect( analyzerBars[ i ].posX, canvas.height, barWidth, -barHeight );
+		if ( cfgShowPeaks && analyzerBars[ i ].peak > 0 ) {
+			canvasCtx.fillRect( analyzerBars[ i ].posX, canvas.height - analyzerBars[ i ].peak, barWidth, 2 );
+// debug/calibration - show frequency for each bar
+//			canvasCtx.font = '15px sans-serif';
+//			canvasCtx.fillText( analyzerBars[ i ].freq, analyzerBars[ i ].posX, canvas.height - analyzerBars[ i ].peak - 5 );
+		}
+		if ( analyzerBars[ i ].peak > 0 ) {
+			if ( analyzerBars[ i ].hold )
+				analyzerBars[ i ].hold--;
+			else {
+				analyzerBars[ i ].accel++;
+				analyzerBars[ i ].peak -= analyzerBars[ i ].accel;
 			}
 		}
 	}
@@ -873,8 +866,6 @@ function initialize() {
 
 	playlist = [];
 	playlistPos = 0;
-
-	posx = [];
 
 	consoleLog( 'audioMotion.js version ' + _VERSION );
 	consoleLog( 'Initializing...' );
