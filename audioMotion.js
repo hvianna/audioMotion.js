@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.8';
+var _VERSION = '19.1-dev.9';
 
 
 /**
@@ -38,7 +38,7 @@ var	// playlist and index to the current song
 	// Web Audio API related variables
 	audioCtx, analyser, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
-	canvas, canvasCtx, pixelRatio, canvasMsg, canvasMsgPos, canvasMsgTimer,
+	canvas, canvasCtx, pixelRatio, canvasMsg,
 	// gradients
 	gradients = {
 		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
@@ -226,14 +226,12 @@ function preCalcPosX() {
 	var freq, pos,
 		lastPos = -1,
 		fMin = elRangeMin.value,
-		fMax = elRangeMax.value;
+		fMax = elRangeMax.value,
+		iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate ),
+		iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
 
 	cfgShowScale = ( elShowScale.dataset.active == '1' );
 	cfgLogScale = ( elLogScale.dataset.active == '1' );
-
-	// indexes corresponding to the frequency range we want to visualize in the data array returned by the FFT
-	iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate );
-	iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
 
 	analyzerBars = [];
 
@@ -524,7 +522,7 @@ function stop() {
 	if ( cfgSource == 'mic' )
 		return;
 	audioElement.pause();
-	canvasMsgTimer = Math.min( canvasMsgTimer, 60 );
+	canvasMsg = { timer: 0 };
 	loadSong( 0 );
 }
 
@@ -562,30 +560,39 @@ function isPlaying() {
  */
 function displayCanvasMsg() {
 
-	var info = canvasMsg.split('|'),
-		threshold = 60 * ( ( canvasMsgPos == 'bottom' ) + 1 ); // for fade-out
+	var curTime, duration;
 
-	if ( canvasMsgTimer > threshold ) {
+	if ( canvasMsg.timer > canvasMsg.fade ) {
 		canvasCtx.fillStyle = '#fff';
 		canvasCtx.shadowColor = '#000';
 	}
 	else {
-		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsgTimer / threshold ) + ')';
-		canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsgTimer / threshold ) + ')';
+		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
+		canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
 	}
 
 	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
 
-	if ( canvasMsgPos == 'top' ) {
+	if ( canvasMsg.showGradient ) {
 		canvasCtx.textAlign = 'center';
-		canvasCtx.fillText( canvasMsg, canvas.width / 2, 50 * pixelRatio );
+		canvasCtx.fillText( 'Gradient: ' + gradients[ elGradient.value ].name, canvas.width / 2, 50 * pixelRatio );
 	}
-	else {
-		canvasCtx.textAlign = 'left';
+
+	if ( canvasMsg.showSongInfo && playlist.length ) {
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 2 * pixelRatio;
-		canvasCtx.fillText( info[0].toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio );
+		// file type and time
+		if ( audioElement.duration ) {
+			canvasCtx.textAlign = 'right';
+			canvasCtx.fillText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), canvas.width - 35 * pixelRatio, canvas.height - 120 * pixelRatio );
+			curTime = Math.floor( audioElement.currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement.currentTime % 60 ) ).slice(-2);
+			duration = Math.floor( audioElement.duration / 60 ) + ':' + ( "0" + Math.floor( audioElement.duration % 60 ) ).slice(-2);
+			canvasCtx.fillText( curTime + ' / ' + duration, canvas.width - 35 * pixelRatio, canvas.height - 70 * pixelRatio );
+		}
+		// artist and song name
+		canvasCtx.textAlign = 'left';
+		canvasCtx.fillText( playlist[ playlistPos ].artist.toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio, canvas.width - 200 * pixelRatio );
 		canvasCtx.font = 'bold ' + ( 35 * pixelRatio ) + 'px sans-serif';
-		canvasCtx.fillText( info[1], 35 * pixelRatio, canvas.height - 70 * pixelRatio );
+		canvasCtx.fillText( playlist[ playlistPos ].song, 35 * pixelRatio, canvas.height - 70 * pixelRatio, canvas.width - 200 * pixelRatio );
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
 	}
 }
@@ -643,9 +650,10 @@ function draw() {
 	if ( cfgShowScale )
 		drawScale();
 
-	if ( canvasMsgTimer > 0 ) {
+	if ( canvasMsg.timer > 0 ) {
 		displayCanvasMsg();
-		canvasMsgTimer--;
+		if ( ! --canvasMsg.timer )
+			canvasMsg = { timer: 0 }; // clear messages
 	}
 
 	// schedule next canvas update
@@ -798,15 +806,6 @@ function updateCustomPreset() {
 }
 
 /**
- * Set message to be displayed on canvas
- */
-function setCanvasMsg( msg, pos, secs ) {
-	canvasMsg = msg;
-	canvasMsgPos = pos;
-	canvasMsgTimer = secs * 60;
-}
-
-/**
  * Process keyboard shortcuts
  */
 function keyboardControls( event ) {
@@ -830,7 +829,9 @@ function keyboardControls( event ) {
 				elGradient.selectedIndex = elGradient.options.length - 1;
 			else
 				elGradient.selectedIndex = gradIdx - 1;
-			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
+			canvasMsg.showGradient = true;
+			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
+			canvasMsg.fade = 60;
 			break;
 		case 39: // arrow right - next song
 		case 75: // K (alternative)
@@ -842,16 +843,23 @@ function keyboardControls( event ) {
 				elGradient.selectedIndex = 0;
 			else
 				elGradient.selectedIndex = gradIdx + 1;
-			setCanvasMsg( gradients[ elGradient.value ].name, 'top', 2 );
+			canvasMsg.showGradient = true;
+			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
+			canvasMsg.fade = 60;
 			break;
 		case 66: // B key - toggle black background
 			elBlackBg.click();
 			break;
-		case 78: // N key - show song name
-			if ( canvasMsgTimer > 0 ) // if info is already been displayed, then hide it
-				canvasMsgTimer = 0;
+		case 68: // D key - display information
+			if ( canvasMsg.showSongInfo && canvasMsg.timer ) // if info is already been displayed, then hide it
+				canvasMsg = { timer: 0 };
 			else
-				setCanvasMsg( playlist[ playlistPos ].artist + '|' + playlist[ playlistPos ].song, 'bottom', 4 );
+				canvasMsg = {
+					showGradient: true,
+					showSongInfo: true,
+					timer: 300,
+					fade: 60
+				};
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
@@ -866,11 +874,12 @@ function initialize() {
 
 	playlist = [];
 	playlistPos = 0;
+	canvasMsg = { timer: 0 };
 
 	consoleLog( 'audioMotion.js version ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
-	// create audio context
+	// Create audio context
 
 	var AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -878,8 +887,8 @@ function initialize() {
 		audioCtx = new AudioContext();
 	}
 	catch( err ) {
-		consoleLog( 'Could not create audio context. WebAudio API not supported?', true );
-		consoleLog( 'Aborting.' );
+		consoleLog( 'Could not create audio context. Web Audio API not supported?', true );
+		consoleLog( 'Aborting.', true );
 		return false;
 	}
 
@@ -892,8 +901,11 @@ function initialize() {
 			consoleLog( 'Playlist is empty', true );
 			audioElement.pause();
 		}
-		else if ( elShowSong.dataset.active == '1' )
-			setCanvasMsg( playlist[ playlistPos ].artist + '|' + playlist[ playlistPos ].song, 'bottom', 8 );
+		else if ( elShowSong.dataset.active == '1' ) {
+			canvasMsg.showSongInfo = true;
+			canvasMsg.timer = 600;
+			canvasMsg.fade = 180;
+		}
 	});
 
 	audioElement.addEventListener( 'ended', function() {

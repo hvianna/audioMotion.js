@@ -5,11 +5,11 @@ Changelog
 
 ### Added:
 
-+ New gradients; :sunglasses:
++ :sunglasses: New gradients;
 + Configuration presets;
 + Keyboard shortcuts (especially useful while on fullscreen mode);
-+ Option to change gradient on each track change;
-+ On-screen display of song name via keyboard shortcut and, optionally, on each track change;
++ Option to change active gradient on each track change;
++ On-screen display of song information via keyboard shortcut and, optionally, on each track change;
 + Support for the [#EXTINF directive](https://en.wikipedia.org/wiki/M3U#Extended_M3U) in playlists.
 
 ### Changed:
@@ -24,16 +24,13 @@ Changelog
 + A bug where shuffling the playlist wouldn't properly load the first song;
 + Error when trying to load a song with a **#** character in its filename.
 
+
 ## version 18.12
 
 ### Added:
 
 + You can now load a song from your PC;
 + Clicking on canvas now toggles scale on/off.
-
-### Fixed:
-
-+ *Should* **really** work on Safari now (including macOS).
 
 ### Changed:
 
@@ -42,6 +39,11 @@ Changelog
 + General improvements in the UI;
 + New icons;
 + Some code clean-up and optimizations.
+
+### Fixed:
+
++ *Should* **really** work on Safari now (including macOS).
+
 
 ## version 18.11
 

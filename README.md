@@ -34,7 +34,7 @@ The **SHUFFLE** button will shuffle the contents of the current playlist. **CLEA
 
 The **Repeat** option, when active, will make the player loop back to the first song after playing the last song on the playlist.
 
-The **Display** option toggles the display of song title and artist (*when #EXTINF tag provided inside the playlist - more about this below*) on every track change.
+The **Display** option toggles the display of song information on every track change.
 
 ## Using your own playlists
 
@@ -165,7 +165,7 @@ You can use the keyboard shortcuts below to control the player and some display 
 **up arrow**<br>or **I** | select previous gradient
 **down arrow**<br>or **M** | select next gradient
 **B** | toggle black background
-**N** | display current song information on screen
+**D** | display current song information on screen
 **S** | toggle frequency scale display on/off
 
 ## Screenshots
