@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-dev.9';
+var _VERSION = '19.1-RC';
 
 
 /**
@@ -590,9 +590,9 @@ function displayCanvasMsg() {
 		}
 		// artist and song name
 		canvasCtx.textAlign = 'left';
-		canvasCtx.fillText( playlist[ playlistPos ].artist.toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio, canvas.width - 200 * pixelRatio );
+		canvasCtx.fillText( playlist[ playlistPos ].artist.toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio, canvas.width - 230 * pixelRatio );
 		canvasCtx.font = 'bold ' + ( 35 * pixelRatio ) + 'px sans-serif';
-		canvasCtx.fillText( playlist[ playlistPos ].song, 35 * pixelRatio, canvas.height - 70 * pixelRatio, canvas.width - 200 * pixelRatio );
+		canvasCtx.fillText( playlist[ playlistPos ].song, 35 * pixelRatio, canvas.height - 70 * pixelRatio, canvas.width - 230 * pixelRatio );
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
 	}
 }
@@ -767,11 +767,11 @@ function loadPreset( name ) {
 }
 
 /**
- * Save / update a configuration cookie
+ * Save / update a configuration
  */
-function saveConfigCookie( cookie ) {
+function saveConfig( config ) {
 
-	var config = {
+	var settings = {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
@@ -787,21 +787,21 @@ function saveConfigCookie( cookie ) {
 		showSong    : elShowSong.dataset.active == '1'
 	};
 
-	docCookies.setItem( cookie, JSON.stringify( config ), Infinity );
+	localStorage.setItem( config, JSON.stringify( settings ) );
 }
 
 /**
  * Update last used configuration
  */
 function updateLastConfig() {
-	saveConfigCookie( 'last-config' );
+	saveConfig( 'last-config' );
 }
 
 /**
  * Update custom preset
  */
 function updateCustomPreset() {
-	saveConfigCookie( 'custom-preset' );
+	saveConfig( 'custom-preset' );
 	document.getElementById('preset').value = 'custom';
 }
 
@@ -1010,22 +1010,24 @@ function initialize() {
 	elShowSong  = document.getElementById('show_song');
 	elShowSong.addEventListener( 'click', updateLastConfig );
 
-	var cookie;
+	var settings;
 
-	cookie = docCookies.getItem( 'last-config' );
-	if ( cookie !== null )
-		presets['last'] = JSON.parse( cookie );
+	settings = localStorage.getItem( 'last-config' );
+	if ( settings !== null )
+		presets['last'] = JSON.parse( settings );
 	else { // if no data found from last session, use 'log' preset as base
 		presets['last'] = JSON.parse( JSON.stringify( presets['log'] ) );
 		// set additional default options
 		presets['last'].gradient = 'prism';
+		presets['last'].cycleGrad = true;
 		presets['last'].highSens = false;
 		presets['last'].showPeaks = true;
+		presets['last'].showSong = true;
 	}
 
-	cookie = docCookies.getItem( 'custom-preset' );
-	if ( cookie !== null )
-		presets['custom'] = JSON.parse( cookie );
+	settings = localStorage.getItem( 'custom-preset' );
+	if ( settings !== null )
+		presets['custom'] = JSON.parse( settings );
 	else
 		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
 
@@ -1046,6 +1048,37 @@ function initialize() {
 	requestAnimationFrame( draw );
 }
 
+
+/**
+ * localStorage polyfill
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Local_storage
+ */
+if (!window.localStorage) {
+  window.localStorage = {
+    getItem: function (sKey) {
+      if (!sKey || !this.hasOwnProperty(sKey)) { return null; }
+      return unescape(document.cookie.replace(new RegExp("(?:^|.*;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*"), "$1"));
+    },
+    key: function (nKeyId) {
+      return unescape(document.cookie.replace(/\s*\=(?:.(?!;))*$/, "").split(/\s*\=(?:[^;](?!;))*[^;]?;\s*/)[nKeyId]);
+    },
+    setItem: function (sKey, sValue) {
+      if(!sKey) { return; }
+      document.cookie = escape(sKey) + "=" + escape(sValue) + "; expires=Tue, 19 Jan 2038 03:14:07 GMT; path=/";
+      this.length = document.cookie.match(/\=/g).length;
+    },
+    length: 0,
+    removeItem: function (sKey) {
+      if (!sKey || !this.hasOwnProperty(sKey)) { return; }
+      document.cookie = escape(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+      this.length--;
+    },
+    hasOwnProperty: function (sKey) {
+      return (new RegExp("(?:^|;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+    }
+  };
+  window.localStorage.length = (document.cookie.match(/\=/g) || window.localStorage).length;
+}
 
 /**
  * Initialize when window finished loading
