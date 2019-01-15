@@ -36,7 +36,7 @@ var	// playlist and index to the current song
 	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, deltaX, bandWidth,
 	// Web Audio API related variables
-	audioCtx, analyser, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
+	audioCtx, analyzer, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
 	canvas, canvasCtx, pixelRatio, canvasMsg,
 	// gradient definitions
@@ -146,16 +146,16 @@ function fullscreen() {
 }
 
 /**
- * Adjust the analyser's sensitivity
+ * Adjust the analyzer's sensitivity
  */
 function setSensitivity() {
 	if ( elHighSens.dataset.active == '1' ) {
-		analyser.minDecibels = -100; // WebAudio API defaults
-		analyser.maxDecibels = -30;
+		analyzer.minDecibels = -100; // WebAudio API defaults
+		analyzer.maxDecibels = -30;
 	}
 	else {
-		analyser.minDecibels = -85;
-		analyser.maxDecibels = -25;
+		analyzer.minDecibels = -85;
+		analyzer.maxDecibels = -25;
 	}
 	updateLastConfig();
 }
@@ -164,23 +164,23 @@ function setSensitivity() {
  * Set the smoothing time constant
  */
 function setSmoothing() {
-	analyser.smoothingTimeConstant = elSmoothing.value;
-	consoleLog( 'smoothingTimeConstant is ' + analyser.smoothingTimeConstant );
+	analyzer.smoothingTimeConstant = elSmoothing.value;
+	consoleLog( 'smoothingTimeConstant is ' + analyzer.smoothingTimeConstant );
 	updateLastConfig();
 }
 
 /**
- * Set the size of the FFT performed by the analyser node
+ * Set the size of the FFT performed by the analyzer node
  */
 function setFFTsize() {
 
-	analyser.fftSize = elFFTsize.value;
+	analyzer.fftSize = elFFTsize.value;
 
 	// update all variables that depend on the FFT size
-	bufferLength = analyser.frequencyBinCount;
+	bufferLength = analyzer.frequencyBinCount;
 	dataArray = new Uint8Array( bufferLength );
 
-	consoleLog( 'FFT size is ' + analyser.fftSize + ' samples' );
+	consoleLog( 'FFT size is ' + analyzer.fftSize + ' samples' );
 	updateLastConfig();
 
 	preCalcPosX();
@@ -228,8 +228,8 @@ function preCalcPosX() {
 		lastPos = -1,
 		fMin = elRangeMin.value,
 		fMax = elRangeMax.value,
-		iMin = Math.floor( fMin * analyser.fftSize / audioCtx.sampleRate ),
-		iMax = Math.round( fMax * analyser.fftSize / audioCtx.sampleRate );
+		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
+		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
 
 	cfgShowScale = ( elShowScale.dataset.active == '1' );
 	cfgLogScale = ( elLogScale.dataset.active == '1' );
@@ -248,7 +248,7 @@ function preCalcPosX() {
 	}
 
 	for ( var i = iMin; i <= iMax; i++ ) {
-		freq = i * audioCtx.sampleRate / analyser.fftSize; // find which frequency is represented in this bin
+		freq = i * audioCtx.sampleRate / analyzer.fftSize; // find which frequency is represented in this bin
 		if ( cfgLogScale )
 			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
 		else
@@ -297,7 +297,7 @@ function drawScale() {
 				incr *= 10;
 		}
 		else {
-			posX = bandWidth * ( freq * analyser.fftSize / audioCtx.sampleRate - deltaX );
+			posX = bandWidth * ( freq * analyzer.fftSize / audioCtx.sampleRate - deltaX );
 			if ( freq == 1000 )
 				incr = 1000;
 		}
@@ -615,7 +615,7 @@ function draw() {
 	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
 
 	// get a new array of data from the FFT
-	analyser.getByteFrequencyData( dataArray );
+	analyzer.getByteFrequencyData( dataArray );
 
 	// for log scale, bar width is always 1; for linear scale we show wider bars when possible
 	barWidth = ( ! cfgLogScale && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
@@ -683,8 +683,8 @@ function setSource() {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
 				audioElement.pause();
-			sourcePlayer.disconnect( analyser );
-			sourceMic.connect( analyser );
+			sourcePlayer.disconnect( analyzer );
+			sourceMic.connect( analyzer );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
@@ -702,8 +702,8 @@ function setSource() {
 	}
 	else {
 		if ( typeof sourceMic == 'object' )
-			sourceMic.disconnect( analyser );
-		sourcePlayer.connect( analyser );
+			sourceMic.disconnect( analyzer );
+		sourcePlayer.connect( analyzer );
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
@@ -776,7 +776,7 @@ function saveConfig( config ) {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
-		smoothing	: analyser.smoothingTimeConstant,
+		smoothing	: analyzer.smoothingTimeConstant,
 		gradient	: elGradient.value,
 		showScale 	: elShowScale.dataset.active == '1',
 		logScale	: elLogScale.dataset.active == '1',
@@ -923,10 +923,10 @@ function initialize() {
 		consoleLog( 'Error loading ' + this.src, true );
 	});
 
-	analyser = audioCtx.createAnalyser();
+	analyzer = audioCtx.createAnalyser();
 	sourcePlayer = audioCtx.createMediaElementSource( audioElement );
-	sourcePlayer.connect( analyser );
-	analyser.connect( audioCtx.destination );
+	sourcePlayer.connect( analyzer );
+	analyzer.connect( audioCtx.destination );
 
 	// Canvas
 
