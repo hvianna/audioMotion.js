@@ -31,15 +31,15 @@ var	// playlist and index to the current song
 	// HTML elements from the UI
 	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
-	// configuration options we need to check inside the draw function - for better performance
+	// configuration options we need to check inside the draw loop - for better performance
 	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
-	// information for each analyzer bar and scale related variables
+	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, deltaX, bandWidth,
 	// Web Audio API related variables
 	audioCtx, analyser, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
 	canvas, canvasCtx, pixelRatio, canvasMsg,
-	// gradients
+	// gradient definitions
 	gradients = {
 		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
 					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
@@ -111,23 +111,24 @@ var	// playlist and index to the current song
  * Configuration presets
  */
 var presets = {
-	log: {
-		fftSize     : 8192,		// FFT size
-		freqMin     : 20,		// lowest frequency
-		freqMax     : 16000,	// highest frequency
-		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-		showScale   : true,		// true to show x-axis scale
-		logScale    : true		// true to use logarithmic scale
-	},
-	linear: {
-		fftSize     : 4096,
-		freqMin     : 20,
-		freqMax     : 2000,
-		smoothing   : 0.7,
-		showScale   : false,
-		logScale    : false
-	}
-};
+		log: {
+			fftSize     : 8192,		// FFT size
+			freqMin     : 20,		// lowest frequency
+			freqMax     : 16000,	// highest frequency
+			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+			showScale   : true,		// true to show x-axis scale
+			logScale    : true		// true to use logarithmic scale
+		},
+
+		linear: {
+			fftSize     : 4096,
+			freqMin     : 20,
+			freqMax     : 2000,
+			smoothing   : 0.7,
+			showScale   : false,
+			logScale    : false
+		}
+	};
 
 
 /**
@@ -1033,51 +1034,51 @@ function initialize() {
 
 	loadPreset('last');
 
-	// set audio source to built-in player
+	// Set audio source to built-in player
 	elSource = document.getElementById('source');
 	setSource();
 
-	// load playlists from playlists.cfg
+	// Load playlists from playlists.cfg
 	elPlaylists = document.getElementById('playlists');
 	loadPlaylistsCfg();
 
-	// add event listener for keyboard controls
+	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
 
-	// start canvas animation
+	// Start canvas animation
 	requestAnimationFrame( draw );
 }
 
 
 /**
  * localStorage polyfill
- * https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Local_storage
+ * from https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Local_storage
  */
 if (!window.localStorage) {
-  window.localStorage = {
-    getItem: function (sKey) {
-      if (!sKey || !this.hasOwnProperty(sKey)) { return null; }
-      return unescape(document.cookie.replace(new RegExp("(?:^|.*;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*"), "$1"));
-    },
-    key: function (nKeyId) {
-      return unescape(document.cookie.replace(/\s*\=(?:.(?!;))*$/, "").split(/\s*\=(?:[^;](?!;))*[^;]?;\s*/)[nKeyId]);
-    },
-    setItem: function (sKey, sValue) {
-      if(!sKey) { return; }
-      document.cookie = escape(sKey) + "=" + escape(sValue) + "; expires=Tue, 19 Jan 2038 03:14:07 GMT; path=/";
-      this.length = document.cookie.match(/\=/g).length;
-    },
-    length: 0,
-    removeItem: function (sKey) {
-      if (!sKey || !this.hasOwnProperty(sKey)) { return; }
-      document.cookie = escape(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
-      this.length--;
-    },
-    hasOwnProperty: function (sKey) {
-      return (new RegExp("(?:^|;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
-    }
-  };
-  window.localStorage.length = (document.cookie.match(/\=/g) || window.localStorage).length;
+	window.localStorage = {
+		getItem: function (sKey) {
+			if (!sKey || !this.hasOwnProperty(sKey)) { return null; }
+			return unescape(document.cookie.replace(new RegExp("(?:^|.*;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*((?:[^;](?!;))*[^;]?).*"), "$1"));
+		},
+		key: function (nKeyId) {
+			return unescape(document.cookie.replace(/\s*\=(?:.(?!;))*$/, "").split(/\s*\=(?:[^;](?!;))*[^;]?;\s*/)[nKeyId]);
+		},
+		setItem: function (sKey, sValue) {
+			if(!sKey) { return; }
+			document.cookie = escape(sKey) + "=" + escape(sValue) + "; expires=Tue, 19 Jan 2038 03:14:07 GMT; path=/";
+			this.length = document.cookie.match(/\=/g).length;
+		},
+		length: 0,
+		removeItem: function (sKey) {
+			if (!sKey || !this.hasOwnProperty(sKey)) { return; }
+			document.cookie = escape(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+			this.length--;
+		},
+		hasOwnProperty: function (sKey) {
+			return (new RegExp("(?:^|;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+		}
+	};
+	window.localStorage.length = (document.cookie.match(/\=/g) || window.localStorage).length;
 }
 
 /**
