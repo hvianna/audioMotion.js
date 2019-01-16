@@ -3,15 +3,16 @@ audioMotion.js
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
-A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs.
+A real-time graphic spectrum analyzer and audio player built with the *Web Audio* and *Canvas* JavaScript APIs.
 
 ## Features
 
 * Beautiful high-resolution (retina / HiDPI ready) graphic spectrum analyzer with fullscreen display
 * Customizable logarithmic frequency scale, for improved visualization of specific ranges
 * Customizable WebAudio API parameters (FFT size, sensitivity and time-smoothing)
-* HTML5 audio player with playlist support
+* Audio player with playlist support
 * Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)
+* Uses only HTML5 and vanilla JavaScript (ES5) and runs right out of the box in any modern browser
 
 ## Demo
 
@@ -149,7 +150,7 @@ Turn this option on to always use a black background for the analyzer, instead o
 
 ### CYCLE switch
 
-When on, the next gradient is automatically selected on each track change.
+When on, every track change will select the next gradient, cycling through the available options.
 
 ## Fullscreen mode and keyboard shortcuts
 
@@ -173,22 +174,22 @@ You can use the keyboard shortcuts below to control the player and some display 
 audioMotion.js user interface
 ![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 
-Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, "Dusk" gradient
-![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-5KHz range, 1024-sample FFT, 'Dusk' gradient")
+Full screen view: Linear scale, 20Hz-4KHz, 2048-sample FFT, "Miami" gradient, with on-screen information
+![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-4KHz, 2048-sample FFT, 'Miami' gradient, with on-screen information")
 
-Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, "Classic" gradient
-![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz range, 8192-sample FFT, 'Classic' gradient")
+Full screen view: Logarithmic scale, 20Hz-16KHz, 8192-sample FFT, "Classic" gradient
+![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz, 8192-sample FFT, 'Classic' gradient")
 
 ## References and acknowledgments
 
-* audioMotion.js was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
-* [WebAudio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
-* [WebAudio API Specification](https://webaudio.github.io/web-audio-api/)
+* audioMotion.js was largely inspired by the aesthetics of [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
+* [Web Audio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
+* [Web Audio API Specification](https://webaudio.github.io/web-audio-api/)
 * [HTML Canvas Reference @W3Schools](https://www.w3schools.com/tags/ref_canvas.asp)
 * [What does the FFT data in the Web Audio API correspond to?](https://stackoverflow.com/a/14789992/2370385)
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
-* [cookies.js](https://github.com/madmurphy/cookies.js) licensed under [GPL 3.0](http://www.gnu.org/licenses/gpl-3.0-standalone.html)
+* [localStorage polyfill](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Local_storage)
 * Icons by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
