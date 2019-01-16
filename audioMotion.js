@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1-RC';
+var _VERSION = '19.1-RC-1';
 
 
 /**
@@ -34,7 +34,7 @@ var	// playlist and index to the current song
 	// configuration options we need to check inside the draw loop - for better performance
 	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
 	// data for drawing the analyzer bars and scale related variables
-	analyzerBars, deltaX, bandWidth,
+	analyzerBars, fMin, fMax, deltaX, bandWidth,
 	// Web Audio API related variables
 	audioCtx, analyzer, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
@@ -106,7 +106,6 @@ var	// playlist and index to the current song
 		          ] },
 	};
 
-
 /**
  * Configuration presets
  */
@@ -116,20 +115,17 @@ var presets = {
 			freqMin     : 20,		// lowest frequency
 			freqMax     : 16000,	// highest frequency
 			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-			showScale   : true,		// true to show x-axis scale
 			logScale    : true		// true to use logarithmic scale
 		},
 
 		linear: {
-			fftSize     : 4096,
+			fftSize     : 2048,
 			freqMin     : 20,
-			freqMax     : 2000,
-			smoothing   : 0.7,
-			showScale   : false,
+			freqMax     : 4000,
+			smoothing   : 0.5,
 			logScale    : false
 		}
 	};
-
 
 /**
  * Display the canvas in full-screen mode
@@ -190,6 +186,8 @@ function setFFTsize() {
  * Set desired frequency range
  */
 function setFreqRange() {
+	while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
+		elRangeMax.selectedIndex++;
 	updateLastConfig();
 	preCalcPosX();
 }
@@ -224,10 +222,11 @@ function setBlackBg() {
  */
 function preCalcPosX() {
 
+	fMin = elRangeMin.value;
+	fMax = elRangeMax.value;
+
 	var freq, pos,
 		lastPos = -1,
-		fMin = elRangeMin.value,
-		fMax = elRangeMax.value,
 		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
 		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
 
@@ -281,15 +280,17 @@ function drawScale() {
 	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
-	bands = [0, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 15000, 20000, 25000];
+	bands = [ 0, 30, 40, 50, 60, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 10000, 15000, 20000 ];
 	freq = 0;
 
 	if ( cfgLogScale )
 		incr = 10;
+	else if ( fMax <= 8000 )
+		incr = 100;
 	else
 		incr = 500;
 
-	while ( freq <= bands[ bands.length - 1 ] ) {
+	while ( freq <= fMax ) {
 
 		if ( cfgLogScale ) {
 			posX = bandWidth * ( Math.log10( freq ) - deltaX );
@@ -732,32 +733,43 @@ function loadPreset( name ) {
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	elRangeMin.value = presets[ name ].freqMin;
-	elRangeMax.value = presets[ name ].freqMax;
-	elLogScale.dataset.active = Number( presets[ name ].logScale );
-	elShowScale.dataset.active = Number( presets[ name ].showScale );
-	elFFTsize.value = presets[ name ].fftSize;
-	elSmoothing.value = presets[ name ].smoothing;
+	if ( presets[ name ].hasOwnProperty( 'logScale' ) )
+		elLogScale.dataset.active = Number( presets[ name ].logScale );
 
-	if ( presets[ name ].gradient && gradients[ presets[ name ].gradient ] )
+	if ( presets[ name ].hasOwnProperty( 'fftSize' ) )
+		elFFTsize.value = presets[ name ].fftSize;
+
+	if ( presets[ name ].hasOwnProperty( 'freqMin' ) )
+		elRangeMin.value = presets[ name ].freqMin;
+
+	if ( presets[ name ].hasOwnProperty( 'freqMax' ) )
+		elRangeMax.value = presets[ name ].freqMax;
+
+	if ( presets[ name ].hasOwnProperty( 'smoothing' ) )
+		elSmoothing.value = presets[ name ].smoothing;
+
+	if ( presets[ name ].hasOwnProperty( 'showScale' ) )
+		elShowScale.dataset.active = Number( presets[ name ].showScale );
+
+	if ( presets[ name ].hasOwnProperty( 'gradient' ) && gradients[ presets[ name ].gradient ] )
 		elGradient.value = presets[ name ].gradient;
 
-	if ( presets[ name ].highSens )
+	if ( presets[ name ].hasOwnProperty( 'highSens' ) )
 		elHighSens.dataset.active = Number( presets[ name ].highSens );
 
-	if ( presets[ name ].showPeaks )
+	if ( presets[ name ].hasOwnProperty( 'showPeaks' ) )
 		elShowPeaks.dataset.active = Number( presets[ name ].showPeaks );
 
-	if ( presets[ name ].blackBg )
+	if ( presets[ name ].hasOwnProperty( 'blackBg' ) )
 		elBlackBg.dataset.active = Number( presets[ name ].blackBg );
 
-	if ( presets[ name ].cycleGrad )
+	if ( presets[ name ].hasOwnProperty( 'cycleGrad' ) )
 		elCycleGrad.dataset.active = Number( presets[ name ].cycleGrad );
 
-	if ( presets[ name ].repeat )
+	if ( presets[ name ].hasOwnProperty( 'repeat' ) )
 		elRepeat.dataset.active = Number( presets[ name ].repeat );
 
-	if ( presets[ name ].showSong )
+	if ( presets[ name ].hasOwnProperty( 'showSong' ) )
 		elShowSong.dataset.active = Number( presets[ name ].showSong );
 
 	setFFTsize();
@@ -1021,6 +1033,7 @@ function initialize() {
 		// set additional default options
 		presets['last'].gradient = 'prism';
 		presets['last'].cycleGrad = true;
+		presets['last'].showScale = true;
 		presets['last'].highSens = false;
 		presets['last'].showPeaks = true;
 		presets['last'].showSong = true;
