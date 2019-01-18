@@ -8,15 +8,15 @@ Changelog
 + :sunglasses: New gradients;
 + Configuration presets;
 + Keyboard shortcuts (especially useful while on fullscreen mode);
-+ Option to change active gradient on each track change;
++ Option to cycle through gradients on each track change;
 + On-screen display of song information via keyboard shortcut and, optionally, on each track change;
 + Support for the [#EXTINF directive](https://en.wikipedia.org/wiki/M3U#Extended_M3U) in playlists.
 
 ### Changed:
 
-+ Refactored some ES6-specific code to increase client compatibility (especially with smart TVs);
++ User preferences are now stored in local storage for browsers that implement it, instead of cookies;
++ Refactored some ES6-specific code to increase browser compatibility (especially on smart TVs);
 + Minor redesign of the UI and improved layout on smaller screens;
-+ New cookie format with consolidated configuration options;
 + Renamed some of the gradients and ordered them alphabetically in the list.
 
 ### Fixed:
