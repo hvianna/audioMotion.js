@@ -20,14 +20,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.1';
+var _VERSION = '19.2-dev';
 
 
 /**
  * Global variables
  */
-var	// playlist and index to the current song
-	playlist, playlistPos,
+var	// playlist, index to the current song and buffer for preloading next song
+	playlist, playlistPos, nextSong,
 	// HTML elements from the UI
 	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
@@ -324,6 +324,7 @@ function clearPlaylist() {
 	playlist = [];
 	playlistPos = 0;
 	updatePlaylistUI();
+	clearSongBuffer();
 }
 
 /**
@@ -525,6 +526,7 @@ function stop() {
 		return;
 	audioElement.pause();
 	canvasMsg = { timer: 0 };
+	clearSongBuffer();
 	loadSong( 0 );
 }
 
@@ -537,13 +539,21 @@ function playPreviousSong() {
 		loadSong( playlistPos - 1 );
 }
 
-function playNextSong() {
-	if ( cfgSource == 'mic' )
+function playNextSong( play ) {
+	if ( cfgSource == 'mic' || playlistPos > playlist.length - 1 )
 		return;
-	if ( isPlaying() )
-		playSong( playlistPos + 1 );
+	play = play || isPlaying();
+	playlistPos++;
+	if ( nextSong.idx == playlistPos ) {
+		audioElement.src = nextSong.src;
+		if ( play )
+			audioElement.play();
+		document.getElementById('playlist').selectedIndex = playlistPos;
+	}
+	else if ( play )
+		playSong( playlistPos );
 	else
-		loadSong( playlistPos + 1 );
+		loadSong( playlistPos );
 }
 
 /**
@@ -881,13 +891,25 @@ function keyboardControls( event ) {
 }
 
 /**
+ * Clear song buffer
+ */
+function clearSongBuffer() {
+	while ( nextSong.blobs.length )
+		URL.revokeObjectURL( nextSong.blobs.shift() );
+
+	nextSong.idx = -1;
+	nextSong.src = '';
+}
+
+
+/**
  * Initialization
  */
 function initialize() {
 
 	playlist = [];
 	playlistPos = 0;
-	canvasMsg = { timer: 0 };
+	nextSong = { idx: -1, src: '', blobs: [] };
 
 	consoleLog( 'audioMotion.js version ' + _VERSION );
 	consoleLog( 'Initializing...' );
@@ -914,17 +936,51 @@ function initialize() {
 			consoleLog( 'Playlist is empty', true );
 			audioElement.pause();
 		}
-		else if ( elShowSong.dataset.active == '1' ) {
-			canvasMsg.showSongInfo = true;
-			canvasMsg.timer = 600;
-			canvasMsg.fade = 180;
+		else {
+			if ( elShowSong.dataset.active == '1' ) {
+				canvasMsg.showSongInfo = true;
+				canvasMsg.timer = 600;
+				canvasMsg.fade = 180;
+			}
+			// preload next song - avoid loading the same file multiple times when seeking (triggers the 'play' event)
+			if ( playlistPos < playlist.length - 1 ) {
+				if ( nextSong.idx != playlistPos + 1 ) {
+					nextSong.idx = playlistPos + 1;
+					// keeps at most two blob objects in memory (current and next song)
+					while ( nextSong.blobs.length > 1 ) {
+						consoleLog('Clearing cache...');
+						URL.revokeObjectURL( nextSong.blobs.shift() );
+					}
+					consoleLog( 'preloading ' + playlist[ nextSong.idx ].song );
+
+					fetch( playlist[ nextSong.idx ].file )
+						.then( function( response ) {
+							consoleLog( 'Preload status ' + response.status, response.status >= 400 );
+							if ( response.status == 200 || response.status == 206 )
+								return response.blob();
+						})
+						.then( function( blob ) {
+							if ( blob ) {
+								nextSong.src = URL.createObjectURL( blob );
+								nextSong.blobs.push( nextSong.src );
+							}
+							else {
+								nextSong.src = '';
+								nextSong.idx = -1;
+							}
+						})
+						.catch( function( err ) {
+							consoleLog( 'Preload error: ' + err, true );
+						});
+				}
+			}
 		}
 	});
 
 	audioElement.addEventListener( 'ended', function() {
 		// song ended, skip to next one if available
 		if ( playlistPos < playlist.length - 1 )
-			playSong( playlistPos + 1 );
+			playNextSong( true );
 		else if ( elRepeat.dataset.active == '1' )
 			playSong( 0 );
 		else
@@ -944,6 +1000,7 @@ function initialize() {
 
 	canvas = document.getElementById('canvas');
 	canvasCtx = canvas.getContext('2d');
+	canvasMsg = { timer: 0 };
 
 	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
 
