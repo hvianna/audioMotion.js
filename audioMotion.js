@@ -29,10 +29,10 @@ var _VERSION = '19.3-dev.2';
 var	// playlist, index to the current song, indexes to current and next audio elements
 	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
-	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale,
+	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elBarsScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
+	cfgSource, cfgShowScale, cfgBarsScale, cfgShowPeaks, cfgBlackBg,
 	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth,
 	// Web Audio API related variables
@@ -110,20 +110,20 @@ var	// playlist, index to the current song, indexes to current and next audio el
  * Configuration presets
  */
 var presets = {
-		log: {
+		fullfreq: {
 			fftSize     : 8192,		// FFT size
 			freqMin     : 20,		// lowest frequency
-			freqMax     : 16000,	// highest frequency
+			freqMax     : 22000,	// highest frequency
 			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-			logScale    : true		// true to use logarithmic scale
+			barsScale   : false		// true to use octave bands frequency scale
 		},
 
-		linear: {
-			fftSize     : 2048,
-			freqMin     : 20,
-			freqMax     : 4000,
+		octave: {
+			fftSize     : 8192,
+			freqMin     : 30,
+			freqMax     : 16000,
 			smoothing   : 0.5,
-			logScale    : false
+			barsScale   : true
 		}
 	};
 
@@ -228,14 +228,14 @@ function preCalcPosX() {
 	var i, freq;
 
 	cfgShowScale = ( elShowScale.dataset.active == '1' );
-	cfgLogScale = ( elLogScale.dataset.active == '1' );
+	cfgBarsScale = ( elBarsScale.dataset.active == '1' );
 
 	deltaX = Math.log10( fMin );
 	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 
 	analyzerBars = [];
 
-	if ( cfgLogScale ) {
+	if ( ! cfgBarsScale ) {
 		// full frequency logarithmic scale
  		var pos, lastPos = -1;
 		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
@@ -753,8 +753,8 @@ function loadPreset( name ) {
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	if ( presets[ name ].hasOwnProperty( 'logScale' ) )
-		elLogScale.dataset.active = Number( presets[ name ].logScale );
+	if ( presets[ name ].hasOwnProperty( 'barsScale' ) )
+		elBarsScale.dataset.active = Number( presets[ name ].barsScale );
 
 	if ( presets[ name ].hasOwnProperty( 'fftSize' ) )
 		elFFTsize.value = presets[ name ].fftSize;
@@ -811,7 +811,7 @@ function saveConfig( config ) {
 		smoothing	: analyzer.smoothingTimeConstant,
 		gradient	: elGradient.value,
 		showScale 	: elShowScale.dataset.active == '1',
-		logScale	: elLogScale.dataset.active == '1',
+		barsScale	: elBarsScale.dataset.active == '1',
 		highSens	: elHighSens.dataset.active == '1',
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
@@ -1055,8 +1055,8 @@ function initialize() {
 	elRangeMin  = document.getElementById('freq_min');
 	elRangeMax  = document.getElementById('freq_max');
 	elSmoothing = document.getElementById('smoothing');
-	elLogScale  = document.getElementById('log_scale');
-	elLogScale.addEventListener( 'click', setScale );
+	elBarsScale  = document.getElementById('bars_scale');
+	elBarsScale.addEventListener( 'click', setScale );
 	elShowScale = document.getElementById('show_scale');
 	elShowScale.addEventListener( 'click', setScale );
 	// clicks on canvas also toggle scale on/off
