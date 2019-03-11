@@ -484,7 +484,7 @@ function loadSong( n ) {
 function loadNextSong() {
 	if ( playlistPos < playlist.length - 1 )
 		audioElement[ nextAudio ].src = playlist[ playlistPos + 1 ].file;
-	else if ( elRepeat.dataset.active == '1' )
+	else
 		audioElement[ nextAudio ].src = playlist[ 0 ].file;
 }
 
