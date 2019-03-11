@@ -20,14 +20,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.2-dev';
+var _VERSION = '19.3-dev.1';
 
 
 /**
  * Global variables
  */
-var	// playlist, index to the current song and buffer for preloading next song
-	playlist, playlistPos, nextSong,
+var	// playlist, index to the current song, indexes to current and next audio elements
+	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
 	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elLogScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
@@ -473,17 +473,28 @@ function shufflePlaylist() {
 }
 
 /**
- * Load a song into the audio element
+ * Load a song into the currently active audio element
  */
 function loadSong( n ) {
 	if ( playlist[ n ] !== undefined ) {
 		playlistPos = n;
-		audioElement.src = playlist[ playlistPos ].file;
+		audioElement[ currAudio ].src = playlist[ playlistPos ].file;
 		document.getElementById('playlist').selectedIndex = playlistPos;
+		loadNextSong();
 		return true;
 	}
 	else
 		return false;
+}
+
+/**
+ * Loads next song into the audio element not currently in use
+ */
+function loadNextSong() {
+	if ( playlistPos < playlist.length - 1 )
+		audioElement[ nextAudio ].src = playlist[ playlistPos + 1 ].file;
+	else if ( elRepeat.dataset.active == '1' )
+		audioElement[ nextAudio ].src = playlist[ 0 ].file;
 }
 
 /**
@@ -496,17 +507,8 @@ function playSong( n ) {
 	if ( cfgSource == 'mic' )
 		return;
 
-	if ( loadSong( n ) ) {
-		audioElement.play();
-		if ( elCycleGrad.dataset.active == '1' ) {
-			gradIdx = elGradient.selectedIndex;
-			if ( gradIdx < elGradient.options.length - 1 )
-				gradIdx++;
-			else
-				gradIdx = 0;
-			elGradient.selectedIndex = gradIdx;
-		}
-	}
+	if ( loadSong( n ) )
+		audioElement[ currAudio ].play();
 }
 
 /**
@@ -516,15 +518,15 @@ function playPause() {
 	if ( cfgSource == 'mic' )
 		return;
 	if ( isPlaying() )
-		audioElement.pause();
-	else if ( audioElement.src != '' )
-		audioElement.play();
+		audioElement[ currAudio ].pause();
+	else if ( audioElement[ currAudio ].src != '' )
+		audioElement[ currAudio ].play();
 }
 
 function stop() {
 	if ( cfgSource == 'mic' )
 		return;
-	audioElement.pause();
+	audioElement[ currAudio ].pause();
 	canvasMsg = { timer: 0 };
 	clearSongBuffer();
 	loadSong( 0 );
@@ -542,28 +544,49 @@ function playPreviousSong() {
 function playNextSong( play ) {
 	if ( cfgSource == 'mic' || playlistPos > playlist.length - 1 )
 		return;
+
+	if ( playlistPos < playlist.length - 1 )
+		playlistPos++;
+	else if ( elRepeat.dataset.active == '1' )
+		playlistPos = 0;
+	else return;
+
 	play = play || isPlaying();
-	playlistPos++;
-	if ( nextSong.idx == playlistPos ) {
-		audioElement.src = nextSong.src;
-		if ( play )
-			audioElement.play();
-		document.getElementById('playlist').selectedIndex = playlistPos;
+
+	currAudio = ! currAudio | 0;
+	nextAudio = ! currAudio | 0;
+
+	sourcePlayer[ nextAudio ].disconnect( analyzer );
+	sourcePlayer[ currAudio ].connect( analyzer );
+
+	audioElement[ nextAudio ].style.display = 'none';
+	audioElement[ currAudio ].style.display = 'block';
+
+	if ( play ) {
+		audioElement[ currAudio ].play();
+		if ( elCycleGrad.dataset.active == '1' ) {
+			gradIdx = elGradient.selectedIndex;
+			if ( gradIdx < elGradient.options.length - 1 )
+				gradIdx++;
+			else
+				gradIdx = 0;
+			elGradient.selectedIndex = gradIdx;
+		}
 	}
-	else if ( play )
-		playSong( playlistPos );
-	else
-		loadSong( playlistPos );
+
+	document.getElementById('playlist').selectedIndex = playlistPos;
+
+	loadNextSong();
 }
 
 /**
  * Check if audio is playing
  */
 function isPlaying() {
-	return audioElement
-		&& audioElement.currentTime > 0
-		&& !audioElement.paused
-		&& !audioElement.ended;
+	return audioElement[ currAudio ]
+		&& audioElement[ currAudio ].currentTime > 0
+		&& !audioElement[ currAudio ].paused
+		&& !audioElement[ currAudio ].ended;
 //		&& audioElement.readyState > 2;
 }
 
@@ -593,11 +616,11 @@ function displayCanvasMsg() {
 	if ( canvasMsg.showSongInfo && playlist.length ) {
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 2 * pixelRatio;
 		// file type and time
-		if ( audioElement.duration ) {
+		if ( audioElement[ currAudio ].duration ) {
 			canvasCtx.textAlign = 'right';
 			canvasCtx.fillText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), canvas.width - 35 * pixelRatio, canvas.height - 120 * pixelRatio );
-			curTime = Math.floor( audioElement.currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement.currentTime % 60 ) ).slice(-2);
-			duration = Math.floor( audioElement.duration / 60 ) + ':' + ( "0" + Math.floor( audioElement.duration % 60 ) ).slice(-2);
+			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
+			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
 			canvasCtx.fillText( curTime + ' / ' + duration, canvas.width - 35 * pixelRatio, canvas.height - 70 * pixelRatio );
 		}
 		// artist and song name
@@ -693,8 +716,8 @@ function setSource() {
 	if ( cfgSource == 'mic' ) {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
-				audioElement.pause();
-			sourcePlayer.disconnect( analyzer );
+				audioElement[ currAudio ].pause();
+			sourcePlayer[ currAudio ].disconnect( analyzer );
 			sourceMic.connect( analyzer );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
@@ -714,7 +737,7 @@ function setSource() {
 	else {
 		if ( typeof sourceMic == 'object' )
 			sourceMic.disconnect( analyzer );
-		sourcePlayer.connect( analyzer );
+		sourcePlayer[ currAudio ].connect( analyzer );
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
@@ -728,8 +751,8 @@ function loadLocalFile( obj ) {
 	var reader = new FileReader();
 
 	reader.onload = function() {
-		audioElement.src = reader.result;
-		audioElement.play();
+		audioElement[ currAudio ].src = reader.result;
+		audioElement[ currAudio ].play();
 	};
 
 	reader.readAsDataURL( obj.files[0] );
@@ -890,17 +913,42 @@ function keyboardControls( event ) {
 	}
 }
 
-/**
- * Clear song buffer
- */
-function clearSongBuffer() {
-	while ( nextSong.blobs.length )
-		URL.revokeObjectURL( nextSong.blobs.shift() );
 
-	nextSong.idx = -1;
-	nextSong.src = '';
+/**
+ * Event handler for 'play' on audio elements
+ */
+function audioOnPlay() {
+	if ( playlist.length == 0 && audioElement[ currAudio ].src == '' ) {
+		consoleLog( 'Playlist is empty', true );
+		audioElement[ currAudio ].pause();
+	}
+	else if ( elShowSong.dataset.active == '1' ) {
+		canvasMsg.showSongInfo = true;
+		canvasMsg.timer = 600;
+		canvasMsg.fade = 180;
+	}
 }
 
+
+/**
+ * Event handler for 'ended' on audio elements
+ */
+function audioOnEnded() {
+	// song ended, skip to next one if available
+	if ( playlistPos < playlist.length - 1 || elRepeat.dataset.active == '1' )
+		playNextSong( true );
+	else
+		loadSong( 0 );
+}
+
+
+/**
+ * Error event handler for audio elements
+ */
+function audioOnError( e ) {
+	consoleLog( 'Error loading ' );// + this.src, true );
+	console.log( e );
+}
 
 /**
  * Initialization
@@ -909,7 +957,6 @@ function initialize() {
 
 	playlist = [];
 	playlistPos = 0;
-	nextSong = { idx: -1, src: '', blobs: [] };
 
 	consoleLog( 'audioMotion.js version ' + _VERSION );
 	consoleLog( 'Initializing...' );
@@ -929,71 +976,33 @@ function initialize() {
 
 	consoleLog( 'Audio context sample rate is ' + audioCtx.sampleRate + 'Hz' );
 
-	audioElement = document.getElementById('player');
+	audioElement = [
+		document.getElementById('player0'),
+		document.getElementById('player1')
+	];
 
-	audioElement.addEventListener( 'play', function() {
-		if ( playlist.length == 0 && audioElement.src == '' ) {
-			consoleLog( 'Playlist is empty', true );
-			audioElement.pause();
-		}
-		else {
-			if ( elShowSong.dataset.active == '1' ) {
-				canvasMsg.showSongInfo = true;
-				canvasMsg.timer = 600;
-				canvasMsg.fade = 180;
-			}
-			// preload next song - avoid loading the same file multiple times when seeking (triggers the 'play' event)
-			if ( playlistPos < playlist.length - 1 ) {
-				if ( nextSong.idx != playlistPos + 1 ) {
-					nextSong.idx = playlistPos + 1;
-					// keeps at most two blob objects in memory (current and next song)
-					while ( nextSong.blobs.length > 1 ) {
-						consoleLog('Clearing cache...');
-						URL.revokeObjectURL( nextSong.blobs.shift() );
-					}
-					consoleLog( 'preloading ' + playlist[ nextSong.idx ].song );
+	currAudio = 0;
+	nextAudio = 1;
 
-					fetch( playlist[ nextSong.idx ].file )
-						.then( function( response ) {
-							consoleLog( 'Preload status ' + response.status, response.status >= 400 );
-							if ( response.status == 200 || response.status == 206 )
-								return response.blob();
-						})
-						.then( function( blob ) {
-							if ( blob ) {
-								nextSong.src = URL.createObjectURL( blob );
-								nextSong.blobs.push( nextSong.src );
-							}
-							else {
-								nextSong.src = '';
-								nextSong.idx = -1;
-							}
-						})
-						.catch( function( err ) {
-							consoleLog( 'Preload error: ' + err, true );
-						});
-				}
-			}
-		}
-	});
+	audioElement[0].style.display = 'block';
+	audioElement[1].style.display = 'none';
 
-	audioElement.addEventListener( 'ended', function() {
-		// song ended, skip to next one if available
-		if ( playlistPos < playlist.length - 1 )
-			playNextSong( true );
-		else if ( elRepeat.dataset.active == '1' )
-			playSong( 0 );
-		else
-			loadSong( 0 );
-	});
+	audioElement[0].addEventListener( 'play', audioOnPlay );
+	audioElement[1].addEventListener( 'play', audioOnPlay );
 
-	audioElement.addEventListener( 'error', function() {
-		consoleLog( 'Error loading ' + this.src, true );
-	});
+	audioElement[0].addEventListener( 'ended', audioOnEnded );
+	audioElement[1].addEventListener( 'ended', audioOnEnded );
+
+	audioElement[0].addEventListener( 'error', audioOnError );
+	audioElement[1].addEventListener( 'error', audioOnError );
 
 	analyzer = audioCtx.createAnalyser();
-	sourcePlayer = audioCtx.createMediaElementSource( audioElement );
-	sourcePlayer.connect( analyzer );
+	sourcePlayer = [
+		audioCtx.createMediaElementSource( audioElement[0] ),
+		audioCtx.createMediaElementSource( audioElement[1] )
+	];
+
+	sourcePlayer[0].connect( analyzer );
 	analyzer.connect( audioCtx.destination );
 
 	// Canvas

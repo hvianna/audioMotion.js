@@ -17,7 +17,9 @@ input[type="range"] {
 	width: 80px;
 }
 
-#canvas, #player {
+#canvas,
+#player0,
+#player1 {
 	display: block;
 	width: 100%;
 }
@@ -29,7 +31,8 @@ input[type="range"] {
 	height: auto;
 }
 
-#player {
+#player0,
+#player1 {
 	margin-bottom: 10px;
 }
 
