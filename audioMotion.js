@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.1';
+var _VERSION = '19.3-dev.2';
 
 
 /**
@@ -268,7 +268,7 @@ function preCalcPosX() {
  */
 function drawScale() {
 
-	var bands, freq, incr, label, posX;
+	var bands, freq, label, posX;
 
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
@@ -280,41 +280,21 @@ function drawScale() {
 	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
-	bands = [ 0, 30, 40, 50, 60, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000, 10000, 15000, 20000 ];
-	freq = 0;
+	bands = [ 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
 
-	if ( cfgLogScale )
-		incr = 10;
-	else if ( fMax <= 8000 )
-		incr = 100;
-	else
-		incr = 500;
-
-	while ( freq <= fMax ) {
-
-		if ( cfgLogScale ) {
+	bands.forEach( function( freq ) {
+		if ( cfgLogScale )
 			posX = bandWidth * ( Math.log10( freq ) - deltaX );
-			if ( freq == 100 || freq == 1000 )
-				incr *= 10;
-		}
-		else {
-			posX = bandWidth * ( freq * analyzer.fftSize / audioCtx.sampleRate - deltaX );
-			if ( freq == 1000 )
-				incr = 1000;
-		}
-
-		if ( bands.indexOf( freq ) != -1 ) {
-			if ( freq >= 1000 )
-				label = freq / 1000 + 'k';
-			else
-				label = String( freq );
-			canvasCtx.fillText( label, posX, canvas.height - 5 * pixelRatio );
-		}
 		else
-			canvasCtx.fillRect( posX, canvas.height - 5 * pixelRatio, 1, -10 * pixelRatio );
+			posX = bandWidth * ( freq * analyzer.fftSize / audioCtx.sampleRate - deltaX );
 
-		freq += incr;
-	}
+		if ( freq >= 1000 )
+			label = freq / 1000 + 'k';
+		else
+			label = String( freq );
+		canvasCtx.fillText( label, posX, canvas.height - 5 * pixelRatio );
+	});
+
 }
 
 /**
