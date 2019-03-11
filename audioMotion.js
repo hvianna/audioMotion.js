@@ -34,7 +34,7 @@ var	// playlist, index to the current song, indexes to current and next audio el
 	// configuration options we need to check inside the draw loop - for better performance
 	cfgSource, cfgShowScale, cfgLogScale, cfgShowPeaks, cfgBlackBg,
 	// data for drawing the analyzer bars and scale related variables
-	analyzerBars, fMin, fMax, deltaX, bandWidth,
+	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth,
 	// Web Audio API related variables
 	audioCtx, analyzer, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
@@ -225,39 +225,61 @@ function preCalcPosX() {
 	fMin = elRangeMin.value;
 	fMax = elRangeMax.value;
 
-	var freq, pos,
-		lastPos = -1,
-		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
-		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
+	var i, freq;
 
 	cfgShowScale = ( elShowScale.dataset.active == '1' );
 	cfgLogScale = ( elLogScale.dataset.active == '1' );
 
+	deltaX = Math.log10( fMin );
+	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
+
 	analyzerBars = [];
 
 	if ( cfgLogScale ) {
-		// if using the log scale, we divide the canvas space by log(fmax) - log(fmin)
-		deltaX = Math.log10( fMin );
-		bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
+		// full frequency logarithmic scale
+ 		var pos, lastPos = -1;
+		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
+		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
+		barWidth = 1;
+
+		for ( i = iMin; i <= iMax; i++ ) {
+			freq = i * audioCtx.sampleRate / analyzer.fftSize; // frequency represented in this bin
+			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
+
+			// only add this bar if it doesn't overlap the previous one on screen
+			if ( pos > lastPos ) {
+				analyzerBars.push( { posX: pos, dataIdx: i, freq: freq, peak: 0, hold: 0, accel: 0 } );
+				lastPos = pos;
+			}
+		}
 	}
 	else {
-		// in the linear scale, we simply divide it by the number of frequencies we have to display
-		deltaX = iMin;
-		bandWidth = canvas.width / ( iMax - iMin + 1 );
-	}
+		// 1/12th octave bands scale
+		// we first generate a table of frequencies based on an equal-tempered scale
+		var root12 = 2 ** ( 1 / 12 );
+		var c0 = 440 * root12 ** -57;
+		var temperedScale = [];
 
-	for ( var i = iMin; i <= iMax; i++ ) {
-		freq = i * audioCtx.sampleRate / analyzer.fftSize; // find which frequency is represented in this bin
-		if ( cfgLogScale )
-			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
-		else
-			pos = Math.round( bandWidth * ( i - deltaX ) );
-
-		// only add this bar if it doesn't overlap the previous one on screen
-		if ( pos > lastPos ) {
-			analyzerBars.push( { posX: pos, dataIdx: i, freq: freq, peak: 0, hold: 0, accel: 0 } );
-			lastPos = pos;
+		i = 0;
+		while ( ( freq = c0 * root12 ** i++ ) < fMax ) {
+			if ( freq >= fMin )
+				temperedScale.push( freq );
 		}
+
+		// canvas space will be divided by the number of frequencies we have to display
+		barWidth = Math.floor( canvas.width / temperedScale.length ) - 1;
+		var barSpace = Math.round( canvas.width - barWidth * temperedScale.length ) / ( temperedScale.length - 1 );
+
+		temperedScale.forEach( function( freq, index ) {
+			analyzerBars.push( {
+				posX: index * ( barWidth + barSpace ),
+				dataIdx: Math.round( freq * analyzer.fftSize / audioCtx.sampleRate ), // which FFT bin represents this frequency?
+				freq: freq,
+				peak: 0,
+				hold: 0,
+				accel: 0
+			} );
+		} );
 	}
 
 	drawScale();
@@ -268,7 +290,7 @@ function preCalcPosX() {
  */
 function drawScale() {
 
-	var bands, freq, label, posX;
+	var bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
 
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
@@ -280,19 +302,9 @@ function drawScale() {
 	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
-	bands = [ 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
-
 	bands.forEach( function( freq ) {
-		if ( cfgLogScale )
-			posX = bandWidth * ( Math.log10( freq ) - deltaX );
-		else
-			posX = bandWidth * ( freq * analyzer.fftSize / audioCtx.sampleRate - deltaX );
-
-		if ( freq >= 1000 )
-			label = freq / 1000 + 'k';
-		else
-			label = String( freq );
-		canvasCtx.fillText( label, posX, canvas.height - 5 * pixelRatio );
+		var posX = bandWidth * ( Math.log10( freq ) - deltaX );
+		canvasCtx.fillText( freq >= 1000 ? ( freq / 1000 ) + 'k' : freq, posX, canvas.height - 5 * pixelRatio );
 	});
 
 }
@@ -616,7 +628,7 @@ function displayCanvasMsg() {
  */
 function draw() {
 
-	var barWidth, barHeight,
+	var barHeight,
 		grad = elGradient.value;
 
 	if ( cfgBlackBg )	// use black background
@@ -628,9 +640,6 @@ function draw() {
 
 	// get a new array of data from the FFT
 	analyzer.getByteFrequencyData( dataArray );
-
-	// for log scale, bar width is always 1; for linear scale we show wider bars when possible
-	barWidth = ( ! cfgLogScale && bandWidth >= 2 ) ? Math.floor( bandWidth ) - 1 : 1;
 
 	for ( var i = 0; i < analyzerBars.length; i++ ) {
 		barHeight = dataArray[ analyzerBars[ i ].dataIdx ] / 255 * canvas.height;
