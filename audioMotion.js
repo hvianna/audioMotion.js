@@ -324,7 +324,6 @@ function clearPlaylist() {
 	playlist = [];
 	playlistPos = 0;
 	updatePlaylistUI();
-	clearSongBuffer();
 }
 
 /**
@@ -528,7 +527,6 @@ function stop() {
 		return;
 	audioElement[ currAudio ].pause();
 	canvasMsg = { timer: 0 };
-	clearSongBuffer();
 	loadSong( 0 );
 }
 
