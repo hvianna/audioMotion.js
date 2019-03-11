@@ -1,6 +1,13 @@
 Changelog
 =========
 
+## version 19.2
+
+### Changed:
+
++ Improved playback of gapless tracks
+
+
 ## version 19.1
 
 ### Added:
