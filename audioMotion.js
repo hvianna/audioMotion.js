@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.2';
+var _VERSION = '19.3-dev.3';
 
 
 /**
@@ -29,10 +29,10 @@ var _VERSION = '19.3-dev.2';
 var	// playlist, index to the current song, indexes to current and next audio elements
 	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
-	elFFTsize, elRangeMin, elRangeMax, elSmoothing,	elGradient, elShowScale, elBarsScale,
+	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgBarsScale, cfgShowPeaks, cfgBlackBg,
+	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg,
 	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth,
 	// Web Audio API related variables
@@ -111,19 +111,19 @@ var	// playlist, index to the current song, indexes to current and next audio el
  */
 var presets = {
 		fullfreq: {
+			mode        : 0,	    // visualization mode (0/12/24)
 			fftSize     : 8192,		// FFT size
 			freqMin     : 20,		// lowest frequency
 			freqMax     : 22000,	// highest frequency
-			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-			barsScale   : false		// true to use octave bands frequency scale
+			smoothing   : 0.5		// 0 to 0.9 - smoothing time constant
 		},
 
 		octave: {
+			mode        : 12,
 			fftSize     : 8192,
 			freqMin     : 30,
 			freqMax     : 16000,
-			smoothing   : 0.5,
-			barsScale   : true
+			smoothing   : 0.5
 		}
 	};
 
@@ -228,14 +228,13 @@ function preCalcPosX() {
 	var i, freq;
 
 	cfgShowScale = ( elShowScale.dataset.active == '1' );
-	cfgBarsScale = ( elBarsScale.dataset.active == '1' );
 
 	deltaX = Math.log10( fMin );
 	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 
 	analyzerBars = [];
 
-	if ( ! cfgBarsScale ) {
+	if ( elMode.value == '0' ) {
 		// full frequency logarithmic scale
  		var pos, lastPos = -1;
 		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
@@ -254,16 +253,16 @@ function preCalcPosX() {
 		}
 	}
 	else {
-		// 1/12th octave bands scale
-		// we first generate a table of frequencies based on an equal-tempered scale
-		var root12 = 2 ** ( 1 / 12 );
-		var c0 = 440 * root12 ** -57;
+		// generate a table of frequencies based on an equal-tempered scale
+		var root24 = 2 ** ( 1 / 24 ); // for 1/24th-octave bands
+		var c0 = 440 * root24 ** -114;
 		var temperedScale = [];
 
 		i = 0;
-		while ( ( freq = c0 * root12 ** i++ ) < fMax ) {
-			if ( freq >= fMin )
+		while ( ( freq = c0 * root24 ** i ) <= fMax ) {
+			if ( freq >= fMin && ( elMode.value == '24' || i % 2 == 0 ) )
 				temperedScale.push( freq );
+			i++;
 		}
 
 		// canvas space will be divided by the number of frequencies we have to display
@@ -753,8 +752,8 @@ function loadPreset( name ) {
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	if ( presets[ name ].hasOwnProperty( 'barsScale' ) )
-		elBarsScale.dataset.active = Number( presets[ name ].barsScale );
+	if ( presets[ name ].hasOwnProperty( 'mode' ) )
+		elMode.value = presets[ name ].mode;
 
 	if ( presets[ name ].hasOwnProperty( 'fftSize' ) )
 		elFFTsize.value = presets[ name ].fftSize;
@@ -810,8 +809,8 @@ function saveConfig( config ) {
 		freqMax		: elRangeMax.value,
 		smoothing	: analyzer.smoothingTimeConstant,
 		gradient	: elGradient.value,
+		mode        : elMode.value,
 		showScale 	: elShowScale.dataset.active == '1',
-		barsScale	: elBarsScale.dataset.active == '1',
 		highSens	: elHighSens.dataset.active == '1',
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
@@ -846,7 +845,8 @@ function keyboardControls( event ) {
 	if ( event.target.tagName.toLowerCase() != 'body' && event.target.className != 'fullscreen-button' )
 		return;
 
-	var gradIdx = elGradient.selectedIndex;
+	var gradIdx = elGradient.selectedIndex,
+		modeIdx = elMode.selectedIndex;
 
 	switch ( event.keyCode ) {
 		case 32: // space bar - play/pause
@@ -898,7 +898,11 @@ function keyboardControls( event ) {
 			elShowScale.click();
 			break;
 		case 86: // V key - toggle visualization mode
-			elBarsScale.click();
+			if ( modeIdx == elMode.options.length - 1 )
+				elMode.selectedIndex = 0;
+			else
+				elMode.selectedIndex = modeIdx + 1;
+			setScale();
 			break;
 	}
 }
@@ -1058,8 +1062,7 @@ function initialize() {
 	elRangeMin  = document.getElementById('freq_min');
 	elRangeMax  = document.getElementById('freq_max');
 	elSmoothing = document.getElementById('smoothing');
-	elBarsScale  = document.getElementById('bars_scale');
-	elBarsScale.addEventListener( 'click', setScale );
+	elMode      = document.getElementById('mode');
 	elShowScale = document.getElementById('show_scale');
 	elShowScale.addEventListener( 'click', setScale );
 	// clicks on canvas also toggle scale on/off
