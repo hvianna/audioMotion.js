@@ -9,6 +9,7 @@ A real-time graphic spectrum analyzer and audio player built with the *Web Audio
 
 * Beautiful high-resolution (retina / HiDPI ready) graphic spectrum analyzer with fullscreen display
 * Customizable logarithmic frequency scale, for improved visualization of specific ranges
+* Continuous frequency or 1/12th-octave bands visualization modes
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * Audio player with playlist support
 * Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)

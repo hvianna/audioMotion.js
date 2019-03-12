@@ -3,9 +3,15 @@ Changelog
 
 ## version 19.2
 
+### Added:
+
++ Improved playback of gapless tracks 8-) by using dual audio elements.
+
 ### Changed:
 
-+ Improved playback of gapless tracks
++ Removed the linear frequency scale in favor of a 1/12th-octave bands visualization mode - in this mode each bar represents a musical note, based on an equal-tempered scale;
++ The *LOG* switch has been renamed to *BARS* and toggles between the continuous frequency and the 1/12th-octave bands visualization modes;
++ Changed the X-axis labels to display the standard octaves center frequencies.
 
 
 ## version 19.1
