@@ -897,6 +897,9 @@ function keyboardControls( event ) {
 		case 83: // S key - toggle scale
 			elShowScale.click();
 			break;
+		case 86: // V key - toggle visualization mode
+			elBarsScale.click();
+			break;
 	}
 }
 
