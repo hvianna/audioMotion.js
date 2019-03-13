@@ -254,7 +254,7 @@ function preCalcPosX() {
 	}
 	else {
 	// octave bands
-		// generate a table of frequencies based on an equal-tempered scale
+		// generate a table of frequencies based on the equal tempered scale
 		var root24 = 2 ** ( 1 / 24 ); // for 1/24th-octave bands
 		var c0 = 440 * root24 ** -114;
 		var temperedScale = [];
@@ -1118,9 +1118,10 @@ function initialize() {
 	settings = localStorage.getItem( 'last-config' );
 	if ( settings !== null )
 		presets['last'] = JSON.parse( settings );
-	else { // if no data found from last session, use 'log' preset as base
-		presets['last'] = JSON.parse( JSON.stringify( presets['log'] ) );
-		// set additional default options
+	else {
+		// if no data found from last session, use the 'full range' preset
+		presets['last'] = JSON.parse( JSON.stringify( presets['fullfft'] ) );
+		// and set some additional default options
 		presets['last'].gradient = 'prism';
 		presets['last'].cycleGrad = true;
 		presets['last'].showScale = true;
