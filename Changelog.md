@@ -5,12 +5,12 @@ Changelog
 
 ### Added:
 
++ New 1/12th and 1/24th octave bands visualization modes, where each bar represents a semitone based on the equal tempered scale;
 + Improved playback of gapless tracks 8-) by using dual audio elements.
 
 ### Changed:
 
-+ Removed the linear frequency scale in favor of a 1/12th-octave bands visualization mode - in this mode each bar represents a musical note, based on an equal-tempered scale;
-+ The *LOG* switch has been renamed to *BARS* and toggles between the continuous frequency and the 1/12th-octave bands visualization modes;
++ Removed the linear frequency scale option and the *LOG* switch;
 + Changed the X-axis labels to display the standard octaves center frequencies.
 
 

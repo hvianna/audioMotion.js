@@ -8,8 +8,8 @@ A real-time graphic spectrum analyzer and audio player built with the *Web Audio
 ## Features
 
 * Beautiful high-resolution (retina / HiDPI ready) graphic spectrum analyzer with fullscreen display
-* Customizable logarithmic frequency scale, for improved visualization of specific ranges
-* Continuous frequency or 1/12th-octave bands visualization modes
+* Logarithmic frequency scale with customizable range
+* Visualize all frequencies or octave bands based on the equal tempered scale
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * Audio player with playlist support
 * Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)
@@ -21,7 +21,7 @@ https://hvianna.github.io/audioMotion.js/
 
 ## Basic usage
 
-You can load individual songs from your PC using the **Load a song** option. This allows for quick visualization of any song, but won't let you enqueue several songs for playback.
+You can load individual songs from your PC using the **Play a song** option. This allows for quick visualization of any song, but won't let you enqueue several songs for playback.
 
 For a more practical listening / visualization session, the idea is that you use pre-defined playlists. You can load a playlist by selecting it from the list and clicking the **LOAD** button.
 This will **add** the selected playlist's content into the current playlist, which is shown under **Playlist**.
@@ -31,8 +31,6 @@ You can then use the player controls to play, pause and skip through songs in th
 The **SHUFFLE** button will shuffle the contents of the current playlist. **CLEAR** clears the current playlist.
 
 The **Repeat** option, when active, will make the player loop back to the first song after playing the last song on the playlist.
-
-The **Display** option toggles the display of song information on screen on every track change.
 
 You can also make audioMotion "listen" to your microphone, by selecting *Microphone* in the **AUDIO SOURCE** setting.
 If your sound card supports *Stereo mix* mode, you should be able to select it as the input device when requested to allow access to your microphone.
@@ -94,7 +92,7 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration Presets
 
-The **Logarithmic** and **Linear** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for best visualization in logarithmic and linear frequency scale.
+The **Full range** and **Octave bands** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for the "all frequencies" and 1/12th or 1/24th octave bands visualization modes.
 
 You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by selecting the **Custom** preset.
 
@@ -106,6 +104,12 @@ You can also select the **Last session** preset to undo any changes made during 
 ![config-bar](img/configuration-bar.png "Analyzer configuration options")
 
 Below you'll find a brief description of each configuration option.
+
+### Mode
+
+Selects the visualization mode. *All frequencies* allows to visualize all frequencies, limited only by the resolution of the FFT, while the 1/12th and 1/24th octave bands will display wider bars, representing semitones in the equal tempered scale.
+
+You can also cycle through the available modes using the **V** keyboard shortcut.
 
 ### FFT Size
 
@@ -119,30 +123,12 @@ The lowest and highest frequencies you want to see in the graphic spectrum analy
 
 Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy".
 
-### LOG switch
+### Switches (on / off)
 
-This option toggles between logarithmic and linear distribution of frequencies in the horizontal axis.
-
-The logarithmic scale allocates more canvas space for lower frequencies, resulting in improved visualization of beats, bass and vocals.
-
-The linear scale works better with a narrower frequency range, so the low frequencies don't get condensed too much.
-If combined with a smaller FFT size, will result in a more classic-looking analyzer with wider bars.
-
-You can load the **Logarithmic** and **Linear** presets for suggested configurations for both scales.
-
-### SCALE switch
-
-This option toggles the display of the frequency scale.
-
-Clicking on the canvas will also toggle the scale on and off. Useful when you're on fullscreen mode.
-
-### SENS switch
-
-When on, analyzer sensitivity is increased, improving visualization of songs too quiet.
-
-### PEAK switch
-
-When on, the analyzer shows volume peaks for each frequency.
++ **INFO** toggles the on-screen display of song information on every track change.
++ **SCALE** toggles the display of the frequency scale on the X-axis - you can also click on the canvas or use the **S** keyboard shortcut to toggle this option
++ **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet.
++ **PEAKS** shows volume peaks for each frequency
 
 ### Gradient
 
@@ -173,6 +159,7 @@ You can use the keyboard shortcuts below to control the player and some display 
 **B** | | toggle black background (BLACK switch)
 **D** | | display current song information on screen
 **S** | click on analyzer | toggle frequency scale display on/off (SCALE switch)
+**V** | | change visualization mode
 
 ## Screenshots
 
