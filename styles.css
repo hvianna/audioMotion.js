@@ -63,6 +63,9 @@ input[type="range"] {
 .playlist-button {
 	width: 100px;
 }
+.playlist-area .switch-bar {
+	padding-left: 100px;
+}
 
 .config-block {
 	display: flex;
@@ -180,6 +183,7 @@ input[type="range"] {
 	text-transform: none;
 	top: 25px;
 	width: 200px;
+	z-index: 10;
 }
 .switch .tooltip {
 	left: 0;

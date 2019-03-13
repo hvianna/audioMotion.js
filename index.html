@@ -53,11 +53,11 @@
 		<div>
 			<span class="help"><span class="config-label">Mode:</span>
 				<span class="tooltip">
-				Visualization mode. The 1/12th and 1/24th octave bands use the equal tempered scale.
+				Visualization mode. Octave bands are based on the equal tempered scale.
 				</span>
 			</span>
 			<select id="mode" onchange="setScale();">
-				<option value="0">Full FFT frequencies</option>
+				<option value="0">All frequencies</option>
 				<option value="2">1/12th-octave bands</option>
 				<option value="1">1/24th-octave bands</option>
 			</select>
@@ -129,7 +129,11 @@
 	<div class="config-block">
 		<div>
 			<div class="local-file button-bar">
-				Load a song: <input type="file" accept="audio/*" onchange="loadLocalFile( this );">
+				<span class="help"><span class="config-label">Play a song:</span>
+				<span class="tooltip">
+					Load a song from your PC and play it. This is mostly a demo mode. Please refer to the documentation on how to use audioMotion with playlists.
+				</span>
+				<input type="file" accept="audio/*" onchange="loadLocalFile( this );">
 			</div>
 			<div class="playlist-area button-bar">
 				<select id="playlists">
