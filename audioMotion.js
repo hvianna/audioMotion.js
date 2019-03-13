@@ -110,8 +110,8 @@ var	// playlist, index to the current song, indexes to current and next audio el
  * Configuration presets
  */
 var presets = {
-		fullfreq: {
-			mode        : 0,	    // visualization mode (0/12/24)
+		fullfft: {
+			mode        : 0,	    // visualization mode (0, 1, 2)
 			fftSize     : 8192,		// FFT size
 			freqMin     : 20,		// lowest frequency
 			freqMax     : 22000,	// highest frequency
@@ -119,7 +119,7 @@ var presets = {
 		},
 
 		octave: {
-			mode        : 12,
+			mode        : 2,		// 1/12th octave bands
 			fftSize     : 8192,
 			freqMin     : 30,
 			freqMax     : 16000,
@@ -260,7 +260,7 @@ function preCalcPosX() {
 
 		i = 0;
 		while ( ( freq = c0 * root24 ** i ) <= fMax ) {
-			if ( freq >= fMin && ( elMode.value == '24' || i % 2 == 0 ) )
+			if ( freq >= fMin && i % elMode.value == 0 )
 				temperedScale.push( freq );
 			i++;
 		}

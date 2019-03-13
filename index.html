@@ -51,30 +51,23 @@
 
 	<div class="main-config config-block">
 		<div>
-			<span class="help">
+			<span class="help"><span class="config-label">Mode:</span>
 				<span class="tooltip">
-					Loads a configuration preset.<br>
-					<strong>"Last session"</strong> restores the options used in the previous session.
+				Visualization mode. The 1/12th and 1/24th octave bands use the equal tempered scale.
 				</span>
-				<select id="preset" onchange="loadPreset( this.value );">
-					<option value="">Load Preset</option>
-					<option value="fullfreq">Full range</option>
-					<option value="octave">Octave bands</option>
-					<option value="custom">Custom</option>
-					<option value="last">Last session</option>
-				</select>
 			</span>
-			<span class="help">
-				<input type="button" value=" Save " onclick="updateCustomPreset();">
-				<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
-			</span>
+			<select id="mode" onchange="setScale();">
+				<option value="0">Full FFT frequencies</option>
+				<option value="2">1/12th-octave bands</option>
+				<option value="1">1/24th-octave bands</option>
+			</select>
 		</div>
 
 		<div>
 			<span class="help"><span class="config-label">FFT size:</span>
 				<span class="tooltip">
-				Number of samples used for the FFT. Larger values will provide greater detail on lower frequencies,
-				but will require more CPU power.
+				Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
+				but require more CPU power.
 				</span>
 			</span>
 			<select id="fft_size" onchange="setFFTsize();">
@@ -204,13 +197,25 @@
 		<div>
 			<div class="main-config config-block">
 				<div>
-					<span class="config-label">Mode:</span>
-					<select id="mode" onchange="setScale();">
-						<option value="0">Full FFT data</option>
-						<option value="12">1/12th-octave bands</option>
-						<option value="24">1/24th-octave bands</option>
-					</select>
+					<span class="help">
+						<span class="tooltip">
+							Loads a configuration preset.<br>
+							<strong>"Last session"</strong> restores the options used in the previous session.
+						</span>
+						<select id="preset" onchange="loadPreset( this.value );">
+							<option value="">Load Preset</option>
+							<option value="fullfft">Full range</option>
+							<option value="octave">Octave bands</option>
+							<option value="custom">Custom</option>
+							<option value="last">Last session</option>
+						</select>
+					</span>
+					<span class="help">
+						<input type="button" value=" Save " onclick="updateCustomPreset();">
+						<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
+					</span>
 				</div>
+
 				<div>
 					<span class="config-label">AUDIO SOURCE:</span>
 					<select id="source" onchange="setSource();">
