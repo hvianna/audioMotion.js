@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.3';
+var _VERSION = '19.3-dev.4';
 
 
 /**
@@ -235,7 +235,7 @@ function preCalcPosX() {
 	analyzerBars = [];
 
 	if ( elMode.value == '0' ) {
-		// full frequency logarithmic scale
+	// full frequencies
  		var pos, lastPos = -1;
 		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
 		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
@@ -247,16 +247,18 @@ function preCalcPosX() {
 
 			// only add this bar if it doesn't overlap the previous one on screen
 			if ( pos > lastPos ) {
-				analyzerBars.push( { posX: pos, dataIdx: i, freq: freq, peak: 0, hold: 0, accel: 0 } );
+				analyzerBars.push( { posX: pos, dataIdx: i, nBins: 1, freq: freq, peak: 0, hold: 0, accel: 0 } );
 				lastPos = pos;
 			}
 		}
 	}
 	else {
+	// octave bands
 		// generate a table of frequencies based on an equal-tempered scale
 		var root24 = 2 ** ( 1 / 24 ); // for 1/24th-octave bands
 		var c0 = 440 * root24 ** -114;
 		var temperedScale = [];
+		var prevBin = 0;
 
 		i = 0;
 		while ( ( freq = c0 * root24 ** i ) <= fMax ) {
@@ -270,9 +272,29 @@ function preCalcPosX() {
 		var barSpace = Math.round( canvas.width - barWidth * temperedScale.length ) / ( temperedScale.length - 1 );
 
 		temperedScale.forEach( function( freq, index ) {
+			// which FFT bin represents this frequency?
+			var bin = Math.round( freq * analyzer.fftSize / audioCtx.sampleRate );
+
+			var idx = [];
+			// start from the last used FFT bin
+			if ( prevBin > 0 && prevBin + 1 <= bin )
+				idx = prevBin + 1;
+			else
+				idx = bin;
+
+			prevBin = nextBin = bin;
+			// check if there's another band after this one
+			if ( temperedScale[ index + 1 ] !== undefined ) {
+				nextBin = Math.round( temperedScale[ index + 1 ] * analyzer.fftSize / audioCtx.sampleRate );
+				// and consider half the bins in-between for this band (may be the same bin for low frequencies)
+				if ( nextBin - bin > 0 )
+					prevBin += Math.round( ( nextBin - bin ) / 2 );
+			}
+
 			analyzerBars.push( {
 				posX: index * ( barWidth + barSpace ),
-				dataIdx: Math.round( freq * analyzer.fftSize / audioCtx.sampleRate ), // which FFT bin represents this frequency?
+				dataIdx: idx,
+				nBins: prevBin - idx + 1,
 				freq: freq,
 				peak: 0,
 				hold: 0,
@@ -627,8 +649,7 @@ function displayCanvasMsg() {
  */
 function draw() {
 
-	var barHeight,
-		grad = elGradient.value;
+	var grad = elGradient.value;
 
 	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
@@ -640,33 +661,43 @@ function draw() {
 	// get a new array of data from the FFT
 	analyzer.getByteFrequencyData( dataArray );
 
-	for ( var i = 0; i < analyzerBars.length; i++ ) {
-		barHeight = dataArray[ analyzerBars[ i ].dataIdx ] / 255 * canvas.height;
+	analyzerBars.forEach( function( bar ) {
 
-		if ( barHeight > analyzerBars[ i ].peak ) {
-			analyzerBars[ i ].peak = barHeight;
-			analyzerBars[ i ].hold = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
-			analyzerBars[ i ].accel = 0;
+		var barHeight;
+
+		if ( bar.nBins == 1 ) 	// dataIdx it's a single FFT bin
+			barHeight = dataArray[ bar.dataIdx ] / 255 * canvas.height;
+		else { 											// if it's a range of bins we need to calculate the average
+			var sum = 0;
+			for ( var i = bar.dataIdx, c = bar.nBins; c--; i++ )
+				sum += dataArray[ i ];
+			barHeight = ( sum / bar.nBins ) / 255 * canvas.height;
+		}
+
+		if ( barHeight > bar.peak ) {
+			bar.peak = barHeight;
+			bar.hold = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
+			bar.accel = 0;
 		}
 
 		canvasCtx.fillStyle = gradients[ grad ].gradient;
 
-		canvasCtx.fillRect( analyzerBars[ i ].posX, canvas.height, barWidth, -barHeight );
-		if ( cfgShowPeaks && analyzerBars[ i ].peak > 0 ) {
-			canvasCtx.fillRect( analyzerBars[ i ].posX, canvas.height - analyzerBars[ i ].peak, barWidth, 2 );
+		canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
+		if ( cfgShowPeaks && bar.peak > 0 ) {
+			canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
 // debug/calibration - show frequency for each bar
 //			canvasCtx.font = '15px sans-serif';
-//			canvasCtx.fillText( analyzerBars[ i ].freq, analyzerBars[ i ].posX, canvas.height - analyzerBars[ i ].peak - 5 );
+//			canvasCtx.fillText( bar.freq, bar.posX, canvas.height - bar.peak - 5 );
 		}
-		if ( analyzerBars[ i ].peak > 0 ) {
-			if ( analyzerBars[ i ].hold )
-				analyzerBars[ i ].hold--;
+		if ( bar.peak > 0 ) {
+			if ( bar.hold )
+				bar.hold--;
 			else {
-				analyzerBars[ i ].accel++;
-				analyzerBars[ i ].peak -= analyzerBars[ i ].accel;
+				bar.accel++;
+				bar.peak -= bar.accel;
 			}
 		}
-	}
+	} );
 
 	if ( cfgShowScale )
 		drawScale();
