@@ -124,6 +124,10 @@ The lowest and highest frequencies you want to see in the graphic spectrum analy
 
 Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs. Increase it if the animation looks too "jumpy".
 
+### Gradient
+
+Several options of color gradients for the analyzer bars.
+
 ### Switches (on / off)
 
 + **INFO** toggles the on-screen display of song information on every track change
@@ -131,18 +135,8 @@ Average constant used to smooth values between analysis frames. Lower values mak
 + **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet
 + **PEAKS** shows volume peaks for each frequency
 
-### Gradient
-
-Several options of color gradients for the analyzer bars.
-
-### BLACK switch
-
-Turn this option on to use a black background for the analyzer, instead of the background color defined by each gradient.
-This should improve the contrast for some gradients.
-
-### CYCLE switch
-
-When on, every track change will select the next gradient, cycling through the available options.
++ **DARK** when active, sets a black background for the analyzer, instead of the color defined by each gradient (improves contrast); also selectable using the **B** key
++ **CYCLE** when active, every track change will select the next gradient, cycling through the available options
 
 ## Fullscreen mode and keyboard shortcuts
 
@@ -157,7 +151,7 @@ You can use the keyboard shortcuts below to control the player and some display 
 **Space** | | play / pause
 **Up arrow** | **I** | select previous gradient
 **Down arrow** | **M** | select next gradient
-**B** | | toggle black background (BLACK switch)
+**B** | | toggle black background (DARK switch)
 **D** | | display current song information on screen
 **S** | click on analyzer | toggle frequency scale display on/off (SCALE switch)
 **V** | | change visualization mode
