@@ -247,7 +247,7 @@ function preCalcPosX() {
 
 			// only add this bar if it doesn't overlap the previous one on screen
 			if ( pos > lastPos ) {
-				analyzerBars.push( { posX: pos, dataIdx: i, nBins: 1, freq: freq, peak: 0, hold: 0, accel: 0 } );
+				analyzerBars.push( { posX: pos, dataIdx: i, endIdx: 0, average: false, freq: freq, peak: 0, hold: 0, accel: 0 } );
 				lastPos = pos;
 			}
 		}
@@ -275,7 +275,7 @@ function preCalcPosX() {
 			// which FFT bin represents this frequency?
 			var bin = Math.round( freq * analyzer.fftSize / audioCtx.sampleRate );
 
-			var idx = [];
+			var idx, nextBin, avg = false;
 			// start from the last used FFT bin
 			if ( prevBin > 0 && prevBin + 1 <= bin )
 				idx = prevBin + 1;
@@ -286,15 +286,24 @@ function preCalcPosX() {
 			// check if there's another band after this one
 			if ( temperedScale[ index + 1 ] !== undefined ) {
 				nextBin = Math.round( temperedScale[ index + 1 ] * analyzer.fftSize / audioCtx.sampleRate );
-				// and consider half the bins in-between for this band (may be the same bin for low frequencies)
-				if ( nextBin - bin > 0 )
+				// and consider half the bins in between will account for this band
+				if ( nextBin - bin > 1 )
 					prevBin += Math.round( ( nextBin - bin ) / 2 );
+				else if ( nextBin - bin == 1 ) {
+				// on low frequencies the FFT may not provide as much coefficients as we need, so more than one band will have to use the same data
+				// in these cases, we set a flag to perform an average to smooth the transition between adjacent bands
+					if ( analyzerBars.length > 0 && idx == analyzerBars[ analyzerBars.length - 1 ].dataIdx ) {
+						avg = true;
+						prevBin += Math.round( ( nextBin - bin ) / 2 );
+					}
+				}
 			}
 
 			analyzerBars.push( {
 				posX: index * ( barWidth + barSpace ),
 				dataIdx: idx,
-				nBins: prevBin - idx + 1,
+				endIdx: prevBin - idx > 0 ? prevBin : 0,
+				average: avg,
 				freq: freq,
 				peak: 0,
 				hold: 0,
@@ -665,13 +674,22 @@ function draw() {
 
 		var barHeight;
 
-		if ( bar.nBins == 1 ) 	// dataIdx it's a single FFT bin
+		if ( bar.endIdx == 0 ) 	// single FFT bin
 			barHeight = dataArray[ bar.dataIdx ] / 255 * canvas.height;
-		else { 											// if it's a range of bins we need to calculate the average
-			var sum = 0;
-			for ( var i = bar.dataIdx, c = bar.nBins; c--; i++ )
-				sum += dataArray[ i ];
-			barHeight = ( sum / bar.nBins ) / 255 * canvas.height;
+		else { 					// range of bins
+			barHeight = 0;
+			if ( bar.average ) {
+				// use the average value of the range
+				for ( var i = bar.dataIdx; i <= bar.endIdx; i++ )
+					barHeight += dataArray[ i ];
+				barHeight = barHeight / ( bar.endIdx - bar.dataIdx + 1 ) / 255 * canvas.height;
+			}
+			else {
+				// use the highest value in the range
+				for ( var i = bar.dataIdx; i <= bar.endIdx; i++ )
+					barHeight = Math.max( barHeight, dataArray[ i ] );
+				barHeight = barHeight / 255 * canvas.height;
+			}
 		}
 
 		if ( barHeight > bar.peak ) {
