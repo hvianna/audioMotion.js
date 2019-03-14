@@ -9,7 +9,7 @@ A real-time graphic spectrum analyzer and audio player built with the *Web Audio
 
 * Beautiful high-resolution (retina / HiDPI ready) graphic spectrum analyzer with fullscreen display
 * Logarithmic frequency scale with customizable range
-* Visualize all frequencies or octave bands based on the equal tempered scale
+* Visualize discrete frequencies, or octave bands based on the equal tempered scale
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * Audio player with playlist support
 * Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)
@@ -92,12 +92,12 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration Presets
 
-The **Full range** and **Octave bands** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for the "all frequencies" and 1/12th or 1/24th octave bands visualization modes.
+The **Full range** and **Octave bands** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for the discrete frequencies and octave bands visualization modes.
 
 You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by selecting the **Custom** preset.
 
 Additionally, your last used configuration will be automatically saved to the **Last session** preset and restored the next time your open audioMotion.
-You can also select the **Last session** preset to undo any changes made during the current session.
+You can also select the **Last session** preset at any time to undo any changes made during the current session.
 
 ## Configuration options
 
@@ -107,13 +107,14 @@ Below you'll find a brief description of each configuration option.
 
 ### Mode
 
-Selects the visualization mode. *All frequencies* allows to visualize all frequencies, limited only by the resolution of the FFT, while the 1/12th and 1/24th octave bands will display wider bars, representing semitones in the equal tempered scale.
+Selects the visualization mode. *Discrete frequencies* allows to visualize each individual frequency, limited only by the resolution of the FFT.
+The octave bands modes will display wider bars, representing ranges of frequencies based on a [24 tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
-You can also cycle through the available modes using the **V** keyboard shortcut.
+You can cycle through the available modes using the **V** keyboard shortcut.
 
 ### FFT Size
 
-The number of samples used for the FFT performed by the analyzer. Larger values will provide greater detail of lower frequencies, but will require more CPU power.
+The number of samples used for the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer. Larger values provide greater detail of lower frequencies, but require more CPU power.
 
 ### Range
 
@@ -125,9 +126,9 @@ Average constant used to smooth values between analysis frames. Lower values mak
 
 ### Switches (on / off)
 
-+ **INFO** toggles the on-screen display of song information on every track change.
-+ **SCALE** toggles the display of the frequency scale on the X-axis - you can also click on the canvas or use the **S** keyboard shortcut to toggle this option
-+ **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet.
++ **INFO** toggles the on-screen display of song information on every track change
++ **SCALE** toggles the display of the frequency scale on the X-axis; clicking the visualization area or pressing the **S** key also toggles this option
++ **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet
 + **PEAKS** shows volume peaks for each frequency
 
 ### Gradient
@@ -166,10 +167,10 @@ You can use the keyboard shortcuts below to control the player and some display 
 audioMotion.js user interface
 ![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 
-Full screen view: Linear scale, 20Hz-4KHz, 2048-sample FFT, "Miami" gradient, with on-screen information
-![screenshot2](img/screenshot2.png "Full screen view: Linear scale, 20Hz-4KHz, 2048-sample FFT, 'Miami' gradient, with on-screen information")
+Full screen view: 1/6th-octave bands, 30Hz-16KHz, 8192-sample FFT, "Miami" gradient, with on-screen information
+![screenshot2](img/screenshot2.png "Full screen view: 1/6th-octave bands, 30Hz-16KHz, 8192-sample FFT, 'Miami' gradient, with on-screen information")
 
-Full screen view: Logarithmic scale, 20Hz-16KHz, 8192-sample FFT, "Classic" gradient
+Full screen view: Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, "Classic" gradient
 ![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz, 8192-sample FFT, 'Classic' gradient")
 
 ## References and acknowledgments
