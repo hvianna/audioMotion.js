@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.4';
+var _VERSION = '19.3-dev.5';
 
 
 /**
@@ -39,6 +39,8 @@ var	// playlist, index to the current song, indexes to current and next audio el
 	audioCtx, analyzer, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
 	canvas, canvasCtx, pixelRatio, canvasMsg,
+	// octaves center frequencies (for X-axis scale labels)
+	bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ],
 	// gradient definitions
 	gradients = {
 		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
@@ -321,8 +323,6 @@ function preCalcPosX() {
  * Draws the x-axis scale
  */
 function drawScale() {
-
-	var bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
 
 	canvasCtx.fillStyle = '#000';
 	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
@@ -660,7 +660,8 @@ function displayCanvasMsg() {
  */
 function draw() {
 
-	var grad = elGradient.value;
+	var grad = elGradient.value,
+		i, j, l, bar, barHeight;
 
 	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
@@ -672,9 +673,10 @@ function draw() {
 	// get a new array of data from the FFT
 	analyzer.getByteFrequencyData( dataArray );
 
-	analyzerBars.forEach( function( bar ) {
+	l = analyzerBars.length;
+	for ( i = 0; i < l; i++ ) {
 
-		var barHeight;
+		bar = analyzerBars[ i ];
 
 		if ( bar.endIdx == 0 ) 	// single FFT bin
 			barHeight = dataArray[ bar.dataIdx ] / 255 * canvas.height;
@@ -682,14 +684,14 @@ function draw() {
 			barHeight = 0;
 			if ( bar.average ) {
 				// use the average value of the range
-				for ( var i = bar.dataIdx; i <= bar.endIdx; i++ )
-					barHeight += dataArray[ i ];
+				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
+					barHeight += dataArray[ j ];
 				barHeight = barHeight / ( bar.endIdx - bar.dataIdx + 1 ) / 255 * canvas.height;
 			}
 			else {
 				// use the highest value in the range
-				for ( var i = bar.dataIdx; i <= bar.endIdx; i++ )
-					barHeight = Math.max( barHeight, dataArray[ i ] );
+				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
+					barHeight = Math.max( barHeight, dataArray[ j ] );
 				barHeight = barHeight / 255 * canvas.height;
 			}
 		}
@@ -717,7 +719,7 @@ function draw() {
 				bar.peak -= bar.accel;
 			}
 		}
-	} );
+	}
 
 	if ( cfgShowScale )
 		drawScale();
