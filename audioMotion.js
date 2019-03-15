@@ -218,7 +218,7 @@ function setBlackBg() {
 
 
 /**
- * Pre-calculate the actual X-coordinate on screen for each frequency
+ * Pre-calculate the actual X-coordinate on screen for each analyzer bar
  */
 function preCalcPosX() {
 
@@ -235,7 +235,7 @@ function preCalcPosX() {
 	analyzerBars = [];
 
 	if ( elMode.value == '0' ) {
-	// full frequencies
+	// discrete frequencies
  		var pos, lastPos = -1;
 		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
 		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
@@ -245,11 +245,13 @@ function preCalcPosX() {
 			freq = i * audioCtx.sampleRate / analyzer.fftSize; // frequency represented in this bin
 			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
 
-			// only add this bar if it doesn't overlap the previous one on screen
+			// if it's on a different X-coordinate, create a new bar for this frequency
 			if ( pos > lastPos ) {
 				analyzerBars.push( { posX: pos, dataIdx: i, endIdx: 0, average: false, freq: freq, peak: 0, hold: 0, accel: 0 } );
 				lastPos = pos;
-			}
+			} // otherwise, add this frequency to the last bar's range
+			else if ( analyzerBars.length )
+				analyzerBars[ analyzerBars.length - 1 ].endIdx = i;
 		}
 	}
 	else {
