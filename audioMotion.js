@@ -113,7 +113,7 @@ var	// playlist, index to the current song, indexes to current and next audio el
  */
 var presets = {
 		fullfft: {
-			mode        : 0,	    // visualization mode (0, 1, 2)
+			mode        : 0,	    // discrete frequencies mode
 			fftSize     : 8192,		// FFT size
 			freqMin     : 20,		// lowest frequency
 			freqMax     : 22000,	// highest frequency
@@ -121,7 +121,7 @@ var presets = {
 		},
 
 		octave: {
-			mode        : 2,		// 1/12th octave bands
+			mode        : 2,		// 1/12th octave bands mode
 			fftSize     : 8192,
 			freqMin     : 30,
 			freqMax     : 16000,
@@ -249,7 +249,7 @@ function preCalcPosX() {
 
 			// if it's on a different X-coordinate, create a new bar for this frequency
 			if ( pos > lastPos ) {
-				analyzerBars.push( { posX: pos, dataIdx: i, endIdx: 0, average: false, freq: freq, peak: 0, hold: 0, accel: 0 } );
+				analyzerBars.push( { posX: pos, dataIdx: i, endIdx: 0, average: false, peak: 0, hold: 0, accel: 0 } );
 				lastPos = pos;
 			} // otherwise, add this frequency to the last bar's range
 			else if ( analyzerBars.length )
@@ -308,7 +308,6 @@ function preCalcPosX() {
 				dataIdx: idx,
 				endIdx: prevBin - idx > 0 ? prevBin : 0,
 				average: avg,
-				freq: freq,
 				peak: 0,
 				hold: 0,
 				accel: 0
@@ -525,8 +524,6 @@ function loadNextSong() {
  */
 function playSong( n ) {
 
-	var gradIdx;
-
 	if ( cfgSource == 'mic' )
 		return;
 
@@ -564,8 +561,11 @@ function playPreviousSong() {
 }
 
 function playNextSong( play ) {
+
 	if ( cfgSource == 'mic' || playlistPos > playlist.length - 1 )
 		return;
+
+	var gradIdx;
 
 	if ( playlistPos < playlist.length - 1 )
 		playlistPos++;
@@ -698,20 +698,17 @@ function draw() {
 
 		if ( barHeight > bar.peak ) {
 			bar.peak = barHeight;
-			bar.hold = 30; // hold peak dot for 30 frames (0.5s) before starting to fall down
+			bar.hold = 30; // set peak hold time to 30 frames (0.5s)
 			bar.accel = 0;
 		}
 
 		canvasCtx.fillStyle = gradients[ grad ].gradient;
-
 		canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
-		if ( cfgShowPeaks && bar.peak > 0 ) {
-			canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
-// debug/calibration - show frequency for each bar
-//			canvasCtx.font = '15px sans-serif';
-//			canvasCtx.fillText( bar.freq, bar.posX, canvas.height - bar.peak - 5 );
-		}
+
 		if ( bar.peak > 0 ) {
+			if ( cfgShowPeaks )
+				canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
+
 			if ( bar.hold )
 				bar.hold--;
 			else {
