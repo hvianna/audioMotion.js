@@ -20,13 +20,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.5';
+var _VERSION = '19.3-dev.6';
 
 
 /**
  * Global variables
  */
-var	// playlist, index to the current song, indexes to current and next audio elements
+var audioStarted = false,
+	// playlist, index to the current song, indexes to current and next audio elements
 	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
@@ -112,7 +113,7 @@ var	// playlist, index to the current song, indexes to current and next audio el
  * Configuration presets
  */
 var presets = {
-		fullfft: {
+		fullres: {
 			mode        : 0,	    // discrete frequencies mode
 			fftSize     : 8192,		// FFT size
 			freqMin     : 20,		// lowest frequency
@@ -121,13 +122,29 @@ var presets = {
 		},
 
 		octave: {
-			mode        : 2,		// 1/12th octave bands mode
+			mode        : 4,		// 1/6th octave bands mode
 			fftSize     : 8192,
 			freqMin     : 30,
 			freqMax     : 16000,
 			smoothing   : 0.5
 		}
 	};
+
+
+/**
+ * Start audio elements on user gesture (click or keypress)
+ */
+function initAudio() {
+	// fix for suspended audio context on Safari
+	if ( audioCtx.state == 'suspended' )
+		audioCtx.resume();
+
+	if ( ! audioStarted ) {
+		audioElement[0].play();
+		audioElement[1].play();
+		window.removeEventListener( 'click', initAudio );
+	}
+}
 
 /**
  * Display the canvas in full-screen mode
@@ -393,10 +410,6 @@ function loadPlaylist() {
 		tmplist, ext, songInfo, t,
 		n = 0;
 
-	// fix for suspended audio context on Safari
-	if ( audioCtx.state == 'suspended' )
-		audioCtx.resume();
-
 	if ( ! path )
 		return;
 
@@ -513,6 +526,7 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
+	audioElement[ nextAudio ].pause();
 	if ( playlistPos < playlist.length - 1 )
 		audioElement[ nextAudio ].src = playlist[ playlistPos + 1 ].file;
 	else
@@ -578,14 +592,16 @@ function playNextSong( play ) {
 	currAudio = ! currAudio | 0;
 	nextAudio = ! currAudio | 0;
 
-	sourcePlayer[ nextAudio ].disconnect( analyzer );
-	sourcePlayer[ currAudio ].connect( analyzer );
-
 	audioElement[ nextAudio ].style.display = 'none';
 	audioElement[ currAudio ].style.display = 'block';
 
 	if ( play ) {
-		audioElement[ currAudio ].play();
+		audioElement[ currAudio ].play()
+			.then( loadNextSong )
+			.catch( function( err ) {
+				consoleLog( err, true );
+				loadNextSong();
+			});
 		if ( elCycleGrad.dataset.active == '1' ) {
 			gradIdx = elGradient.selectedIndex;
 			if ( gradIdx < elGradient.options.length - 1 )
@@ -595,10 +611,10 @@ function playNextSong( play ) {
 			elGradient.selectedIndex = gradIdx;
 		}
 	}
+	else
+		loadNextSong();
 
 	document.getElementById('playlist').selectedIndex = playlistPos;
-
-	loadNextSong();
 }
 
 /**
@@ -727,6 +743,10 @@ function draw() {
 			canvasMsg = { timer: 0 }; // clear messages
 	}
 
+	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
+	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
+		audioOnEnded();
+
 	// schedule next canvas update
 	requestAnimationFrame( draw );
 }
@@ -753,7 +773,6 @@ function setSource() {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
-			sourcePlayer[ currAudio ].disconnect( analyzer );
 			sourceMic.connect( analyzer );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
@@ -773,7 +792,6 @@ function setSource() {
 	else {
 		if ( typeof sourceMic == 'object' )
 			sourceMic.disconnect( analyzer );
-		sourcePlayer[ currAudio ].connect( analyzer );
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
@@ -892,6 +910,9 @@ function updateCustomPreset() {
  */
 function keyboardControls( event ) {
 
+	if ( ! audioStarted )
+		initAudio();
+
 	if ( event.target.tagName.toLowerCase() != 'body' && event.target.className != 'fullscreen-button' )
 		return;
 
@@ -961,18 +982,26 @@ function keyboardControls( event ) {
 /**
  * Event handler for 'play' on audio elements
  */
-function audioOnPlay() {
-	if ( playlist.length == 0 && audioElement[ currAudio ].src == '' ) {
-		consoleLog( 'Playlist is empty', true );
-		audioElement[ currAudio ].pause();
+function audioOnPlay( event ) {
+	if ( audioStarted ) {
+		if ( playlist.length == 0 && audioElement[ currAudio ].src == '' ) {
+			consoleLog( 'No song loaded', true );
+			audioElement[ currAudio ].pause();
+		}
+		else if ( elShowSong.dataset.active == '1' ) {
+			canvasMsg.showSongInfo = true;
+			canvasMsg.timer = 600;
+			canvasMsg.fade = 180;
+		}
 	}
-	else if ( elShowSong.dataset.active == '1' ) {
-		canvasMsg.showSongInfo = true;
-		canvasMsg.timer = 600;
-		canvasMsg.fade = 180;
+	else {
+		event.target.pause();
+		if ( event.target.id == 'player1' ) {
+			audioStarted = true;
+			consoleLog( 'Started audio elements' );
+		}
 	}
 }
-
 
 /**
  * Event handler for 'ended' on audio elements
@@ -985,13 +1014,11 @@ function audioOnEnded() {
 		loadSong( 0 );
 }
 
-
 /**
  * Error event handler for audio elements
  */
 function audioOnError( e ) {
-	consoleLog( 'Error loading ' );// + this.src, true );
-	console.log( e );
+	consoleLog( 'Error loading ' + e.target.src, true );
 }
 
 /**
@@ -1034,8 +1061,8 @@ function initialize() {
 	audioElement[0].addEventListener( 'play', audioOnPlay );
 	audioElement[1].addEventListener( 'play', audioOnPlay );
 
-	audioElement[0].addEventListener( 'ended', audioOnEnded );
-	audioElement[1].addEventListener( 'ended', audioOnEnded );
+//	audioElement[0].addEventListener( 'ended', audioOnEnded );
+//	audioElement[1].addEventListener( 'ended', audioOnEnded );
 
 	audioElement[0].addEventListener( 'error', audioOnError );
 	audioElement[1].addEventListener( 'error', audioOnError );
@@ -1047,6 +1074,7 @@ function initialize() {
 	];
 
 	sourcePlayer[0].connect( analyzer );
+	sourcePlayer[1].connect( analyzer );
 	analyzer.connect( audioCtx.destination );
 
 	// Canvas
@@ -1138,8 +1166,8 @@ function initialize() {
 	if ( settings !== null )
 		presets['last'] = JSON.parse( settings );
 	else {
-		// if no data found from last session, use the 'full range' preset
-		presets['last'] = JSON.parse( JSON.stringify( presets['fullfft'] ) );
+		// if no data found from last session, use the 'full resolution' preset
+		presets['last'] = JSON.parse( JSON.stringify( presets['fullres'] ) );
 		// and set some additional default options
 		presets['last'].gradient = 'prism';
 		presets['last'].cycleGrad = true;
@@ -1167,6 +1195,9 @@ function initialize() {
 
 	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
+
+	// On Webkit audio must be started on some user gesture
+	window.addEventListener( 'click', initAudio );
 
 	// Start canvas animation
 	requestAnimationFrame( draw );
