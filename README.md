@@ -92,7 +92,7 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration Presets
 
-The **Full range** and **Octave bands** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for the discrete frequencies and octave bands visualization modes.
+The **Full resolution** and **Octave bands** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for the discrete frequencies and octave bands visualization modes.
 
 You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by selecting the **Custom** preset.
 
@@ -107,14 +107,14 @@ Below you'll find a brief description of each configuration option.
 
 ### Mode
 
-Selects the visualization mode. *Discrete frequencies* allows to visualize each individual frequency, limited only by the resolution of the FFT.
+Selects the visualization mode. *Discrete frequencies* allows you to visualize individual frequencies, limited only by the resolution of the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your monitor.
 The octave bands modes will display wider bars, representing ranges of frequencies based on a [24 tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can cycle through the available modes using the **V** keyboard shortcut.
 
 ### FFT Size
 
-The number of samples used for the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer. Larger values provide greater detail of lower frequencies, but require more CPU power.
+The number of samples used for the FFT performed by the analyzer. Larger values provide greater detail of lower frequencies, but require more CPU power.
 
 ### Range
 
@@ -166,6 +166,9 @@ Full screen view: 1/6th-octave bands, 30Hz-16KHz, 8192-sample FFT, "Miami" gradi
 
 Full screen view: Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, "Classic" gradient
 ![screenshot3](img/screenshot3.png "Full screen view: Logarithmic scale, 20Hz-16KHz, 8192-sample FFT, 'Classic' gradient")
+
+Full screen view: 1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, "Aurora" gradient
+![screenshot4](img/screenshot4.png "Full screen view: 1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, 'Aurora' gradient")
 
 ## References and acknowledgments
 
