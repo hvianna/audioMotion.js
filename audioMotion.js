@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.6';
+var _VERSION = '19.3-dev.7';
 
 
 /**
@@ -629,6 +629,14 @@ function isPlaying() {
 }
 
 /**
+ * Draws outlined text on canvas
+ */
+function outlineText( text, x, y, maxWidth ) {
+	canvasCtx.strokeText( text, x, y, maxWidth );
+	canvasCtx.fillText( text, x, y, maxWidth );
+}
+
+/**
  * Display message on canvas
  */
 function displayCanvasMsg() {
@@ -637,36 +645,34 @@ function displayCanvasMsg() {
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
 		canvasCtx.fillStyle = '#fff';
-		canvasCtx.shadowColor = '#000';
+		canvasCtx.strokeStyle = '#000';
 	}
 	else {
 		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
-		canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
+		canvasCtx.strokeStyle = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
 	}
 
 	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
 
 	if ( canvasMsg.showGradient ) {
 		canvasCtx.textAlign = 'center';
-		canvasCtx.fillText( 'Gradient: ' + gradients[ elGradient.value ].name, canvas.width / 2, 50 * pixelRatio );
+		outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, canvas.width / 2, 50 * pixelRatio );
 	}
 
 	if ( canvasMsg.showSongInfo && playlist.length ) {
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 2 * pixelRatio;
 		// file type and time
 		if ( audioElement[ currAudio ].duration ) {
 			canvasCtx.textAlign = 'right';
-			canvasCtx.fillText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), canvas.width - 35 * pixelRatio, canvas.height - 120 * pixelRatio );
+			outlineText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), canvas.width - 35 * pixelRatio, canvas.height - 120 * pixelRatio );
 			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
 			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
-			canvasCtx.fillText( curTime + ' / ' + duration, canvas.width - 35 * pixelRatio, canvas.height - 70 * pixelRatio );
+			outlineText( curTime + ' / ' + duration, canvas.width - 35 * pixelRatio, canvas.height - 70 * pixelRatio );
 		}
 		// artist and song name
 		canvasCtx.textAlign = 'left';
-		canvasCtx.fillText( playlist[ playlistPos ].artist.toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio, canvas.width - 230 * pixelRatio );
+		outlineText( playlist[ playlistPos ].artist.toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio, canvas.width - 230 * pixelRatio );
 		canvasCtx.font = 'bold ' + ( 35 * pixelRatio ) + 'px sans-serif';
-		canvasCtx.fillText( playlist[ playlistPos ].song, 35 * pixelRatio, canvas.height - 70 * pixelRatio, canvas.width - 230 * pixelRatio );
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
+		outlineText( playlist[ playlistPos ].song, 35 * pixelRatio, canvas.height - 70 * pixelRatio, canvas.width - 230 * pixelRatio );
 	}
 }
 
@@ -1088,6 +1094,8 @@ function initialize() {
 	// Adjust canvas width and height to match the display's resolution
 	canvas.width = window.screen.width * pixelRatio;
 	canvas.height = window.screen.height * pixelRatio;
+	canvasCtx.lineWidth = 4 * pixelRatio;
+	canvasCtx.lineJoin = 'round';
 
 	// Always consider landscape orientation
 	if ( canvas.height > canvas.width ) {
