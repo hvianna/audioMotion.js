@@ -107,14 +107,14 @@ Below you'll find a brief description of each configuration option.
 
 ### Mode
 
-Selects the visualization mode. *Discrete frequencies* allows you to visualize individual frequencies, limited only by the resolution of the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your monitor.
-The octave bands modes will display wider bars, representing ranges of frequencies based on a [24 tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
+Selects the visualization mode. *Discrete frequencies* allows you to visualize individual frequencies, limited only by the resolution of both the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your display.
+The *octave bands* modes will display wider bars, representing ranges of frequencies based on a [24 tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can cycle through the available modes using the **V** keyboard shortcut.
 
 ### FFT Size
 
-The number of samples used for the FFT performed by the analyzer. Larger values provide greater detail of lower frequencies, but require more CPU power.
+The number of samples used for the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer. Larger values provide greater detail of lower frequencies, but require more CPU power.
 
 ### Range
 

@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3-dev.7';
+var _VERSION = '19.3';
 
 
 /**
@@ -307,11 +307,11 @@ function preCalcPosX() {
 			// check if there's another band after this one
 			if ( temperedScale[ index + 1 ] !== undefined ) {
 				nextBin = Math.round( temperedScale[ index + 1 ] * analyzer.fftSize / audioCtx.sampleRate );
-				// and consider half the bins in between will account for this band
+				// and use half the bins in between for this band
 				if ( nextBin - bin > 1 )
 					prevBin += Math.round( ( nextBin - bin ) / 2 );
 				else if ( nextBin - bin == 1 ) {
-				// on low frequencies the FFT may not provide as much coefficients as we need, so more than one band will have to use the same data
+				// for low frequencies the FFT may not provide as many coefficients as we need, so more than one band will use the same FFT data
 				// in these cases, we set a flag to perform an average to smooth the transition between adjacent bands
 					if ( analyzerBars.length > 0 && idx == analyzerBars[ analyzerBars.length - 1 ].dataIdx ) {
 						avg = true;
