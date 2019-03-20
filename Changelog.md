@@ -5,13 +5,17 @@ Changelog
 
 ### Added:
 
-+ New 1/12th and 1/24th octave bands visualization modes, where each bar represents a semitone based on the equal tempered scale;
-+ Improved playback of gapless tracks 8-) by using dual audio elements.
++ New octave bands visualization modes (from full-octave up to 1/24th-octave) based on the equal tempered scale;
++ Improved playback of gapless tracks by using dual audio elements.
 
 ### Changed:
 
-+ Removed the linear frequency scale option and the *LOG* switch;
-+ Changed the X-axis labels to display the standard octaves center frequencies.
++ Removed the linear frequency scale option, in favor of the octave bands modes;
++ Improved visualization accuracy for higher frequencies on discrete mode (the old "logarithmic" mode);
++ The *DISPLAY* switch has been renamed to *INFO* and grouped with the other visualization switches;
++ Changed the X-axis labels for the standard octave bands center frequencies;
++ Replaced shadow for outline on text displayed on canvas, to improve performance on some graphic cards;
++ Updated the JS spec to ES6 in the readme, since I use promises, which are not natively available in ES5.
 
 
 ## version 19.1

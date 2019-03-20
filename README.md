@@ -13,7 +13,7 @@ A real-time graphic spectrum analyzer and audio player built with the *Web Audio
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * Audio player with playlist support
 * Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)
-* Written entirely in vanilla JavaScript (ES5) — runs right out of the box in any modern browser
+* Written entirely in vanilla JavaScript (ES6/ES2015 spec) — runs right out of the box in any modern browser
 
 ## Demo
 
