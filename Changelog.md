@@ -1,6 +1,19 @@
 Changelog
 =========
 
+## version 19.??
+
+### Added:
+
++ :sunglasses: New selectable LED effect for the analyzer bars;
++ Keyboard shortcut for auto gradient cycle option.
+
+### Changed:
+
++ *CYCLE* switch renamed to *AUTO*
++ *DARK* switch renamed to *BG*
+
+
 ## version 19.2
 
 ### Added:

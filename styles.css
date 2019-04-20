@@ -193,6 +193,10 @@ input[type="range"] {
 	left: 50%;
 	transform: translateX(-50%);
 }
+.tooltip.shortcuts {
+	left: -270px;
+	top: -100px;
+}
 
 .kbd-table tr td:first-child {
 	width: 50px;

@@ -31,9 +31,10 @@ var audioStarted = false,
 	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
-	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
+	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
+	elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg, cfgLedDisplay = 1, ledHeight,
+	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg, cfgLedDisplay, ledHeight,
 	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth,
 	// Web Audio API related variables
@@ -235,6 +236,18 @@ function setBlackBg() {
 	updateLastConfig();
 }
 
+/**
+ * Set LED effect preference
+ */
+function setLedDisplay() {
+	if ( elMode.value != '0' ) {
+		cfgLedDisplay = ( elLedDisplay.dataset.active == '1' );
+		updateLastConfig();
+		preCalcPosX();
+	}
+	else // does not activate on discrete frequencies mode
+		elLedDisplay.dataset.active = '0';
+}
 
 /**
  * Pre-calculate the actual X-coordinate on screen for each analyzer bar
@@ -687,9 +700,7 @@ function draw() {
 	var grad = elGradient.value,
 		i, j, l, bar, barHeight;
 
-	if ( cfgLedDisplay )
-		canvasCtx.fillStyle = '#111';
-	else if ( cfgBlackBg )	// use black background
+	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
 	else 				// use background color defined by gradient
 		canvasCtx.fillStyle = gradients[ grad ].bgColor;
@@ -887,6 +898,9 @@ function loadPreset( name ) {
 	if ( presets[ name ].hasOwnProperty( 'cycleGrad' ) )
 		elCycleGrad.dataset.active = Number( presets[ name ].cycleGrad );
 
+	if ( presets[ name ].hasOwnProperty( 'ledDisplay' ) )
+		elLedDisplay.dataset.active = Number( presets[ name ].ledDisplay );
+
 	if ( presets[ name ].hasOwnProperty( 'repeat' ) )
 		elRepeat.dataset.active = Number( presets[ name ].repeat );
 
@@ -898,6 +912,7 @@ function loadPreset( name ) {
 	setSensitivity();
 	setShowPeaks();
 	setBlackBg();
+	setLedDisplay();
 }
 
 /**
@@ -917,6 +932,7 @@ function saveConfig( config ) {
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
 		cycleGrad   : elCycleGrad.dataset.active == '1',
+		ledDisplay  : elLedDisplay.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
 		showSong    : elShowSong.dataset.active == '1'
 	};
@@ -985,6 +1001,9 @@ function keyboardControls( event ) {
 			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
 			canvasMsg.fade = 60;
 			break;
+		case 65: // A key - toggle auto gradient change
+			elCycleGrad.click();
+			break;
 		case 66: // B key - toggle black background
 			elBlackBg.click();
 			break;
@@ -998,6 +1017,9 @@ function keyboardControls( event ) {
 					timer: 300,
 					fade: 60
 				};
+			break;
+		case 76: // L key - toggle LED display effect
+			elLedDisplay.click();
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
@@ -1191,6 +1213,8 @@ function initialize() {
 	elBlackBg.addEventListener( 'click', setBlackBg );
 	elCycleGrad = document.getElementById('cycle_grad');
 	elCycleGrad.addEventListener( 'click', updateLastConfig );
+	elLedDisplay= document.getElementById('led_display');
+	elLedDisplay.addEventListener( 'click', setLedDisplay );
 	elRepeat    = document.getElementById('repeat');
 	elRepeat.addEventListener( 'click', updateLastConfig );
 	elShowSong  = document.getElementById('show_song');

@@ -166,10 +166,12 @@
 				<select id="gradient" onchange="updateLastConfig();"></select>
 
 				<ul class="switch-bar">
-					<li class="switch" id="black_bg">Dark
+					<li class="switch" id="black_bg"><u>B</u>G
 						<span class="tooltip">Use black background instead of background color defined by gradient</span>
-					<li class="switch" id="cycle_grad">Cycle
-						<span class="tooltip">Cycle through gradients on each track change</span>
+					<li class="switch" id="cycle_grad"><u>A</u>uto
+						<span class="tooltip">Select next gradient automatically on each track change</span>
+					<li class="switch" id="led_display"><u>L</u>ED
+						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 				</ul>
 			</div>
 
@@ -177,15 +179,17 @@
 				<input type="button" value=" Fullscreen Analyzer " class="fullscreen-button" onclick="fullscreen();">
 				<br>
 				<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
-					<span class="tooltip center">
+					<span class="tooltip shortcuts">
 						<table class="kbd-table">
 							<tr><td><span class="key key-big">&larr;</span> / <span class="key">J</span></td><td>previous song</td></tr>
 							<tr><td><span class="key key-big">&rarr;</span> / <span class="key">K</span></td><td>next song</td></tr>
 							<tr><td><span class="key key-wide">Space</span></td><td>play / pause</td></tr>
 							<tr><td><span class="key key-big">&uarr;</span> / <span class="key">I</span></td><td>previous gradient</td></tr>
 							<tr><td><span class="key key-big">&darr;</span> / <span class="key">M</span></td><td>next gradient</td></tr>
+							<tr><td><span class="key">A</span></td><td>toggle auto gradient</td></tr>
 							<tr><td><span class="key">B</span></td><td>toggle black background</td></tr>
 							<tr><td><span class="key">D</span></td><td>display current song info</td></tr>
+							<tr><td><span class="key">L</span></td><td>toggle LED bars</td></tr>
 							<tr><td><span class="key">S</span></td><td>show / hide freq. scale</td></tr>
 							<tr><td><span class="key">V</span></td><td>change visualization mode</td></tr>
 						</table>
