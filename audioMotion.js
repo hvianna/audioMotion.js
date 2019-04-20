@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-led.1';
+var _VERSION = '19.4-led.2';
 
 
 /**
@@ -34,9 +34,9 @@ var audioStarted = false,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg, cfgLedDisplay, ledHeight,
+	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg, cfgLedDisplay,
 	// data for drawing the analyzer bars and scale related variables
-	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth,
+	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions,
 	// Web Audio API related variables
 	audioCtx, analyzer, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
 	// canvas related variables
@@ -264,7 +264,15 @@ function preCalcPosX() {
 	deltaX = Math.log10( fMin );
 	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 
-	ledHeight = canvas.height / 128 - 3;
+	if ( elMode.value < 24 )
+		if ( elMode.value < 4 )
+			ledOptions = { nLeds: 128, spaceV: 3, spaceH: 4 };
+		else
+			ledOptions = { nLeds: 64, spaceV: 6, spaceH: 10 };
+	else
+		ledOptions = { nLeds: 32, spaceV: 12, spaceH: 16 };
+
+	ledOptions.ledHeight = canvas.height / ledOptions.nLeds - ledOptions.spaceV;
 
 	analyzerBars = [];
 
@@ -734,7 +742,7 @@ function draw() {
 		}
 
 		if ( cfgLedDisplay ) // normalize barHeight to match one of the "leds"
-			barHeight = Math.floor( barHeight / canvas.height * 128 ) * ( ledHeight + 3 );
+			barHeight = Math.floor( barHeight / canvas.height * ledOptions.nLeds ) * ( ledOptions.ledHeight + ledOptions.spaceV );
 
 		if ( barHeight > bar.peak ) {
 			bar.peak = barHeight;
@@ -744,14 +752,14 @@ function draw() {
 
 		canvasCtx.fillStyle = gradients[ grad ].gradient;
 		if ( cfgLedDisplay )
-			canvasCtx.fillRect( bar.posX + 2, canvas.height, barWidth - 4, -barHeight );
+			canvasCtx.fillRect( bar.posX + ledOptions.spaceH / 2, canvas.height, barWidth, -barHeight );
 		else
 			canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
 
 		if ( bar.peak > 0 ) {
 			if ( cfgShowPeaks )
 				if ( cfgLedDisplay )
-					canvasCtx.fillRect( bar.posX + 2, ( 128 - Math.floor( bar.peak / canvas.height * 128 ) ) * ( ledHeight + 3 ), barWidth - 4, ledHeight );
+					canvasCtx.fillRect( bar.posX + ledOptions.spaceH / 2, ( ledOptions.nLeds - Math.floor( bar.peak / canvas.height * ledOptions.nLeds ) ) * ( ledOptions.ledHeight + ledOptions.spaceV ), barWidth, ledOptions.ledHeight );
 				else
 					canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
 
@@ -764,20 +772,17 @@ function draw() {
 		}
 
 		if ( cfgLedDisplay ) {
-			canvasCtx.fillStyle = '#000';
-			canvasCtx.fillRect( bar.posX - 2, 0, 4, canvas.height );
+			canvasCtx.fillStyle = '#000';	// clears a vertical line to the left of this bar, to separate the LED columns
+			canvasCtx.fillRect( bar.posX - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
 		}
 
 	}
 
 	if ( cfgLedDisplay ) {
-		canvasCtx.fillStyle = '#000';
-		for ( j = ledHeight; j < canvas.height; j += ledHeight + 3 )
-			canvasCtx.fillRect( 0, j, canvas.width, 3 );
-//		for ( j = -2; j < canvas.width; j += barWidth + 2 )
-//			canvasCtx.fillRect( j, 0, 4, canvas.height );
+		canvasCtx.fillStyle = '#000';	// add horizontal black lines to separate the LEDs
+		for ( j = ledOptions.ledHeight; j < canvas.height; j += ledOptions.ledHeight + ledOptions.spaceV )
+			canvasCtx.fillRect( 0, j, canvas.width, ledOptions.spaceV );
 	}
-
 
 	if ( cfgShowScale )
 		drawScale();
