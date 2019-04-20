@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.3';
+var _VERSION = '19.4-led.1';
 
 
 /**
@@ -33,7 +33,7 @@ var audioStarted = false,
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg,
+	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg, cfgLedDisplay = 1, ledHeight,
 	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth,
 	// Web Audio API related variables
@@ -250,6 +250,8 @@ function preCalcPosX() {
 
 	deltaX = Math.log10( fMin );
 	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
+
+	ledHeight = canvas.height / 128 - 3;
 
 	analyzerBars = [];
 
@@ -685,7 +687,9 @@ function draw() {
 	var grad = elGradient.value,
 		i, j, l, bar, barHeight;
 
-	if ( cfgBlackBg )	// use black background
+	if ( cfgLedDisplay )
+		canvasCtx.fillStyle = '#111';
+	else if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
 	else 				// use background color defined by gradient
 		canvasCtx.fillStyle = gradients[ grad ].bgColor;
@@ -718,6 +722,9 @@ function draw() {
 			}
 		}
 
+		if ( cfgLedDisplay ) // normalize barHeight to match one of the "leds"
+			barHeight = Math.floor( barHeight / canvas.height * 128 ) * ( ledHeight + 3 );
+
 		if ( barHeight > bar.peak ) {
 			bar.peak = barHeight;
 			bar.hold = 30; // set peak hold time to 30 frames (0.5s)
@@ -725,11 +732,17 @@ function draw() {
 		}
 
 		canvasCtx.fillStyle = gradients[ grad ].gradient;
-		canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
+		if ( cfgLedDisplay )
+			canvasCtx.fillRect( bar.posX + 2, canvas.height, barWidth - 4, -barHeight );
+		else
+			canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
 
 		if ( bar.peak > 0 ) {
 			if ( cfgShowPeaks )
-				canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
+				if ( cfgLedDisplay )
+					canvasCtx.fillRect( bar.posX + 2, ( 128 - Math.floor( bar.peak / canvas.height * 128 ) ) * ( ledHeight + 3 ), barWidth - 4, ledHeight );
+				else
+					canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
 
 			if ( bar.hold )
 				bar.hold--;
@@ -738,7 +751,22 @@ function draw() {
 				bar.peak -= bar.accel;
 			}
 		}
+
+		if ( cfgLedDisplay ) {
+			canvasCtx.fillStyle = '#000';
+			canvasCtx.fillRect( bar.posX - 2, 0, 4, canvas.height );
+		}
+
 	}
+
+	if ( cfgLedDisplay ) {
+		canvasCtx.fillStyle = '#000';
+		for ( j = ledHeight; j < canvas.height; j += ledHeight + 3 )
+			canvasCtx.fillRect( 0, j, canvas.width, 3 );
+//		for ( j = -2; j < canvas.width; j += barWidth + 2 )
+//			canvasCtx.fillRect( j, 0, 4, canvas.height );
+	}
+
 
 	if ( cfgShowScale )
 		drawScale();
