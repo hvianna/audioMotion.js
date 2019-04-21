@@ -34,7 +34,7 @@ var audioStarted = false,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource,
 	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg, cfgLedDisplay,
+	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg,
 	// data for drawing the analyzer bars and scale related variables
 	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions,
 	// Web Audio API related variables
@@ -244,18 +244,6 @@ function setBlackBg() {
 	updateLastConfig();
 }
 
-/**
- * Set LED effect preference
- */
-function setLedDisplay() {
-	if ( elMode.value != '0' ) {
-		cfgLedDisplay = ( elLedDisplay.dataset.active == '1' );
-		updateLastConfig();
-		preCalcPosX();
-	}
-	else // does not activate on discrete frequencies mode
-		elLedDisplay.dataset.active = '0';
-}
 
 /**
  * Pre-calculate the actual X-coordinate on screen for each analyzer bar
@@ -725,7 +713,8 @@ function displayCanvasMsg() {
 function draw() {
 
 	var grad = elGradient.value,
-		i, j, l, bar, barHeight;
+		i, j, l, bar, barHeight,
+		isLedDisplay = ( elLedDisplay.dataset.active == '1' && elMode.value != '0' );
 
 	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
@@ -760,7 +749,7 @@ function draw() {
 			}
 		}
 
-		if ( cfgLedDisplay ) // normalize barHeight to match one of the "leds"
+		if ( isLedDisplay ) // normalize barHeight to match one of the "led" elements
 			barHeight = Math.floor( barHeight / canvas.height * ledOptions.nLeds ) * ( ledOptions.ledHeight + ledOptions.spaceV );
 
 		if ( barHeight > bar.peak ) {
@@ -770,14 +759,14 @@ function draw() {
 		}
 
 		canvasCtx.fillStyle = gradients[ grad ].gradient;
-		if ( cfgLedDisplay )
+		if ( isLedDisplay )
 			canvasCtx.fillRect( bar.posX + ledOptions.spaceH / 2, canvas.height, barWidth, -barHeight );
 		else
 			canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
 
 		if ( bar.peak > 0 ) {
 			if ( cfgShowPeaks )
-				if ( cfgLedDisplay )
+				if ( isLedDisplay )
 					canvasCtx.fillRect( bar.posX + ledOptions.spaceH / 2, ( ledOptions.nLeds - Math.floor( bar.peak / canvas.height * ledOptions.nLeds ) ) * ( ledOptions.ledHeight + ledOptions.spaceV ), barWidth, ledOptions.ledHeight );
 				else
 					canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
@@ -790,14 +779,14 @@ function draw() {
 			}
 		}
 
-		if ( cfgLedDisplay ) {
+		if ( isLedDisplay ) {
 			canvasCtx.fillStyle = '#000';	// clears a vertical line to the left of this bar, to separate the LED columns
 			canvasCtx.fillRect( bar.posX - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
 		}
 
 	}
 
-	if ( cfgLedDisplay ) {
+	if ( isLedDisplay ) {
 		canvasCtx.fillStyle = '#000';	// add horizontal black lines to separate the LEDs
 		for ( j = ledOptions.ledHeight; j < canvas.height; j += ledOptions.ledHeight + ledOptions.spaceV )
 			canvasCtx.fillRect( 0, j, canvas.width, ledOptions.spaceV );
@@ -936,7 +925,6 @@ function loadPreset( name ) {
 	setSensitivity();
 	setShowPeaks();
 	setBlackBg();
-	setLedDisplay();
 }
 
 /**
@@ -1238,7 +1226,7 @@ function initialize() {
 	elCycleGrad = document.getElementById('cycle_grad');
 	elCycleGrad.addEventListener( 'click', updateLastConfig );
 	elLedDisplay= document.getElementById('led_display');
-	elLedDisplay.addEventListener( 'click', setLedDisplay );
+	elLedDisplay.addEventListener( 'click', setScale );
 	elRepeat    = document.getElementById('repeat');
 	elRepeat.addEventListener( 'click', updateLastConfig );
 	elShowSong  = document.getElementById('show_song');
