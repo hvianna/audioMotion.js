@@ -64,6 +64,14 @@ var audioStarted = false,
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
 				  ] },
+		classled: { name: 'Classic LED', bgColor: '#111', colorStops: [
+					{ stop: 0, color: 'hsl( 0, 100%, 50% )' },
+					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
+					{ stop: .1, color: 'hsl( 60, 100%, 50% )' },
+					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
+					{ stop: .6, color: 'hsl( 120, 100%, 50% )' },
+					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
+				  ] },
 		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
 					{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
