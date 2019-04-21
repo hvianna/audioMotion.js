@@ -264,16 +264,6 @@ function preCalcPosX() {
 	deltaX = Math.log10( fMin );
 	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
 
-	if ( elMode.value < 24 )
-		if ( elMode.value < 4 )
-			ledOptions = { nLeds: 128, spaceV: 3, spaceH: 4 };
-		else
-			ledOptions = { nLeds: 64, spaceV: 6, spaceH: 10 };
-	else
-		ledOptions = { nLeds: 32, spaceV: 12, spaceH: 16 };
-
-	ledOptions.ledHeight = canvas.height / ledOptions.nLeds - ledOptions.spaceV;
-
 	analyzerBars = [];
 
 	if ( elMode.value == '0' ) {
@@ -298,6 +288,27 @@ function preCalcPosX() {
 	}
 	else {
 	// octave bands
+
+		switch ( elMode.value ) {
+			case '24':
+				ledOptions = { nLeds: 32, spaceV: 12, spaceH: 16 };
+				break;
+
+			case '12':
+			case  '8':
+				ledOptions = { nLeds: 64, spaceV: 6, spaceH: 10 };
+				break;
+
+			case  '4':
+				ledOptions = { nLeds: 80, spaceV: 6, spaceH: 10 };
+				break;
+
+			default:
+				ledOptions = { nLeds: 128, spaceV: 3, spaceH: 4 };
+		}
+
+		ledOptions.ledHeight = canvas.height / ledOptions.nLeds - ledOptions.spaceV;
+
 		// generate a table of frequencies based on the equal tempered scale
 		var root24 = 2 ** ( 1 / 24 ); // for 1/24th-octave bands
 		var c0 = 440 * root24 ** -114;
