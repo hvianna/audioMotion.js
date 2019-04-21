@@ -121,11 +121,11 @@
 		<ul class="switch-bar">
 			<li class="switch" id="show_song">Info
 				<span class="tooltip">Display song info in the visualization area on every track change
-			<li class="switch" id="show_scale">Scale
+			<li class="switch" id="show_scale"><u>S</u>cale
 				<span class="tooltip">Show / hide the frequency scale</span>
 			<li class="switch" id="sensitivity">Sens
 				<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
-			<li class="switch" id="show_peaks">Peaks
+			<li class="switch" id="show_peaks"><u>P</u>eaks
 				<span class="tooltip">Hold volume peaks on screen for a short time</span>
 		</ul>
 	</div>
@@ -143,7 +143,7 @@
 				<select id="playlists">
 					<option value="">Select a playlist to load</option>
 				</select>
-				<input type="button" value=" LOAD " onclick="loadPlaylist();">
+				<button onclick="loadPlaylist();">LOAD</button>
 			</div>
 			<div class="playlist-area">
 				<div class="playlist-title">Playlist</div>
@@ -152,8 +152,8 @@
 						<span class="tooltip">Repeat playlist</span>
 				</ul>
 				<div>
-					<input type="button" value="Shuffle" class="playlist-button" onclick="shufflePlaylist();">
-					<input type="button" value="Clear" class="playlist-button" onclick="clearPlaylist();">
+					<button class="playlist-button" onclick="shufflePlaylist();">Shuffle</button>
+					<button class="playlist-button" onclick="clearPlaylist();">Clear</button>
 				</div>
 			</div>
 			<select id="playlist" size="10" onchange="playSong( this.selectedIndex );">
@@ -176,7 +176,7 @@
 			</div>
 
 			<div class="button-bar center">
-				<input type="button" value=" Fullscreen Analyzer " class="fullscreen-button" onclick="fullscreen();">
+				<button class="fullscreen-button" onclick="fullscreen();"><u>F</u>ullscreen Analyzer</button>
 				<br>
 				<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
 					<span class="tooltip shortcuts">
@@ -189,7 +189,9 @@
 							<tr><td><span class="key">A</span></td><td>toggle auto gradient</td></tr>
 							<tr><td><span class="key">B</span></td><td>toggle black background</td></tr>
 							<tr><td><span class="key">D</span></td><td>display current song info</td></tr>
+							<tr><td><span class="key">F</span></td><td>toggle fullscreen mode</td></tr>
 							<tr><td><span class="key">L</span></td><td>toggle LED bars</td></tr>
+							<tr><td><span class="key">P</span></td><td>toggle peaks display</td></tr>
 							<tr><td><span class="key">S</span></td><td>show / hide freq. scale</td></tr>
 							<tr><td><span class="key">V</span></td><td>change visualization mode</td></tr>
 						</table>
@@ -223,7 +225,7 @@
 						</select>
 					</span>
 					<span class="help">
-						<input type="button" value=" Save " onclick="updateCustomPreset();">
+						<button onclick="updateCustomPreset();">Save</button>
 						<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
 					</span>
 				</div>

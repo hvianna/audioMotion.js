@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-led.2';
+var _VERSION = '19.4-led.3';
 
 
 /**
@@ -159,14 +159,20 @@ function initAudio() {
  * Display the canvas in full-screen mode
  */
 function fullscreen() {
-	if ( canvas.requestFullscreen )
-		canvas.requestFullscreen();
-	else if ( canvas.webkitRequestFullscreen )
-		canvas.webkitRequestFullscreen();
-	else if ( canvas.mozRequestFullScreen )
-		canvas.mozRequestFullScreen();
-	else if ( canvas.msRequestFullscreen )
-		canvas.msRequestFullscreen();
+
+	if ( document.fullscreenElement ) {
+		document.exitFullscreen();
+	}
+	else {
+		if ( canvas.requestFullscreen )
+			canvas.requestFullscreen();
+		else if ( canvas.webkitRequestFullscreen )
+			canvas.webkitRequestFullscreen();
+		else if ( canvas.mozRequestFullScreen )
+			canvas.mozRequestFullScreen();
+		else if ( canvas.msRequestFullscreen )
+			canvas.msRequestFullscreen();
+	}
 }
 
 /**
@@ -1030,8 +1036,14 @@ function keyboardControls( event ) {
 					fade: 60
 				};
 			break;
+		case 70: // F key - toggle fullscreen
+			fullscreen();
+			break;
 		case 76: // L key - toggle LED display effect
 			elLedDisplay.click();
+			break;
+		case 80: // P key - toggle peaks display
+			elShowPeaks.click();
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();

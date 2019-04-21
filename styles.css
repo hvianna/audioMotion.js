@@ -8,7 +8,7 @@ input[type="text"] {
 	padding: 6px;
 }
 
-input[type="button"] {
+button {
 	padding: 6px 16px;
 }
 
@@ -77,7 +77,7 @@ input[type="range"] {
 	margin-bottom: 30px;
 }
 .main-config select,
-.main-config input[type="button"] {
+.main-config button {
 	font-size: 11px;
 	padding: 4px;
 }
@@ -195,7 +195,7 @@ input[type="range"] {
 }
 .tooltip.shortcuts {
 	left: -270px;
-	top: -100px;
+	top: -120px;
 }
 
 .kbd-table tr td:first-child {
