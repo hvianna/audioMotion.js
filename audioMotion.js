@@ -293,16 +293,23 @@ function preCalcPosX() {
 
 		switch ( elMode.value ) {
 			case '24':
-				ledOptions = { nLeds: 32, spaceV: 12, spaceH: 16 };
+				ledOptions = { nLeds: 24, spaceV: 12, spaceH: 24 };
 				break;
 
 			case '12':
+				ledOptions = { nLeds: 48, spaceV: 8, spaceH: 12 };
+				break;
+
 			case  '8':
 				ledOptions = { nLeds: 64, spaceV: 6, spaceH: 10 };
 				break;
 
 			case  '4':
-				ledOptions = { nLeds: 80, spaceV: 6, spaceH: 10 };
+				ledOptions = { nLeds: 80, spaceV: 6, spaceH: 8 };
+				break;
+
+			case  '2':
+				ledOptions = { nLeds: 96, spaceV: 5, spaceH: 4 };
 				break;
 
 			default:
