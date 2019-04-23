@@ -136,6 +136,16 @@ var presets = {
 			freqMin     : 30,
 			freqMax     : 16000,
 			smoothing   : 0.5
+		},
+
+		ledbars: {
+			mode        : 2,		// 1/12th octave bands mode
+			fftSize     : 8192,
+			freqMin     : 30,
+			freqMax     : 16000,
+			smoothing   : 0.5,
+			blackBg     : 0,
+			ledDisplay  : 1
 		}
 	};
 
