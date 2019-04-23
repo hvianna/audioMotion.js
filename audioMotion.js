@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-led.3';
+var _VERSION = '19.4-dev.1';
 
 
 /**
@@ -62,14 +62,6 @@ var audioStarted = false,
 		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
 					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
-					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
-				  ] },
-		classled: { name: 'Classic LED', bgColor: '#111', colorStops: [
-					{ stop: 0, color: 'hsl( 0, 100%, 50% )' },
-					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
-					{ stop: .1, color: 'hsl( 60, 100%, 50% )' },
-					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
-					{ stop: .6, color: 'hsl( 120, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
 				  ] },
 		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
