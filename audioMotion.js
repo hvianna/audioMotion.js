@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-dev.1';
+var _VERSION = '19.4-perf';
 
 
 /**
@@ -32,7 +32,7 @@ var audioStarted = false,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource,
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes,
 	// configuration options we need to check inside the draw loop - for better performance
 	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg,
 	// data for drawing the analyzer bars and scale related variables
@@ -679,8 +679,15 @@ function isPlaying() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
-	canvasCtx.strokeText( text, x, y, maxWidth );
-	canvasCtx.fillText( text, x, y, maxWidth );
+	if ( elNoShadow.dataset.active == '1') {
+		canvasCtx.strokeText( text, x, y, maxWidth );
+		canvasCtx.fillText( text, x, y, maxWidth );
+	}
+	else {
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 2 * pixelRatio;
+		canvasCtx.fillText( text, x, y, maxWidth );
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
+	}
 }
 
 /**
@@ -692,11 +699,11 @@ function displayCanvasMsg() {
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
 		canvasCtx.fillStyle = '#fff';
-		canvasCtx.strokeStyle = '#000';
+		canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
 	}
 	else {
 		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
-		canvasCtx.strokeStyle = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
+		canvasCtx.strokeStyle = canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
 	}
 
 	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
@@ -1113,6 +1120,35 @@ function audioOnError( e ) {
 }
 
 /**
+ * Set canvas dimensions
+ */
+function setCanvas() {
+	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
+
+	// Adjust canvas width and height to match the display's resolution
+	canvas.width = window.screen.width * pixelRatio;
+	canvas.height = window.screen.height * pixelRatio;
+
+	if ( elLoRes.dataset.active == '1' ) {
+		canvas.width >>= 1;
+		canvas.height >>= 1;
+		pixelRatio = 1;
+	}
+
+	canvasCtx.lineWidth = 4 * pixelRatio;
+	canvasCtx.lineJoin = 'round';
+
+	// Always consider landscape orientation
+	if ( canvas.height > canvas.width ) {
+		var tmp = canvas.width;
+		canvas.width = canvas.height;
+		canvas.height = tmp;
+	}
+	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels' );
+}
+
+
+/**
  * Initialization
  */
 function initialize() {
@@ -1168,31 +1204,56 @@ function initialize() {
 	sourcePlayer[1].connect( analyzer );
 	analyzer.connect( audioCtx.destination );
 
+	// Set UI elements
+
+	elFFTsize   = document.getElementById('fft_size');
+	elRangeMin  = document.getElementById('freq_min');
+	elRangeMax  = document.getElementById('freq_max');
+	elSmoothing = document.getElementById('smoothing');
+	elMode      = document.getElementById('mode');
+	elGradient  = document.getElementById('gradient');
+	elShowScale = document.getElementById('show_scale');
+	elHighSens  = document.getElementById('sensitivity');
+	elShowPeaks = document.getElementById('show_peaks');
+	elBlackBg   = document.getElementById('black_bg');
+	elCycleGrad = document.getElementById('cycle_grad');
+	elLedDisplay= document.getElementById('led_display');
+	elRepeat    = document.getElementById('repeat');
+	elShowSong  = document.getElementById('show_song');
+	elNoShadow  = document.getElementById('no_shadow');
+	elLoRes     = document.getElementById('lo_res');
+
+	// Add event listeners to the custom checkboxes
+	var switches = document.querySelectorAll('.switch');
+	for ( i = 0; i < switches.length; i++ ) {
+		switches[ i ].addEventListener( 'click', function( e ) {
+			e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
+		});
+	}
+
+	elShowScale. addEventListener( 'click', setScale );
+	elHighSens.  addEventListener( 'click', setSensitivity );
+	elShowPeaks. addEventListener( 'click', setShowPeaks );
+	elBlackBg.   addEventListener( 'click', setBlackBg );
+	elCycleGrad. addEventListener( 'click', updateLastConfig );
+	elLedDisplay.addEventListener( 'click', setScale );
+	elRepeat.    addEventListener( 'click', updateLastConfig );
+	elShowSong.  addEventListener( 'click', updateLastConfig );
+	elLoRes.     addEventListener( 'click', setCanvas );
+
 	// Canvas
 
 	canvas = document.getElementById('canvas');
 	canvasCtx = canvas.getContext('2d');
 	canvasMsg = { timer: 0 };
+	setCanvas();
 
-	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
-
-	// Adjust canvas width and height to match the display's resolution
-	canvas.width = window.screen.width * pixelRatio;
-	canvas.height = window.screen.height * pixelRatio;
-	canvasCtx.lineWidth = 4 * pixelRatio;
-	canvasCtx.lineJoin = 'round';
-
-	// Always consider landscape orientation
-	if ( canvas.height > canvas.width ) {
-		var tmp = canvas.width;
-		canvas.width = canvas.height;
-		canvas.height = tmp;
-	}
-	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels' );
+	// clicks on canvas also toggle scale on/off
+	canvas.addEventListener( 'click', function() {
+		elShowScale.click();
+	});
 
 	// Create gradients
-
-	elGradient  = document.getElementById('gradient');
 
 	var grad, i;
 
@@ -1218,42 +1279,7 @@ function initialize() {
 		gradients[ key ].gradient = grad;
 	});
 
-	// Add event listeners to the custom checkboxes
-
-	var switches = document.querySelectorAll('.switch');
-	for ( i = 0; i < switches.length; i++ ) {
-		switches[ i ].addEventListener( 'click', function( e ) {
-			e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
-		});
-	}
-
 	// Load / initialize configuration options
-
-	elFFTsize   = document.getElementById('fft_size');
-	elRangeMin  = document.getElementById('freq_min');
-	elRangeMax  = document.getElementById('freq_max');
-	elSmoothing = document.getElementById('smoothing');
-	elMode      = document.getElementById('mode');
-	elShowScale = document.getElementById('show_scale');
-	elShowScale.addEventListener( 'click', setScale );
-	// clicks on canvas also toggle scale on/off
-	canvas.addEventListener( 'click', function() {
-		elShowScale.click();
-	});
-	elHighSens  = document.getElementById('sensitivity');
-	elHighSens.addEventListener( 'click', setSensitivity );
-	elShowPeaks = document.getElementById('show_peaks');
-	elShowPeaks.addEventListener( 'click', setShowPeaks );
-	elBlackBg   = document.getElementById('black_bg');
-	elBlackBg.addEventListener( 'click', setBlackBg );
-	elCycleGrad = document.getElementById('cycle_grad');
-	elCycleGrad.addEventListener( 'click', updateLastConfig );
-	elLedDisplay= document.getElementById('led_display');
-	elLedDisplay.addEventListener( 'click', setScale );
-	elRepeat    = document.getElementById('repeat');
-	elRepeat.addEventListener( 'click', updateLastConfig );
-	elShowSong  = document.getElementById('show_song');
-	elShowSong.addEventListener( 'click', updateLastConfig );
 
 	var settings;
 
