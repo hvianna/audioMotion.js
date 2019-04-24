@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-perf';
+var _VERSION = '19.4-perf.1';
 
 
 /**
@@ -944,6 +944,13 @@ function loadPreset( name ) {
 	if ( presets[ name ].hasOwnProperty( 'showSong' ) )
 		elShowSong.dataset.active = Number( presets[ name ].showSong );
 
+	if ( presets[ name ].hasOwnProperty( 'noShadow' ) )
+		elNoShadow.dataset.active = Number( presets[ name ].noShadow );
+
+	if ( presets[ name ].hasOwnProperty( 'loRes' ) )
+		elLoRes.dataset.active = Number( presets[ name ].loRes );
+
+	setCanvas();
 	setFFTsize();
 	setSmoothing();
 	setSensitivity();
@@ -970,7 +977,9 @@ function saveConfig( config ) {
 		cycleGrad   : elCycleGrad.dataset.active == '1',
 		ledDisplay  : elLedDisplay.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
-		showSong    : elShowSong.dataset.active == '1'
+		showSong    : elShowSong.dataset.active == '1',
+		noShadow    : elNoShadow.dataset.active == '1',
+		loRes       : elLoRes.dataset.active == '1'
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1138,13 +1147,42 @@ function setCanvas() {
 	canvasCtx.lineWidth = 4 * pixelRatio;
 	canvasCtx.lineJoin = 'round';
 
-	// Always consider landscape orientation
+	// always consider landscape orientation
 	if ( canvas.height > canvas.width ) {
 		var tmp = canvas.width;
 		canvas.width = canvas.height;
 		canvas.height = tmp;
 	}
 	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels' );
+
+	// Generate gradients
+
+	var grad, i;
+
+	Object.keys( gradients ).forEach( function( key ) {
+		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
+		if ( gradients[ key ].hasOwnProperty( 'colorStops' ) ) {
+			for ( i = 0; i < gradients[ key ].colorStops.length; i++ )
+				grad.addColorStop( gradients[ key ].colorStops[ i ].stop, gradients[ key ].colorStops[ i ].color );
+		}
+		// rainbow gradients are easily created iterating over the hue value
+		else if ( key == 'prism' ) {
+			for ( i = 0; i <= 240; i += 60 )
+				grad.addColorStop( i/240, 'hsl( ' + i + ', 100%, 50% )' );
+		}
+		else if ( key == 'rainbow' ) {
+			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 ); // this one is a horizontal gradient
+			for ( i = 0; i <= 360; i += 60 )
+				grad.addColorStop( i/360, 'hsl( ' + i + ', 100%, 50% )' );
+		}
+		// add the option to the html select element for the user interface
+		elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+		// save the actual gradient back into the gradients array
+		gradients[ key ].gradient = grad;
+	});
+
+	preCalcPosX();
+	updateLastConfig();
 }
 
 
@@ -1246,37 +1284,10 @@ function initialize() {
 	canvas = document.getElementById('canvas');
 	canvasCtx = canvas.getContext('2d');
 	canvasMsg = { timer: 0 };
-	setCanvas();
 
 	// clicks on canvas also toggle scale on/off
 	canvas.addEventListener( 'click', function() {
 		elShowScale.click();
-	});
-
-	// Create gradients
-
-	var grad, i;
-
-	Object.keys( gradients ).forEach( function( key ) {
-		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-		if ( gradients[ key ].hasOwnProperty( 'colorStops' ) ) {
-			for ( i = 0; i < gradients[ key ].colorStops.length; i++ )
-				grad.addColorStop( gradients[ key ].colorStops[ i ].stop, gradients[ key ].colorStops[ i ].color );
-		}
-		// rainbow gradients are easily created iterating over the hue value
-		else if ( key == 'prism' ) {
-			for ( i = 0; i <= 240; i += 60 )
-				grad.addColorStop( i/240, 'hsl( ' + i + ', 100%, 50% )' );
-		}
-		else if ( key == 'rainbow' ) {
-			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 ); // this one is a horizontal gradient
-			for ( i = 0; i <= 360; i += 60 )
-				grad.addColorStop( i/360, 'hsl( ' + i + ', 100%, 50% )' );
-		}
-		// add the option to the html select element for the user interface
-		elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
-		// save the actual gradient back into the gradients array
-		gradients[ key ].gradient = grad;
 	});
 
 	// Load / initialize configuration options
