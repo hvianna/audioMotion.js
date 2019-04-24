@@ -5,16 +5,16 @@ Changelog
 
 ### Added:
 
-+ :sunglasses: New selectable LED effect for the analyzer bars;
-+ Keyboard shortcut for auto gradient cycle option.
++ :sunglasses: New selectable vintage LED effect for the octave bands modes;
++ More keyboard shortcuts.
 
 ### Changed:
 
-+ *CYCLE* switch renamed to *AUTO*
-+ *DARK* switch renamed to *BG*
++ *CYCLE* switch renamed to *AUTO*;
++ *DARK* switch renamed to *BG*.
 
 
-## version 19.2
+## version 19.3
 
 ### Added:
 
