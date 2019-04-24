@@ -206,6 +206,16 @@
 				<i class="icons8-stop-symbol" onclick="stop();"></i>
 				<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
 			</div>
+
+			<div class="main-config center">
+				<span class="config-label">Performance options:</span>
+				<ul class="switch-bar">
+					<li class="switch" id="no_shadow">Flat
+						<span class="tooltip">Disable shadows on text displayed on canvas</span>
+					<li class="switch" id="lo_res">Lo-Res
+						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+				</ul>
+			</div>
 		</div>
 
 		<div>
@@ -238,15 +248,6 @@
 						<option value="mic">Microphone</option>
 					</select>
 				</div>
-			</div>
-			<div class="config-block">
-				Performance options:
-				<ul class="switch-bar">
-					<li class="switch" id="no_shadow">Flat
-						<span class="tooltip">Disable shadows on text displayed over the analyzer</span>
-					<li class="switch" id="lo_res">Lo-Res
-						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-				</ul>
 			</div>
 			<div id="console"></div>
 			<div class="credits">
