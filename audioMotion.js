@@ -318,6 +318,8 @@ function preCalcPosX() {
 				ledOptions = { nLeds: 128, spaceV: 3, spaceH: 4 };
 		}
 
+		ledOptions.spaceH *= pixelRatio;
+		ledOptions.spaceV *= pixelRatio;
 		ledOptions.ledHeight = canvas.height / ledOptions.nLeds - ledOptions.spaceV;
 
 		// generate a table of frequencies based on the equal tempered scale
