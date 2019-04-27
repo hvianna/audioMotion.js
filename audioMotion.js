@@ -1134,15 +1134,12 @@ function audioOnError( e ) {
 function setCanvas() {
 	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
 
+	if ( elLoRes.dataset.active == '1' )
+		pixelRatio /= 2;
+
 	// Adjust canvas width and height to match the display's resolution
 	canvas.width = window.screen.width * pixelRatio;
 	canvas.height = window.screen.height * pixelRatio;
-
-	if ( elLoRes.dataset.active == '1' ) {
-		canvas.width >>= 1;
-		canvas.height >>= 1;
-		pixelRatio = 1;
-	}
 
 	canvasCtx.lineWidth = 4 * pixelRatio;
 	canvasCtx.lineJoin = 'round';
