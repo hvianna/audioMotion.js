@@ -923,9 +923,6 @@ function loadPreset( name ) {
 	if ( presets[ name ].hasOwnProperty( 'showScale' ) )
 		elShowScale.dataset.active = Number( presets[ name ].showScale );
 
-	if ( presets[ name ].hasOwnProperty( 'gradient' ) && gradients[ presets[ name ].gradient ] )
-		elGradient.value = presets[ name ].gradient;
-
 	if ( presets[ name ].hasOwnProperty( 'highSens' ) )
 		elHighSens.dataset.active = Number( presets[ name ].highSens );
 
@@ -954,6 +951,10 @@ function loadPreset( name ) {
 		elLoRes.dataset.active = Number( presets[ name ].loRes );
 
 	setCanvas();
+
+	if ( presets[ name ].hasOwnProperty( 'gradient' ) && gradients[ presets[ name ].gradient ] )
+		elGradient.value = presets[ name ].gradient;
+
 	setFFTsize();
 	setSmoothing();
 	setSensitivity();
@@ -1175,8 +1176,11 @@ function setCanvas() {
 			for ( i = 0; i <= 360; i += 60 )
 				grad.addColorStop( i/360, 'hsl( ' + i + ', 100%, 50% )' );
 		}
+
 		// add the option to the html select element for the user interface
-		elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+		if ( elGradient.options.length < Object.keys( gradients ).length )
+			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+
 		// save the actual gradient back into the gradients array
 		gradients[ key ].gradient = grad;
 	});
