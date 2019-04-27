@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-perf.1';
+var _VERSION = '19.4-dev.2';
 
 
 /**
@@ -295,11 +295,11 @@ function preCalcPosX() {
 
 		switch ( elMode.value ) {
 			case '24':
-				ledOptions = { nLeds: 24, spaceV: 12, spaceH: 24 };
+				ledOptions = { nLeds: 24, spaceV: 16, spaceH: 24 };
 				break;
 
 			case '12':
-				ledOptions = { nLeds: 48, spaceV: 8, spaceH: 12 };
+				ledOptions = { nLeds: 48, spaceV: 8, spaceH: 16 };
 				break;
 
 			case  '8':
@@ -811,7 +811,10 @@ function draw() {
 	}
 
 	if ( isLedDisplay ) {
-		canvasCtx.fillStyle = '#000';	// add horizontal black lines to separate the LEDs
+		canvasCtx.fillStyle = '#000';
+		if ( elMode.value > 1 )	// clears rightmost vertical line
+			canvasCtx.fillRect( canvas.width - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
+		// add horizontal black lines to separate the LEDs
 		for ( j = ledOptions.ledHeight; j < canvas.height; j += ledOptions.ledHeight + ledOptions.spaceV )
 			canvasCtx.fillRect( 0, j, canvas.width, ledOptions.spaceV );
 	}
