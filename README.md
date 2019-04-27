@@ -143,6 +143,9 @@ The underlined character in the switch indicates its keyboard shortcut, when ava
 + **<u>A</u>UTO** when active, every track change will select the next gradient, cycling through the available options
 + **<u>L</u>ED** applies a vintage LED effect to the analyzer bars
 
++ **FLAT** applies an outline instead of shadow on text displayed on canvas - may improve performance on some graphic cards
++ **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays)
+
 ## Fullscreen mode and keyboard shortcuts
 
 Click the **Fullscreen Analyzer** button to display the spectrum analyzer in fullscreen.

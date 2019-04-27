@@ -5,11 +5,15 @@ Changelog
 
 ### Added:
 
-+ :sunglasses: New selectable vintage LED effect for the octave bands modes;
++ :sunglasses: New optional vintage LED effect for the octave bands modes;
++ Two options to improve performance:
+  + **FLAT** applies an outline instead of shadow on text displayed on canvas - may improve performance on some graphic cards
+  + **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays)
 + More keyboard shortcuts.
 
 ### Changed:
 
++ Restored the shadow on messages displayed on canvas, which can now be disabled by the *FLAT* switch;
 + *CYCLE* switch renamed to *AUTO*;
 + *DARK* switch renamed to *BG*.
 
