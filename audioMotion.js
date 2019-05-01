@@ -697,6 +697,14 @@ function displayCanvasMsg() {
 
 	var curTime, duration;
 
+	var	leftPos = _1em = 35 * pixelRatio,
+		rightPos = canvas.width - _1em,
+		centerPos = canvas.width / 2,
+		topLine = 50 * pixelRatio,
+		bottomLine1 = canvas.height - 120 * pixelRatio,
+		bottomLine2 = canvas.height - 70 * pixelRatio,
+		maxWidth = canvas.width - 230 * pixelRatio;
+
 	if ( canvasMsg.timer > canvasMsg.fade ) {
 		canvasCtx.fillStyle = '#fff';
 		canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
@@ -708,25 +716,40 @@ function displayCanvasMsg() {
 
 	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
 
+	if ( canvasMsg.showMode ) {
+		canvasCtx.textAlign = 'left';
+		canvasCtx.fillText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine );
+	}
+
 	if ( canvasMsg.showGradient ) {
 		canvasCtx.textAlign = 'center';
-		outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, canvas.width / 2, 50 * pixelRatio );
+		canvasCtx.fillText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine );
+	}
+
+	if ( canvasMsg.showAutoStatus ) {
+		canvasCtx.textAlign = 'center';
+		canvasCtx.fillText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 2 );
+	}
+
+	if ( canvasMsg.showSensitivity ) {
+		canvasCtx.textAlign = 'right';
+		canvasCtx.fillText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine );
 	}
 
 	if ( canvasMsg.showSongInfo && playlist.length ) {
 		// file type and time
 		if ( audioElement[ currAudio ].duration ) {
 			canvasCtx.textAlign = 'right';
-			outlineText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), canvas.width - 35 * pixelRatio, canvas.height - 120 * pixelRatio );
+			outlineText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), rightPos, bottomLine1 );
 			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
 			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
-			outlineText( curTime + ' / ' + duration, canvas.width - 35 * pixelRatio, canvas.height - 70 * pixelRatio );
+			outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
 		}
 		// artist and song name
 		canvasCtx.textAlign = 'left';
-		outlineText( playlist[ playlistPos ].artist.toUpperCase(), 35 * pixelRatio, canvas.height - 120 * pixelRatio, canvas.width - 230 * pixelRatio );
-		canvasCtx.font = 'bold ' + ( 35 * pixelRatio ) + 'px sans-serif';
-		outlineText( playlist[ playlistPos ].song, 35 * pixelRatio, canvas.height - 70 * pixelRatio, canvas.width - 230 * pixelRatio );
+		outlineText( playlist[ playlistPos ].artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+		canvasCtx.font = 'bold ' + _1em + 'px sans-serif';
+		outlineText( playlist[ playlistPos ].song, leftPos, bottomLine2, maxWidth );
 	}
 }
 
@@ -1052,6 +1075,9 @@ function keyboardControls( event ) {
 			break;
 		case 65: // A key - toggle auto gradient change
 			elCycleGrad.click();
+			canvasMsg.showAutoStatus = true;
+			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
+			canvasMsg.fade = 60;
 			break;
 		case 66: // B key - toggle black background
 			elBlackBg.click();
@@ -1061,7 +1087,10 @@ function keyboardControls( event ) {
 				canvasMsg = { timer: 0 };
 			else
 				canvasMsg = {
+					showMode: true,
 					showGradient: true,
+					showAutoStatus: true,
+					showSensitivity: true,
 					showSongInfo: true,
 					timer: 300,
 					fade: 60
@@ -1072,6 +1101,12 @@ function keyboardControls( event ) {
 			break;
 		case 76: // L key - toggle LED display effect
 			elLedDisplay.click();
+			break;
+		case 78: // N key - toggle sensitivity
+			elHighSens.click();
+			canvasMsg.showSensitivity = true;
+			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
+			canvasMsg.fade = 60;
 			break;
 		case 80: // P key - toggle peaks display
 			elShowPeaks.click();
@@ -1085,6 +1120,9 @@ function keyboardControls( event ) {
 			else
 				elMode.selectedIndex = modeIdx + 1;
 			setScale();
+			canvasMsg.showMode = true;
+			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
+			canvasMsg.fade = 60;
 			break;
 	}
 }
