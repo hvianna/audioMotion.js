@@ -98,8 +98,8 @@ The **Full resolution** and **Octave bands** presets adjust the FFT size, freque
 
 You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by selecting the **Custom** preset.
 
-Additionally, your last used configuration will be automatically saved to the **Last session** preset and restored the next time your open audioMotion.
-You can also select the **Last session** preset at any time to undo any changes made during the current session.
+Additionally, your last used configuration will be automatically saved and restored the next time you open audioMotion.
+You can manually select the **Last session** preset to undo any changes made during the current session.
 
 ## Configuration options
 
@@ -136,7 +136,7 @@ The underlined character in the switch indicates its keyboard shortcut, when ava
 
 + **INFO** toggles the on-screen display of song information on every track change
 + **<u>S</u>CALE** toggles the display of the frequency scale on the X-axis; clicking the visualization area or pressing the **S** key also toggles this option
-+ **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet
++ **SE<u>N</u>S** increases analyzer sensitivity to improve the visualization of songs too quiet
 + **<u>P</u>EAKS** shows volume peaks for each frequency
 
 + **<u>B</u>G** when active, sets a black background for the analyzer, instead of the color defined by each gradient (improves contrast); also selectable using the **B** key
@@ -161,9 +161,10 @@ You can use the keyboard shortcuts below to control the player and some display 
 **Down arrow** | **M** | select next gradient
 **A** | | toggle auto gradient change (AUTO switch)
 **B** | | toggle black background (BG switch)
-**D** | | display current song information on screen
+**D** | | display current song and configuration information on screen
 **F** | | toggle fullscreen mode
-**L** | | toggle LED effect on analyzer bars
+**L** | | toggle LED effect on analyzer bars (LED switch)
+**N** | | toggle analyzer sensitivity (SENS switch)
 **P** | | toggle peaks display (PEAKS switch)
 **S** | click on analyzer | toggle frequency scale display on/off (SCALE switch)
 **V** | | change visualization mode
