@@ -114,12 +114,31 @@ var audioStarted = false,
  * Configuration presets
  */
 var presets = {
-		fullres: {
+		default: {
 			mode        : 0,	    // discrete frequencies mode
 			fftSize     : 8192,		// FFT size
 			freqMin     : 20,		// lowest frequency
 			freqMax     : 22000,	// highest frequency
-			smoothing   : 0.5		// 0 to 0.9 - smoothing time constant
+			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+			gradient    : 'prism',
+			blackBg     : 0,
+			cycleGrad   : 1,
+			ledDisplay  : 0,
+			showScale   : 1,
+			highSens    : 0,
+			showPeaks   : 1,
+			showSong    : 1,
+			repeat      : 0,
+			noShadow    : 0,
+			loRes       : 0
+		},
+
+		fullres: {
+			mode        : 0,
+			fftSize     : 8192,
+			freqMin     : 20,
+			freqMax     : 22000,
+			smoothing   : 0.5
 		},
 
 		octave: {
@@ -137,7 +156,8 @@ var presets = {
 			freqMax     : 16000,
 			smoothing   : 0.5,
 			blackBg     : 0,
-			ledDisplay  : 1
+			ledDisplay  : 1,
+			showScale   : 0
 		}
 	};
 
@@ -1339,17 +1359,8 @@ function initialize() {
 	settings = localStorage.getItem( 'last-config' );
 	if ( settings !== null )
 		presets['last'] = JSON.parse( settings );
-	else {
-		// if no data found from last session, use the 'full resolution' preset
-		presets['last'] = JSON.parse( JSON.stringify( presets['fullres'] ) );
-		// and set some additional default options
-		presets['last'].gradient = 'prism';
-		presets['last'].cycleGrad = true;
-		presets['last'].showScale = true;
-		presets['last'].highSens = false;
-		presets['last'].showPeaks = true;
-		presets['last'].showSong = true;
-	}
+	else // if no data found from last session, use the defaults
+		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
 
 	settings = localStorage.getItem( 'custom-preset' );
 	if ( settings !== null )
