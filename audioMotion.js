@@ -738,22 +738,22 @@ function displayCanvasMsg() {
 
 	if ( canvasMsg.showMode ) {
 		canvasCtx.textAlign = 'left';
-		canvasCtx.fillText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine );
+		outlineText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine );
 	}
 
 	if ( canvasMsg.showGradient ) {
 		canvasCtx.textAlign = 'center';
-		canvasCtx.fillText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine );
+		outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine );
 	}
 
 	if ( canvasMsg.showAutoStatus ) {
 		canvasCtx.textAlign = 'center';
-		canvasCtx.fillText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 2 );
+		outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 2 );
 	}
 
 	if ( canvasMsg.showSensitivity ) {
 		canvasCtx.textAlign = 'right';
-		canvasCtx.fillText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine );
+		outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine );
 	}
 
 	if ( canvasMsg.showSongInfo && playlist.length ) {
