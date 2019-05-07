@@ -1207,16 +1207,19 @@ function setCanvas() {
 	canvas.width = window.screen.width * pixelRatio;
 	canvas.height = window.screen.height * pixelRatio;
 
-	canvasCtx.lineWidth = 4 * pixelRatio;
-	canvasCtx.lineJoin = 'round';
-
 	// always consider landscape orientation
 	if ( canvas.height > canvas.width ) {
 		var tmp = canvas.width;
 		canvas.width = canvas.height;
 		canvas.height = tmp;
 	}
-	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels' );
+	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels (dPR: ' + pixelRatio + ')' );
+
+	if ( pixelRatio == 2 && canvas.height <= 1080 ) // adjustment for wrong dPR reported on Shield TV
+		pixelRatio = 1;
+
+	canvasCtx.lineWidth = 4 * pixelRatio;
+	canvasCtx.lineJoin = 'round';
 
 	// Generate gradients
 
