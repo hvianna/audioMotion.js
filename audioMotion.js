@@ -75,6 +75,10 @@ var audioStarted = false,
 				    { stop: .794, color: 'rgb( 32, 173, 190 )' },
 				    { stop: 1, color: 'rgb( 22, 158, 95 )' }
 				  ] },
+		orient:   { name: 'Orient', bgColor: '#0c0000', colorStops: [
+					{ stop: .1, color: '#f00' },
+					{ stop: 1, color: '#600' }
+				  ] },
 		outrun:   { name: 'Outrun', bgColor: '#111', colorStops: [
 					{ stop: 0, color: 'rgb( 255, 223, 67 )' },
 					{ stop: .182, color: 'rgb( 250, 84, 118 )' },
