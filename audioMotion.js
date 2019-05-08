@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-dev.2';
+var _VERSION = '19.4-dev.3';
 
 
 /**
