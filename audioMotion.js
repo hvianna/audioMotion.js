@@ -721,13 +721,15 @@ function displayCanvasMsg() {
 
 	var curTime, duration;
 
-	var	leftPos = _1em = 35 * pixelRatio,
-		rightPos = canvas.width - _1em,
-		centerPos = canvas.width / 2,
-		topLine = 50 * pixelRatio,
-		bottomLine1 = canvas.height - 120 * pixelRatio,
-		bottomLine2 = canvas.height - 70 * pixelRatio,
-		maxWidth = canvas.width - 230 * pixelRatio;
+	var	fontSize    = canvas.width / 28, // base font size - all the following measures are relative to this
+		leftPos     = fontSize,
+		rightPos    = canvas.width - fontSize,
+		centerPos   = canvas.width / 2,
+		topLine     = fontSize * 1.4,
+		bottomLine1 = canvas.height - fontSize * 3.4,
+		bottomLine2 = canvas.height - fontSize * 2,
+		maxWidth    = canvas.width - fontSize * 6.6,  // maximum width for artist and song name
+		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
 		canvasCtx.fillStyle = '#fff';
@@ -738,29 +740,30 @@ function displayCanvasMsg() {
 		canvasCtx.strokeStyle = canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
 	}
 
-	canvasCtx.font = 'bold ' + ( 25 * pixelRatio ) + 'px sans-serif';
+	canvasCtx.font = 'bold ' + ( fontSize * .5 ) + 'px sans-serif';
 
 	if ( canvasMsg.showMode ) {
 		canvasCtx.textAlign = 'left';
-		outlineText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine );
+		outlineText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
 	}
 
 	if ( canvasMsg.showGradient ) {
 		canvasCtx.textAlign = 'center';
-		outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine );
+		outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
 	}
 
 	if ( canvasMsg.showAutoStatus ) {
 		canvasCtx.textAlign = 'center';
-		outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 2 );
+		outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.5 );
 	}
 
 	if ( canvasMsg.showSensitivity ) {
 		canvasCtx.textAlign = 'right';
-		outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine );
+		outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine, maxWidthTop );
 	}
 
 	if ( canvasMsg.showSongInfo && playlist.length ) {
+		canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 		// file type and time
 		if ( audioElement[ currAudio ].duration ) {
 			canvasCtx.textAlign = 'right';
@@ -772,7 +775,7 @@ function displayCanvasMsg() {
 		// artist and song name
 		canvasCtx.textAlign = 'left';
 		outlineText( playlist[ playlistPos ].artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
-		canvasCtx.font = 'bold ' + _1em + 'px sans-serif';
+		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
 		outlineText( playlist[ playlistPos ].song, leftPos, bottomLine2, maxWidth );
 	}
 }
