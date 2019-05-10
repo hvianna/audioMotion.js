@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-dev.3';
+var _VERSION = '19.4-dev.4';
 
 
 /**
@@ -59,8 +59,8 @@ var audioStarted = false,
 				 	{ stop: .5, color: '#d76d77' },
 				 	{ stop: 1, color: '#3a1c71' }
 				  ] },
-		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
-					{ stop: .1, color: 'hsl( 0, 100%, 50% )' },
+		classic:  { name: 'Classic', bgColor: '#0c0c00', colorStops: [
+					{ stop: 0, color: 'hsl( 0, 100%, 50% )' },
 					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
 				  ] },
@@ -68,7 +68,7 @@ var audioStarted = false,
 					{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
 				  ] },
-		miami:    { name: 'Miami', bgColor: '#111', colorStops: [
+		miami:    { name: 'Miami', bgColor: '#0c050c', colorStops: [
 				    { stop: .024, color: 'rgb( 251, 198, 6 )' },
 				    { stop: .283, color: 'rgb( 224, 82, 95 )' },
 				    { stop: .462, color: 'rgb( 194, 78, 154 )' },
@@ -79,7 +79,7 @@ var audioStarted = false,
 					{ stop: .1, color: '#f00' },
 					{ stop: 1, color: '#600' }
 				  ] },
-		outrun:   { name: 'Outrun', bgColor: '#111', colorStops: [
+		outrun:   { name: 'Outrun', bgColor: '#0c000c', colorStops: [
 					{ stop: 0, color: 'rgb( 255, 223, 67 )' },
 					{ stop: .182, color: 'rgb( 250, 84, 118 )' },
 					{ stop: .364, color: 'rgb( 198, 59, 243 )' },
@@ -91,8 +91,8 @@ var audioStarted = false,
 				 	{ stop: .1, color: '#34e89e' },
 				 	{ stop: 1, color: '#0f3443' }
 				  ] },
-		prism:    { name: 'Prism', bgColor: '#111' },
-		rainbow:  { name: 'Rainbow', bgColor: '#111' },
+		prism:    { name: 'Prism', bgColor: '#0c0c0c' },
+		rainbow:  { name: 'Rainbow', bgColor: '#0c0c0c' },
 		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
 				 	{ stop: .1, color: '#66ff00' },
 				 	{ stop: 1, color: '#a80077' }
@@ -105,7 +105,7 @@ var audioStarted = false,
 				 	{ stop: .1, color: '#f56217' },
 				 	{ stop: 1, color: '#0b486b' }
 				  ] },
-		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
+		tiedye:   { name: 'Tie Dye', bgColor: '#0c0c0c', colorStops: [
 					{ stop: .038, color: 'rgb( 15, 209, 165 )' },
 					{ stop: .208, color: 'rgb( 15, 157, 209 )' },
 					{ stop: .519, color: 'rgb( 133, 13, 230 )' },
