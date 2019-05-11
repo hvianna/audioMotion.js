@@ -708,7 +708,7 @@ function outlineText( text, x, y, maxWidth ) {
 		canvasCtx.fillText( text, x, y, maxWidth );
 	}
 	else {
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 2 * pixelRatio;
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * pixelRatio;
 		canvasCtx.fillText( text, x, y, maxWidth );
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
 	}
@@ -726,8 +726,8 @@ function displayCanvasMsg() {
 		rightPos    = canvas.width - fontSize,
 		centerPos   = canvas.width / 2,
 		topLine     = fontSize * 1.4,
-		bottomLine1 = canvas.height - fontSize * 3.4,
-		bottomLine2 = canvas.height - fontSize * 2,
+		bottomLine1 = canvas.height - fontSize * 3,
+		bottomLine2 = canvas.height - fontSize * 1.6,
 		maxWidth    = canvas.width - fontSize * 6.6,  // maximum width for artist and song name
 		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
 
