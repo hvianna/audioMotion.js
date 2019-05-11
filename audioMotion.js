@@ -1349,6 +1349,7 @@ function initialize() {
 	elLedDisplay.addEventListener( 'click', setScale );
 	elRepeat.    addEventListener( 'click', updateLastConfig );
 	elShowSong.  addEventListener( 'click', updateLastConfig );
+	elNoShadow.  addEventListener( 'click', updateLastConfig );
 	elLoRes.     addEventListener( 'click', setCanvas );
 
 	// Canvas
