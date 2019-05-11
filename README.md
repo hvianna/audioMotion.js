@@ -142,7 +142,7 @@ In the list below, the character inside brackets indicates the keyboard shortcut
 + **SE[N]S** increases analyzer sensitivity to improve the visualization of songs too quiet
 + **[P]EAKS** shows volume peaks for each frequency
 
-+ **[B]G** when active, sets a black background for the analyzer, instead of the color defined by each gradient (improves contrast)
++ **NO [B]G** when active, sets a black background for the analyzer, instead of the color defined by each gradient (improves contrast)
 + **[A]UTO** when active, every track change will select the next gradient, cycling through the available options
 + **[L]ED** applies a vintage LED effect to the analyzer bars
 
@@ -163,7 +163,7 @@ You can use the keyboard shortcuts below to control the player and change displa
 **Up arrow** | **I** | select previous gradient
 **Down arrow** | **M** | select next gradient
 **A** | | toggle auto gradient change (AUTO switch)
-**B** | | toggle black background (BG switch)
+**B** | | toggle background (NO BG switch)
 **D** | | display current song and configuration information on screen
 **F** | | toggle fullscreen mode
 **L** | | toggle LED effect on analyzer bars (LED switch)

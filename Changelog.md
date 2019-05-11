@@ -17,7 +17,7 @@ Changelog
 
 + Restored the shadow on text displayed on canvas - it can be disabled via the *FLAT* switch;
 + *CYCLE* switch renamed to *AUTO*;
-+ *DARK* switch renamed to *BG*.
++ *DARK* switch renamed to *NO BG*.
 
 
 ## version 19.3
