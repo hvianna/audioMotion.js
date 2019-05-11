@@ -1,20 +1,22 @@
 Changelog
 =========
 
-## version 19.??
+## version 19.5
 
 ### Added:
 
 + :sunglasses: New optional vintage LED effect for the octave bands modes;
-+ Two options to improve performance:
-  + **FLAT** applies an outline instead of shadow on song info displayed on canvas - may improve performance on some graphic cards
-  + **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays)
++ New 'Orient' gradient;
++ Two configuration options to improve performance:
+  + **FLAT** replaces shadow for outline on text displayed on canvas;
+  + **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays);
 + Current visualization mode, auto gradient status and sensitivity setting added to the on-screen information;
 + New preset to restore all configuration defaults;
 + More keyboard shortcuts.
 
 ### Changed:
 
++ Increased font size of on-screen information;
 + Restored the shadow on text displayed on canvas - it can be disabled via the *FLAT* switch;
 + *CYCLE* switch renamed to *AUTO*;
 + *DARK* switch renamed to *NO BG*.

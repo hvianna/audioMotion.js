@@ -97,12 +97,14 @@ As for the audio files themselves, audioMotion.js should be able to play most ma
 
 ## Configuration Presets
 
-The **Full resolution** and **Octave bands** presets adjust the FFT size, frequency range and smoothing configurations to recommended values for the discrete frequencies and octave bands visualization modes.
+The **Full resolution**, **Octave bands** and **LED bars** presets adjust configuration options to recommended values for the discrete frequencies and octave bands visualization modes, with optional LED effect mode.
 
 You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by selecting the **Custom** preset.
 
 Additionally, your last used configuration will be automatically saved and restored the next time you open audioMotion.
 You can manually select the **Last session** preset to undo any changes made during the current session.
+
+The **Restore defaults** preset resets all options to their initial values as in the first time you run audioMotion.
 
 ## Configuration options
 
