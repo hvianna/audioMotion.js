@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-dev.4';
+var _VERSION = '19.4-dev.5';
 
 
 /**
@@ -632,7 +632,7 @@ function stop() {
 	if ( cfgSource == 'mic' )
 		return;
 	audioElement[ currAudio ].pause();
-	canvasMsg = { timer: 0 };
+	setCanvasMsg();
 	loadSong( 0 );
 }
 
@@ -741,43 +741,50 @@ function displayCanvasMsg() {
 	}
 
 	canvasCtx.font = 'bold ' + ( fontSize * .5 ) + 'px sans-serif';
+	canvasCtx.textAlign = 'center';
 
-	if ( canvasMsg.showMode ) {
-		canvasCtx.textAlign = 'left';
-		outlineText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
+	if ( canvasMsg.msg != 'all' && canvasMsg.msg != 'song' ) {
+		outlineText( canvasMsg.msg, centerPos, topLine, maxWidthTop );
 	}
+	else {
+		if ( canvasMsg.msg == 'all' ) {
+			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
+			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.5 );
 
-	if ( canvasMsg.showGradient ) {
-		canvasCtx.textAlign = 'center';
-		outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-	}
+			canvasCtx.textAlign = 'left';
+			outlineText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
 
-	if ( canvasMsg.showAutoStatus ) {
-		canvasCtx.textAlign = 'center';
-		outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.5 );
-	}
-
-	if ( canvasMsg.showSensitivity ) {
-		canvasCtx.textAlign = 'right';
-		outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine, maxWidthTop );
-	}
-
-	if ( canvasMsg.showSongInfo && playlist.length ) {
-		canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
-		// file type and time
-		if ( audioElement[ currAudio ].duration ) {
 			canvasCtx.textAlign = 'right';
-			outlineText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), rightPos, bottomLine1 );
-			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
-			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
-			outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
+			outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine, maxWidthTop );
 		}
-		// artist and song name
-		canvasCtx.textAlign = 'left';
-		outlineText( playlist[ playlistPos ].artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
-		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
-		outlineText( playlist[ playlistPos ].song, leftPos, bottomLine2, maxWidth );
+
+		if ( playlist.length ) {
+			canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
+			// file type and time
+			if ( audioElement[ currAudio ].duration ) {
+				canvasCtx.textAlign = 'right';
+				outlineText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), rightPos, bottomLine1 );
+				curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
+				duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+				outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
+			}
+			// artist and song name
+			canvasCtx.textAlign = 'left';
+			outlineText( playlist[ playlistPos ].artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+			canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
+			outlineText( playlist[ playlistPos ].song, leftPos, bottomLine2, maxWidth );
+		}
 	}
+}
+
+/**
+ * Set message for on-screen display
+ */
+function setCanvasMsg( msg, timer = 120, fade = 60 ) {
+	if ( ! msg )
+		canvasMsg = { timer: 0 };
+	else
+		canvasMsg = { msg: msg, timer: timer, fade: fade };
 }
 
 /**
@@ -879,7 +886,7 @@ function draw() {
 	if ( canvasMsg.timer > 0 ) {
 		displayCanvasMsg();
 		if ( ! --canvasMsg.timer )
-			canvasMsg = { timer: 0 }; // clear messages
+			setCanvasMsg(); // clear messages
 	}
 
 	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
@@ -1074,10 +1081,12 @@ function keyboardControls( event ) {
 
 	switch ( event.keyCode ) {
 		case 32: // space bar - play/pause
+			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
 			playPause();
 			break;
 		case 37: // arrow left - previous song
 		case 74: // J (alternative)
+			setCanvasMsg( 'Previous song' );
 			playPreviousSong();
 			break;
 		case 38: // arrow up - previous gradient
@@ -1086,12 +1095,11 @@ function keyboardControls( event ) {
 				elGradient.selectedIndex = elGradient.options.length - 1;
 			else
 				elGradient.selectedIndex = gradIdx - 1;
-			canvasMsg.showGradient = true;
-			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
-			canvasMsg.fade = 60;
+			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 39: // arrow right - next song
 		case 75: // K (alternative)
+			setCanvasMsg( 'Next song' );
 			playNextSong();
 			break;
 		case 40: // arrow down - next gradient
@@ -1100,50 +1108,40 @@ function keyboardControls( event ) {
 				elGradient.selectedIndex = 0;
 			else
 				elGradient.selectedIndex = gradIdx + 1;
-			canvasMsg.showGradient = true;
-			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
-			canvasMsg.fade = 60;
+			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 65: // A key - toggle auto gradient change
 			elCycleGrad.click();
-			canvasMsg.showAutoStatus = true;
-			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
-			canvasMsg.fade = 60;
+			setCanvasMsg( 'Auto gradient ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 66: // B key - toggle black background
 			elBlackBg.click();
+			setCanvasMsg( 'Background ' + ( elBlackBg.dataset.active == '1' ? 'OFF' : 'ON' ) );
 			break;
 		case 68: // D key - display information
-			if ( canvasMsg.showSongInfo && canvasMsg.timer ) // if info is already been displayed, then hide it
-				canvasMsg = { timer: 0 };
+			if ( canvasMsg.msg && canvasMsg.msg == 'all' ) // if info is already been displayed, then hide it
+				setCanvasMsg();
 			else
-				canvasMsg = {
-					showMode: true,
-					showGradient: true,
-					showAutoStatus: true,
-					showSensitivity: true,
-					showSongInfo: true,
-					timer: 300,
-					fade: 60
-				};
+				setCanvasMsg( 'all', 300, 60 );
 			break;
 		case 70: // F key - toggle fullscreen
 			fullscreen();
 			break;
 		case 76: // L key - toggle LED display effect
 			elLedDisplay.click();
+			setCanvasMsg( 'LED effect ' + ( elLedDisplay.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 78: // N key - toggle sensitivity
 			elHighSens.click();
-			canvasMsg.showSensitivity = true;
-			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
-			canvasMsg.fade = 60;
+			setCanvasMsg( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity' );
 			break;
 		case 80: // P key - toggle peaks display
 			elShowPeaks.click();
+			setCanvasMsg( 'Peaks ' + ( elShowPeaks.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 83: // S key - toggle scale
 			elShowScale.click();
+			setCanvasMsg( 'Scale ' + ( elShowScale.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 86: // V key - toggle visualization mode
 			if ( modeIdx == elMode.options.length - 1 )
@@ -1151,9 +1149,7 @@ function keyboardControls( event ) {
 			else
 				elMode.selectedIndex = modeIdx + 1;
 			setScale();
-			canvasMsg.showMode = true;
-			canvasMsg.timer = Math.max( canvasMsg.timer, 120 );
-			canvasMsg.fade = 60;
+			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
 			break;
 	}
 }
@@ -1168,11 +1164,8 @@ function audioOnPlay( event ) {
 			consoleLog( 'No song loaded', true );
 			audioElement[ currAudio ].pause();
 		}
-		else if ( elShowSong.dataset.active == '1' ) {
-			canvasMsg.showSongInfo = true;
-			canvasMsg.timer = 600;
-			canvasMsg.fade = 180;
-		}
+		else if ( elShowSong.dataset.active == '1' )
+			setCanvasMsg( 'song', 600, 180 );
 	}
 	else {
 		event.target.pause();
@@ -1360,7 +1353,7 @@ function initialize() {
 
 	canvas = document.getElementById('canvas');
 	canvasCtx = canvas.getContext('2d');
-	canvasMsg = { timer: 0 };
+	setCanvasMsg();
 
 	// clicks on canvas also toggle scale on/off
 	canvas.addEventListener( 'click', function() {
