@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-dev.5';
+var _VERSION = '19.4-dev.6';
 
 
 /**
@@ -740,26 +740,26 @@ function displayCanvasMsg() {
 		canvasCtx.strokeStyle = canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
 	}
 
-	canvasCtx.font = 'bold ' + ( fontSize * .5 ) + 'px sans-serif';
+	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
 	if ( canvasMsg.msg != 'all' && canvasMsg.msg != 'song' ) {
-		outlineText( canvasMsg.msg, centerPos, topLine, maxWidthTop );
+		outlineText( canvasMsg.msg, centerPos, topLine );
 	}
 	else {
 		if ( canvasMsg.msg == 'all' ) {
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.5 );
+			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.8 );
 
 			canvasCtx.textAlign = 'left';
-			outlineText( 'Mode: ' + elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
+			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
 			outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine, maxWidthTop );
 		}
 
 		if ( playlist.length ) {
-			canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
+//			canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 			// file type and time
 			if ( audioElement[ currAudio ].duration ) {
 				canvasCtx.textAlign = 'right';
