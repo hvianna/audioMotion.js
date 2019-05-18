@@ -10,12 +10,18 @@ Changelog
 + Two configuration options to improve performance:
   + **FLAT** replaces shadow for outline on text displayed on canvas;
   + **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays);
-+ Current visualization mode, auto gradient status and sensitivity setting added to the on-screen information;
++ Current visualization mode, auto gradient status and repeat status added to the on-screen information;
++ Switch status is now shown on screen when changed via keyboard shortcode;
 + New preset to restore all configuration defaults;
 + More keyboard shortcuts.
 
 ### Changed:
 
++ Changed some keyboard shortcuts:
+  + [I] now toggles the display of song information on track change;
+  + [M] now selects the next visualization mode;
+  + alternate keys for gradient selection changed to [G] and [Shift + G];
++ On-screen information is now displayed in two stages - press [D] once for song info, press it again for settings info;
 + Increased font size of on-screen information;
 + Restored the shadow on text displayed on canvas - it can be disabled via the *FLAT* switch;
 + *CYCLE* switch renamed to *AUTO*;
