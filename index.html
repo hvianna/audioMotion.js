@@ -51,7 +51,7 @@
 
 	<div class="main-config config-block">
 		<div>
-			<span class="help"><span class="config-label"><u>V</u>isualization:</span>
+			<span class="help"><span class="config-label"><u>M</u>ode:</span>
 				<span class="tooltip">
 				Visualization mode. Octave bands are based on the equal tempered scale.
 				</span>
@@ -119,7 +119,7 @@
 		</div>
 
 		<ul class="switch-bar">
-			<li class="switch" id="show_song">INFO
+			<li class="switch" id="show_song"><u>I</u>NFO
 				<span class="tooltip">Display song info in the visualization area on every track change
 			<li class="switch" id="show_scale"><u>S</u>CALE
 				<span class="tooltip">Show / hide the frequency scale</span>
@@ -148,12 +148,12 @@
 			<div class="playlist-area">
 				<div class="playlist-title">Playlist</div>
 				<ul class="switch-bar">
-					<li id="repeat" class="switch">Repeat
+					<li id="repeat" class="switch"><u>R</u>EPEAT
 						<span class="tooltip">Repeat playlist</span>
 				</ul>
 				<div>
-					<button class="playlist-button" onclick="shufflePlaylist();">Shuffle</button>
-					<button class="playlist-button" onclick="clearPlaylist();">Clear</button>
+					<button class="playlist-button" onclick="shufflePlaylist();">SH<u>U</u>FFLE</button>
+					<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
 				</div>
 			</div>
 			<select id="playlist" size="10" onchange="playSong( this.selectedIndex );">
@@ -162,7 +162,7 @@
 
 		<div>
 			<div class="main-config center">
-				<span class="config-label">Gradient:</span>
+				<span class="config-label"><u>G</u>radient:</span>
 				<select id="gradient" onchange="updateLastConfig();"></select>
 
 				<ul class="switch-bar">
@@ -181,20 +181,14 @@
 				<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
 					<span class="tooltip shortcuts">
 						<table class="kbd-table">
-							<tr><td><span class="key key-big">&larr;</span> / <span class="key">J</span></td><td>previous song</td></tr>
-							<tr><td><span class="key key-big">&rarr;</span> / <span class="key">K</span></td><td>next song</td></tr>
+							<tr><td><span class="key key-big">&larr;</span> / <span class="key key-big">&rarr;</span></td><td>previous / next song</td></tr>
 							<tr><td><span class="key key-wide">Space</span></td><td>play / pause</td></tr>
-							<tr><td><span class="key key-big">&uarr;</span> / <span class="key">I</span></td><td>previous gradient</td></tr>
-							<tr><td><span class="key key-big">&darr;</span> / <span class="key">M</span></td><td>next gradient</td></tr>
-							<tr><td><span class="key">A</span></td><td>toggle auto gradient</td></tr>
-							<tr><td><span class="key">B</span></td><td>toggle background</td></tr>
-							<tr><td><span class="key">D</span></td><td>display current song info</td></tr>
-							<tr><td><span class="key">F</span></td><td>fullscreen mode</td></tr>
-							<tr><td><span class="key">L</span></td><td>toggle LED bars</td></tr>
-							<tr><td><span class="key">N</span></td><td>toggle sensitivity</td></tr>
-							<tr><td><span class="key">P</span></td><td>toggle peaks display</td></tr>
-							<tr><td><span class="key">S</span></td><td>toggle frequency scale</td></tr>
-							<tr><td><span class="key">V</span></td><td>change visualization mode</td></tr>
+							<tr><td><span class="key key-big">&uarr;</span> / <span class="key key-big">&darr;</span></td><td>previous / next gradient</td></tr>
+							<tr><td><span class="key">F</span></td><td>toggle fullscreen</td></tr>
+							<tr><td><span class="key">g</span> / <span class="key">G</span></td><td>previous / next gradient</td></tr>
+							<tr><td><span class="key">J</span> / <span class="key">K</span></td><td>previous / next song</td></tr>
+							<tr><td><span class="key">m</span> / <span class="key">M</span></td><td>previous / next mode</td></tr>
+							<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
 						</table>
 					</span>
 				</span>
@@ -211,9 +205,9 @@
 			<div class="main-config center">
 				<span class="config-label">Performance options:</span>
 				<ul class="switch-bar">
-					<li class="switch" id="no_shadow">Flat
+					<li class="switch" id="no_shadow">FLA<u>T</u>
 						<span class="tooltip">Disable shadows on text displayed on canvas</span>
-					<li class="switch" id="lo_res">Lo-Res
+					<li class="switch" id="lo_res">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 				</ul>
 			</div>

@@ -211,7 +211,7 @@ input[type="range"] {
 }
 .tooltip.shortcuts {
 	left: -270px;
-	top: -120px;
+	top: -50px;
 }
 
 .kbd-table tr td:first-child {

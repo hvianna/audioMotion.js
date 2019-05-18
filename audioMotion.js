@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.4-dev.6';
+var _VERSION = '19.4-dev.7';
 
 
 /**
@@ -755,11 +755,10 @@ function displayCanvasMsg() {
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity', rightPos, topLine, maxWidthTop );
+			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
 		}
 
 		if ( playlist.length ) {
-//			canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 			// file type and time
 			if ( audioElement[ currAudio ].duration ) {
 				canvasCtx.textAlign = 'right';
@@ -1079,77 +1078,112 @@ function keyboardControls( event ) {
 	var gradIdx = elGradient.selectedIndex,
 		modeIdx = elMode.selectedIndex;
 
-	switch ( event.keyCode ) {
-		case 32: // space bar - play/pause
+	switch ( event.code ) {
+		case 'Space': 		// play / pause
 			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
 			playPause();
 			break;
-		case 37: // arrow left - previous song
-		case 74: // J (alternative)
+		case 'ArrowLeft': 	// previous song
+		case 'KeyJ':
 			setCanvasMsg( 'Previous song' );
 			playPreviousSong();
 			break;
-		case 38: // arrow up - previous gradient
-		case 73: // I (alternative)
-			if ( gradIdx == 0 )
-				elGradient.selectedIndex = elGradient.options.length - 1;
-			else
-				elGradient.selectedIndex = gradIdx - 1;
+		case 'ArrowUp': 	// gradient
+		case 'ArrowDown':
+		case 'KeyG':
+			if ( event.code == 'ArrowUp' || ( event.code == 'KeyG' && event.shiftKey ) ) {
+				if ( gradIdx == 0 )
+					elGradient.selectedIndex = elGradient.options.length - 1;
+				else
+					elGradient.selectedIndex = gradIdx - 1;
+			}
+			else {
+				if ( gradIdx == elGradient.options.length - 1 )
+					elGradient.selectedIndex = 0;
+				else
+					elGradient.selectedIndex = gradIdx + 1;
+			}
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
-		case 39: // arrow right - next song
-		case 75: // K (alternative)
+		case 'ArrowRight': 	// next song
+		case 'KeyK':
 			setCanvasMsg( 'Next song' );
 			playNextSong();
 			break;
-		case 40: // arrow down - next gradient
-		case 77: // M (alternative)
-			if ( gradIdx == elGradient.options.length - 1 )
-				elGradient.selectedIndex = 0;
-			else
-				elGradient.selectedIndex = gradIdx + 1;
-			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
-			break;
-		case 65: // A key - toggle auto gradient change
+		case 'KeyA': 		// toggle auto gradient change
 			elCycleGrad.click();
 			setCanvasMsg( 'Auto gradient ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
-		case 66: // B key - toggle black background
+		case 'KeyB': 		// toggle black background
 			elBlackBg.click();
 			setCanvasMsg( 'Background ' + ( elBlackBg.dataset.active == '1' ? 'OFF' : 'ON' ) );
 			break;
-		case 68: // D key - display information
-			if ( canvasMsg.msg && canvasMsg.msg == 'all' ) // if info is already been displayed, then hide it
-				setCanvasMsg();
+		case 'KeyD': 		// display information
+			if ( canvasMsg.msg ) {
+				if ( canvasMsg.msg == 'all' )
+					setCanvasMsg();
+				else
+					setCanvasMsg( 'all', 300 );
+			}
 			else
-				setCanvasMsg( 'all', 300, 60 );
+				setCanvasMsg( 'song', 300 );
 			break;
-		case 70: // F key - toggle fullscreen
+		case 'KeyF': 		// toggle fullscreen
 			fullscreen();
 			break;
-		case 76: // L key - toggle LED display effect
+		case 'KeyI': 		// toggle info display on track change
+			elShowSong.click();
+			setCanvasMsg( 'Song info display ' + ( elShowSong.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			break;
+		case 'KeyL': 		// toggle LED display effect
 			elLedDisplay.click();
 			setCanvasMsg( 'LED effect ' + ( elLedDisplay.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
-		case 78: // N key - toggle sensitivity
+		case 'KeyM': 		// visualization mode
+			if ( event.shiftKey ) {
+				if ( modeIdx == 0 )
+					elMode.selectedIndex = elMode.options.length - 1;
+				else
+					elMode.selectedIndex = modeIdx - 1;
+			}
+			else {
+				if ( modeIdx == elMode.options.length - 1 )
+					elMode.selectedIndex = 0;
+				else
+					elMode.selectedIndex = modeIdx + 1;
+			}
+			setScale();
+			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
+			break;
+		case 'KeyN': 		// toggle sensitivity
 			elHighSens.click();
 			setCanvasMsg( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity' );
 			break;
-		case 80: // P key - toggle peaks display
+		case 'KeyO': 		// toggle resolution
+			elLoRes.click();
+			setCanvasMsg( ( elLoRes.dataset.active == '1' ? 'LOW' : 'HIGH' ) + ' Resolution' );
+			break;
+		case 'KeyP': 		// toggle peaks display
 			elShowPeaks.click();
 			setCanvasMsg( 'Peaks ' + ( elShowPeaks.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
-		case 83: // S key - toggle scale
+		case 'KeyR': 		// toggle playlist repeat
+			elRepeat.click();
+			setCanvasMsg( 'Playlist repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			break;
+		case 'KeyS': 		// toggle scale
 			elShowScale.click();
 			setCanvasMsg( 'Scale ' + ( elShowScale.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
-		case 86: // V key - toggle visualization mode
-			if ( modeIdx == elMode.options.length - 1 )
-				elMode.selectedIndex = 0;
-			else
-				elMode.selectedIndex = modeIdx + 1;
-			setScale();
-			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
+		case 'KeyT': 		// toggle text shadow
+			elNoShadow.click();
+			setCanvasMsg( ( elNoShadow.dataset.active == '1' ? 'Flat' : 'Shadowed' ) + ' text mode' );
+			break;
+		case 'KeyU': 		// shuffle playlist
+			if ( playlist.length > 0 ) {
+				shufflePlaylist();
+				setCanvasMsg( 'Shuffled playlist' );
+			}
 			break;
 	}
 }
