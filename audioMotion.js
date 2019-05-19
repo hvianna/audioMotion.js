@@ -521,6 +521,8 @@ function loadPlaylist() {
 				updatePlaylistUI();
 				if ( ! isPlaying() )
 					loadSong( 0 );
+				else
+					loadNextSong();
 			})
 			.catch( function( err ) {
 				consoleLog( err, true );
@@ -576,6 +578,8 @@ function shufflePlaylist() {
 		playlistPos = 0;
 		loadSong(0);
 	}
+	else
+		loadNextSong();
 }
 
 /**
@@ -585,6 +589,9 @@ function loadSong( n ) {
 	if ( playlist[ n ] !== undefined ) {
 		playlistPos = n;
 		audioElement[ currAudio ].src = playlist[ playlistPos ].file;
+		audioElement[ currAudio ].dataset.artist = playlist[ playlistPos ].artist;
+		audioElement[ currAudio ].dataset.song = playlist[ playlistPos ].song;
+		audioElement[ currAudio ].dataset.filetype = playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase();
 		document.getElementById('playlist').selectedIndex = playlistPos;
 		loadNextSong();
 		return true;
@@ -597,11 +604,16 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
+	var n;
 	audioElement[ nextAudio ].pause();
 	if ( playlistPos < playlist.length - 1 )
-		audioElement[ nextAudio ].src = playlist[ playlistPos + 1 ].file;
+		n = playlistPos + 1;
 	else
-		audioElement[ nextAudio ].src = playlist[ 0 ].file;
+		n = 0;
+	audioElement[ nextAudio ].src = playlist[ n ].file;
+	audioElement[ nextAudio ].dataset.artist = playlist[ n ].artist;
+	audioElement[ nextAudio ].dataset.song = playlist[ n ].song;
+	audioElement[ nextAudio ].dataset.filetype = playlist[ n ].file.substring( playlist[ n ].file.lastIndexOf('.') + 1 ).toUpperCase();
 }
 
 /**
@@ -758,21 +770,19 @@ function displayCanvasMsg() {
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
 		}
 
-		if ( playlist.length ) {
-			// file type and time
-			if ( audioElement[ currAudio ].duration ) {
-				canvasCtx.textAlign = 'right';
-				outlineText( playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase(), rightPos, bottomLine1 );
-				curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
-				duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
-				outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
-			}
-			// artist and song name
-			canvasCtx.textAlign = 'left';
-			outlineText( playlist[ playlistPos ].artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
-			canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
-			outlineText( playlist[ playlistPos ].song, leftPos, bottomLine2, maxWidth );
+		// file type and time
+		if ( audioElement[ currAudio ].duration ) {
+			canvasCtx.textAlign = 'right';
+			outlineText( audioElement[ currAudio ].dataset.filetype, rightPos, bottomLine1 );
+			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
+			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+			outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
 		}
+		// artist and song name
+		canvasCtx.textAlign = 'left';
+		outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
+		outlineText( audioElement[ currAudio ].dataset.song, leftPos, bottomLine2, maxWidth );
 	}
 }
 
@@ -951,6 +961,9 @@ function loadLocalFile( obj ) {
 
 	reader.onload = function() {
 		audioElement[ currAudio ].src = reader.result;
+		audioElement[ currAudio ].dataset.artist = '';
+		audioElement[ currAudio ].dataset.song = '';
+		audioElement[ currAudio ].dataset.filetype = '';
 		audioElement[ currAudio ].play();
 	};
 
