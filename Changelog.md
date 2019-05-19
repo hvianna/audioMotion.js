@@ -19,13 +19,18 @@ Changelog
 
 + Changed some keyboard shortcuts:
   + [I] now toggles the display of song information on track change;
-  + [M] now selects the next visualization mode;
+  + [M] now selects the next visualization mode ([V] still works as a convenience to early users, but it may be reassigned a new function in the future);
   + alternate keys for gradient selection changed to [G] and [Shift + G];
 + On-screen information is now displayed in two stages - press [D] once for song info, press it again for settings info;
 + Increased font size of on-screen information;
-+ Restored the shadow on text displayed on canvas - it can be disabled via the *FLAT* switch;
++ Restored option of shadowed text for on-screen information (turn off the *FLAT* switch);
 + *CYCLE* switch renamed to *AUTO*;
 + *DARK* switch renamed to *NO BG*.
+
+### Fixed:
+
++ Preloaded songs not being correctly updated when modifying the playlist during playback;
++ Incorrect song information displayed when playlist was cleared or when playing local file.
 
 
 ## version 19.3

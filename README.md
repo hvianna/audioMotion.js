@@ -112,12 +112,12 @@ The **Restore defaults** preset resets all options to their initial values as in
 
 Below you'll find a brief description of each configuration option.
 
-### Visualization
+### Mode
 
 Selects the visualization mode. *Discrete frequencies* allows you to visualize individual frequencies, limited only by the resolution of both the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your display.
 The *octave bands* modes will display wider bars, representing ranges of frequencies based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
-You can cycle through the available modes using the **V** keyboard shortcut.
+You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 
 ### FFT Size
 
@@ -133,12 +133,12 @@ Average constant used to smooth values between analysis frames. Lower values mak
 
 ### Gradient
 
-Several options of color gradients for the analyzer bars. You can change gradients with the **Up** and **Down** arrow keys, or alternatively, **I** and **M** keys.
+Several options of color gradients for the analyzer bars. You can change gradients with the **Up** and **Down** arrow keys, or alternatively, **G** and **Shift + G** keys.
 
 ### Switches (on / off)
 
 + **INFO** toggles the on-screen display of song information on every track change
-+ **SCALE** toggles the display of the frequency scale on the X-axis; clicking the visualization area or pressing the **S** key also toggles this option
++ **SCALE** toggles the display of the frequency scale on the X-axis; clicking the visualization area also toggles this option
 + **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet
 + **PEAKS** shows volume peaks for each frequency
 
@@ -146,14 +146,14 @@ Several options of color gradients for the analyzer bars. You can change gradien
 + **AUTO** when active, every track change will select the next gradient, cycling through the available options
 + **LED** applies a vintage LED effect to the analyzer bars
 
-+ **FLAT** applies an outline instead of shadow on text displayed on canvas - may improve performance on some graphic cards
++ **FLAT** applies an outline instead of shadow on text displayed on canvas - may improve performance, depending on you graphic card and browser
 + **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays)
 
-The underlined character in the switch label indicates the keyboard shortcut, when available.
+The underlined character in the switch label indicates its keyboard shortcut, when available.
 
 ## Fullscreen mode and keyboard shortcuts
 
-Click the **Fullscreen Analyzer** button to display the spectrum analyzer in fullscreen.
+Click the **Fullscreen Analyzer** button, or press the **F** key, to display the spectrum analyzer in fullscreen.
 
 You can use the keyboard shortcuts below to control the player and change display settings without leaving fullscreen mode:
 
@@ -161,14 +161,14 @@ You can use the keyboard shortcuts below to control the player and change displa
 |------|-----------|--------|
 **Left** / **Right** arrows | **J** / **K** | play previous / next song
 **Space** | | play / pause
-**Up** / **Down** arrows | **Shift + G** / **G** | select previous / next gradient
+**Up** / **Down** arrows | **Shift+G** / **G** | select previous / next gradient
 **A** | | toggle auto gradient change
 **B** | | toggle background
-**D** | | display song info - press again for configuration information
+**D** | | display song info - press again for current settings
 **F** | | toggle fullscreen mode
 **I** | | toggle song info display on track change
 **L** | | toggle LED effect on analyzer bars
-**Shift + M** / **M** | | select previous / next visualization mode
+**Shift+M** / **M** | | select previous / next visualization mode
 **N** | | toggle analyzer sensitivity
 **O** | | toggle low-resolution option
 **P** | | toggle peaks display
