@@ -133,7 +133,7 @@ var presets = {
 			showPeaks   : 1,
 			showSong    : 1,
 			repeat      : 0,
-			noShadow    : 0,
+			noShadow    : 1,
 			loRes       : 0
 		},
 
@@ -1140,6 +1140,7 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'LED effect ' + ( elLedDisplay.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 'KeyM': 		// visualization mode
+		case 'KeyV':
 			if ( event.shiftKey ) {
 				if ( modeIdx == 0 )
 					elMode.selectedIndex = elMode.options.length - 1;
