@@ -45,6 +45,14 @@ var audioStarted = false,
 	bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ],
 	// gradient definitions
 	gradients = {
+		apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
+					{ stop: .1667, color: '#61bb46' },
+					{ stop: .3333, color: '#fdb827' },
+					{ stop: .5, color: '#f5821f' },
+					{ stop: .6667, color: '#e03a3e' },
+					{ stop: .8333, color: '#963d97' },
+					{ stop: 1, color: '#009ddc' }
+				  ] },
 		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
 					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
 					{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
