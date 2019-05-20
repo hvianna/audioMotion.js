@@ -433,7 +433,7 @@ function drawScale() {
  */
 function clearPlaylist() {
 	playlist = [];
-	playlistPos = 0;
+	playlistPos = isPlaying() ? -1 : 0;
 	updatePlaylistUI();
 }
 
