@@ -343,7 +343,7 @@ function preCalcPosX() {
 				break;
 
 			case  '2':
-				ledOptions = { nLeds: 96, spaceV: 5, spaceH: 4 };
+				ledOptions = { nLeds: 128, spaceV: 4, spaceH: 4 };
 				break;
 
 			default:
