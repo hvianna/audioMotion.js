@@ -6,7 +6,7 @@ Changelog
 ### Added:
 
 + :sunglasses: New optional vintage LED effect for the octave bands modes;
-+ New 'Orient' gradient;
++ New gradients: **Apple ][** and **Orient**;
 + Two configuration options to improve performance:
   + **FLAT** replaces shadow for outline on text displayed on canvas;
   + **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays);
@@ -19,7 +19,7 @@ Changelog
 
 + Changed some keyboard shortcuts:
   + [I] now toggles the display of song information on track change;
-  + [M] now selects the next visualization mode ([V] still works as a convenience to early users, but it may be reassigned a new function in the future);
+  + [M] now selects the next visualization mode ([V] still works as a convenience to early users, but it may be assigned a new function in the future);
   + alternate keys for gradient selection changed to [G] and [Shift + G];
 + On-screen information is now displayed in two stages - press [D] once for song info, press it again for settings info;
 + Increased font size of on-screen information;
