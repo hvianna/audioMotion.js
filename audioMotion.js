@@ -206,6 +206,7 @@ function fullscreen() {
 			canvas.mozRequestFullScreen();
 		else if ( canvas.msRequestFullscreen )
 			canvas.msRequestFullscreen();
+		document.getElementById('fullscreen_button').blur();
 	}
 }
 
