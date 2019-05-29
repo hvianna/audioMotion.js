@@ -815,6 +815,8 @@ function draw() {
 		i, j, l, bar, barHeight,
 		isLedDisplay = ( elLedDisplay.dataset.active == '1' && elMode.value != '0' );
 
+	document.body.className = isPlaying() ? 'playing' : '';
+
 	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
 	else

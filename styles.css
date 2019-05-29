@@ -25,10 +25,14 @@ input[type="range"] {
 }
 
 #canvas {
-	height: 50vh;
+	height: 0;
 }
 #canvas:-webkit-full-screen {
 	height: auto;
+}
+body.playing #canvas {
+	height: 50vh;
+	transition: height 1s;
 }
 
 #player0,
