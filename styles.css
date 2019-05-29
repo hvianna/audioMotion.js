@@ -17,6 +17,34 @@ input[type="range"] {
 	width: 80px;
 }
 
+header {
+	background: #000;
+	color: #eee;
+	padding: 10px 20px;
+}
+h1 {
+	animation: flow 10s ease-in-out infinite;
+	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
+	background-clip: text;
+	background-size: 300%;
+	font: 30px Orbitron, sans-serif;
+	margin: 0;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+/* https://dev.to/gabe/fluid-css-gradient-animation-3b2 */
+@keyframes flow {
+	0% {
+		background-position: 0 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0 50%;
+	}
+}
+
 #canvas,
 #player0,
 #player1 {
