@@ -1381,14 +1381,18 @@ function initialize() {
 	});
 	playlistPos = 0;
 
-	// Add event listeners for configuration and console panel selectors
-	document.getElementById('panel_selector').addEventListener( 'click', function ( e ) {
-//		document.getElementById('configuration').style.display = 'none';
-//		document.getElementById('console').style.display = 'none';
-		if ( e.target && e.target.dataset.panel ) {
-			let el = document.getElementById( e.target.dataset.panel );
-			el.style.display = ( el.offsetWidth > 0 && el.offsetHeight > 0 ) ? 'none' : 'block';
-		}
+	// Add event listeners for config panel selectors
+	document.getElementById('panel_selector').addEventListener( 'click', function ( event ) {
+		document.getElementById('configuration').style.display = 'none';
+		document.getElementById('console').style.display = 'none';
+		document.querySelectorAll('#panel_selector li').forEach( e => e.className = '' );
+		let el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
+//			el.style.display = ( el.offsetWidth > 0 && el.offsetHeight > 0 ) ? 'none' : 'block';
+		el.style.display = 'block';
+		if ( event.target.nodeName == 'LI' )
+			event.target.className = 'active';
+		else
+			event.target.parentElement.className = 'active';
 	});
 
 	// Create audio context
@@ -1459,7 +1463,7 @@ function initialize() {
 
 	// Add event listeners to the custom checkboxes
 	var switches = document.querySelectorAll('.switch');
-	for ( i = 0; i < switches.length; i++ ) {
+	for ( let i = 0; i < switches.length; i++ ) {
 		switches[ i ].addEventListener( 'click', function( e ) {
 			e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
 		});
