@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.5';
+var _VERSION = '19.6-dev';
 
 
 /**
@@ -441,7 +441,10 @@ function drawScale() {
  * Clear the playlist
  */
 function clearPlaylist() {
-	playlist = [];
+
+	while ( playlist.hasChildNodes() )
+		playlist.removeChild( playlist.firstChild );
+
 	playlistPos = isPlaying() ? -1 : 0;
 	updatePlaylistUI();
 }
@@ -482,6 +485,52 @@ function loadPlaylistsCfg() {
 }
 
 /**
+ * Add a song to the playlist
+ */
+function addToPlaylist( content ) { // ( target ) {
+
+//	let fullPath = makePath( target );
+
+//	mm.fetchFromUrl( fullPath )
+//		.then( function( content ) {
+			let artist, title, album, codec, samplerate, bitdepth, cover = '';
+
+			if ( content ) {
+/*
+				artist = content.common.artist || '',
+				title = content.common.title || target,
+				album = content.common.album ? content.common.album + ( content.common.year ? ' (' + content.common.year + ')' : '' ) : '',
+//				codec = content.format.codec || content.format.container || path.extname( target ).substring(1),
+				codec = content.format.codec || content.format.container || target.substring( target.lastIndexOf('.') + 1 ),
+				samplerate = content.format.sampleRate || '',
+				bitdepth = content.format.bitsPerSample || '',
+				cover = content.common.picture ? 'get' : '';
+*/
+				artist = content.artist || '';
+				title = content.title || target;
+				codec = content.file.substring( content.file.lastIndexOf('.') + 1 );
+			}
+			else {
+				title = target;
+				codec = target.substring( target.lastIndexOf('.') + 1 );
+			}
+
+			let el = document.createElement('li');
+			el.innerHTML = title;
+			el.dataset.artist = artist;
+			el.dataset.title = title;
+//			el.dataset.album = album;
+			el.dataset.codec = codec;
+//			el.dataset.samplerate = samplerate;
+//			el.dataset.bitdepth = bitdepth;
+//			el.dataset.cover = cover;
+			el.dataset.file = content.file; //fullPath;
+			playlist.appendChild( el );
+//		});
+}
+
+
+/**
  * Load a playlist file into the current playlist
  */
 function loadPlaylist() {
@@ -518,16 +567,16 @@ function loadPlaylist() {
 						tmplist[ i ] = tmplist[ i ].replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 						t = songInfo.indexOf(' - ');
 						if ( t == -1 )
-							playlist.push( { file: tmplist[ i ], artist: '', song: songInfo } );
+							addToPlaylist( { file: tmplist[ i ], artist: '', title: songInfo } );
 						else
-							playlist.push( { file: tmplist[ i ], artist: songInfo.substring( 0, t ), song: songInfo.substring( t + 3 ) } );
+							addToPlaylist( { file: tmplist[ i ], artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
 						songInfo = '';
 					}
 					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
 						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 				}
 				consoleLog( 'Loaded ' + n + ' files into the playlist' );
-				updatePlaylistUI();
+//				updatePlaylistUI();
 				if ( ! isPlaying() )
 					loadSong( 0 );
 				else
@@ -546,19 +595,8 @@ function loadPlaylist() {
  */
 function updatePlaylistUI() {
 
-	var	elPlaylist = document.getElementById('playlist');
-
-	while ( elPlaylist.hasChildNodes() )
-		elPlaylist.removeChild( elPlaylist.firstChild );
-
-	for ( var i = 0; i < playlist.length; i++ ) {
-		if ( playlist[ i ].artist )
-			elPlaylist.appendChild( new Option( playlist[ i ].artist + ' - ' + playlist[ i ].song ) );
-		else
-			elPlaylist.appendChild( new Option( playlist[ i ].song ) );
-	}
-
-	elPlaylist.selectedIndex = playlistPos;
+	playlist.childNodes.forEach( node => node.className = '' );
+	playlist.childNodes[ playlistPos ].className = 'selected';
 }
 
 /**
@@ -592,16 +630,29 @@ function shufflePlaylist() {
 }
 
 /**
+ * Return the index of an element inside its parent
+ * https://stackoverflow.com/questions/13656921/fastest-way-to-find-the-index-of-a-child-node-in-parent
+ */
+function getIndex( node ) {
+	var i = 1;
+	while ( node = node.previousElementSibling )
+		++i;
+	return i;
+}
+
+/**
  * Load a song into the currently active audio element
  */
 function loadSong( n ) {
-	if ( playlist[ n ] !== undefined ) {
+	if ( playlist.childNodes[ n ] ) {
 		playlistPos = n;
-		audioElement[ currAudio ].src = playlist[ playlistPos ].file;
-		audioElement[ currAudio ].dataset.artist = playlist[ playlistPos ].artist;
-		audioElement[ currAudio ].dataset.song = playlist[ playlistPos ].song;
-		audioElement[ currAudio ].dataset.filetype = playlist[ playlistPos ].file.substring( playlist[ playlistPos ].file.lastIndexOf('.') + 1 ).toUpperCase();
-		document.getElementById('playlist').selectedIndex = playlistPos;
+		audioElement[ currAudio ].src = playlist.childNodes[ playlistPos ].dataset.file;
+		audioElement[ currAudio ].dataset.artist = playlist.childNodes[ playlistPos ].dataset.artist;
+		audioElement[ currAudio ].dataset.title = playlist.childNodes[ playlistPos ].dataset.title;
+		audioElement[ currAudio ].dataset.codec = playlist.childNodes[ playlistPos ].dataset.codec;
+
+		updatePlaylistUI();
+
 		loadNextSong();
 		return true;
 	}
@@ -615,14 +666,14 @@ function loadSong( n ) {
 function loadNextSong() {
 	var n;
 	audioElement[ nextAudio ].pause();
-	if ( playlistPos < playlist.length - 1 )
+	if ( playlistPos < playlist.childNodes.length - 1 )
 		n = playlistPos + 1;
 	else
 		n = 0;
-	audioElement[ nextAudio ].src = playlist[ n ].file;
-	audioElement[ nextAudio ].dataset.artist = playlist[ n ].artist;
-	audioElement[ nextAudio ].dataset.song = playlist[ n ].song;
-	audioElement[ nextAudio ].dataset.filetype = playlist[ n ].file.substring( playlist[ n ].file.lastIndexOf('.') + 1 ).toUpperCase();
+	audioElement[ nextAudio ].src = playlist.childNodes[ n ].dataset.file;
+	audioElement[ nextAudio ].dataset.artist = playlist.childNodes[ n ].dataset.artist;
+	audioElement[ nextAudio ].dataset.title = playlist.childNodes[ n ].dataset.title;
+	audioElement[ nextAudio ].dataset.codec = playlist.childNodes[ n ].dataset.codec;
 }
 
 /**
@@ -668,12 +719,12 @@ function playPreviousSong() {
 
 function playNextSong( play ) {
 
-	if ( cfgSource == 'mic' || playlistPos > playlist.length - 1 )
+	if ( cfgSource == 'mic' || playlistPos > playlist.childNodes.length - 1 )
 		return;
 
 	var gradIdx;
 
-	if ( playlistPos < playlist.length - 1 )
+	if ( playlistPos < playlist.childNodes.length - 1 )
 		playlistPos++;
 	else if ( elRepeat.dataset.active == '1' )
 		playlistPos = 0;
@@ -706,7 +757,7 @@ function playNextSong( play ) {
 	else
 		loadNextSong();
 
-	document.getElementById('playlist').selectedIndex = playlistPos;
+	updatePlaylistUI();
 }
 
 /**
@@ -782,7 +833,7 @@ function displayCanvasMsg() {
 		// file type and time
 		if ( audioElement[ currAudio ].duration ) {
 			canvasCtx.textAlign = 'right';
-			outlineText( audioElement[ currAudio ].dataset.filetype, rightPos, bottomLine1 );
+			outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
 			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
 			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
 			outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
@@ -791,7 +842,7 @@ function displayCanvasMsg() {
 		canvasCtx.textAlign = 'left';
 		outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
 		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
-		outlineText( audioElement[ currAudio ].dataset.song, leftPos, bottomLine2, maxWidth );
+		outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
 	}
 }
 
@@ -973,8 +1024,8 @@ function loadLocalFile( obj ) {
 	reader.onload = function() {
 		audioElement[ currAudio ].src = reader.result;
 		audioElement[ currAudio ].dataset.artist = '';
-		audioElement[ currAudio ].dataset.song = '';
-		audioElement[ currAudio ].dataset.filetype = '';
+		audioElement[ currAudio ].dataset.title = '';
+		audioElement[ currAudio ].dataset.codec = '';
 		audioElement[ currAudio ].play();
 	};
 
@@ -1219,7 +1270,7 @@ function keyboardControls( event ) {
  */
 function audioOnPlay( event ) {
 	if ( audioStarted ) {
-		if ( playlist.length == 0 && audioElement[ currAudio ].src == '' ) {
+		if ( playlist.childNodes.length == 0 && audioElement[ currAudio ].src == '' ) {
 			consoleLog( 'No song loaded', true );
 			audioElement[ currAudio ].pause();
 		}
@@ -1240,7 +1291,7 @@ function audioOnPlay( event ) {
  */
 function audioOnEnded() {
 	// song ended, skip to next one if available
-	if ( playlistPos < playlist.length - 1 || elRepeat.dataset.active == '1' )
+	if ( playlistPos < playlist.childNodes.length - 1 || elRepeat.dataset.active == '1' )
 		playNextSong( true );
 	else
 		loadSong( 0 );
@@ -1319,7 +1370,11 @@ function setCanvas() {
  */
 function initialize() {
 
-	playlist = [];
+	playlist = document.getElementById('playlist');
+	playlist.addEventListener( 'click', function ( e ) {
+		if ( e.target && e.target.dataset.file )
+			playSong( getIndex( e ) );
+	});
 	playlistPos = 0;
 
 	consoleLog( 'audioMotion.js version ' + _VERSION );

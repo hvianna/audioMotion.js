@@ -269,6 +269,26 @@ body.playing #canvas {
 	width: 50px;
 }
 
+.filelist {
+	border: 1px solid #ccc;
+	height: 400px;
+	list-style: none;
+	overflow: auto;
+	padding: 0;
+	vertical-align: top;
+}
+.filelist li {
+	cursor: pointer;
+	line-height: 1.6;
+	padding: 0 .75em;
+	white-space: nowrap;
+}
+.filelist li:hover,
+.filelist li.selected {
+	background: #06c;
+	color: #fff;
+}
+
 #console {
 	background: #1c231a;
 	color: #0b0;
