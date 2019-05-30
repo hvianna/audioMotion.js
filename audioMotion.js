@@ -634,9 +634,9 @@ function shufflePlaylist() {
  * https://stackoverflow.com/questions/13656921/fastest-way-to-find-the-index-of-a-child-node-in-parent
  */
 function getIndex( node ) {
-	var i = 1;
+	var i = 0;
 	while ( node = node.previousElementSibling )
-		++i;
+		i++;
 	return i;
 }
 
@@ -1377,7 +1377,7 @@ function initialize() {
 	playlist = document.getElementById('playlist');
 	playlist.addEventListener( 'click', function ( e ) {
 		if ( e.target && e.target.dataset.file )
-			playSong( getIndex( e ) );
+			playSong( getIndex( e.target ) );
 	});
 	playlistPos = 0;
 
