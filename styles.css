@@ -67,6 +67,7 @@ h1 {
 	display: block;
 	height: 35vh;
 	margin: 0 auto;
+	width: 100%;
 }
 #canvas:-webkit-full-screen {
 	height: auto;
@@ -88,6 +89,13 @@ body.playing #canvas {
 	width: 100%;
 }
 
+#local_file {
+	display: none;
+	height: 250px;
+	line-height: 1.6;
+	padding-top: 20px;
+}
+
 .playlist-button,
 .config-label {
 	font-size: 11px;
@@ -97,8 +105,8 @@ body.playing #canvas {
 .playlist-area {
 	align-items: center;
 	display: flex;
+	height: 35x;
 	justify-content: space-between;
-	margin-bottom: 10px;
 }
 .playlist-title {
 	font-weight: bold;
@@ -120,6 +128,7 @@ body.playing #canvas {
 	background: #f5f5f5;
 	border-top: 1px solid #ccc;
 	color: #444;
+	cursor: pointer;
 	padding: 10px;
 }
 .panel-selector li.active {
@@ -129,9 +138,34 @@ body.playing #canvas {
 .panel-selector li:last-child {
 	border-bottom: 1px solid #ccc;
 }
-
+.panel-selector li.warning::before {
+	background: #c00;
+	border-radius: 50%;
+	color: #fff;
+	content: '!';
+	display: block;
+	font-size: 10px;
+	font-weight: bold;
+	height: 6px;
+	line-height: 0.5;
+	margin-left: 10px;
+	padding: 4px;
+	position: absolute;
+	text-align: center;
+	width: 6px;
+}
 .panel-selector [class^="icons8-"] {
 	font-size: 20px;
+}
+
+.config-panel {
+	background: #f5f5f5;
+	border: 1px solid #ccc;
+	border-bottom-left-radius: 5px;
+	border-top-left-radius: 5px;
+	height: 400px;
+	margin-left: 40px;
+	padding: 15px 0;
 }
 
 .config-block {
@@ -167,10 +201,6 @@ body.playing #canvas {
 
 .fullscreen-button {
 	width: 200px;
-}
-
-.local-file-selection {
-	margin-top: -6px;
 }
 
 .button-bar {
@@ -286,6 +316,9 @@ body.playing #canvas {
 	left: -270px;
 	top: -50px;
 }
+.player-controls .tooltip {
+	right: 0;
+}
 
 .kbd-table tr td:first-child {
 	width: 50px;
@@ -310,6 +343,29 @@ body.playing #canvas {
 	width: 50px;
 }
 
+/* File explorer */
+
+.breadcrumb {
+	line-height: 35px;
+	list-style: none;
+	margin: 0;
+	padding-left: 0;
+}
+.breadcrumb li {
+	cursor: pointer;
+	display: inline;
+}
+.breadcrumb li:hover {
+	text-decoration: underline;
+}
+.breadcrumb li:last-child {
+	cursor: default;
+	font-weight: 500;
+}
+.breadcrumb li:last-child:hover {
+	text-decoration: none;
+}
+
 .filelist {
 	background: #fff;
 	border: 1px solid #ccc;
@@ -330,15 +386,24 @@ body.playing #canvas {
 	background: #06c;
 	color: #fff;
 }
-
-.config-panel {
-	background: #f5f5f5;
-	border: 1px solid #ccc;
-	border-bottom-left-radius: 5px;
-	border-top-left-radius: 5px;
-	height: 400px;
-	margin-left: 40px;
-	padding: 15px 0;
+.filelist [data-type]::before {
+	font-family: audioMotion;
+	margin-right: 10px;
+}
+.filelist [data-type="dir"]::before {
+	content: '\f116';
+}
+.filelist [data-path=".."]::before {
+	content: '\f119';
+}
+.filelist [data-type="drive"]::before {
+	content: '\f115';
+}
+.filelist [data-type="file"]::before {
+	content: '\f118';
+}
+.filelist [data-type="list"]::before {
+	content: '\f102';
 }
 
 #console {

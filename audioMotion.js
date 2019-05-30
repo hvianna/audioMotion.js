@@ -487,46 +487,23 @@ function loadPlaylistsCfg() {
 /**
  * Add a song to the playlist
  */
-function addToPlaylist( content ) { // ( target ) {
+function addToPlaylist( content ) {
 
-//	let fullPath = makePath( target );
+	var title = content.common.title || content.file.substring( content.file.lastIndexOf('/') + 1 );
 
-//	mm.fetchFromUrl( fullPath )
-//		.then( function( content ) {
-			let artist, title, album, codec, samplerate, bitdepth, cover = '';
+	var el = document.createElement('li');
 
-			if ( content ) {
-/*
-				artist = content.common.artist || '',
-				title = content.common.title || target,
-				album = content.common.album ? content.common.album + ( content.common.year ? ' (' + content.common.year + ')' : '' ) : '',
-//				codec = content.format.codec || content.format.container || path.extname( target ).substring(1),
-				codec = content.format.codec || content.format.container || target.substring( target.lastIndexOf('.') + 1 ),
-				samplerate = content.format.sampleRate || '',
-				bitdepth = content.format.bitsPerSample || '',
-				cover = content.common.picture ? 'get' : '';
-*/
-				artist = content.artist || '';
-				title = content.title || target;
-				codec = content.file.substring( content.file.lastIndexOf('.') + 1 );
-			}
-			else {
-				title = target;
-				codec = target.substring( target.lastIndexOf('.') + 1 );
-			}
+	el.innerHTML = title;
+	el.dataset.artist = content.common.artist || '';
+	el.dataset.title = title;
+//	el.dataset.album = content.common.album ? content.common.album + ( content.common.year ? ' (' + content.common.year + ')' : '' ) : '';
+	el.dataset.codec = content.format ? content.format.codec || content.format.container : content.file.substring( content.file.lastIndexOf('.') + 1 );
+//	el.dataset.samplerate = content.format && content.format.sampleRate || '';
+//	el.dataset.bitdepth = content.format && content.format.bitsPerSample || '';
+//	el.dataset.cover = content.common.picture ? 'get' : '';
+	el.dataset.file = content.file;
 
-			let el = document.createElement('li');
-			el.innerHTML = title;
-			el.dataset.artist = artist;
-			el.dataset.title = title;
-//			el.dataset.album = album;
-			el.dataset.codec = codec;
-//			el.dataset.samplerate = samplerate;
-//			el.dataset.bitdepth = bitdepth;
-//			el.dataset.cover = cover;
-			el.dataset.file = content.file; //fullPath;
-			playlist.appendChild( el );
-//		});
+	playlist.appendChild( el );
 }
 
 
@@ -567,9 +544,9 @@ function loadPlaylist() {
 						tmplist[ i ] = tmplist[ i ].replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 						t = songInfo.indexOf(' - ');
 						if ( t == -1 )
-							addToPlaylist( { file: tmplist[ i ], artist: '', title: songInfo } );
+							addToPlaylist( { file: tmplist[ i ], common: { artist: '', title: songInfo } } );
 						else
-							addToPlaylist( { file: tmplist[ i ], artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
+							addToPlaylist( { file: tmplist[ i ], common: { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } } );
 						songInfo = '';
 					}
 					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
@@ -973,8 +950,10 @@ function draw() {
  */
 function consoleLog( msg, error ) {
 	var elConsole = document.getElementById( 'console' );
-	if ( error )
+	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
+		document.getElementById( 'show_console' ).className = 'warning';
+	}
 	elConsole.innerHTML += msg + '<br>';
 	elConsole.scrollTop = elConsole.scrollHeight;
 }
@@ -1534,4 +1513,4 @@ function initialize() {
  * Initialize when window finished loading
  */
 
-window.onload = initialize;
+window.addEventListener( 'load', initialize );

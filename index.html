@@ -42,6 +42,7 @@
 	<meta name="twitter:site" content="@HenriqueVianna">
 	<script src="vendor/localStorage.js"></script>
 	<script src="audioMotion.js"></script>
+	<script src="file-explorer.js"></script>
 </head>
 
 <body>
@@ -82,7 +83,9 @@
 			<i class="icons8-pause-button" onclick="playPause();"></i>
 			<i class="icons8-stop-symbol" onclick="stop();"></i>
 			<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
-			<i class="icons8-shuffle-2" onclick="shufflePlaylist();"></i>
+			<span class="help"><i class="icons8-shuffle-2" onclick="shufflePlaylist();"></i>
+				<span class="tooltip">Shuffle playlist</span>
+			</span>
 			<span class="help"><i class="icons8-repeat-2 switch" id="repeat"></i>
 				<span class="tooltip">Repeat playlist</span>
 			</span>
@@ -110,8 +113,8 @@
 
 
 	<ul id="panel_selector" class="panel-selector">
-		<li id="show_config" data-panel="config_panel" title="show configuration"><i class="icons8-gear-outline"></i></li>
-		<li id="show_filelist" data-panel="file_panel" title="show file explorer"><i class="icons8-opened-folder-2"></i></li>
+		<li id="show_config" data-panel="config_panel" title="analyzer configuration"><i class="icons8-gear-outline"></i></li>
+		<li id="show_filelist" data-panel="file_panel" title="file explorer and playlist"><i class="icons8-opened-folder-2"></i></li>
 		<li id="show_console" data-panel="console" title="show console"><i class="icons8-console"></i></li>
 	</ul>
 
@@ -121,13 +124,22 @@
 		<div class="ui-panels config-block">
 
 			<div>
+				<ul id="path" class="breadcrumb"></ul>
 				<ul id="file_explorer" class="filelist"></ul>
+
+				<div id="local_file" class="local-file button-bar">
+					Play a song:
+					<input type="file" accept="audio/*" onchange="loadLocalFile( this );">
+
+					<p>Use this feature to visualize individual songs from your PC.<br>
+					Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> on how to use audioMotion with playlists.</p>
+				</div>
 			</div>
 
 			<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
 
 			<div>
-				<div class="playlist-area button-bar">
+				<div class="playlist-area">
 					<select id="playlists">
 						<option value="">Select a playlist to load</option>
 					</select>
@@ -255,16 +267,6 @@
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 				</ul>
 			</div>
-
-	<!--
-				<div class="local-file button-bar">
-					<span class="help"><span class="config-label">Play a song:</span>
-					<span class="tooltip">
-						Load a song from your PC and play it. This is mostly a demo feature. Please refer to the documentation on how to use audioMotion with playlists.
-					</span>
-					<input type="file" accept="audio/*" onchange="loadLocalFile( this );">
-				</div>
-	-->
 
 		</div>
 
