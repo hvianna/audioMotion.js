@@ -866,7 +866,7 @@ function draw() {
 		i, j, l, bar, barHeight,
 		isLedDisplay = ( elLedDisplay.dataset.active == '1' && elMode.value != '0' );
 
-	document.body.className = isPlaying() ? 'playing' : '';
+//	document.body.className = isPlaying() ? 'playing' : '';
 
 	if ( cfgBlackBg )	// use black background
 		canvasCtx.fillStyle = '#000';
@@ -1383,9 +1383,10 @@ function initialize() {
 
 	// Add event listeners for config panel selectors
 	document.getElementById('panel_selector').addEventListener( 'click', function ( event ) {
-		document.getElementById('configuration').style.display = 'none';
-		document.getElementById('console').style.display = 'none';
-		document.querySelectorAll('#panel_selector li').forEach( e => e.className = '' );
+		document.querySelectorAll('#panel_selector li').forEach( e => {
+			e.className = '';
+			document.getElementById( e.dataset.panel ).style.display = 'none';
+		});
 		let el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
 //			el.style.display = ( el.offsetWidth > 0 && el.offsetHeight > 0 ) ? 'none' : 'block';
 		el.style.display = 'block';
@@ -1394,6 +1395,7 @@ function initialize() {
 		else
 			event.target.parentElement.className = 'active';
 	});
+	document.getElementById('show_filelist').click();
 
 	// Create audio context
 

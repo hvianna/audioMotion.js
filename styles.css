@@ -1,9 +1,11 @@
 * {
 	box-sizing: border-box;
+	font-size: inherit;
 }
 
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	font-size: 13px;
 	margin: 0;
 }
 
@@ -50,28 +52,31 @@ h1 {
 	}
 }
 
-#canvas,
+.analyzer {
+	background: #000;
+}
+
 #player0,
 #player1 {
 	display: block;
-	width: 100%;
+/*	margin-bottom: 10px; */
+	width: 100%
 }
 
 #canvas {
-	height: 0;
+	display: block;
+	height: 35vh;
+	margin: 0 auto;
 }
 #canvas:-webkit-full-screen {
 	height: auto;
 }
+/*
 body.playing #canvas {
 	height: 50vh;
 	transition: height 1s;
 }
-
-#player0,
-#player1 {
-	margin-bottom: 10px;
-}
+*/
 
 #playlist {
 	display: block;
@@ -130,6 +135,7 @@ body.playing #canvas {
 }
 
 .config-block {
+	align-items: center;
 	display: flex;
 	justify-content: space-around;
 }
@@ -196,6 +202,12 @@ body.playing #canvas {
 .player-controls i.icons8-pause-button {
 	margin-left: -25px;
 }
+.player-controls i[data-active="1"] {
+	background: #ccc;
+	box-shadow: 1px 1px 2px inset #0008;
+	color: #0e0;
+	text-shadow: 1px 1px 0 #0008, -1px -1px 0 #fff;
+}
 
 .help {
 	cursor: help;
@@ -217,7 +229,7 @@ body.playing #canvas {
 	padding: 0;
 	position: relative;
 }
-.switch {
+.switch-bar .switch {
 	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
 	border: 1px solid #ccc;
 	border-left-width: 0;
@@ -232,16 +244,16 @@ body.playing #canvas {
 .switch input {
 	display: none;
 }
-.switch:first-child {
+.switch-bar .switch:first-child {
 	border-left-width: 1px;
 	border-top-left-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
-.switch:last-child {
+.switch-bar .switch:last-child {
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 }
-.switch[data-active="1"] {
+.switch-bar .switch[data-active="1"] {
 	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
 	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
 	color: #fff;
@@ -299,8 +311,9 @@ body.playing #canvas {
 }
 
 .filelist {
+	background: #fff;
 	border: 1px solid #ccc;
-	height: 400px;
+	height: 250px;
 	list-style: none;
 	overflow: auto;
 	padding: 0;
@@ -318,13 +331,12 @@ body.playing #canvas {
 	color: #fff;
 }
 
-#console,
-#configuration {
+.config-panel {
 	background: #f5f5f5;
 	border: 1px solid #ccc;
 	border-bottom-left-radius: 5px;
 	border-top-left-radius: 5px;
-	height: 120px;
+	height: 400px;
 	margin-left: 40px;
 	padding: 15px 0;
 }
@@ -371,6 +383,8 @@ body.playing #canvas {
 .credits a {
 	color: #090;
 }
+
+/* Responsive layout */
 
 @media screen and (max-width: 1400px) {
 	.playlist-area .switch-bar {

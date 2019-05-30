@@ -46,19 +46,99 @@
 
 <body>
 	<header><h1>audioMotion</h1></header>
-	<canvas id="canvas"></canvas>
+	<div class="analyzer">
+		<canvas id="canvas"></canvas>
+	</div>
 
 	<audio id="player0" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 	<audio id="player1" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 
+	<div class="config-block">
+		<div>
+			<span class="help">
+				<span class="tooltip">
+					Loads a configuration preset.<br>
+					<strong>"Last session"</strong> restores the options used in the previous session.
+				</span>
+				<select id="preset" onchange="loadPreset( this.value );">
+					<option value="">Load Preset</option>
+					<option value="fullres">Full resolution</option>
+					<option value="octave">Octave bands</option>
+					<option value="ledbars">LED bars</option>
+					<option value="custom">Custom</option>
+					<option value="last">Last session</option>
+					<option value="default">Restore defaults</option>
+				</select>
+			</span>
+			<span class="help">
+				<button onclick="updateCustomPreset();">Save</button>
+				<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
+			</span>
+		</div>
+
+		<div class="player-controls center">
+			<i class="icons8-previous-track-2" onclick="playPreviousSong();"></i>
+			<i class="icons8-play-button" onclick="playPause();"></i>
+			<i class="icons8-pause-button" onclick="playPause();"></i>
+			<i class="icons8-stop-symbol" onclick="stop();"></i>
+			<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
+			<i class="icons8-shuffle-2" onclick="shufflePlaylist();"></i>
+			<span class="help"><i class="icons8-repeat-2 switch" id="repeat"></i>
+				<span class="tooltip">Repeat playlist</span>
+			</span>
+		</div>
+
+		<div class="button-bar center">
+			<button id="fullscreen_button" class="fullscreen-button" onclick="fullscreen();"><u>F</u>ullscreen Analyzer</button>
+			<br>
+			<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
+				<span class="tooltip shortcuts">
+					<table class="kbd-table">
+						<tr><td><span class="key key-big">&larr;</span> / <span class="key key-big">&rarr;</span></td><td>previous / next song</td></tr>
+						<tr><td><span class="key key-wide">Space</span></td><td>play / pause</td></tr>
+						<tr><td><span class="key key-big">&uarr;</span> / <span class="key key-big">&darr;</span></td><td>previous / next gradient</td></tr>
+						<tr><td><span class="key">F</span></td><td>toggle fullscreen</td></tr>
+						<tr><td><span class="key">g</span> / <span class="key">G</span></td><td>previous / next gradient</td></tr>
+						<tr><td><span class="key">J</span> / <span class="key">K</span></td><td>previous / next song</td></tr>
+						<tr><td><span class="key">m</span> / <span class="key">M</span></td><td>previous / next mode</td></tr>
+						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
+					</table>
+				</span>
+			</span>
+		</div>
+	</div>
+
+
 	<ul id="panel_selector" class="panel-selector">
-		<li title="show configuration" data-panel="configuration" class="active"><i class="icons8-gear-outline"></i></li>
-		<li title="show console" data-panel="console"><i class="icons8-console"></i></li>
+		<li id="show_config" data-panel="config_panel" title="show configuration"><i class="icons8-gear-outline"></i></li>
+		<li id="show_filelist" data-panel="file_panel" title="show file explorer"><i class="icons8-opened-folder-2"></i></li>
+		<li id="show_console" data-panel="console" title="show console"><i class="icons8-console"></i></li>
 	</ul>
 
-	<div id="console"></div>
+	<div id="console" class="config-panel"></div>
 
-	<div id="configuration">
+	<div id="file_panel" class="config-panel">
+		<div class="ui-panels config-block">
+
+			<div>
+				<ul id="file_explorer" class="filelist"></ul>
+			</div>
+
+			<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
+
+			<div>
+				<div class="playlist-area button-bar">
+					<select id="playlists">
+						<option value="">Select a playlist to load</option>
+					</select>
+					<button onclick="loadPlaylist();">LOAD</button>
+				</div>
+				<ul id="playlist" class="filelist"></ul>
+			</div>
+		</div>
+	</div> <!-- #file_panel -->
+
+	<div id="config_panel" class="config-panel">
 		<div class="main-config config-block">
 			<div>
 				<span class="help"><span class="config-label"><u>M</u>ode:</span>
@@ -144,28 +224,6 @@
 
 			<div class="main-config config-block">
 				<div>
-					<span class="help">
-						<span class="tooltip">
-							Loads a configuration preset.<br>
-							<strong>"Last session"</strong> restores the options used in the previous session.
-						</span>
-						<select id="preset" onchange="loadPreset( this.value );">
-							<option value="">Load Preset</option>
-							<option value="fullres">Full resolution</option>
-							<option value="octave">Octave bands</option>
-							<option value="ledbars">LED bars</option>
-							<option value="custom">Custom</option>
-							<option value="last">Last session</option>
-							<option value="default">Restore defaults</option>
-						</select>
-					</span>
-					<span class="help">
-						<button onclick="updateCustomPreset();">Save</button>
-						<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
-					</span>
-				</div>
-
-				<div>
 					<span class="config-label">AUDIO SOURCE:</span>
 					<select id="source" onchange="setSource();">
 						<option value="player">built-in Player</option>
@@ -210,63 +268,8 @@
 
 		</div>
 
-	</div> <!-- #configuration -->
+	</div> <!-- #config_panel -->
 
-	<div class="player-controls center">
-		<i class="icons8-previous-track-2" onclick="playPreviousSong();"></i>
-		<i class="icons8-play-button" onclick="playPause();"></i>
-		<i class="icons8-pause-button" onclick="playPause();"></i>
-		<i class="icons8-stop-symbol" onclick="stop();"></i>
-		<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
-	</div>
-
-	<div class="button-bar center">
-		<button id="fullscreen_button" class="fullscreen-button" onclick="fullscreen();"><u>F</u>ullscreen Analyzer</button>
-		<br>
-		<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
-			<span class="tooltip shortcuts">
-				<table class="kbd-table">
-					<tr><td><span class="key key-big">&larr;</span> / <span class="key key-big">&rarr;</span></td><td>previous / next song</td></tr>
-					<tr><td><span class="key key-wide">Space</span></td><td>play / pause</td></tr>
-					<tr><td><span class="key key-big">&uarr;</span> / <span class="key key-big">&darr;</span></td><td>previous / next gradient</td></tr>
-					<tr><td><span class="key">F</span></td><td>toggle fullscreen</td></tr>
-					<tr><td><span class="key">g</span> / <span class="key">G</span></td><td>previous / next gradient</td></tr>
-					<tr><td><span class="key">J</span> / <span class="key">K</span></td><td>previous / next song</td></tr>
-					<tr><td><span class="key">m</span> / <span class="key">M</span></td><td>previous / next mode</td></tr>
-					<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
-				</table>
-			</span>
-		</span>
-	</div>
-
-
-	<div class="ui-panels config-block">
-
-		<div>
-			<ul id="file_explorer" class="filelist"></ul>
-		</div>
-
-		<div>
-			<div class="playlist-area button-bar">
-				<select id="playlists">
-					<option value="">Select a playlist to load</option>
-				</select>
-				<button onclick="loadPlaylist();">LOAD</button>
-			</div>
-			<div class="playlist-area">
-				<div class="playlist-title">Playlist</div>
-				<ul class="switch-bar">
-					<li id="repeat" class="switch"><u>R</u>EPEAT
-						<span class="tooltip">Repeat playlist</span>
-				</ul>
-				<div>
-					<button class="playlist-button" onclick="shufflePlaylist();">SH<u>U</u>FFLE</button>
-					<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
-				</div>
-			</div>
-			<ul id="playlist" class="filelist"></ul>
-		</div>
-	</div>
 
 	<div class="credits">
 		<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Vianna.
