@@ -1370,6 +1370,10 @@ function setCanvas() {
  */
 function initialize() {
 
+	consoleLog( 'audioMotion.js version ' + _VERSION );
+	consoleLog( 'Initializing...' );
+
+	// Initialize playlist
 	playlist = document.getElementById('playlist');
 	playlist.addEventListener( 'click', function ( e ) {
 		if ( e.target && e.target.dataset.file )
@@ -1377,8 +1381,15 @@ function initialize() {
 	});
 	playlistPos = 0;
 
-	consoleLog( 'audioMotion.js version ' + _VERSION );
-	consoleLog( 'Initializing...' );
+	// Add event listeners for configuration and console panel selectors
+	document.getElementById('panel_selector').addEventListener( 'click', function ( e ) {
+//		document.getElementById('configuration').style.display = 'none';
+//		document.getElementById('console').style.display = 'none';
+		if ( e.target && e.target.dataset.panel ) {
+			let el = document.getElementById( e.target.dataset.panel );
+			el.style.display = ( el.offsetWidth > 0 && el.offsetHeight > 0 ) ? 'none' : 'block';
+		}
+	});
 
 	// Create audio context
 
@@ -1394,6 +1405,8 @@ function initialize() {
 	}
 
 	consoleLog( 'Audio context sample rate is ' + audioCtx.sampleRate + 'Hz' );
+
+	// Create audio elements
 
 	audioElement = [
 		document.getElementById('player0'),

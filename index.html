@@ -51,170 +51,97 @@
 	<audio id="player0" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 	<audio id="player1" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 
-	<div class="main-config config-block">
-		<div>
-			<span class="help"><span class="config-label"><u>M</u>ode:</span>
-				<span class="tooltip">
-				Visualization mode. Octave bands are based on the equal tempered scale.
-				</span>
-			</span>
-			<select id="mode" onchange="setScale();">
-				<option value="0">Discrete frequencies</option>
-				<option value="24">Full-octave bands</option>
-				<option value="12">Half-octave bands</option>
-				<option value="8">1/3rd-octave bands</option>
-				<option value="4">1/6th-octave bands</option>
-				<option value="2">1/12th-octave bands</option>
-				<option value="1">1/24th-octave bands</option>
-			</select>
-		</div>
+	<ul id="panel_selector" class="panel-selector">
+		<li data-panel="configuration">config</li>
+		<li data-panel="console">console</li>
+	</ul>
 
-		<div>
-			<span class="help"><span class="config-label">FFT size:</span>
-				<span class="tooltip">
-				Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
-				but require more CPU power.
-				</span>
-			</span>
-			<select id="fft_size" onchange="setFFTsize();">
-				<option value="512">512</option>
-				<option value="1024">1024</option>
-				<option value="2048">2048</option>
-				<option value="4096">4096</option>
-				<option value="8192">8192</option>
-				<option value="16384">16384</option>
-				<option value="32768">32768</option>
-			</select>
-		</div>
+	<div id="console"></div>
 
-		<div>
-			<span class="config-label">Range:</span>
-			<select id="freq_min" onchange="setFreqRange();">
-				<option value="20">20</option>
-				<option value="30">30</option>
-				<option value="40">40</option>
-				<option value="50">50</option>
-				<option value="100">100</option>
-				<option value="500">500</option>
-				<option value="1000">1k</option>
-			</select>
-			-
-			<select id="freq_max" onchange="setFreqRange();">
-				<option value="1000">1k</option>
-				<option value="2000">2k</option>
-				<option value="4000">4k</option>
-				<option value="8000">8k</option>
-				<option value="16000">16k</option>
-				<option value="22000">22k</option>
-			</select>
-			Hz
-		</div>
-
-		<div>
-			<span class="help"><span class="config-label">Smoothing:</span>
-				<span class="tooltip">
-				Lower values make the analyzer respond faster to changes.
-				Increase it if the animation looks too "jumpy".
-				</span>
-			</span>
-			<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
-		</div>
-
-		<ul class="switch-bar">
-			<li class="switch" id="show_song"><u>I</u>NFO
-				<span class="tooltip">Display song info in the visualization area on every track change
-			<li class="switch" id="show_scale"><u>S</u>CALE
-				<span class="tooltip">Show / hide the frequency scale</span>
-			<li class="switch" id="sensitivity">SE<u>N</u>S
-				<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
-			<li class="switch" id="show_peaks"><u>P</u>EAKS
-				<span class="tooltip">Hold volume peaks on screen for a short time</span>
-		</ul>
-	</div>
-
-	<div class="ui-panels config-block">
-		<div>
-			<div class="local-file button-bar">
-				<span class="help"><span class="config-label">Play a song:</span>
-				<span class="tooltip">
-					Load a song from your PC and play it. This is mostly a demo feature. Please refer to the documentation on how to use audioMotion with playlists.
-				</span>
-				<input type="file" accept="audio/*" onchange="loadLocalFile( this );">
-			</div>
-			<div class="playlist-area button-bar">
-				<select id="playlists">
-					<option value="">Select a playlist to load</option>
-				</select>
-				<button onclick="loadPlaylist();">LOAD</button>
-			</div>
-			<div class="playlist-area">
-				<div class="playlist-title">Playlist</div>
-				<ul class="switch-bar">
-					<li id="repeat" class="switch"><u>R</u>EPEAT
-						<span class="tooltip">Repeat playlist</span>
-				</ul>
-				<div>
-					<button class="playlist-button" onclick="shufflePlaylist();">SH<u>U</u>FFLE</button>
-					<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
-				</div>
-			</div>
-			<ul id="playlist" class="filelist"></ul>
-		</div>
-
-		<div>
-			<div class="main-config center">
-				<span class="config-label"><u>G</u>radient:</span>
-				<select id="gradient" onchange="updateLastConfig();"></select>
-
-				<ul class="switch-bar">
-					<li class="switch" id="black_bg">NO <u>B</u>G
-						<span class="tooltip">Use black background instead of background color defined by gradient</span>
-					<li class="switch" id="cycle_grad"><u>A</u>uto
-						<span class="tooltip">Select next gradient automatically on each track change</span>
-					<li class="switch" id="led_display"><u>L</u>ED
-						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
-				</ul>
-			</div>
-
-			<div class="button-bar center">
-				<button id="fullscreen_button" class="fullscreen-button" onclick="fullscreen();"><u>F</u>ullscreen Analyzer</button>
-				<br>
-				<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
-					<span class="tooltip shortcuts">
-						<table class="kbd-table">
-							<tr><td><span class="key key-big">&larr;</span> / <span class="key key-big">&rarr;</span></td><td>previous / next song</td></tr>
-							<tr><td><span class="key key-wide">Space</span></td><td>play / pause</td></tr>
-							<tr><td><span class="key key-big">&uarr;</span> / <span class="key key-big">&darr;</span></td><td>previous / next gradient</td></tr>
-							<tr><td><span class="key">F</span></td><td>toggle fullscreen</td></tr>
-							<tr><td><span class="key">g</span> / <span class="key">G</span></td><td>previous / next gradient</td></tr>
-							<tr><td><span class="key">J</span> / <span class="key">K</span></td><td>previous / next song</td></tr>
-							<tr><td><span class="key">m</span> / <span class="key">M</span></td><td>previous / next mode</td></tr>
-							<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
-						</table>
+	<div id="configuration">
+		<div class="main-config config-block">
+			<div>
+				<span class="help"><span class="config-label"><u>M</u>ode:</span>
+					<span class="tooltip">
+					Visualization mode. Octave bands are based on the equal tempered scale.
 					</span>
 				</span>
+				<select id="mode" onchange="setScale();">
+					<option value="0">Discrete frequencies</option>
+					<option value="24">Full-octave bands</option>
+					<option value="12">Half-octave bands</option>
+					<option value="8">1/3rd-octave bands</option>
+					<option value="4">1/6th-octave bands</option>
+					<option value="2">1/12th-octave bands</option>
+					<option value="1">1/24th-octave bands</option>
+				</select>
+			</div>
 
-			</div>
-			<div class="player-controls center">
-				<i class="icons8-previous-track-2" onclick="playPreviousSong();"></i>
-				<i class="icons8-play-button" onclick="playPause();"></i>
-				<i class="icons8-pause-button" onclick="playPause();"></i>
-				<i class="icons8-stop-symbol" onclick="stop();"></i>
-				<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
+			<div>
+				<span class="help"><span class="config-label">FFT size:</span>
+					<span class="tooltip">
+					Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
+					but require more CPU power.
+					</span>
+				</span>
+				<select id="fft_size" onchange="setFFTsize();">
+					<option value="512">512</option>
+					<option value="1024">1024</option>
+					<option value="2048">2048</option>
+					<option value="4096">4096</option>
+					<option value="8192">8192</option>
+					<option value="16384">16384</option>
+					<option value="32768">32768</option>
+				</select>
 			</div>
 
-			<div class="main-config center">
-				<span class="config-label">Performance options:</span>
-				<ul class="switch-bar">
-					<li class="switch" id="no_shadow">FLA<u>T</u>
-						<span class="tooltip">Disable shadows on text displayed on canvas</span>
-					<li class="switch" id="lo_res">L<u>O</u>-RES
-						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-				</ul>
+			<div>
+				<span class="config-label">Range:</span>
+				<select id="freq_min" onchange="setFreqRange();">
+					<option value="20">20</option>
+					<option value="30">30</option>
+					<option value="40">40</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+					<option value="500">500</option>
+					<option value="1000">1k</option>
+				</select>
+				-
+				<select id="freq_max" onchange="setFreqRange();">
+					<option value="1000">1k</option>
+					<option value="2000">2k</option>
+					<option value="4000">4k</option>
+					<option value="8000">8k</option>
+					<option value="16000">16k</option>
+					<option value="22000">22k</option>
+				</select>
+				Hz
 			</div>
+
+			<div>
+				<span class="help"><span class="config-label">Smoothing:</span>
+					<span class="tooltip">
+					Lower values make the analyzer respond faster to changes.
+					Increase it if the animation looks too "jumpy".
+					</span>
+				</span>
+				<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
+			</div>
+
+			<ul class="switch-bar">
+				<li class="switch" id="show_song"><u>I</u>NFO
+					<span class="tooltip">Display song info in the visualization area on every track change
+				<li class="switch" id="show_scale"><u>S</u>CALE
+					<span class="tooltip">Show / hide the frequency scale</span>
+				<li class="switch" id="sensitivity">SE<u>N</u>S
+					<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
+				<li class="switch" id="show_peaks"><u>P</u>EAKS
+					<span class="tooltip">Hold volume peaks on screen for a short time</span>
+			</ul>
 		</div>
 
-		<div>
+		<div class="ui-panels config-block">
+
 			<div class="main-config config-block">
 				<div>
 					<span class="help">
@@ -246,9 +173,101 @@
 					</select>
 				</div>
 			</div>
-			<div id="console"></div>
+
+			<div class="main-config center">
+				<span class="config-label"><u>G</u>radient:</span>
+				<select id="gradient" onchange="updateLastConfig();"></select>
+
+				<ul class="switch-bar">
+					<li class="switch" id="black_bg">NO <u>B</u>G
+						<span class="tooltip">Use black background instead of background color defined by gradient</span>
+					<li class="switch" id="cycle_grad"><u>A</u>uto
+						<span class="tooltip">Select next gradient automatically on each track change</span>
+					<li class="switch" id="led_display"><u>L</u>ED
+						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+				</ul>
+			</div>
+
+			<div class="main-config center">
+				<span class="config-label">Performance options:</span>
+				<ul class="switch-bar">
+					<li class="switch" id="no_shadow">FLA<u>T</u>
+						<span class="tooltip">Disable shadows on text displayed on canvas</span>
+					<li class="switch" id="lo_res">L<u>O</u>-RES
+						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+				</ul>
+			</div>
+
+	<!--
+				<div class="local-file button-bar">
+					<span class="help"><span class="config-label">Play a song:</span>
+					<span class="tooltip">
+						Load a song from your PC and play it. This is mostly a demo feature. Please refer to the documentation on how to use audioMotion with playlists.
+					</span>
+					<input type="file" accept="audio/*" onchange="loadLocalFile( this );">
+				</div>
+	-->
+
+		</div>
+
+	</div> <!-- #configuration -->
+
+	<div class="player-controls center">
+		<i class="icons8-previous-track-2" onclick="playPreviousSong();"></i>
+		<i class="icons8-play-button" onclick="playPause();"></i>
+		<i class="icons8-pause-button" onclick="playPause();"></i>
+		<i class="icons8-stop-symbol" onclick="stop();"></i>
+		<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
+	</div>
+
+	<div class="button-bar center">
+		<button id="fullscreen_button" class="fullscreen-button" onclick="fullscreen();"><u>F</u>ullscreen Analyzer</button>
+		<br>
+		<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
+			<span class="tooltip shortcuts">
+				<table class="kbd-table">
+					<tr><td><span class="key key-big">&larr;</span> / <span class="key key-big">&rarr;</span></td><td>previous / next song</td></tr>
+					<tr><td><span class="key key-wide">Space</span></td><td>play / pause</td></tr>
+					<tr><td><span class="key key-big">&uarr;</span> / <span class="key key-big">&darr;</span></td><td>previous / next gradient</td></tr>
+					<tr><td><span class="key">F</span></td><td>toggle fullscreen</td></tr>
+					<tr><td><span class="key">g</span> / <span class="key">G</span></td><td>previous / next gradient</td></tr>
+					<tr><td><span class="key">J</span> / <span class="key">K</span></td><td>previous / next song</td></tr>
+					<tr><td><span class="key">m</span> / <span class="key">M</span></td><td>previous / next mode</td></tr>
+					<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
+				</table>
+			</span>
+		</span>
+	</div>
+
+
+	<div class="ui-panels config-block">
+
+		<div>
+			<ul id="file_explorer" class="filelist"></ul>
+		</div>
+
+		<div>
+			<div class="playlist-area button-bar">
+				<select id="playlists">
+					<option value="">Select a playlist to load</option>
+				</select>
+				<button onclick="loadPlaylist();">LOAD</button>
+			</div>
+			<div class="playlist-area">
+				<div class="playlist-title">Playlist</div>
+				<ul class="switch-bar">
+					<li id="repeat" class="switch"><u>R</u>EPEAT
+						<span class="tooltip">Repeat playlist</span>
+				</ul>
+				<div>
+					<button class="playlist-button" onclick="shufflePlaylist();">SH<u>U</u>FFLE</button>
+					<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
+				</div>
+			</div>
+			<ul id="playlist" class="filelist"></ul>
 		</div>
 	</div>
+
 	<div class="credits">
 		<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Vianna.
 		Source code available on <a href="https://github.com/hvianna/audioMotion.js/">GitHub</a>. Licensed under the <a href="https://www.gnu.org/licenses/agpl.html">GNU AGPL-3.0 license</a>.

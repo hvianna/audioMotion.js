@@ -1,3 +1,7 @@
+* {
+	box-sizing: border-box;
+}
+
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	margin: 0;
@@ -23,10 +27,11 @@ header {
 	padding: 10px 20px;
 }
 h1 {
-	animation: flow 10s ease-in-out infinite;
+/*	animation: flow 30s ease-in-out infinite; */
 	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
 	background-clip: text;
-	background-size: 300%;
+/*	background-size: 150%; */
+	display: inline;
 	font: 30px Orbitron, sans-serif;
 	margin: 0;
 	-webkit-background-clip: text;
@@ -98,6 +103,13 @@ body.playing #canvas {
 }
 .playlist-area .switch-bar {
 	padding-left: 100px;
+}
+
+.panel-selector {
+	float: left;
+	list-style: none;
+	margin: 0;
+	padding: 20px;
 }
 
 .config-block {
@@ -198,7 +210,7 @@ body.playing #canvas {
 	padding: 4px;
 	text-align: center;
 	text-transform: uppercase;
-	width: 45px;
+	width: 50px;
 }
 .switch input {
 	display: none;
@@ -289,12 +301,17 @@ body.playing #canvas {
 	color: #fff;
 }
 
+#console,
+#configuration {
+	height: 100px;
+}
+
 #console {
 	background: #1c231a;
 	color: #0b0;
+	display: none;
 	font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 	font-size: 13px;
-	height: 200px;
 	line-height: 1.3;
 	overflow-y: scroll;
 	padding: 10px;
