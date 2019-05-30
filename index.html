@@ -136,14 +136,20 @@
 				</div>
 			</div>
 
-			<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
+			<div class="narrow">
+				<span class="help"><button id="add_folder" class="playlist-button">ADD FOLDER</button>
+					<span class="tooltip">Add current folder's contents to the playlist</span>
+				</span>
+				<br>
+				<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
+			</div>
 
 			<div>
 				<div class="playlist-area">
 					<select id="playlists">
 						<option value="">Select a playlist to load</option>
 					</select>
-					<button onclick="loadPlaylist();">LOAD</button>
+					<button id="load_playlist">LOAD</button>
 				</div>
 				<ul id="playlist" class="filelist"></ul>
 			</div>

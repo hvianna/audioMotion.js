@@ -231,6 +231,15 @@ function initFileExplorer() {
 		}
 	});
 
+	document.getElementById('add_folder').addEventListener( 'click', function() {
+		for ( let i = 0; i < ui_files.children.length; i++ ) {
+			if ( ui_files.children[ i ].dataset.type == 'file' )
+				addToPlaylist( { file: makePath( ui_files.children[ i ].dataset.path ), common: {} } );
+			else if ( ui_files.children[ i ].dataset.type == 'list' )
+				loadPlaylist( makePath( ui_files.children[ i ].dataset.path ) );
+		}
+	});
+
 //  	dragula( [ document.getElementById('UI_playlist') ] );
 
 	fetch( '/getDrives' )

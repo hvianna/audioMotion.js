@@ -184,6 +184,12 @@ body.playing #canvas {
 	margin-left: auto;
 	margin-right: auto;
 }
+.ui-panels > div {
+	flex: 1 1 100%;
+}
+.ui-panels .narrow {
+	flex-shrink: 2;
+}
 
 .main-config {
 	font-size: 11px;
@@ -193,10 +199,6 @@ body.playing #canvas {
 .main-config button {
 	font-size: 11px;
 	padding: 4px;
-}
-
-.ui-panels > div {
-	width: 33%;
 }
 
 .fullscreen-button {

@@ -510,10 +510,9 @@ function addToPlaylist( content ) {
 /**
  * Load a playlist file into the current playlist
  */
-function loadPlaylist() {
+function loadPlaylist( path ) {
 
-	var path = elPlaylists.value,
-		tmplist, ext, songInfo, t,
+	var tmplist, ext, songInfo, t,
 		n = 0;
 
 	if ( ! path )
@@ -1497,6 +1496,10 @@ function initialize() {
 	// Load playlists from playlists.cfg
 	elPlaylists = document.getElementById('playlists');
 	loadPlaylistsCfg();
+
+	document.getElementById('load_playlist').addEventListener( 'click', function() {
+		loadPlaylist( elPlaylists.value );
+	})
 
 	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
