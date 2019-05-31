@@ -83,10 +83,10 @@
 			<i class="icons8-pause-button" onclick="playPause();"></i>
 			<i class="icons8-stop-symbol" onclick="stop();"></i>
 			<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
-			<span class="help"><i class="icons8-shuffle-2" onclick="shufflePlaylist();"></i>
+			<span class="help"><i class="icons8-shuffle" onclick="shufflePlaylist();"></i>
 				<span class="tooltip">Shuffle playlist</span>
 			</span>
-			<span class="help"><i class="icons8-repeat-2 switch" id="repeat"></i>
+			<span class="help"><i class="icons8-repeat switch" id="repeat"></i>
 				<span class="tooltip">Repeat playlist</span>
 			</span>
 		</div>
@@ -112,10 +112,12 @@
 	</div>
 
 
+	<div class="panels-container">
+
 	<ul id="panel_selector" class="panel-selector">
-		<li id="show_config" data-panel="config_panel" title="analyzer configuration"><i class="icons8-gear-outline"></i></li>
-		<li id="show_filelist" data-panel="file_panel" title="file explorer and playlist"><i class="icons8-opened-folder-2"></i></li>
-		<li id="show_console" data-panel="console" title="show console"><i class="icons8-console"></i></li>
+		<li id="show_config" data-panel="config_panel"><i class="icons8-gear-outline" title="analyzer configuration"></i><span>config</span></li>
+		<li id="show_filelist" data-panel="file_panel"><i class="icons8-opened-folder-2" title="file explorer and playlist"></i><span>files</span></li>
+		<li id="show_console" data-panel="console"><i class="icons8-console" title="show console"></i><span>console</span></li>
 	</ul>
 
 	<div id="console" class="config-panel"></div>
@@ -128,20 +130,24 @@
 				<ul id="file_explorer" class="filelist"></ul>
 
 				<div id="local_file" class="local-file button-bar">
-					Play a song:
-					<input type="file" accept="audio/*" onchange="loadLocalFile( this );">
+					<p>You can load an invidivual song from your PC to visualize it:</p>
 
-					<p>Use this feature to visualize individual songs from your PC.<br>
-					Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> on how to use audioMotion with playlists.</p>
+					<label><strong>Play a song:</strong>
+					<input type="file" accept="audio/*" onchange="loadLocalFile( this );"></label>
+
+					<p>Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> to learn
+					how to setup a server and get the best out of audioMotion.</p>
 				</div>
 			</div>
 
-			<div class="narrow">
-				<span class="help"><button id="add_folder" class="playlist-button">ADD FOLDER</button>
-					<span class="tooltip">Add current folder's contents to the playlist</span>
+			<div class="button-column">
+				<span class="help"><button id="add_folder">Add Folder</button>
+					<span class="tooltip">Add the current folder's contents to the playlist</span>
 				</span>
 				<br>
-				<button class="playlist-button" onclick="clearPlaylist();">CLEAR</button>
+				<span class="help"><button onclick="clearPlaylist();">Clear</button>
+					<span class="tooltip">Clear current playlist</span>
+				</span>
 			</div>
 
 			<div>
@@ -278,6 +284,7 @@
 
 	</div> <!-- #config_panel -->
 
+	</div> <!-- .panels-container -->
 
 	<div class="credits">
 		<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Vianna.

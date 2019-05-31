@@ -269,7 +269,7 @@ function initFileExplorer() {
 		.catch( function( err ) {
 			clearTimeout( startUpTimer );
 			consoleLog( 'No server found. Running in local mode only.', true );
-			ui_path.innerHTML = 'No connection to server. File navigation is unavailable.';
+			ui_path.innerHTML = 'No server found. File navigation is unavailable. Playlists may work on Firefox only.';
 			ui_files.style.display = 'none';
 			document.getElementById('local_file').style.display = 'block';
 		});

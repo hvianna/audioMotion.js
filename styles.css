@@ -29,27 +29,13 @@ header {
 	padding: 10px 20px;
 }
 h1 {
-/*	animation: flow 30s ease-in-out infinite; */
 	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
 	background-clip: text;
-/*	background-size: 150%; */
 	display: inline;
 	font: 30px Orbitron, sans-serif;
 	margin: 0;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
-}
-/* https://dev.to/gabe/fluid-css-gradient-animation-3b2 */
-@keyframes flow {
-	0% {
-		background-position: 0 50%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-	100% {
-		background-position: 0 50%;
-	}
 }
 
 .analyzer {
@@ -65,24 +51,14 @@ h1 {
 
 #canvas {
 	display: block;
-	height: 35vh;
+	height: 50vh;
 	margin: 0 auto;
 	width: 100%;
 }
 #canvas:-webkit-full-screen {
 	height: auto;
 }
-/*
-body.playing #canvas {
-	height: 50vh;
-	transition: height 1s;
-}
-*/
 
-#playlist {
-	display: block;
-	width: 100%;
-}
 
 #playlists {
 	margin-right: 10px;
@@ -96,7 +72,6 @@ body.playing #canvas {
 	padding-top: 20px;
 }
 
-.playlist-button,
 .config-label {
 	font-size: 11px;
 	text-transform: uppercase;
@@ -108,25 +83,26 @@ body.playing #canvas {
 	height: 35x;
 	justify-content: space-between;
 }
-.playlist-title {
-	font-weight: bold;
-}
-.playlist-button {
-	width: 100px;
-}
-.playlist-area .switch-bar {
-	padding-left: 100px;
+
+.panels-container {
+	margin: 0 auto;
+	max-width: 1400px;
 }
 
 .panel-selector {
+	border: 1px solid #ccc;
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	border-width: 1px 0 1px 1px;
 	float: left;
 	list-style: none;
 	margin: 10px 0;
 	padding: 0;
+	width: 100px;
 }
 .panel-selector li {
 	background: #f5f5f5;
-	border-top: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
 	color: #444;
 	cursor: pointer;
 	padding: 10px;
@@ -135,8 +111,12 @@ body.playing #canvas {
 	background: #ccc;
 	box-shadow: 1px 1px 2px inset #0008;
 }
+.panel-selector li:first-child {
+	border-top-left-radius: 5px;
+}
 .panel-selector li:last-child {
-	border-bottom: 1px solid #ccc;
+	border-bottom: none;
+	border-bottom-left-radius: 5px;
 }
 .panel-selector li.warning::before {
 	background: #c00;
@@ -156,15 +136,15 @@ body.playing #canvas {
 }
 .panel-selector [class^="icons8-"] {
 	font-size: 20px;
+	margin-right: 10px;
+	vertical-align: middle;
 }
 
 .config-panel {
 	background: #f5f5f5;
 	border: 1px solid #ccc;
-	border-bottom-left-radius: 5px;
-	border-top-left-radius: 5px;
 	height: 400px;
-	margin-left: 40px;
+	margin-left: 100px;
 	padding: 15px 0;
 }
 
@@ -187,8 +167,12 @@ body.playing #canvas {
 .ui-panels > div {
 	flex: 1 1 100%;
 }
-.ui-panels .narrow {
+.ui-panels .button-column {
 	flex-shrink: 2;
+}
+.button-column button {
+	margin: 10px 0;
+	width: 100px;
 }
 
 .main-config {
@@ -227,7 +211,7 @@ body.playing #canvas {
 	box-shadow: 1px 1px 1px 0 #999;
 	cursor: pointer;
 	display: inline-block;
-	font-size: 40px;
+	font-size: 30px;
 	margin: 5px;
 	padding: 0 8px;
 }
@@ -235,10 +219,9 @@ body.playing #canvas {
 	margin-left: -25px;
 }
 .player-controls i[data-active="1"] {
-	background: #ccc;
+	background: #888;
 	box-shadow: 1px 1px 2px inset #0008;
-	color: #0e0;
-	text-shadow: 1px 1px 0 #0008, -1px -1px 0 #fff;
+	color: #b2ff00;
 }
 
 .help {
@@ -303,12 +286,15 @@ body.playing #canvas {
 	text-align: center;
 	text-transform: none;
 	top: 25px;
-	width: 200px;
+	width: 220px;
 	z-index: 10;
 }
 .switch .tooltip {
 	left: 0;
 	top: 30px;
+}
+button ~ .tooltip {
+	left: -50%;
 }
 .tooltip.center {
 	left: 50%;
@@ -454,28 +440,20 @@ body.playing #canvas {
 /* Responsive layout */
 
 @media screen and (max-width: 1400px) {
-	.playlist-area .switch-bar {
-		padding-left: 50px;
+	.panel-selector {
+		width: 40px;
 	}
-	.config-block > div,
-	.config-block > ul {
-		margin: 0 5px;
+	.panel-selector li span {
+		display: none;
+	}
+	.config-panel {
+		margin-left: 40px;
 	}
 }
 
-@media screen and (max-width: 1140px) {
-	.config-block:not(.main-config) {
-		display: block;
-	}
-	.config-block:not(.main-config) > div {
-		display: inline-block;
-		margin: 0 20px 20px;
-		vertical-align: top;
-	}
-	.ui-panels > div {
-		width: calc( 50% - 50px );
-	}
-	.ui-panels > div:last-child {
-		margin-left: calc( 50% + 20px );
+@media screen and (max-width: 1200px) {
+	.config-block > div,
+	.config-block > ul {
+		margin: 0 5px;
 	}
 }
