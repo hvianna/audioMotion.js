@@ -8,7 +8,8 @@ var drives = [],
 	currentPath = [],
 	nodeServer = false,
 	ui_path,
-	ui_files;
+	ui_files,
+	startUpTimer;
 
 
 //const mm = require('music-metadata-browser');
@@ -107,8 +108,13 @@ function enterDir( target, scrollTop ) {
 				else
 					return response.text();
 			}
-			else
-				console.log( 'getDir failed for ' + url );
+			else {
+				consoleLog( 'Cannot access directory: ' + url, true );
+				if ( startUpTimer ) {
+					clearTimeout( startUpTimer );
+					ui_path.innerHTML = 'Cannot access /music directory. Check the documentation for help.';
+				}
+			}
 		})
 		.then( function( content ) {
 			if ( ! nodeServer )
@@ -209,7 +215,7 @@ function initFileExplorer() {
 	ui_path = document.getElementById('path');
 	ui_files = document.getElementById('file_explorer');
 
-	var startUpTimer = setTimeout( () => {
+	startUpTimer = setTimeout( () => {
 		ui_path.innerHTML = 'Waiting for server...';
 	}, 5000 );
 
@@ -261,7 +267,7 @@ function initFileExplorer() {
 			}
 			else {
 //				ui_path.innerHTML = 'Fatal error! No valid content received from server';
-				console.log( 'Running in regular web server mode.' );
+				consoleLog( 'Running in standard web server mode.' );
 				drives = [ '/music' ];
 				enterDir( drives[0] );
 			}

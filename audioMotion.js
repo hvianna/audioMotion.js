@@ -501,7 +501,7 @@ function addToPlaylist( content ) {
 //	el.dataset.samplerate = content.format && content.format.sampleRate || '';
 //	el.dataset.bitdepth = content.format && content.format.bitsPerSample || '';
 //	el.dataset.cover = content.common.picture ? 'get' : '';
-	el.dataset.file = content.file;
+	el.dataset.file = content.file.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
 	playlist.appendChild( el );
 }
@@ -540,7 +540,6 @@ function loadPlaylist( path ) {
 						}
 						if ( tmplist[ i ].substring( 0, 4 ) != 'http' )
 							tmplist[ i ] = path + tmplist[ i ];
-						tmplist[ i ] = tmplist[ i ].replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 						t = songInfo.indexOf(' - ');
 						if ( t == -1 )
 							addToPlaylist( { file: tmplist[ i ], common: { artist: '', title: songInfo } } );
