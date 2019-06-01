@@ -69,7 +69,10 @@ h1 {
 	display: none;
 	height: 250px;
 	line-height: 1.6;
-	padding-top: 20px;
+}
+#local_file label {
+	display: block;
+	margin: 20px 0 40px;
 }
 
 .config-label {
