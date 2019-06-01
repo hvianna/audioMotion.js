@@ -571,7 +571,7 @@ function loadPlaylist( path ) {
 function updatePlaylistUI() {
 
 	playlist.childNodes.forEach( node => node.className = '' );
-	playlist.childNodes[ playlistPos ].className = 'selected';
+	playlist.children[ playlistPos ].className = 'selected';
 }
 
 /**
@@ -619,12 +619,12 @@ function getIndex( node ) {
  * Load a song into the currently active audio element
  */
 function loadSong( n ) {
-	if ( playlist.childNodes[ n ] ) {
+	if ( playlist.children[ n ] ) {
 		playlistPos = n;
-		audioElement[ currAudio ].src = playlist.childNodes[ playlistPos ].dataset.file;
-		audioElement[ currAudio ].dataset.artist = playlist.childNodes[ playlistPos ].dataset.artist;
-		audioElement[ currAudio ].dataset.title = playlist.childNodes[ playlistPos ].dataset.title;
-		audioElement[ currAudio ].dataset.codec = playlist.childNodes[ playlistPos ].dataset.codec;
+		audioElement[ currAudio ].src = playlist.children[ playlistPos ].dataset.file;
+		audioElement[ currAudio ].dataset.artist = playlist.children[ playlistPos ].dataset.artist;
+		audioElement[ currAudio ].dataset.title = playlist.children[ playlistPos ].dataset.title;
+		audioElement[ currAudio ].dataset.codec = playlist.children[ playlistPos ].dataset.codec;
 
 		updatePlaylistUI();
 
@@ -641,14 +641,14 @@ function loadSong( n ) {
 function loadNextSong() {
 	var n;
 	audioElement[ nextAudio ].pause();
-	if ( playlistPos < playlist.childNodes.length - 1 )
+	if ( playlistPos < playlist.children.length - 1 )
 		n = playlistPos + 1;
 	else
 		n = 0;
-	audioElement[ nextAudio ].src = playlist.childNodes[ n ].dataset.file;
-	audioElement[ nextAudio ].dataset.artist = playlist.childNodes[ n ].dataset.artist;
-	audioElement[ nextAudio ].dataset.title = playlist.childNodes[ n ].dataset.title;
-	audioElement[ nextAudio ].dataset.codec = playlist.childNodes[ n ].dataset.codec;
+	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
+	audioElement[ nextAudio ].dataset.artist = playlist.children[ n ].dataset.artist;
+	audioElement[ nextAudio ].dataset.title = playlist.children[ n ].dataset.title;
+	audioElement[ nextAudio ].dataset.codec = playlist.children[ n ].dataset.codec;
 }
 
 /**
@@ -671,7 +671,7 @@ function playPause() {
 		return;
 	if ( isPlaying() )
 		audioElement[ currAudio ].pause();
-	else if ( audioElement[ currAudio ].src != '' )
+	else
 		audioElement[ currAudio ].play();
 }
 
@@ -694,12 +694,12 @@ function playPreviousSong() {
 
 function playNextSong( play ) {
 
-	if ( cfgSource == 'mic' || playlistPos > playlist.childNodes.length - 1 )
+	if ( cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
 		return;
 
 	var gradIdx;
 
-	if ( playlistPos < playlist.childNodes.length - 1 )
+	if ( playlistPos < playlist.children.length - 1 )
 		playlistPos++;
 	else if ( elRepeat.dataset.active == '1' )
 		playlistPos = 0;
@@ -1247,9 +1247,13 @@ function keyboardControls( event ) {
  */
 function audioOnPlay( event ) {
 	if ( audioStarted ) {
-		if ( playlist.childNodes.length == 0 && audioElement[ currAudio ].src == '' ) {
-			consoleLog( 'No song loaded', true );
-			audioElement[ currAudio ].pause();
+		if ( audioElement[ currAudio ].src == '' ) {
+			if ( playlist.children.length == 0 ) {
+				consoleLog( 'No song loaded', true );
+				audioElement[ currAudio ].pause();
+			}
+			else
+				playSong( playlistPos );
 		}
 		else if ( elShowSong.dataset.active == '1' )
 			setCanvasMsg( 'song', 600, 180 );
@@ -1268,7 +1272,7 @@ function audioOnPlay( event ) {
  */
 function audioOnEnded() {
 	// song ended, skip to next one if available
-	if ( playlistPos < playlist.childNodes.length - 1 || elRepeat.dataset.active == '1' )
+	if ( playlistPos < playlist.children.length - 1 || elRepeat.dataset.active == '1' )
 		playNextSong( true );
 	else
 		loadSong( 0 );
