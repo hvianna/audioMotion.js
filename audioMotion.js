@@ -445,7 +445,14 @@ function clearPlaylist() {
 	while ( playlist.hasChildNodes() )
 		playlist.removeChild( playlist.firstChild );
 
-	playlistPos = isPlaying() ? -1 : 0;
+	if ( ! isPlaying() ) {
+		playlistPos = 0;
+		audioElement[0].src = '';
+		audioElement[1].src = '';
+	}
+	else
+		playlistPos = -1;
+
 	updatePlaylistUI();
 }
 
@@ -570,8 +577,12 @@ function loadPlaylist( path ) {
  */
 function updatePlaylistUI() {
 
-	playlist.childNodes.forEach( node => node.className = '' );
-	playlist.children[ playlistPos ].className = 'selected';
+	var current = playlist.querySelector('.current');
+	if ( current )
+		current.className = '';
+
+	if ( playlistPos < playlist.children.length )
+		playlist.children[ playlistPos ].className = 'current';
 }
 
 /**
@@ -596,6 +607,8 @@ function shufflePlaylist() {
  * https://stackoverflow.com/questions/13656921/fastest-way-to-find-the-index-of-a-child-node-in-parent
  */
 function getIndex( node ) {
+	if ( ! node )
+		return undefined;
 	var i = 0;
 	while ( node = node.previousElementSibling )
 		i++;
@@ -1111,13 +1124,26 @@ function keyboardControls( event ) {
 	if ( ! audioStarted )
 		initAudio();
 
-	if ( event.target.tagName.toLowerCase() != 'body' && event.target.className != 'fullscreen-button' )
-		return;
+//	if ( event.target.tagName.toLowerCase() != 'body' && event.target.className != 'fullscreen-button' )
+//		return;
 
 	var gradIdx = elGradient.selectedIndex,
 		modeIdx = elMode.selectedIndex;
 
 	switch ( event.code ) {
+		case 'Delete': 		// delete selected songs from the playlist
+			playlist.querySelectorAll('.selected').forEach( e => {
+				e.remove();
+			});
+			var current = getIndex( playlist.querySelector('.current') );
+			if ( current !== undefined )
+				playlistPos = current;	// update playlistPos if current song hasn't been deleted
+			else if ( playlistPos > playlist.children.length - 1 )
+				playlistPos = playlist.children.length - 1;
+			else
+				playlistPos--;
+			loadNextSong();
+			break;
 		case 'Space': 		// play / pause
 			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
 			playPause();
@@ -1341,9 +1367,20 @@ function initialize() {
 	consoleLog( 'audioMotion.js version ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
-	// Initialize playlist
+	// Initialize playlist and set event listeners
 	playlist = document.getElementById('playlist');
 	playlist.addEventListener( 'click', function ( e ) {
+		if ( e.target ) {
+			var classes = e.target.className;
+			if ( ! e.ctrlKey ) // Ctrl key allows multiple selections
+				playlist.querySelectorAll('.selected').forEach( n => n.className = n.className.replace( /selected/, '' ) );
+			if ( classes.indexOf('selected') == -1 )
+				e.target.className = classes + ' selected';
+			else
+				e.target.className = classes.replace( /selected/, '' );
+		}
+	});
+	playlist.addEventListener( 'dblclick', function ( e ) {
 		if ( e.target && e.target.dataset.file )
 			playSong( getIndex( e.target ) );
 	});

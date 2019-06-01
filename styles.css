@@ -373,9 +373,13 @@ button ~ .tooltip {
 	white-space: nowrap;
 }
 .filelist li:hover,
-.filelist li.selected {
+.filelist li.current {
 	background: #06c;
 	color: #fff;
+}
+.filelist li.selected {
+	outline: 1px dashed #5daaf7;
+	background: #5daaf7;
 }
 .filelist [data-type]::before {
 	font-family: audioMotion;
