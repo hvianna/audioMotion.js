@@ -581,27 +581,14 @@ function shufflePlaylist() {
 
 	var temp, r;
 
-	for ( var i = playlist.length - 1; i > 0; i-- ) {
+	for ( var i = playlist.children.length - 1; i > 0; i-- ) {
 		r = Math.floor( Math.random() * ( i + 1 ) );
-		temp = playlist[ i ];
-		playlist[ i ] = playlist[ r ];
-		playlist[ r ] = temp;
-		if ( isPlaying() ) {
-			if ( playlistPos == i )
-				playlistPos = r;
-			else if ( playlistPos == r )
-				playlistPos = i;
-		}
+		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
+		playlist.insertBefore( temp, playlist.children[ r ] );
 	}
 
+	playSong(0);
 	updatePlaylistUI();
-
-	if ( ! isPlaying() ) {
-		playlistPos = 0;
-		loadSong(0);
-	}
-	else
-		loadNextSong();
 }
 
 /**
