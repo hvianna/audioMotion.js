@@ -27,7 +27,7 @@
  -->
 	<title>audioMotion.js</title>
 	<link rel="stylesheet" href="styles.css">
-	<link rel="stylesheet" href="vendor/icons8/css/styles.css">
+	<link rel="stylesheet" href="img/icons/css/styles.css">
 	<link rel="icon" type="image/png" sizes="32x32" href="img/favicon32.png">
 	<link rel="apple-touch-icon" href="img/favicon512.png">
 	<link href="https://fonts.googleapis.com/css?family=Orbitron:900&display=swap" rel="stylesheet">
@@ -78,15 +78,14 @@
 		</div>
 
 		<div class="player-controls center">
-			<i class="icons8-previous-track-2" onclick="playPreviousSong();"></i>
-			<i class="icons8-play-button" onclick="playPause();"></i>
-			<i class="icons8-pause-button" onclick="playPause();"></i>
-			<i class="icons8-stop-symbol" onclick="stop();"></i>
-			<i class="icons8-skip-this-track-2" onclick="playNextSong();"></i>
-			<span class="help"><i class="icons8-shuffle" onclick="shufflePlaylist();"></i>
+			<button onclick="playPreviousSong();"><i class="icons8-previous-track-2"></i></button>
+			<button onclick="playPause();"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i></button>
+			<button onclick="stop();"><i class="icons8-stop-symbol"></i></button>
+			<button onclick="playNextSong();"><i class="icons8-skip-this-track-2"></i></button>
+			<span class="help"><button onclick="shufflePlaylist();"><i class="icons8-shuffle"></i></button>
 				<span class="tooltip">Shuffle playlist</span>
 			</span>
-			<span class="help"><i class="icons8-repeat switch" id="repeat"></i>
+			<span class="help"><button id="repeat" class="switch"><i class="icons8-repeat"></i></button>
 				<span class="tooltip">Repeat playlist</span>
 			</span>
 		</div>
@@ -153,9 +152,20 @@
 				<div>
 					<div class="playlist-area">
 						<select id="playlists">
-							<option value="">Select a playlist to load</option>
+							<option value="">Select a playlist to load, update or delete</option>
 						</select>
-						<button id="load_playlist">LOAD</button>
+						<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
+							<span class="tooltip">Load selected playlist</span>
+						</span>
+						<span class="help"><button id="save_playlist" title="update playlist"><i class="icons8-save"></i></button>
+							<span class="tooltip">Update selected playlist with current playlist contents</span>
+						</span>
+						<span class="help"><button id="create_playlist"><i class="icons8-save-as"></i></button>
+							<span class="tooltip">Save current playlist contents as a new playlist</span>
+						</span>
+						<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
+							<span class="tooltip">Delete selected playlist</span>
+						</span>
 					</div>
 					<ul id="playlist" class="filelist"></ul>
 				</div>

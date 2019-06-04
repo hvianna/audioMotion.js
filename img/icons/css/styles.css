@@ -37,6 +37,8 @@
 .icons8, [data-icons8]:before,
 .icons8-back-arrow:before,
 .icons8-console:before,
+.icons8-favorite:before,
+.icons8-favorite-2:before,
 .icons8-gear-outline:before,
 .icons8-hard-drive:before,
 .icons8-mic:before,
@@ -54,6 +56,8 @@
 .icons8-previous-track-2:before,
 .icons8-repeat:before,
 .icons8-repeat-2:before,
+.icons8-save:before,
+.icons8-save-as:before,
 .icons8-shuffle:before,
 .icons8-shuffle-2:before,
 .icons8-simple-arrow:before,
@@ -62,6 +66,8 @@
 .icons8-stage-mic:before,
 .icons8-stop-symbol:before,
 .icons8-track-list:before,
+.icons8-trash:before,
+.icons8-vertical-settings-mixer:before,
 .icons8-warn:before,
 .icons8-warn-2:before {
   display: inline-block;
@@ -80,6 +86,8 @@
 
 .icons8-back-arrow:before { content: "\f119"; }
 .icons8-console:before { content: "\f11c"; }
+.icons8-favorite:before { content: "\f121"; }
+.icons8-favorite-2:before { content: "\f122"; }
 .icons8-gear-outline:before { content: "\f11b"; }
 .icons8-hard-drive:before { content: "\f115"; }
 .icons8-mic:before { content: "\f106"; }
@@ -97,6 +105,8 @@
 .icons8-previous-track-2:before { content: "\f10e"; }
 .icons8-repeat:before { content: "\f104"; }
 .icons8-repeat-2:before { content: "\f110"; }
+.icons8-save:before { content: "\f11e"; }
+.icons8-save-as:before { content: "\f11f"; }
 .icons8-shuffle:before { content: "\f105"; }
 .icons8-shuffle-2:before { content: "\f111"; }
 .icons8-simple-arrow:before { content: "\f11a"; }
@@ -105,5 +115,7 @@
 .icons8-stage-mic:before { content: "\f112"; }
 .icons8-stop-symbol:before { content: "\f10d"; }
 .icons8-track-list:before { content: "\f102"; }
+.icons8-trash:before { content: "\f120"; }
+.icons8-vertical-settings-mixer:before { content: "\f11d"; }
 .icons8-warn:before { content: "\f100"; }
 .icons8-warn-2:before { content: "\f101"; }

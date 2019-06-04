@@ -86,6 +86,10 @@ h1 {
 	height: 35x;
 	justify-content: space-between;
 }
+.playlist-area button {
+	font-size: 16px;
+	padding: 4px 10px;
+}
 
 .panels-container {
 	margin: 0 auto;
@@ -208,20 +212,19 @@ h1 {
 	margin-bottom: 40px;
 	padding: 10px;
 }
-.player-controls i {
+.player-controls button {
+/*
 	background: #f0f0f0;
 	border-radius: 5px;
 	box-shadow: 1px 1px 1px 0 #999;
 	cursor: pointer;
 	display: inline-block;
-	font-size: 30px;
+*/
 	margin: 5px;
 	padding: 0 8px;
+	font-size: 30px;
 }
-.player-controls i.icons8-pause-button {
-	margin-left: -25px;
-}
-.player-controls i[data-active="1"] {
+.player-controls button[data-active="1"] {
 	background: #888;
 	box-shadow: 1px 1px 2px inset #0008;
 	color: #b2ff00;
@@ -292,13 +295,6 @@ h1 {
 	width: 220px;
 	z-index: 10;
 }
-.switch .tooltip {
-	left: 0;
-	top: 30px;
-}
-button ~ .tooltip {
-	left: -50%;
-}
 .tooltip.center {
 	left: 50%;
 	transform: translateX(-50%);
@@ -307,7 +303,18 @@ button ~ .tooltip {
 	left: -270px;
 	top: -50px;
 }
+.switch .tooltip {
+	left: 0;
+	top: 30px;
+}
+.button-column .tooltip {
+	left: -50%;
+}
 .player-controls .tooltip {
+	right: 0;
+}
+.playlist-area .tooltip {
+	margin-top: 10px;
 	right: 0;
 }
 
