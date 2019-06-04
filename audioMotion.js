@@ -476,7 +476,9 @@ function loadPlaylistsCfg() {
 				if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
 					item = list[ i ].split(/\|/);
 					if ( item.length == 2 ) {
-						elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
+						let option = new Option( item[0].trim(), item[1].trim() );
+						option.dataset.file = '1';
+						elPlaylists.options[ elPlaylists.options.length ] = option;
 						n++;
 					}
 				}
@@ -489,6 +491,22 @@ function loadPlaylistsCfg() {
 		.catch( function( err ) {
 			consoleLog( 'Could not read from playlists.cfg', true );
 		});
+}
+
+/**
+ * Load playlists saved in localStorage
+ */
+function loadLocalPlaylists() {
+
+	var playlists = localStorage.getItem('playlists');
+
+	if ( playlists ) {
+		playlists = JSON.parse( playlists );
+
+		Object.keys( playlists ).forEach( key => {
+			elPlaylists.options[ elPlaylists.options.length ] = new Option( playlists[ key ], key );
+		});
+	}
 }
 
 /**
@@ -568,8 +586,64 @@ function loadPlaylist( path ) {
 				consoleLog( err, true );
 			});
 	}
-	else
-		consoleLog( 'Unrecognized playlist file - ' + path, true );
+	else { // try to load playlist from localStorage
+		tmplist = localStorage.getItem( 'pl_' + path );
+		if ( tmplist ) {
+			tmplist = JSON.parse( tmplist );
+			tmplist.forEach( item => {
+				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
+				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+				addToPlaylist( { file: item, common: { artist: '', title: songInfo } } )
+			});
+		}
+		else
+			consoleLog( 'Unrecognized playlist file - ' + path, true );
+	}
+}
+
+/**
+ * Save (update) contents of an existing playlist in localStorage
+ */
+function savePlaylist( index ) {
+	console.log( confirm( `Overwrite "${elPlaylists[ index ].innerText}" with current playlist contents?` ) );
+}
+
+/**
+ * Store a new playlist in localStorage
+ */
+function createPlaylist() {
+
+	var name = prompt( 'Save current playlist as:' );
+
+	if ( name ) {
+		var safename = name.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
+		safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
+
+		var playlists = localStorage.getItem('playlists');
+
+		if ( playlists )
+			playlists = JSON.parse( playlists );
+		else
+			playlists = {};
+
+		while ( playlists.hasOwnProperty( safename ) )
+			safename += '_1';
+
+		playlists[ safename ] = name;
+
+		var songs = [];
+		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
+
+		localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
+		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
+	}
+}
+
+/**
+ * Delete a playlist from localStorage
+ */
+function deletePlaylist( index ) {
+	console.log( confirm( `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?\n\nTHIS CANNOT BE UNDONE!` ) );
 }
 
 /**
@@ -1373,11 +1447,11 @@ function initialize() {
 		if ( e.target ) {
 			var classes = e.target.className;
 			if ( ! e.ctrlKey ) // Ctrl key allows multiple selections
-				playlist.querySelectorAll('.selected').forEach( n => n.className = n.className.replace( /selected/, '' ) );
+				playlist.querySelectorAll('.selected').forEach( n => n.className = n.className.replace( 'selected', '' ) );
 			if ( classes.indexOf('selected') == -1 )
 				e.target.className = classes + ' selected';
 			else
-				e.target.className = classes.replace( /selected/, '' );
+				e.target.className = classes.replace( 'selected', '' );
 		}
 	});
 	playlist.addEventListener( 'dblclick', function ( e ) {
@@ -1472,7 +1546,10 @@ function initialize() {
 	var switches = document.querySelectorAll('.switch');
 	for ( let i = 0; i < switches.length; i++ ) {
 		switches[ i ].addEventListener( 'click', function( e ) {
-			e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
+			if ( e.target.className.match( /switch/ ) ) // check for clicks on child nodes
+				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
+			else
+				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
 		});
 	}
 
@@ -1520,12 +1597,22 @@ function initialize() {
 	elSource = document.getElementById('source');
 	setSource();
 
-	// Load playlists from playlists.cfg
+	// Load saved playlists
 	elPlaylists = document.getElementById('playlists');
-	loadPlaylistsCfg();
+	loadPlaylistsCfg();		// playlists from legacy playlists.cfg file
+	loadLocalPlaylists();	// playlists saved in localStorage
 
 	document.getElementById('load_playlist').addEventListener( 'click', function() {
 		loadPlaylist( elPlaylists.value );
+	})
+	document.getElementById('save_playlist').addEventListener( 'click', function() {
+		savePlaylist( elPlaylists.selectedIndex );
+	})
+	document.getElementById('create_playlist').addEventListener( 'click', function() {
+		createPlaylist();
+	})
+	document.getElementById('delete_playlist').addEventListener( 'click', function() {
+		deletePlaylist( elPlaylists.selectedIndex );
 	})
 
 	// Add event listener for keyboard controls
