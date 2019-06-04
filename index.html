@@ -5,7 +5,7 @@
 <!--
 /**
  * audioMotion.js
- * A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs
+ * High-resolution real-time graphic spectrum analyzer and audio player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -114,175 +114,175 @@
 
 	<div class="panels-container">
 
-	<ul id="panel_selector" class="panel-selector">
-		<li id="show_config" data-panel="config_panel"><i class="icons8-gear-outline" title="analyzer configuration"></i><span>config</span></li>
-		<li id="show_filelist" data-panel="file_panel"><i class="icons8-opened-folder-2" title="file explorer and playlist"></i><span>files</span></li>
-		<li id="show_console" data-panel="console"><i class="icons8-console" title="show console"></i><span>console</span></li>
-	</ul>
+		<ul id="panel_selector" class="panel-selector">
+			<li id="show_config" data-panel="config_panel"><i class="icons8-gear-outline" title="analyzer configuration"></i><span>config</span></li>
+			<li id="show_filelist" data-panel="file_panel"><i class="icons8-opened-folder-2" title="file explorer and playlist"></i><span>files</span></li>
+			<li id="show_console" data-panel="console"><i class="icons8-console" title="show console"></i><span>console</span></li>
+		</ul>
 
-	<div id="console" class="config-panel"></div>
+		<div id="console" class="config-panel"></div>
 
-	<div id="file_panel" class="config-panel">
-		<div class="ui-panels config-block">
+		<div id="file_panel" class="config-panel">
+			<div class="ui-panels config-block">
 
-			<div>
-				<ul id="path" class="breadcrumb"></ul>
-				<ul id="file_explorer" class="filelist"></ul>
+				<div>
+					<ul id="path" class="breadcrumb"></ul>
+					<ul id="file_explorer" class="filelist"></ul>
 
-				<div id="local_file" class="local-file button-bar">
-					<p>You can load a song from your computer:</p>
+					<div id="local_file" class="local-file button-bar">
+						<p>You can load a song from your computer:</p>
 
-					<label><strong>Play a song:</strong>
-					<input type="file" accept="audio/*" onchange="loadLocalFile( this );"></label>
+						<label><strong>Play a song:</strong>
+						<input type="file" accept="audio/*" onchange="loadLocalFile( this );"></label>
 
-					<p>Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> to learn
-					how to setup a server and get the best of audioMotion.</p>
+						<p>Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> to learn
+						how to setup a server and get the best of audioMotion.</p>
+					</div>
+				</div>
+
+				<div class="button-column">
+					<span class="help"><button id="add_folder">Add Folder</button>
+						<span class="tooltip">Add the current folder's contents to the playlist</span>
+					</span>
+					<br>
+					<span class="help"><button onclick="clearPlaylist();">Clear</button>
+						<span class="tooltip">Clear current playlist</span>
+					</span>
+				</div>
+
+				<div>
+					<div class="playlist-area">
+						<select id="playlists">
+							<option value="">Select a playlist to load</option>
+						</select>
+						<button id="load_playlist">LOAD</button>
+					</div>
+					<ul id="playlist" class="filelist"></ul>
 				</div>
 			</div>
+		</div> <!-- #file_panel -->
 
-			<div class="button-column">
-				<span class="help"><button id="add_folder">Add Folder</button>
-					<span class="tooltip">Add the current folder's contents to the playlist</span>
-				</span>
-				<br>
-				<span class="help"><button onclick="clearPlaylist();">Clear</button>
-					<span class="tooltip">Clear current playlist</span>
-				</span>
-			</div>
-
-			<div>
-				<div class="playlist-area">
-					<select id="playlists">
-						<option value="">Select a playlist to load</option>
-					</select>
-					<button id="load_playlist">LOAD</button>
-				</div>
-				<ul id="playlist" class="filelist"></ul>
-			</div>
-		</div>
-	</div> <!-- #file_panel -->
-
-	<div id="config_panel" class="config-panel">
-		<div class="main-config config-block">
-			<div>
-				<span class="help"><span class="config-label"><u>M</u>ode:</span>
-					<span class="tooltip">
-					Visualization mode. Octave bands are based on the equal tempered scale.
-					</span>
-				</span>
-				<select id="mode" onchange="setScale();">
-					<option value="0">Discrete frequencies</option>
-					<option value="24">Full-octave bands</option>
-					<option value="12">Half-octave bands</option>
-					<option value="8">1/3rd-octave bands</option>
-					<option value="4">1/6th-octave bands</option>
-					<option value="2">1/12th-octave bands</option>
-					<option value="1">1/24th-octave bands</option>
-				</select>
-			</div>
-
-			<div>
-				<span class="help"><span class="config-label">FFT size:</span>
-					<span class="tooltip">
-					Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
-					but require more CPU power.
-					</span>
-				</span>
-				<select id="fft_size" onchange="setFFTsize();">
-					<option value="512">512</option>
-					<option value="1024">1024</option>
-					<option value="2048">2048</option>
-					<option value="4096">4096</option>
-					<option value="8192">8192</option>
-					<option value="16384">16384</option>
-					<option value="32768">32768</option>
-				</select>
-			</div>
-
-			<div>
-				<span class="config-label">Range:</span>
-				<select id="freq_min" onchange="setFreqRange();">
-					<option value="20">20</option>
-					<option value="30">30</option>
-					<option value="40">40</option>
-					<option value="50">50</option>
-					<option value="100">100</option>
-					<option value="500">500</option>
-					<option value="1000">1k</option>
-				</select>
-				-
-				<select id="freq_max" onchange="setFreqRange();">
-					<option value="1000">1k</option>
-					<option value="2000">2k</option>
-					<option value="4000">4k</option>
-					<option value="8000">8k</option>
-					<option value="16000">16k</option>
-					<option value="22000">22k</option>
-				</select>
-				Hz
-			</div>
-
-			<div>
-				<span class="help"><span class="config-label">Smoothing:</span>
-					<span class="tooltip">
-					Lower values make the analyzer respond faster to changes.
-					Increase it if the animation looks too "jumpy".
-					</span>
-				</span>
-				<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
-			</div>
-
-			<ul class="switch-bar">
-				<li class="switch" id="show_song"><u>I</u>NFO
-					<span class="tooltip">Display song info in the visualization area on every track change
-				<li class="switch" id="show_scale"><u>S</u>CALE
-					<span class="tooltip">Show / hide the frequency scale</span>
-				<li class="switch" id="sensitivity">SE<u>N</u>S
-					<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
-				<li class="switch" id="show_peaks"><u>P</u>EAKS
-					<span class="tooltip">Hold volume peaks on screen for a short time</span>
-			</ul>
-		</div>
-
-		<div class="ui-panels config-block">
-
+		<div id="config_panel" class="config-panel">
 			<div class="main-config config-block">
 				<div>
-					<span class="config-label">AUDIO SOURCE:</span>
-					<select id="source" onchange="setSource();">
-						<option value="player">built-in Player</option>
-						<option value="mic">Microphone</option>
+					<span class="help"><span class="config-label"><u>M</u>ode:</span>
+						<span class="tooltip">
+						Visualization mode. Octave bands are based on the equal tempered scale.
+						</span>
+					</span>
+					<select id="mode" onchange="setScale();">
+						<option value="0">Discrete frequencies</option>
+						<option value="24">Full-octave bands</option>
+						<option value="12">Half-octave bands</option>
+						<option value="8">1/3rd-octave bands</option>
+						<option value="4">1/6th-octave bands</option>
+						<option value="2">1/12th-octave bands</option>
+						<option value="1">1/24th-octave bands</option>
 					</select>
 				</div>
-			</div>
 
-			<div class="main-config center">
-				<span class="config-label"><u>G</u>radient:</span>
-				<select id="gradient" onchange="updateLastConfig();"></select>
+				<div>
+					<span class="help"><span class="config-label">FFT size:</span>
+						<span class="tooltip">
+						Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
+						but require more CPU power.
+						</span>
+					</span>
+					<select id="fft_size" onchange="setFFTsize();">
+						<option value="512">512</option>
+						<option value="1024">1024</option>
+						<option value="2048">2048</option>
+						<option value="4096">4096</option>
+						<option value="8192">8192</option>
+						<option value="16384">16384</option>
+						<option value="32768">32768</option>
+					</select>
+				</div>
+
+				<div>
+					<span class="config-label">Range:</span>
+					<select id="freq_min" onchange="setFreqRange();">
+						<option value="20">20</option>
+						<option value="30">30</option>
+						<option value="40">40</option>
+						<option value="50">50</option>
+						<option value="100">100</option>
+						<option value="500">500</option>
+						<option value="1000">1k</option>
+					</select>
+					-
+					<select id="freq_max" onchange="setFreqRange();">
+						<option value="1000">1k</option>
+						<option value="2000">2k</option>
+						<option value="4000">4k</option>
+						<option value="8000">8k</option>
+						<option value="16000">16k</option>
+						<option value="22000">22k</option>
+					</select>
+					Hz
+				</div>
+
+				<div>
+					<span class="help"><span class="config-label">Smoothing:</span>
+						<span class="tooltip">
+						Lower values make the analyzer respond faster to changes.
+						Increase it if the animation looks too "jumpy".
+						</span>
+					</span>
+					<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
+				</div>
 
 				<ul class="switch-bar">
-					<li class="switch" id="black_bg">NO <u>B</u>G
-						<span class="tooltip">Use black background instead of background color defined by gradient</span>
-					<li class="switch" id="cycle_grad"><u>A</u>uto
-						<span class="tooltip">Select next gradient automatically on each track change</span>
-					<li class="switch" id="led_display"><u>L</u>ED
-						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+					<li class="switch" id="show_song"><u>I</u>NFO
+						<span class="tooltip">Display song info in the visualization area on every track change
+					<li class="switch" id="show_scale"><u>S</u>CALE
+						<span class="tooltip">Show / hide the frequency scale</span>
+					<li class="switch" id="sensitivity">SE<u>N</u>S
+						<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
+					<li class="switch" id="show_peaks"><u>P</u>EAKS
+						<span class="tooltip">Hold volume peaks on screen for a short time</span>
 				</ul>
 			</div>
 
-			<div class="main-config center">
-				<span class="config-label">Performance options:</span>
-				<ul class="switch-bar">
-					<li class="switch" id="no_shadow">FLA<u>T</u>
-						<span class="tooltip">Disable shadows on text displayed on canvas</span>
-					<li class="switch" id="lo_res">L<u>O</u>-RES
-						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-				</ul>
+			<div class="ui-panels config-block">
+
+				<div class="main-config config-block">
+					<div>
+						<span class="config-label">AUDIO SOURCE:</span>
+						<select id="source" onchange="setSource();">
+							<option value="player">built-in Player</option>
+							<option value="mic">Microphone</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="main-config center">
+					<span class="config-label"><u>G</u>radient:</span>
+					<select id="gradient" onchange="updateLastConfig();"></select>
+
+					<ul class="switch-bar">
+						<li class="switch" id="black_bg">NO <u>B</u>G
+							<span class="tooltip">Use black background instead of background color defined by gradient</span>
+						<li class="switch" id="cycle_grad"><u>A</u>uto
+							<span class="tooltip">Select next gradient automatically on each track change</span>
+						<li class="switch" id="led_display"><u>L</u>ED
+							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+					</ul>
+				</div>
+
+				<div class="main-config center">
+					<span class="config-label">Performance options:</span>
+					<ul class="switch-bar">
+						<li class="switch" id="no_shadow">FLA<u>T</u>
+							<span class="tooltip">Disable shadows on text displayed on canvas</span>
+						<li class="switch" id="lo_res">L<u>O</u>-RES
+							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+					</ul>
+				</div>
+
 			</div>
 
-		</div>
-
-	</div> <!-- #config_panel -->
+		</div> <!-- #config_panel -->
 
 	</div> <!-- .panels-container -->
 
