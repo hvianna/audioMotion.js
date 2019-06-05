@@ -15,7 +15,20 @@ input[type="text"] {
 }
 
 button {
+	background: #e1e1e1;
+	border: 1px solid #adadad;
+	border-radius: 5px;
 	padding: 6px 16px;
+}
+button:hover {
+	background: #e5f1fb;
+	border: 1px solid #0078d7;
+}
+button.switch[data-active="1"] {
+	background: #888;
+	box-shadow: inset 1px 1px 0 #0008;
+	color: #b2ff00;
+	text-shadow: 1px 1px 5px;
 }
 
 input[type="range"] {
@@ -87,8 +100,9 @@ h1 {
 	justify-content: space-between;
 }
 .playlist-area button {
-	font-size: 16px;
-	padding: 4px 10px;
+	font-size: 18px;
+	margin-left: 5px;
+	padding: 3px 8px;
 }
 
 .panels-container {
@@ -220,14 +234,9 @@ h1 {
 	cursor: pointer;
 	display: inline-block;
 */
-	margin: 5px;
+	margin: 5px 0;
 	padding: 0 8px;
 	font-size: 30px;
-}
-.player-controls button[data-active="1"] {
-	background: #888;
-	box-shadow: 1px 1px 2px inset #0008;
-	color: #b2ff00;
 }
 
 .help {
@@ -244,6 +253,9 @@ h1 {
 	display: block;
 }
 
+.switch input {
+	display: none;
+}
 .switch-bar {
 	display: inline-block;
 	margin: 0;
@@ -262,8 +274,10 @@ h1 {
 	text-transform: uppercase;
 	width: 50px;
 }
-.switch input {
-	display: none;
+.switch-bar .switch[data-active="1"] {
+	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
+	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
+	color: #fff;
 }
 .switch-bar .switch:first-child {
 	border-left-width: 1px;
@@ -273,11 +287,6 @@ h1 {
 .switch-bar .switch:last-child {
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
-}
-.switch-bar .switch[data-active="1"] {
-	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
-	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
-	color: #fff;
 }
 
 .tooltip {
