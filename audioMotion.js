@@ -457,11 +457,32 @@ function clearPlaylist() {
 }
 
 /**
- * Read contents from playlists.cfg
+ * Load playlists from localStorage and legacy playlists.cfg file
  */
-function loadPlaylistsCfg() {
+function loadSavedPlaylists( keyName ) {
 
-	var list, item, n = 0;
+	var list, item, n = 0,
+		playlists = localStorage.getItem('playlists');
+
+	while ( elPlaylists.hasChildNodes() )
+		elPlaylists.removeChild( elPlaylists.firstChild );
+
+	item = new Option( 'Select a playlist to load, update or delete', '' );
+	item.disabled = true;
+	item.selected = true;
+	elPlaylists.options[ elPlaylists.options.length ] = item;
+
+	if ( playlists ) {
+		playlists = JSON.parse( playlists );
+
+		Object.keys( playlists ).forEach( key => {
+			item = new Option( playlists[ key ], key );
+			item.dataset.isLocal = '1';
+			if ( key == keyName )
+				item.selected = true;
+			elPlaylists.options[ elPlaylists.options.length ] = item;
+		});
+	}
 
 	fetch( 'playlists.cfg' )
 		.then( function( response ) {
@@ -476,9 +497,7 @@ function loadPlaylistsCfg() {
 				if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
 					item = list[ i ].split(/\|/);
 					if ( item.length == 2 ) {
-						let option = new Option( item[0].trim(), item[1].trim() );
-						option.dataset.file = '1';
-						elPlaylists.options[ elPlaylists.options.length ] = option;
+						elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
 						n++;
 					}
 				}
@@ -491,22 +510,6 @@ function loadPlaylistsCfg() {
 		.catch( function( err ) {
 			consoleLog( 'Could not read from playlists.cfg', true );
 		});
-}
-
-/**
- * Load playlists saved in localStorage
- */
-function loadLocalPlaylists() {
-
-	var playlists = localStorage.getItem('playlists');
-
-	if ( playlists ) {
-		playlists = JSON.parse( playlists );
-
-		Object.keys( playlists ).forEach( key => {
-			elPlaylists.options[ elPlaylists.options.length ] = new Option( playlists[ key ], key );
-		});
-	}
 }
 
 /**
@@ -602,39 +605,59 @@ function loadPlaylist( path ) {
 }
 
 /**
- * Save (update) contents of an existing playlist in localStorage
+ * Save/update an existing playlist
  */
 function savePlaylist( index ) {
-	console.log( confirm( `Overwrite "${elPlaylists[ index ].innerText}" with current playlist contents?` ) );
+
+	if ( playlist.children.length == 0 )
+		alert( 'Playlist is empty!' );
+	else if ( elPlaylists[ index ].value == '' )
+		storePlaylist();
+	else if ( ! elPlaylists[ index ].dataset.isLocal )
+		alert( 'This is a server playlist which cannot be overwritten.\n\nChoose "Save as" to create a new local playlist.' );
+	else
+		if ( confirm( `Overwrite "${elPlaylists[ index ].innerText}" with current playlist contents?` ) )
+			storePlaylist( elPlaylists[ index ].value );
 }
 
 /**
- * Store a new playlist in localStorage
+ * Store a playlist in localStorage
  */
-function createPlaylist() {
+function storePlaylist( name ) {
 
-	var name = prompt( 'Save current playlist as:' );
+	var overwrite = false;
+
+	if ( ! name )
+		name = prompt( 'Save current playlist as:' );
+	else
+		overwrite = true;
 
 	if ( name ) {
-		var safename = name.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
-		safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
+		var safename = name;
 
-		var playlists = localStorage.getItem('playlists');
+		if ( ! overwrite ) {
+			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
+			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-		if ( playlists )
-			playlists = JSON.parse( playlists );
-		else
-			playlists = {};
+			var playlists = localStorage.getItem('playlists');
 
-		while ( playlists.hasOwnProperty( safename ) )
-			safename += '_1';
+			if ( playlists )
+				playlists = JSON.parse( playlists );
+			else
+				playlists = {};
 
-		playlists[ safename ] = name;
+			while ( ! overwrite && playlists.hasOwnProperty( safename ) )
+				safename += '_1';
+
+			playlists[ safename ] = name;
+
+			localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
+			loadSavedPlaylists( safename );
+		}
 
 		var songs = [];
 		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
-		localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
 		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
 	}
 }
@@ -643,7 +666,20 @@ function createPlaylist() {
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
-	console.log( confirm( `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?\n\nTHIS CANNOT BE UNDONE!` ) );
+	if ( confirm( `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?\n\nTHIS CANNOT BE UNDONE!` ) ) {
+		var keyName = elPlaylists[ index ].value;
+		var playlists = localStorage.getItem('playlists');
+
+		if ( playlists ) {
+			playlists = JSON.parse( playlists );
+			delete playlists[ keyName ];
+			localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
+		}
+
+		localStorage.removeItem( `pl_${keyName}` );
+		loadSavedPlaylists();
+	}
+
 }
 
 /**
@@ -1599,8 +1635,7 @@ function initialize() {
 
 	// Load saved playlists
 	elPlaylists = document.getElementById('playlists');
-	loadPlaylistsCfg();		// playlists from legacy playlists.cfg file
-	loadLocalPlaylists();	// playlists saved in localStorage
+	loadSavedPlaylists();
 
 	document.getElementById('load_playlist').addEventListener( 'click', function() {
 		loadPlaylist( elPlaylists.value );
@@ -1609,7 +1644,7 @@ function initialize() {
 		savePlaylist( elPlaylists.selectedIndex );
 	})
 	document.getElementById('create_playlist').addEventListener( 'click', function() {
-		createPlaylist();
+		storePlaylist();
 	})
 	document.getElementById('delete_playlist').addEventListener( 'click', function() {
 		deletePlaylist( elPlaylists.selectedIndex );
