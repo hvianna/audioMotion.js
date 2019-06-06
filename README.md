@@ -108,7 +108,7 @@ The **Restore defaults** preset resets all options to their initial values as in
 
 ## Configuration options
 
-![config-bar](img/configuration-bar.png "Analyzer configuration options")
+![config-bar](public/img/configuration-bar.png "Analyzer configuration options")
 
 Below you'll find a brief description of each configuration option.
 
@@ -180,16 +180,16 @@ You can use the keyboard shortcuts below to control the player and change displa
 ## Screenshots
 
 audioMotion.js user interface
-![screenshot1](img/screenshot1.png "audioMotion.js user interface")
+![screenshot1](public/img/screenshot1.png "audioMotion.js user interface")
 
 Full screen view: 1/6th-octave bands mode with LED effect, "Outrun" gradient, showing on-screen information
-![screenshot2](img/screenshot2.png "1/6th-octave bands mode with LED effect, 'Outrun' gradient, showing on-screen information")
+![screenshot2](public/img/screenshot2.png "1/6th-octave bands mode with LED effect, 'Outrun' gradient, showing on-screen information")
 
 Full screen view: Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, "Classic" gradient
-![screenshot3](img/screenshot3.png "Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, 'Classic' gradient")
+![screenshot3](public/img/screenshot3.png "Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, 'Classic' gradient")
 
 Full screen view: 1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, "Aurora" gradient
-![screenshot4](img/screenshot4.png "1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, 'Aurora' gradient")
+![screenshot4](public/img/screenshot4.png "1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, 'Aurora' gradient")
 
 ## References and acknowledgments
 
