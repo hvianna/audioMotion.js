@@ -20,7 +20,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev';
+var _VERSION = '19.6-dev.1';
+
+import 'script-loader!./localStorage.js';
+import * as fileExplorer from './file-explorer.js';
 
 
 /**
@@ -206,7 +209,7 @@ function fullscreen() {
 			canvas.mozRequestFullScreen();
 		else if ( canvas.msRequestFullscreen )
 			canvas.msRequestFullscreen();
-		document.getElementById('fullscreen_button').blur();
+		document.getElementById('btn_fullscreen').blur();
 	}
 }
 
@@ -306,8 +309,8 @@ function preCalcPosX() {
 	if ( elMode.value == '0' ) {
 	// discrete frequencies
  		var pos, lastPos = -1;
-		iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
-		iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
+		let iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
+		    iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
 		barWidth = 1;
 
 		for ( i = iMin; i <= iMax; i++ ) {
@@ -1577,6 +1580,8 @@ function initialize() {
 	elShowSong  = document.getElementById('show_song');
 	elNoShadow  = document.getElementById('no_shadow');
 	elLoRes     = document.getElementById('lo_res');
+	elSource    = document.getElementById('source');
+	elPlaylists = document.getElementById('playlists');
 
 	// Add event listeners to the custom checkboxes
 	var switches = document.querySelectorAll('.switch');
@@ -1599,6 +1604,30 @@ function initialize() {
 	elShowSong.  addEventListener( 'click', updateLastConfig );
 	elNoShadow.  addEventListener( 'click', updateLastConfig );
 	elLoRes.     addEventListener( 'click', setCanvas );
+
+	// Add event listeners to UI config elements
+
+	elMode.      addEventListener( 'change', setScale );
+	elFFTsize.   addEventListener( 'change', setFFTsize );
+	elRangeMin.  addEventListener( 'change', setFreqRange );
+	elRangeMax.  addEventListener( 'change', setFreqRange );
+	elGradient.  addEventListener( 'change', updateLastConfig );
+	elSource.    addEventListener( 'change', setSource );
+	elSmoothing. addEventListener( 'change', setSmoothing );
+
+	document.getElementById('preset').addEventListener( 'change', ( e ) => loadPreset( e.target.value ) );
+	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
+	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
+	document.getElementById('btn_play').addEventListener( 'click', playPause );
+	document.getElementById('btn_stop').addEventListener( 'click', stop );
+	document.getElementById('btn_next').addEventListener( 'click', playNextSong );
+	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
+	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
+	document.getElementById('load_playlist').addEventListener( 'click', () => loadPlaylist( elPlaylists.value ) );
+	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
+	document.getElementById('create_playlist').addEventListener( 'click', storePlaylist );
+	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
+	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
 
 	// Canvas
 
@@ -1630,25 +1659,31 @@ function initialize() {
 	loadPreset('last');
 
 	// Set audio source to built-in player
-	elSource = document.getElementById('source');
 	setSource();
 
 	// Load saved playlists
-	elPlaylists = document.getElementById('playlists');
 	loadSavedPlaylists();
 
-	document.getElementById('load_playlist').addEventListener( 'click', function() {
-		loadPlaylist( elPlaylists.value );
-	})
-	document.getElementById('save_playlist').addEventListener( 'click', function() {
-		savePlaylist( elPlaylists.selectedIndex );
-	})
-	document.getElementById('create_playlist').addEventListener( 'click', function() {
-		storePlaylist();
-	})
-	document.getElementById('delete_playlist').addEventListener( 'click', function() {
-		deletePlaylist( elPlaylists.selectedIndex );
-	})
+	// initialize file explorer
+	fileExplorer.create( document.getElementById('file_explorer'), { defaultPath: '/music' } )
+		.then( function( status ) {
+			if ( status == 1 )
+				consoleLog( 'Running in standard web server mode.' );
+			else if ( status == -1 ) {
+				consoleLog( 'No server found. Running in local mode only.', true );
+				document.getElementById('local_file_panel').style.display = 'block';
+				document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
+			}
+
+			document.getElementById('btn_add_folder').addEventListener( 'click', function() {
+				fileExplorer.getFolderContents().forEach( entry => {
+					if ( entry.type == 'file' )
+						addToPlaylist( { file: entry.file, common: {} } );
+					else if ( entry.type == 'list' )
+						loadPlaylist( entry.file );
+				});
+			});
+		});
 
 	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
@@ -1661,8 +1696,5 @@ function initialize() {
 }
 
 
-/**
- * Initialize when window finished loading
- */
 
-window.addEventListener( 'load', initialize );
+initialize();

@@ -1,8 +1,6 @@
 /**
- * File explorer functions for audioMotion.js
+ * audioMotion file explorer module
  */
-
-// Globals
 
 var drives = [],
 	currentPath = [],
@@ -12,13 +10,10 @@ var drives = [],
 	startUpTimer;
 
 
-//const mm = require('music-metadata-browser');
-//const path = require('path');
-
 /**
- * Generates a full path with escaped slashes for use with server requests
+ * Generates full path for a file or directory
  */
-function makePath( fileName ) {
+function makePath( fileName, isDir = false ) {
 
 	var fullPath = '';
 
@@ -29,14 +24,19 @@ function makePath( fileName ) {
 	if ( fileName )
 		fullPath += fileName;
 
-	if ( nodeServer )
-		fullPath = fullPath.replace(/[\\\/]/g,'%2f');
+	if ( nodeServer ) {
+		fullPath = fullPath.replace(/[\\\/]/g,'%2f'); // escape slashes for use with the custom server queries
+		if ( isDir )
+			fullPath = '/getDir/' + fullPath;
+		else
+			fullPath = '/getFile/' + fullPath;
+	}
 
 	return fullPath;
 }
 
 
-function updateFileExplorerUI( content, scrollTop ) {
+function updateUI( content, scrollTop ) {
 
 //	ui_cover.src = '';
 	ui_path.innerHTML = '';
@@ -68,10 +68,7 @@ function updateFileExplorerUI( content, scrollTop ) {
 		}
 /*
 		if ( content.cover )
-			if ( nodeServer )
-				UI_cover.src = '/getFile/' + makePath( content.cover );
-			else
-				UI_cover.src = makePath( content.cover );
+			UI_cover.src = makePath( content.cover );
 */
 	}
 
@@ -95,10 +92,7 @@ function enterDir( target, scrollTop ) {
 				currentPath.push( { dir: target, scrollTop: ui_files.scrollTop } );
 	}
 
-	if ( nodeServer )
-		url = '/getDir/' + makePath();
-	else
-		url = makePath();
+	url = makePath( '', true );
 
 	fetch( url )
 		.then( function( response ) {
@@ -109,7 +103,7 @@ function enterDir( target, scrollTop ) {
 					return response.text();
 			}
 			else {
-				consoleLog( 'Cannot access directory: ' + url, true );
+//				consoleLog( 'Cannot access directory: ' + url, true );
 				if ( startUpTimer ) {
 					clearTimeout( startUpTimer );
 					ui_path.innerHTML = 'Cannot access /music directory. Check the documentation for help.';
@@ -119,7 +113,7 @@ function enterDir( target, scrollTop ) {
 		.then( function( content ) {
 			if ( ! nodeServer )
 				content = parseWebDirectory( content );
-			updateFileExplorerUI( content, scrollTop || ( prev && prev.scrollTop ) );
+			updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
 		})
 		.catch( function( err ) {
 			console.log( 'Error on getDir ', err );
@@ -209,11 +203,52 @@ function getSongMetadata( target ) {
 		});
 }
 
+/*
+	Public functions:
+*/
 
-function initFileExplorer() {
+export function getSelectedFiles() {
 
-	ui_path = document.getElementById('path');
-	ui_files = document.getElementById('file_explorer');
+	var contents = [];
+
+	ui_files.getElementsByClassName('selected').forEach( entry => {
+		let type = entry.dataset.type;
+		if ( type == 'file' || type == 'list' )
+			contents.push( { file: makePath( entry.dataset.path ), type: type } );
+	});
+	return contents;
+}
+
+export function getFolderContents() {
+
+	var contents = [];
+
+	ui_files.childNodes.forEach( entry => {
+		let type = entry.dataset.type;
+		if ( type == 'file' || type == 'list' )
+			contents.push( { file: makePath( entry.dataset.path ), type: type } );
+	});
+	return contents;
+}
+
+/**
+ * Constructor function
+ *
+ * container: DOM element where the file explorer should be inserted
+ * options: object {
+ *		defaultPath: string - start path when running in standard web server mode (defaults to '/')
+ * }
+ */
+export function create( container, options ) {
+
+	ui_path = document.createElement('ul');
+	ui_path.className = 'breadcrumb';
+	container.appendChild( ui_path );
+
+	ui_files = document.createElement('ul');
+	ui_files.className = 'filelist';
+	ui_files.id = 'file_explorer';
+	container.appendChild( ui_files );
 
 	startUpTimer = setTimeout( () => {
 		ui_path.innerHTML = 'Waiting for server...';
@@ -229,57 +264,41 @@ function initFileExplorer() {
 
 	ui_files.addEventListener( 'click', function( e ) {
 		if ( e.target && e.target.localName == 'li' ) {
-			if ( e.target.dataset.type == 'file' )
-				addToPlaylist( { file: makePath( e.target.dataset.path ), common: {} } );
-//				getMetadata( e.target.dataset.path );
-			else
+			if ( e.target.dataset.type == 'dir' || e.target.dataset.type == 'drive' )
 				enterDir( e.target.dataset.path );
+			else
+				e.target.classList.toggle('selected');
 		}
 	});
 
-	document.getElementById('add_folder').addEventListener( 'click', function() {
-		for ( let i = 0; i < ui_files.children.length; i++ ) {
-			if ( ui_files.children[ i ].dataset.type == 'file' )
-				addToPlaylist( { file: makePath( ui_files.children[ i ].dataset.path ), common: {} } );
-			else if ( ui_files.children[ i ].dataset.type == 'list' )
-				loadPlaylist( makePath( ui_files.children[ i ].dataset.path ) );
-		}
+	return new Promise( resolve => {
+		fetch( '/getDrives' )
+			.then( function( response ) {
+				if ( response.status == 200 ) {
+					return response.json();
+				}
+			})
+			.then( function( content ) {
+				clearTimeout( startUpTimer );
+				if ( content ) {
+					nodeServer = true;
+					drives = content;
+					enterDir( drives[0] );
+					resolve(0);
+				}
+				else {
+					// no response for our custom query, so it's probably running on a standard web server
+					drives = [ options.defaultPath || '/' ];
+					enterDir( drives[0] );
+					resolve(1);
+				}
+			})
+			.catch( function( err ) {
+				clearTimeout( startUpTimer );
+				ui_path.innerHTML = 'No server found. File navigation is unavailable.';
+				ui_files.style.display = 'none';
+				resolve(-1);
+			});
 	});
-
-//  	dragula( [ document.getElementById('UI_playlist') ] );
-
-	fetch( '/getDrives' )
-		.then( function( response ) {
-//			console.log( response );
-			if ( response.status == 200 ) {
-				return response.json();
-			}
-			else {
-//				ui_path.innerHTML = 'Fatal error! Server query failed with status ' + response.status;
-			}
-		})
-		.then( function( content ) {
-			clearTimeout( startUpTimer );
-			if ( content ) {
-				nodeServer = true;
-				drives = content;
-				enterDir( drives[0] );
-			}
-			else {
-//				ui_path.innerHTML = 'Fatal error! No valid content received from server';
-				consoleLog( 'Running in standard web server mode.' );
-				drives = [ '/music' ];
-				enterDir( drives[0] );
-			}
-		})
-		.catch( function( err ) {
-			clearTimeout( startUpTimer );
-			consoleLog( 'No server found. Running in local mode only.', true );
-			ui_path.innerHTML = 'No server found. File navigation is unavailable. Playlists may work only on Firefox.';
-			ui_files.style.display = 'none';
-			document.getElementById('local_file').style.display = 'block';
-		});
 
 }
-
-window.addEventListener( 'load', initFileExplorer );

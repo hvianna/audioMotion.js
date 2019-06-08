@@ -40,9 +40,6 @@
 	<meta property="og:type" content="website">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="twitter:site" content="@HenriqueVianna">
-	<script src="vendor/localStorage.js"></script>
-	<script src="audioMotion.js"></script>
-	<script src="file-explorer.js"></script>
 </head>
 
 <body>
@@ -61,7 +58,7 @@
 					Loads a configuration preset.<br>
 					<strong>"Last session"</strong> restores the options used in the previous session.
 				</span>
-				<select id="preset" onchange="loadPreset( this.value );">
+				<select id="preset">
 					<option value="">Load Preset</option>
 					<option value="fullres">Full resolution</option>
 					<option value="octave">Octave bands</option>
@@ -72,17 +69,17 @@
 				</select>
 			</span>
 			<span class="help">
-				<button onclick="updateCustomPreset();">Save</button>
+				<button id="btn_save">Save</button>
 				<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
 			</span>
 		</div>
 
 		<div class="player-controls center">
-			<button onclick="playPreviousSong();"><i class="icons8-previous-track-2"></i></button>
-			<button onclick="playPause();"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i></button>
-			<button onclick="stop();"><i class="icons8-stop-symbol"></i></button>
-			<button onclick="playNextSong();"><i class="icons8-skip-this-track-2"></i></button>
-			<span class="help"><button onclick="shufflePlaylist();"><i class="icons8-shuffle"></i></button>
+			<button id="btn_prev"><i class="icons8-previous-track-2"></i></button>
+			<button id="btn_play"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i></button>
+			<button id="btn_stop"><i class="icons8-stop-symbol"></i></button>
+			<button id="btn_next"><i class="icons8-skip-this-track-2"></i></button>
+			<span class="help"><button id="btn_shuf"><i class="icons8-shuffle"></i></button>
 				<span class="tooltip">Shuffle playlist</span>
 			</span>
 			<span class="help"><button id="repeat" class="switch"><i class="icons8-repeat"></i></button>
@@ -91,7 +88,7 @@
 		</div>
 
 		<div class="button-bar center">
-			<button id="fullscreen_button" class="fullscreen-button" onclick="fullscreen();"><u>F</u>ullscreen Analyzer</button>
+			<button id="btn_fullscreen" class="fullscreen-button"><u>F</u>ullscreen Analyzer</button>
 			<br>
 			<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
 				<span class="tooltip shortcuts">
@@ -124,15 +121,13 @@
 		<div id="file_panel" class="config-panel">
 			<div class="ui-panels config-block">
 
-				<div>
-					<ul id="path" class="breadcrumb"></ul>
-					<ul id="file_explorer" class="filelist"></ul>
+				<div id="file_explorer">
 
-					<div id="local_file" class="local-file button-bar">
+					<div id="local_file_panel" class="local-file button-bar">
 						<p>You can load a song from your computer:</p>
 
 						<label><strong>Play a song:</strong>
-						<input type="file" accept="audio/*" onchange="loadLocalFile( this );"></label>
+						<input id="local_file" type="file" accept="audio/*"></label>
 
 						<p>Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> to learn
 						how to setup a server and get the best of audioMotion.</p>
@@ -140,11 +135,11 @@
 				</div>
 
 				<div class="button-column">
-					<span class="help"><button id="add_folder">Add Folder</button>
+					<span class="help"><button id="btn_add_folder">Add Folder</button>
 						<span class="tooltip">Add the current folder's contents to the playlist</span>
 					</span>
 					<br>
-					<span class="help"><button onclick="clearPlaylist();">Clear</button>
+					<span class="help"><button id="btn_clear">Clear</button>
 						<span class="tooltip">Clear current playlist</span>
 					</span>
 				</div>
@@ -179,7 +174,7 @@
 						Visualization mode. Octave bands are based on the equal tempered scale.
 						</span>
 					</span>
-					<select id="mode" onchange="setScale();">
+					<select id="mode">
 						<option value="0">Discrete frequencies</option>
 						<option value="24">Full-octave bands</option>
 						<option value="12">Half-octave bands</option>
@@ -197,7 +192,7 @@
 						but require more CPU power.
 						</span>
 					</span>
-					<select id="fft_size" onchange="setFFTsize();">
+					<select id="fft_size">
 						<option value="512">512</option>
 						<option value="1024">1024</option>
 						<option value="2048">2048</option>
@@ -210,7 +205,7 @@
 
 				<div>
 					<span class="config-label">Range:</span>
-					<select id="freq_min" onchange="setFreqRange();">
+					<select id="freq_min">
 						<option value="20">20</option>
 						<option value="30">30</option>
 						<option value="40">40</option>
@@ -220,7 +215,7 @@
 						<option value="1000">1k</option>
 					</select>
 					-
-					<select id="freq_max" onchange="setFreqRange();">
+					<select id="freq_max">
 						<option value="1000">1k</option>
 						<option value="2000">2k</option>
 						<option value="4000">4k</option>
@@ -238,7 +233,7 @@
 						Increase it if the animation looks too "jumpy".
 						</span>
 					</span>
-					<input type="range" id="smoothing" min="0" max="0.9" step="0.1" onchange="setSmoothing();">
+					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
 				</div>
 
 				<ul class="switch-bar">
@@ -258,7 +253,7 @@
 				<div class="main-config config-block">
 					<div>
 						<span class="config-label">AUDIO SOURCE:</span>
-						<select id="source" onchange="setSource();">
+						<select id="source">
 							<option value="player">built-in Player</option>
 							<option value="mic">Microphone</option>
 						</select>
@@ -267,7 +262,7 @@
 
 				<div class="main-config center">
 					<span class="config-label"><u>G</u>radient:</span>
-					<select id="gradient" onchange="updateLastConfig();"></select>
+					<select id="gradient"></select>
 
 					<ul class="switch-bar">
 						<li class="switch" id="black_bg">NO <u>B</u>G
@@ -300,6 +295,8 @@
 		Source code available on <a href="https://github.com/hvianna/audioMotion.js/">GitHub</a>. Licensed under the <a href="https://www.gnu.org/licenses/agpl.html">GNU AGPL-3.0 license</a>.
 		<a href="https://github.com/hvianna/audioMotion.js/#song-credits">Song credits</a>. Icons by <a href="https://icons8.com/">icons8</a>.
 	</div>
+
+	<script src="audioMotion.js"></script>
 
 </body>
 </html>
