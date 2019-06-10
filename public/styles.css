@@ -54,6 +54,15 @@ h1 {
 .analyzer {
 	background: #000;
 }
+.analyzer canvas {
+	display: block;
+	height: 50vh;
+	margin: 0 auto;
+	width: 100%;
+}
+.analyzer canvas:-webkit-full-screen {
+	height: auto;
+}
 
 #player0,
 #player1 {
@@ -61,17 +70,6 @@ h1 {
 /*	margin-bottom: 10px; */
 	width: 100%
 }
-
-#canvas {
-	display: block;
-	height: 50vh;
-	margin: 0 auto;
-	width: 100%;
-}
-#canvas:-webkit-full-screen {
-	height: auto;
-}
-
 
 #playlists {
 	margin-right: 10px;

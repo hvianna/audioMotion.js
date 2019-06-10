@@ -23,107 +23,23 @@
 var _VERSION = '19.6-dev.1';
 
 import 'script-loader!./localStorage.js';
+import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 
 
-/**
- * Global variables
- */
 var audioStarted = false,
 	// playlist, index to the current song, indexes to current and next audio elements
 	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes,
-	// configuration options we need to check inside the draw loop - for better performance
-	cfgSource, cfgShowScale, cfgShowPeaks, cfgBlackBg,
-	// data for drawing the analyzer bars and scale related variables
-	analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions,
-	// Web Audio API related variables
-	audioCtx, analyzer, audioElement, bufferLength, dataArray, sourcePlayer, sourceMic,
-	// canvas related variables
-	canvas, canvasCtx, pixelRatio, canvasMsg,
-	// octaves center frequencies (for X-axis scale labels)
-	bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ],
-	// gradient definitions
-	gradients = {
-		apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
-					{ stop: .1667, color: '#61bb46' },
-					{ stop: .3333, color: '#fdb827' },
-					{ stop: .5, color: '#f5821f' },
-					{ stop: .6667, color: '#e03a3e' },
-					{ stop: .8333, color: '#963d97' },
-					{ stop: 1, color: '#009ddc' }
-				  ] },
-		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
-					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ stop:  1, color: 'hsl( 216, 100%, 50% )' }
-				  ] },
-		borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
-					{ stop: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ stop: .5, color: 'hsl( 189, 100%, 40% )' },
-					{ stop:  1, color: 'hsl( 290, 60%, 40% )' }
-				  ] },
-		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
-				 	{ stop: .1, color: '#ffaf7b' },
-				 	{ stop: .5, color: '#d76d77' },
-				 	{ stop: 1, color: '#3a1c71' }
-				  ] },
-		classic:  { name: 'Classic', bgColor: '#111', colorStops: [
-					{ stop: 0, color: 'hsl( 0, 100%, 50% )' },
-					{ stop: .6, color: 'hsl( 60, 100%, 50% )' },
-					{ stop:  1, color: 'hsl( 120, 100%, 50% )' }
-				  ] },
-		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
-					{ stop: .2, color: 'hsl( 55, 100%, 50% )' },
-					{ stop:  1, color: 'hsl( 16, 100%, 50% )' }
-				  ] },
-		miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
-				    { stop: .024, color: 'rgb( 251, 198, 6 )' },
-				    { stop: .283, color: 'rgb( 224, 82, 95 )' },
-				    { stop: .462, color: 'rgb( 194, 78, 154 )' },
-				    { stop: .794, color: 'rgb( 32, 173, 190 )' },
-				    { stop: 1, color: 'rgb( 22, 158, 95 )' }
-				  ] },
-		orient:   { name: 'Orient', bgColor: '#100', colorStops: [
-					{ stop: .1, color: '#f00' },
-					{ stop: 1, color: '#600' }
-				  ] },
-		outrun:   { name: 'Outrun', bgColor: '#101', colorStops: [
-					{ stop: 0, color: 'rgb( 255, 223, 67 )' },
-					{ stop: .182, color: 'rgb( 250, 84, 118 )' },
-					{ stop: .364, color: 'rgb( 198, 59, 243 )' },
-					{ stop: .525, color: 'rgb( 133, 80, 255 )' },
-					{ stop: .688, color: 'rgb( 74, 104, 247 )' },
-					{ stop: 1, color: 'rgb( 35, 210, 255 )' }
-		          ] },
-		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
-				 	{ stop: .1, color: '#34e89e' },
-				 	{ stop: 1, color: '#0f3443' }
-				  ] },
-		prism:    { name: 'Prism', bgColor: '#111' },
-		rainbow:  { name: 'Rainbow', bgColor: '#111' },
-		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
-				 	{ stop: .1, color: '#66ff00' },
-				 	{ stop: 1, color: '#a80077' }
-				  ] },
-		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
-				 	{ stop: .1, color: '#fdbb2d' },
-				 	{ stop: 1, color: '#22c1c3' }
-				  ] },
-		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
-				 	{ stop: .1, color: '#f56217' },
-				 	{ stop: 1, color: '#0b486b' }
-				  ] },
-		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
-					{ stop: .038, color: 'rgb( 15, 209, 165 )' },
-					{ stop: .208, color: 'rgb( 15, 157, 209 )' },
-					{ stop: .519, color: 'rgb( 133, 13, 230 )' },
-					{ stop: .731, color: 'rgb( 230, 13, 202 )' },
-					{ stop: .941, color: 'rgb( 242, 180, 107 )' }
-		          ] },
-	};
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes;
+
+// audio sources
+var	audioElement, sourcePlayer, sourceMic, cfgSource;
+
+// canvas related variables
+var	canvas, canvasCtx, pixelRatio, canvasMsg;
 
 /**
  * Configuration presets
@@ -176,14 +92,89 @@ var presets = {
 		}
 	};
 
+// additional gradient definitions
+var	gradients = {
+		apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
+					{ pos: .1667, color: '#61bb46' },
+					{ pos: .3333, color: '#fdb827' },
+					{ pos: .5, color: '#f5821f' },
+					{ pos: .6667, color: '#e03a3e' },
+					{ pos: .8333, color: '#963d97' },
+					{ pos: 1, color: '#009ddc' }
+				  ] },
+		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
+					{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ pos:  1, color: 'hsl( 216, 100%, 50% )' }
+				  ] },
+		borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
+					{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
+					{ pos: .5, color: 'hsl( 189, 100%, 40% )' },
+					{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
+				  ] },
+		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
+				 	{ pos: .1, color: '#ffaf7b' },
+				 	{ pos: .5, color: '#d76d77' },
+				 	{ pos: 1, color: '#3a1c71' }
+				  ] },
+		classic:  { name: 'Classic' },
+		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
+					{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
+					{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
+				  ] },
+		miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
+				    { pos: .024, color: 'rgb( 251, 198, 6 )' },
+				    { pos: .283, color: 'rgb( 224, 82, 95 )' },
+				    { pos: .462, color: 'rgb( 194, 78, 154 )' },
+				    { pos: .794, color: 'rgb( 32, 173, 190 )' },
+				    { pos: 1, color: 'rgb( 22, 158, 95 )' }
+				  ] },
+		orient:   { name: 'Orient', bgColor: '#100', colorStops: [
+					{ pos: .1, color: '#f00' },
+					{ pos: 1, color: '#600' }
+				  ] },
+		outrun:   { name: 'Outrun', bgColor: '#101', colorStops: [
+					{ pos: 0, color: 'rgb( 255, 223, 67 )' },
+					{ pos: .182, color: 'rgb( 250, 84, 118 )' },
+					{ pos: .364, color: 'rgb( 198, 59, 243 )' },
+					{ pos: .525, color: 'rgb( 133, 80, 255 )' },
+					{ pos: .688, color: 'rgb( 74, 104, 247 )' },
+					{ pos: 1, color: 'rgb( 35, 210, 255 )' }
+		          ] },
+		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
+				 	{ pos: .1, color: '#34e89e' },
+				 	{ pos: 1, color: '#0f3443' }
+				  ] },
+		prism:    { name: 'Prism' },
+		rainbow:  { name: 'Rainbow' },
+		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
+				 	{ pos: .1, color: '#66ff00' },
+				 	{ pos: 1, color: '#a80077' }
+				  ] },
+		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
+				 	{ pos: .1, color: '#fdbb2d' },
+				 	{ pos: 1, color: '#22c1c3' }
+				  ] },
+		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
+				 	{ pos: .1, color: '#f56217' },
+				 	{ pos: 1, color: '#0b486b' }
+				  ] },
+		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
+					{ pos: .038, color: 'rgb( 15, 209, 165 )' },
+					{ pos: .208, color: 'rgb( 15, 157, 209 )' },
+					{ pos: .519, color: 'rgb( 133, 13, 230 )' },
+					{ pos: .731, color: 'rgb( 230, 13, 202 )' },
+					{ pos: .941, color: 'rgb( 242, 180, 107 )' }
+		          ] },
+	};
+
 
 /**
  * Start audio elements on user gesture (click or keypress)
  */
 function initAudio() {
 	// fix for suspended audio context on Safari
-	if ( audioCtx.state == 'suspended' )
-		audioCtx.resume();
+	if ( audioMotion.audioCtx.state == 'suspended' )
+		audioMotion.audioCtx.resume();
 
 	if ( ! audioStarted ) {
 		audioElement[0].play();
@@ -196,21 +187,8 @@ function initAudio() {
  * Display the canvas in full-screen mode
  */
 function fullscreen() {
-
-	if ( document.fullscreenElement ) {
-		document.exitFullscreen();
-	}
-	else {
-		if ( canvas.requestFullscreen )
-			canvas.requestFullscreen();
-		else if ( canvas.webkitRequestFullscreen )
-			canvas.webkitRequestFullscreen();
-		else if ( canvas.mozRequestFullScreen )
-			canvas.mozRequestFullScreen();
-		else if ( canvas.msRequestFullscreen )
-			canvas.msRequestFullscreen();
-		document.getElementById('btn_fullscreen').blur();
-	}
+	audioMotion.toggleFullscreen();
+	document.getElementById('btn_fullscreen').blur();
 }
 
 /**
@@ -241,17 +219,9 @@ function setSmoothing() {
  * Set the size of the FFT performed by the analyzer node
  */
 function setFFTsize() {
-
-	analyzer.fftSize = elFFTsize.value;
-
-	// update all variables that depend on the FFT size
-	bufferLength = analyzer.frequencyBinCount;
-	dataArray = new Uint8Array( bufferLength );
-
-	consoleLog( 'FFT size is ' + analyzer.fftSize + ' samples' );
+	audioMotion.setFFTSize( elFFTsize.value );
+	consoleLog( 'FFT size is ' + audioMotion.analyzer.fftSize + ' samples' );
 	updateLastConfig();
-
-	preCalcPosX();
 }
 
 /**
@@ -260,23 +230,39 @@ function setFFTsize() {
 function setFreqRange() {
 	while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
 		elRangeMax.selectedIndex++;
+	audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 	updateLastConfig();
-	preCalcPosX();
+}
+
+/**
+ * Set visualization mode
+ */
+function setMode() {
+	audioMotion.setMode( elMode.value );
+	updateLastConfig();
 }
 
 /**
  * Set scale preferences
  */
 function setScale() {
+	audioMotion.toggleScale( elShowScale.dataset.active == '1' );
 	updateLastConfig();
-	preCalcPosX();
+}
+
+/**
+ * Set scale preferences
+ */
+function setLedDisplay() {
+	audioMotion.toggleLeds( elLedDisplay.dataset.active == '1' );
+	updateLastConfig();
 }
 
 /**
  * Set show peaks preference
  */
 function setShowPeaks() {
-	cfgShowPeaks = ( elShowPeaks.dataset.active == '1' );
+	audioMotion.togglePeaks( elShowPeaks.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -284,161 +270,11 @@ function setShowPeaks() {
  * Set background color preference
  */
 function setBlackBg() {
-	cfgBlackBg = ( elBlackBg.dataset.active == '1' );
+	audioMotion.toggleBgColor( elBlackBg.dataset.active == '0' );
 	updateLastConfig();
 }
 
 
-/**
- * Pre-calculate the actual X-coordinate on screen for each analyzer bar
- */
-function preCalcPosX() {
-
-	fMin = elRangeMin.value;
-	fMax = elRangeMax.value;
-
-	var i, freq;
-
-	cfgShowScale = ( elShowScale.dataset.active == '1' );
-
-	deltaX = Math.log10( fMin );
-	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
-
-	analyzerBars = [];
-
-	if ( elMode.value == '0' ) {
-	// discrete frequencies
- 		var pos, lastPos = -1;
-		let iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
-		    iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
-		barWidth = 1;
-
-		for ( i = iMin; i <= iMax; i++ ) {
-			freq = i * audioCtx.sampleRate / analyzer.fftSize; // frequency represented in this bin
-			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
-
-			// if it's on a different X-coordinate, create a new bar for this frequency
-			if ( pos > lastPos ) {
-				analyzerBars.push( { posX: pos, dataIdx: i, endIdx: 0, average: false, peak: 0, hold: 0, accel: 0 } );
-				lastPos = pos;
-			} // otherwise, add this frequency to the last bar's range
-			else if ( analyzerBars.length )
-				analyzerBars[ analyzerBars.length - 1 ].endIdx = i;
-		}
-	}
-	else {
-	// octave bands
-
-		switch ( elMode.value ) {
-			case '24':
-				ledOptions = { nLeds: 24, spaceV: 16, spaceH: 24 };
-				break;
-
-			case '12':
-				ledOptions = { nLeds: 48, spaceV: 8, spaceH: 16 };
-				break;
-
-			case  '8':
-				ledOptions = { nLeds: 64, spaceV: 6, spaceH: 10 };
-				break;
-
-			case  '4':
-				ledOptions = { nLeds: 80, spaceV: 6, spaceH: 8 };
-				break;
-
-			case  '2':
-				ledOptions = { nLeds: 128, spaceV: 4, spaceH: 4 };
-				break;
-
-			default:
-				ledOptions = { nLeds: 128, spaceV: 3, spaceH: 4 };
-		}
-
-		ledOptions.spaceH *= pixelRatio;
-		ledOptions.spaceV *= pixelRatio;
-		ledOptions.ledHeight = canvas.height / ledOptions.nLeds - ledOptions.spaceV;
-
-		// generate a table of frequencies based on the equal tempered scale
-		var root24 = 2 ** ( 1 / 24 ); // for 1/24th-octave bands
-		var c0 = 440 * root24 ** -114;
-		var temperedScale = [];
-		var prevBin = 0;
-
-		i = 0;
-		while ( ( freq = c0 * root24 ** i ) <= fMax ) {
-			if ( freq >= fMin && i % elMode.value == 0 )
-				temperedScale.push( freq );
-			i++;
-		}
-
-		// canvas space will be divided by the number of frequencies we have to display
-		barWidth = Math.floor( canvas.width / temperedScale.length ) - 1;
-		var barSpace = Math.round( canvas.width - barWidth * temperedScale.length ) / ( temperedScale.length - 1 );
-
-		temperedScale.forEach( function( freq, index ) {
-			// which FFT bin represents this frequency?
-			var bin = Math.round( freq * analyzer.fftSize / audioCtx.sampleRate );
-
-			var idx, nextBin, avg = false;
-			// start from the last used FFT bin
-			if ( prevBin > 0 && prevBin + 1 <= bin )
-				idx = prevBin + 1;
-			else
-				idx = bin;
-
-			prevBin = nextBin = bin;
-			// check if there's another band after this one
-			if ( temperedScale[ index + 1 ] !== undefined ) {
-				nextBin = Math.round( temperedScale[ index + 1 ] * analyzer.fftSize / audioCtx.sampleRate );
-				// and use half the bins in between for this band
-				if ( nextBin - bin > 1 )
-					prevBin += Math.round( ( nextBin - bin ) / 2 );
-				else if ( nextBin - bin == 1 ) {
-				// for low frequencies the FFT may not provide as many coefficients as we need, so more than one band will use the same FFT data
-				// in these cases, we set a flag to perform an average to smooth the transition between adjacent bands
-					if ( analyzerBars.length > 0 && idx == analyzerBars[ analyzerBars.length - 1 ].dataIdx ) {
-						avg = true;
-						prevBin += Math.round( ( nextBin - bin ) / 2 );
-					}
-				}
-			}
-
-			analyzerBars.push( {
-				posX: index * ( barWidth + barSpace ),
-				dataIdx: idx,
-				endIdx: prevBin - idx > 0 ? prevBin : 0,
-				average: avg,
-				peak: 0,
-				hold: 0,
-				accel: 0
-			} );
-		} );
-	}
-
-	drawScale();
-}
-
-/**
- * Draws the x-axis scale
- */
-function drawScale() {
-
-	canvasCtx.fillStyle = '#000';
-	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
-
-	if ( ! cfgShowScale )
-		return;
-
-	canvasCtx.fillStyle = '#fff';
-	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
-	canvasCtx.textAlign = 'center';
-
-	bands.forEach( function( freq ) {
-		var posX = bandWidth * ( Math.log10( freq ) - deltaX );
-		canvasCtx.fillText( freq >= 1000 ? ( freq / 1000 ) + 'k' : freq, posX, canvas.height - 5 * pixelRatio );
-	});
-
-}
 
 /**
  * Clear the playlist
@@ -877,7 +713,18 @@ function outlineText( text, x, y, maxWidth ) {
 /**
  * Display message on canvas
  */
-function displayCanvasMsg() {
+function displayCanvasMsg( canvas, canvasCtx ) {
+
+	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
+	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
+		audioOnEnded();
+
+	if ( canvasMsg.timer < 1 )
+		return;
+	else if ( ! --canvasMsg.timer ) {
+		setCanvasMsg(); // clear messages
+		return;
+	}
 
 	var curTime, duration;
 
@@ -944,117 +791,6 @@ function setCanvasMsg( msg, timer = 120, fade = 60 ) {
 		canvasMsg = { msg: msg, timer: timer, fade: fade };
 }
 
-/**
- * Redraw the canvas
- * this is called 60 times per second by requestAnimationFrame()
- */
-function draw() {
-
-	var grad = elGradient.value,
-		i, j, l, bar, barHeight,
-		isLedDisplay = ( elLedDisplay.dataset.active == '1' && elMode.value != '0' );
-
-//	document.body.className = isPlaying() ? 'playing' : '';
-
-	if ( cfgBlackBg )	// use black background
-		canvasCtx.fillStyle = '#000';
-	else
-		if ( isLedDisplay )
-			canvasCtx.fillStyle = '#111';
-		else
-			canvasCtx.fillStyle = gradients[ grad ].bgColor; // use background color defined by gradient
-
-	// clear the canvas
-	canvasCtx.fillRect( 0, 0, canvas.width, canvas.height );
-
-	// get a new array of data from the FFT
-	analyzer.getByteFrequencyData( dataArray );
-
-	l = analyzerBars.length;
-	for ( i = 0; i < l; i++ ) {
-
-		bar = analyzerBars[ i ];
-
-		if ( bar.endIdx == 0 ) 	// single FFT bin
-			barHeight = dataArray[ bar.dataIdx ] / 255 * canvas.height;
-		else { 					// range of bins
-			barHeight = 0;
-			if ( bar.average ) {
-				// use the average value of the range
-				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
-					barHeight += dataArray[ j ];
-				barHeight = barHeight / ( bar.endIdx - bar.dataIdx + 1 ) / 255 * canvas.height;
-			}
-			else {
-				// use the highest value in the range
-				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
-					barHeight = Math.max( barHeight, dataArray[ j ] );
-				barHeight = barHeight / 255 * canvas.height;
-			}
-		}
-
-		if ( isLedDisplay ) // normalize barHeight to match one of the "led" elements
-			barHeight = Math.floor( barHeight / canvas.height * ledOptions.nLeds ) * ( ledOptions.ledHeight + ledOptions.spaceV );
-
-		if ( barHeight > bar.peak ) {
-			bar.peak = barHeight;
-			bar.hold = 30; // set peak hold time to 30 frames (0.5s)
-			bar.accel = 0;
-		}
-
-		canvasCtx.fillStyle = gradients[ grad ].gradient;
-		if ( isLedDisplay )
-			canvasCtx.fillRect( bar.posX + ledOptions.spaceH / 2, canvas.height, barWidth, -barHeight );
-		else
-			canvasCtx.fillRect( bar.posX, canvas.height, barWidth, -barHeight );
-
-		if ( bar.peak > 0 ) {
-			if ( cfgShowPeaks )
-				if ( isLedDisplay )
-					canvasCtx.fillRect( bar.posX + ledOptions.spaceH / 2, ( ledOptions.nLeds - Math.floor( bar.peak / canvas.height * ledOptions.nLeds ) ) * ( ledOptions.ledHeight + ledOptions.spaceV ), barWidth, ledOptions.ledHeight );
-				else
-					canvasCtx.fillRect( bar.posX, canvas.height - bar.peak, barWidth, 2 );
-
-			if ( bar.hold )
-				bar.hold--;
-			else {
-				bar.accel++;
-				bar.peak -= bar.accel;
-			}
-		}
-
-		if ( isLedDisplay ) {
-			canvasCtx.fillStyle = '#000';	// clears a vertical line to the left of this bar, to separate the LED columns
-			canvasCtx.fillRect( bar.posX - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
-		}
-
-	}
-
-	if ( isLedDisplay ) {
-		canvasCtx.fillStyle = '#000';
-		if ( elMode.value > 1 )	// clears rightmost vertical line
-			canvasCtx.fillRect( canvas.width - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
-		// add horizontal black lines to separate the LEDs
-		for ( j = ledOptions.ledHeight; j < canvas.height; j += ledOptions.ledHeight + ledOptions.spaceV )
-			canvasCtx.fillRect( 0, j, canvas.width, ledOptions.spaceV );
-	}
-
-	if ( cfgShowScale )
-		drawScale();
-
-	if ( canvasMsg.timer > 0 ) {
-		displayCanvasMsg();
-		if ( ! --canvasMsg.timer )
-			setCanvasMsg(); // clear messages
-	}
-
-	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
-		audioOnEnded();
-
-	// schedule next canvas update
-	requestAnimationFrame( draw );
-}
 
 /**
  * Output messages to the UI "console"
@@ -1080,12 +816,12 @@ function setSource() {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
-			sourceMic.connect( analyzer );
+			sourceMic.connect( audioMotion.analyzer );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
 			.then( function( stream ) {
-				sourceMic = audioCtx.createMediaStreamSource( stream );
+				sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
 				consoleLog( 'Audio source set to microphone' );
 				setSource(); // recursive call, sourceMic is now set
 			})
@@ -1098,7 +834,7 @@ function setSource() {
 	}
 	else {
 		if ( typeof sourceMic == 'object' )
-			sourceMic.disconnect( analyzer );
+			sourceMic.disconnect( audioMotion.analyzer );
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
@@ -1175,16 +911,23 @@ function loadPreset( name ) {
 	if ( presets[ name ].hasOwnProperty( 'loRes' ) )
 		elLoRes.dataset.active = Number( presets[ name ].loRes );
 
-	setCanvas();
-
 	if ( presets[ name ].hasOwnProperty( 'gradient' ) && gradients[ presets[ name ].gradient ] )
 		elGradient.value = presets[ name ].gradient;
 
-	setFFTsize();
-	setSmoothing();
-	setSensitivity();
-	setShowPeaks();
-	setBlackBg();
+	audioMotion.setOptions( {
+		mode       : elMode.value,
+		fftSize    : elFFTsize.value,
+		freqMin    : elRangeMin.value,
+		freqMax    : elRangeMax.value,
+		smoothing  : elSmoothing.value,
+		showScale  : ( elShowScale.dataset.active == '1' ),
+		highSens   : ( elHighSens.dataset.active == '1' ),
+		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
+		showBgColor: ( elBlackBg.dataset.active == '0' ),
+		showLeds   : ( elLedDisplay.dataset.active == '1' ),
+		loRes      : ( elLoRes.dataset.active == '1' ),
+		gradient   : elGradient.value
+	} );
 }
 
 /**
@@ -1331,7 +1074,7 @@ function keyboardControls( event ) {
 				else
 					elMode.selectedIndex = modeIdx + 1;
 			}
-			setScale();
+			setMode();
 			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
 			break;
 		case 'KeyN': 		// toggle sensitivity
@@ -1414,60 +1157,9 @@ function audioOnError( e ) {
 /**
  * Set canvas dimensions
  */
-function setCanvas() {
-	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
-
-	if ( elLoRes.dataset.active == '1' )
-		pixelRatio /= 2;
-
-	// Adjust canvas width and height to match the display's resolution
-	canvas.width = window.screen.width * pixelRatio;
-	canvas.height = window.screen.height * pixelRatio;
-
-	// always consider landscape orientation
-	if ( canvas.height > canvas.width ) {
-		var tmp = canvas.width;
-		canvas.width = canvas.height;
-		canvas.height = tmp;
-	}
-	consoleLog( 'Canvas size is ' + canvas.width + 'x' + canvas.height + ' pixels (dPR: ' + pixelRatio + ')' );
-
-	if ( pixelRatio == 2 && canvas.height <= 1080 ) // adjustment for wrong dPR reported on Shield TV
-		pixelRatio = 1;
-
-	canvasCtx.lineWidth = 4 * pixelRatio;
-	canvasCtx.lineJoin = 'round';
-
-	// Generate gradients
-
-	var grad, i;
-
-	Object.keys( gradients ).forEach( function( key ) {
-		grad = canvasCtx.createLinearGradient( 0, 0, 0, canvas.height );
-		if ( gradients[ key ].hasOwnProperty( 'colorStops' ) ) {
-			for ( i = 0; i < gradients[ key ].colorStops.length; i++ )
-				grad.addColorStop( gradients[ key ].colorStops[ i ].stop, gradients[ key ].colorStops[ i ].color );
-		}
-		// rainbow gradients are easily created iterating over the hue value
-		else if ( key == 'prism' ) {
-			for ( i = 0; i <= 240; i += 60 )
-				grad.addColorStop( i/240, 'hsl( ' + i + ', 100%, 50% )' );
-		}
-		else if ( key == 'rainbow' ) {
-			grad = canvasCtx.createLinearGradient( 0, 0, canvas.width, 0 ); // this one is a horizontal gradient
-			for ( i = 0; i <= 360; i += 60 )
-				grad.addColorStop( i/360, 'hsl( ' + i + ', 100%, 50% )' );
-		}
-
-		// add the option to the html select element for the user interface
-		if ( elGradient.options.length < Object.keys( gradients ).length )
-			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
-
-		// save the actual gradient back into the gradients array
-		gradients[ key ].gradient = grad;
-	});
-
-	preCalcPosX();
+function setLoRes() {
+	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
+	consoleLog( 'Canvas size is ' + audioMotion.canvas.width + 'x' + audioMotion.canvas.height + ' pixels (device pixel ratio = ' + audioMotion.pixelRatio + ')' );
 	updateLastConfig();
 }
 
@@ -1515,18 +1207,23 @@ function initialize() {
 	});
 	document.getElementById('show_filelist').click();
 
-	// Create audio context
-
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
+	// Create audioMotion analyzer
 
 	try {
-		audioCtx = new AudioContext();
+		audioMotion.create(
+			document.getElementById('analyzer'),
+			{
+				drawCallback: displayCanvasMsg
+			}
+		);
 	}
 	catch( err ) {
-		consoleLog( 'Could not create audio context. Web Audio API not supported?', true );
-		consoleLog( 'Aborting.', true );
+		consoleLog( 'Aborting with error: ' + err, true );
 		return false;
 	}
+
+	var audioCtx = audioMotion.audioCtx;
+	var analyzer = audioMotion.analyzer;
 
 	consoleLog( 'Audio context sample rate is ' + audioCtx.sampleRate + 'Hz' );
 
@@ -1552,7 +1249,6 @@ function initialize() {
 	audioElement[0].addEventListener( 'error', audioOnError );
 	audioElement[1].addEventListener( 'error', audioOnError );
 
-	analyzer = audioCtx.createAnalyser();
 	sourcePlayer = [
 		audioCtx.createMediaElementSource( audioElement[0] ),
 		audioCtx.createMediaElementSource( audioElement[1] )
@@ -1560,7 +1256,6 @@ function initialize() {
 
 	sourcePlayer[0].connect( analyzer );
 	sourcePlayer[1].connect( analyzer );
-	analyzer.connect( audioCtx.destination );
 
 	// Set UI elements
 
@@ -1599,15 +1294,15 @@ function initialize() {
 	elShowPeaks. addEventListener( 'click', setShowPeaks );
 	elBlackBg.   addEventListener( 'click', setBlackBg );
 	elCycleGrad. addEventListener( 'click', updateLastConfig );
-	elLedDisplay.addEventListener( 'click', setScale );
+	elLedDisplay.addEventListener( 'click', setLedDisplay );
 	elRepeat.    addEventListener( 'click', updateLastConfig );
 	elShowSong.  addEventListener( 'click', updateLastConfig );
 	elNoShadow.  addEventListener( 'click', updateLastConfig );
-	elLoRes.     addEventListener( 'click', setCanvas );
+	elLoRes.     addEventListener( 'click', setLoRes );
 
 	// Add event listeners to UI config elements
 
-	elMode.      addEventListener( 'change', setScale );
+	elMode.      addEventListener( 'change', setMode );
 	elFFTsize.   addEventListener( 'change', setFFTsize );
 	elRangeMin.  addEventListener( 'change', setFreqRange );
 	elRangeMax.  addEventListener( 'change', setFreqRange );
@@ -1629,19 +1324,23 @@ function initialize() {
 	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
 	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
 
-	// Canvas
-
-	canvas = document.getElementById('canvas');
-	canvasCtx = canvas.getContext('2d');
+	// clicks on canvas also toggle scale on/off
+	audioMotion.canvas.addEventListener( 'click', function() {
+		elShowScale.click();
+	});
 	setCanvasMsg();
 
-	// clicks on canvas also toggle scale on/off
-	canvas.addEventListener( 'click', function() {
-		elShowScale.click();
+	// Register custom gradients
+	Object.keys( gradients ).forEach( function( key ) {
+		if ( gradients[ key ].bgColor && gradients[ key ].colorStops )
+			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
+
+		// add the option to the html select element for the user interface
+		if ( elGradient.options.length < Object.keys( gradients ).length )
+			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
 	});
 
 	// Load / initialize configuration options
-
 	var settings;
 
 	settings = localStorage.getItem( 'last-config' );
@@ -1657,6 +1356,8 @@ function initialize() {
 		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
 
 	loadPreset('last');
+
+	consoleLog( 'Canvas size is ' + audioMotion.canvas.width + 'x' + audioMotion.canvas.height + ' pixels (device pixel ratio = ' + audioMotion.pixelRatio + ')' );
 
 	// Set audio source to built-in player
 	setSource();
@@ -1691,8 +1392,6 @@ function initialize() {
 	// On Webkit audio must be started on some user gesture
 	window.addEventListener( 'click', initAudio );
 
-	// Start canvas animation
-	requestAnimationFrame( draw );
 }
 
 
