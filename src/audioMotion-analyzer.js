@@ -2,7 +2,7 @@
  * audioMotion-analyzer.js
  * High-resolution real-time graphic audio spectrum analyzer
  *
- * https://github.com/hvianna/audioMotion-analyzer.js
+ * https://github.com/hvianna/audioMotion-analyzer
  *
  * Copyright (C) 2018-2019 Henrique Vianna <hvianna@gmail.com>
  *
@@ -21,7 +21,7 @@
  */
 
 // current visualization settings
-export var mode, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes;
+export var mode, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes, scaleSize;
 
 // data for drawing the analyzer bars and scale related variables
 var analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions;
@@ -31,7 +31,7 @@ export var audioCtx, analyzer;
 var bufferLength, dataArray;
 
 // canvas related variables
-export var canvas, canvasCtx, pixelRatio;
+export var canvas, canvasCtx, pixelRatio, width, height;
 var animationReq, drawCallback, ledsMask, ledsCtx;
 
 // gradient definitions
@@ -39,22 +39,24 @@ var	gradients = {
 	classic: {
 		bgColor: '#111',
 		colorStops: [
-			{ pos:  0, color: 'hsl( 0, 100%, 50% )' },  // each color stop can specify the position (0 to 1) and color
-			{ pos: .6, color: 'hsl( 60, 100%, 50% )' }, // colors may be defined in any HTML valid format
-			{ pos:  1, color: 'hsl( 120, 100%, 50% )' }
-		] },
+			'hsl( 0, 100%, 50% )',
+			{ pos: .6, color: 'hsl( 60, 100%, 50% )' },
+			'hsl( 120, 100%, 50% )'
+		]
+	},
 	prism:   {
 		bgColor: '#111',
 		colorStops: [
-			'hsl( 0, 100%, 50% )',    // if colorStops is an array of strings,
-			'hsl( 60, 100%, 50% )',   // colors will be evenly distributed automatically
+			'hsl( 0, 100%, 50% )',
+			'hsl( 60, 100%, 50% )',
 			'hsl( 120, 100%, 50% )',
 			'hsl( 180, 100%, 50% )',
 			'hsl( 240, 100%, 50% )',
-		] },
+		]
+	},
 	rainbow: {
 		bgColor: '#111',
-		dir: 'h', // this creates a horizontal gradient
+		dir: 'h',
 		colorStops: [
 			'hsl( 0, 100%, 50% )',
 			'hsl( 60, 100%, 50% )',
@@ -82,15 +84,37 @@ var defaults = {
 	showScale   : true,
 	highSens    : false,
 	showPeaks   : true,
-	loRes       : false
+	loRes       : false,
+	scaleSize   : 1,
+	width       : 640,
+	height      : 270
 };
 
+
+/**
+ * Set dimensions of analyzer's canvas
+ */
+export function setCanvasSize( w = defaults.width, h = defaults.height ) {
+	width = w;
+	height = h;
+	setCanvas();
+}
+
+/**
+ * Set callback function
+ */
+export function setDrawCallback( func ) {
+	if ( typeof func == 'function' )
+		drawCallback = func;
+	else
+		drawCallback = undefined;
+}
 
 /**
  * Set visualization mode
  */
 export function setMode( value = defaults.mode ) {
-	mode = value;
+	mode = Number( value );
 	preCalcPosX();
 }
 
@@ -118,6 +142,13 @@ export function setFreqRange( min = defaults.freqMin, max = defaults.freqMax ) {
 }
 
 /**
+ * Set scale size
+ */
+export function setScaleSize( value = defaults.scaleSize ) {
+	scaleSize = value;
+}
+
+/**
  * Set the analyzer's smoothing time constant
  */
 export function setSmoothing( value = defaults.smoothing ) {
@@ -135,55 +166,35 @@ export function setGradient( value = defaults.gradient ) {
  * Toggle peaks on/off
  */
 export function togglePeaks( value ) {
-	if ( value === undefined )
-		showPeaks = ! showPeaks;
-	else
-		showPeaks = value;
-	return showPeaks;
+	return showPeaks = value === undefined ? ! showPeaks : value;
 }
 
 /**
  * Toggle background color on/off
  */
 export function toggleBgColor( value ) {
-	if ( value === undefined )
-		showBgColor = ! showBgColor;
-	else
-		showBgColor = value;
-	return showBgColor;
+	return showBgColor = value === undefined ? ! showBgColor : value;
 }
 
 /**
  * Toggle LED effect on/off
  */
 export function toggleLeds( value ) {
-	if ( value === undefined )
-		showLeds = ! showLeds;
-	else
-		showLeds = value;
-	return showLeds;
+	return showLeds = value === undefined ? ! showLeds : value;
 }
 
 /**
  * Toggle scale on/off
  */
 export function toggleScale ( value ) {
-	if ( value === undefined )
-		showScale = ! showScale;
-	else
-		showScale = value;
-	return showScale;
+	return showScale = value === undefined ? ! showScale : value;
 }
 
 /**
  * Toggle low-resolution mode on/off
  */
 export function toggleLoRes ( value ) {
-	if ( value === undefined )
-		loRes = ! loRes;
-	else
-		loRes = value;
-
+	loRes = value === undefined ? ! loRes : value;
 	setCanvas();
 	return loRes;
 }
@@ -215,7 +226,7 @@ export function setSensitivity( min = -85, max = -25 ) {
 export function setOptions( options ) {
 
 	if ( options.mode !== undefined )
-		mode = options.mode;
+		mode = Number( options.mode );
 
 	if ( options.freqMin !== undefined )
 		fMin = options.freqMin;
@@ -244,11 +255,23 @@ export function setOptions( options ) {
 	if ( options.loRes !== undefined )
 		loRes = options.loRes;
 
+	if ( options.scaleSize !== undefined )
+		scaleSize = options.scaleSize;
+
 	if ( options.fftSize !== undefined )
 		analyzer.fftSize = options.fftSize;
 
 	if ( options.smoothing !== undefined )
 		analyzer.smoothingTimeConstant = options.smoothing;
+
+	if ( typeof options.drawCallback == 'function' )
+		drawCallback = options.drawCallback;
+
+	if ( options.width !== undefined )
+		width = options.width;
+
+	if ( options.height !== undefined )
+		height = options.height;
 
 	setSensitivity( highSens );
 
@@ -298,7 +321,7 @@ function preCalcPosX() {
 	if ( mode == 0 ) {
 	// discrete frequencies
  		var pos, lastPos = -1;
-		let iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
+		var iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
 		    iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
 		barWidth = 1;
 
@@ -318,29 +341,61 @@ function preCalcPosX() {
 	else {
 	// octave bands
 
+		var spaceV;
+
 		switch ( mode ) {
 			case 24:
-				ledOptions = { nLeds: 24, spaceV: 16, spaceH: 24 };
+				spaceV = Math.min( 16, canvas.height / ( 33 * pixelRatio ) | 0 );
+				ledOptions = {
+					nLeds: Math.min( 24, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
+					spaceV: spaceV,
+					spaceH: Math.min( 24, canvas.width / ( 40 * pixelRatio ) | 0 )
+				};
 				break;
 
 			case 12:
-				ledOptions = { nLeds: 48, spaceV: 8, spaceH: 16 };
+				spaceV = Math.min( 8, canvas.height / ( 67 * pixelRatio ) | 0 );
+				ledOptions = {
+					nLeds: Math.min( 48, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
+					spaceV: spaceV,
+					spaceH: Math.min( 16, canvas.width / ( 60 * pixelRatio ) | 0 )
+				};
 				break;
 
 			case  8:
-				ledOptions = { nLeds: 64, spaceV: 6, spaceH: 10 };
+				spaceV = Math.min( 6, canvas.height / ( 90 * pixelRatio ) | 0 );
+				ledOptions = {
+					nLeds: Math.min( 64, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
+					spaceV: spaceV,
+					spaceH: Math.min( 10, canvas.width / ( 96 * pixelRatio ) | 0 )
+				};
 				break;
 
 			case  4:
-				ledOptions = { nLeds: 80, spaceV: 6, spaceH: 8 };
+				spaceV = Math.min( 6, canvas.height / ( 90 * pixelRatio ) | 0 );
+				ledOptions = {
+					nLeds: Math.min( 80, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
+					spaceV: spaceV,
+					spaceH: Math.min( 8, canvas.width / ( 120 * pixelRatio ) | 0 )
+				};
 				break;
 
 			case  2:
-				ledOptions = { nLeds: 128, spaceV: 4, spaceH: 4 };
+				spaceV = Math.min( 4, canvas.height / ( 135 * pixelRatio ) | 0 );
+				ledOptions = {
+					nLeds: Math.min( 128, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
+					spaceV: spaceV,
+					spaceH: Math.min( 4, canvas.width / ( 240 * pixelRatio ) | 0 )
+				};
 				break;
 
 			default:
-				ledOptions = { nLeds: 128, spaceV: 3, spaceH: 4 };
+				spaceV = Math.min( 3, Math.max( 2, canvas.height / ( 180 * pixelRatio ) | 0 ) );
+				ledOptions = {
+					nLeds: Math.min( 128, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
+					spaceV: spaceV,
+					spaceH: Math.min( 4, canvas.width / ( 320 * pixelRatio ) | 0 )
+				};
 		}
 
 		ledOptions.spaceH *= pixelRatio;
@@ -428,19 +483,21 @@ function drawScale() {
 	// octaves center frequencies
 	var bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
 
-	canvasCtx.fillStyle = '#000';
-	canvasCtx.fillRect( 0, canvas.height - 20 * pixelRatio, canvas.width, 20 * pixelRatio );
+	var size = 5 * pixelRatio * scaleSize;
+
+	canvasCtx.fillStyle = '#000c';
+	canvasCtx.fillRect( 0, canvas.height - size * 4, canvas.width, size * 4 );
 
 	if ( ! showScale )
 		return;
 
 	canvasCtx.fillStyle = '#fff';
-	canvasCtx.font = ( 10 * pixelRatio ) + 'px sans-serif';
+	canvasCtx.font = ( size * 2 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
 	bands.forEach( function( freq ) {
 		var posX = bandWidth * ( Math.log10( freq ) - deltaX );
-		canvasCtx.fillText( freq >= 1000 ? ( freq / 1000 ) + 'k' : freq, posX, canvas.height - 5 * pixelRatio );
+		canvasCtx.fillText( freq >= 1000 ? ( freq / 1000 ) + 'k' : freq, posX, canvas.height - size );
 	});
 
 }
@@ -452,9 +509,7 @@ function drawScale() {
 function draw() {
 
 	var i, j, l, bar, barHeight,
-		isLedDisplay = ( showLeds && mode != '0' );
-
-//	document.body.className = isPlaying() ? 'playing' : '';
+		isLedDisplay = ( showLeds && mode > 0 );
 
 	if ( ! showBgColor )	// use black background
 		canvasCtx.fillStyle = '#000';
@@ -538,7 +593,7 @@ function draw() {
 }
 
 /**
- * (Re)generate gradients
+ * Generate gradients
  */
 function generateGradients() {
 	var grad, i;
@@ -564,17 +619,17 @@ function generateGradients() {
 
 
 /**
- * Set canvas dimensions
+ * Internal function to change canvas dimensions on the fly
  */
-function setCanvas() {
+function setCanvas( w = width, h = height ) {
 	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
 
 	if ( loRes )
 		pixelRatio /= 2;
 
 	// Adjust canvas width and height to match the display's resolution
-	canvas.width = window.screen.width * pixelRatio;
-	canvas.height = window.screen.height * pixelRatio;
+	canvas.width = w * pixelRatio;
+	canvas.height = h * pixelRatio;
 
 	// always consider landscape orientation
 	if ( canvas.height > canvas.width ) {
@@ -585,9 +640,6 @@ function setCanvas() {
 
 	if ( pixelRatio == 2 && canvas.height <= 1080 ) // adjustment for wrong dPR reported on Shield TV
 		pixelRatio = 1;
-
-	canvasCtx.lineWidth = 4 * pixelRatio;
-	canvasCtx.lineJoin = 'round';
 
 	// clear the canvas
 	canvasCtx.fillStyle = '#000';
@@ -687,19 +739,28 @@ export function create( container, options = {} ) {
 
 	// Adjust settings
 
-	mode        = options.mode        || defaults.mode;
-	fMin        = options.freqMin     || defaults.freqMin;
-	fMax        = options.freqMax     || defaults.freqMax;
-	gradient    = options.gradient    || defaults.gradient;
-	showBgColor = options.showBgColor || defaults.showBgColor;
-	showLeds    = options.showLeds    || defaults.showLeds;
-	showScale   = options.showScale   || defaults.showScale;
-	highSens    = options.highSens    || defaults.highSens;
-	showPeaks   = options.showPeaks   || defaults.showPeaks;
-	loRes       = options.loRes       || defaults.loRes;
+	defaults.width  = container.clientWidth  || defaults.width;
+	defaults.height = container.clientHeight || defaults.height;
 
-	analyzer.fftSize               = options.fftSize   || defaults.fftSize;
-	analyzer.smoothingTimeConstant = options.smoothing || defaults.smoothing;
+	mode        = options.mode        === undefined ? defaults.mode        : Number( options.mode );
+	fMin        = options.freqMin     === undefined ? defaults.freqMin     : options.freqMin;
+	fMax        = options.freqMax     === undefined ? defaults.freqMax     : options.freqMax;
+	gradient    = options.gradient    === undefined ? defaults.gradient    : options.gradient;
+	showBgColor = options.showBgColor === undefined ? defaults.showBgColor : options.showBgColor;
+	showLeds    = options.showLeds    === undefined ? defaults.showLeds    : options.showLeds;
+	showScale   = options.showScale   === undefined ? defaults.showScale   : options.showScale;
+	highSens    = options.highSens    === undefined ? defaults.highSens    : options.highSens;
+	showPeaks   = options.showPeaks   === undefined ? defaults.showPeaks   : options.showPeaks;
+	loRes       = options.loRes       === undefined ? defaults.loRes       : options.loRes;
+	scaleSize   = options.scaleSize   === undefined ? defaults.scaleSize   : options.scaleSize;
+	width       = options.width       === undefined ? defaults.width       : options.width;
+	height      = options.height      === undefined ? defaults.height      : options.height;
+
+	analyzer.fftSize               = options.fftSize   === undefined ? defaults.fftSize   : options.fftSize;
+	analyzer.smoothingTimeConstant = options.smoothing === undefined ? defaults.smoothing : options.smoothing;
+
+	if ( typeof options.drawCallback == 'function' )
+		drawCallback = options.drawCallback;
 
 	setSensitivity( highSens );
 
@@ -711,6 +772,13 @@ export function create( container, options = {} ) {
 	container.appendChild( canvas );
 	canvasCtx = canvas.getContext('2d');
 	setCanvas();
+
+	canvas.addEventListener( 'fullscreenchange', () => {
+		if ( ! document.fullscreenElement )
+			setCanvas();
+		else
+			setCanvas( window.screen.width, window.screen.height );
+	});
 
 	// Start canvas animation
 	if ( options.start === undefined || options.start !== false )
