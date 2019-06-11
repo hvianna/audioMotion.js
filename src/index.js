@@ -38,8 +38,8 @@ var audioStarted = false,
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
 
-// canvas related variables
-var	canvas, canvasCtx, pixelRatio, canvasMsg;
+// on-screen messages
+var	canvasMsg;
 
 /**
  * Configuration presets
@@ -699,12 +699,13 @@ function isPlaying() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
+	var canvasCtx = audioMotion.canvasCtx;
 	if ( elNoShadow.dataset.active == '1') {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
 	}
 	else {
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * pixelRatio;
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * audioMotion.pixelRatio;
 		canvasCtx.fillText( text, x, y, maxWidth );
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
 	}
@@ -728,7 +729,7 @@ function displayCanvasMsg( canvas, canvasCtx ) {
 
 	var curTime, duration;
 
-	var	fontSize    = canvas.width / 28, // base font size - all the following measures are relative to this
+	var	fontSize    = canvas.height / 16, // base font size - all the following measures are relative to this
 		leftPos     = fontSize,
 		rightPos    = canvas.width - fontSize,
 		centerPos   = canvas.width / 2,
@@ -737,6 +738,9 @@ function displayCanvasMsg( canvas, canvasCtx ) {
 		bottomLine2 = canvas.height - fontSize * 1.6,
 		maxWidth    = canvas.width - fontSize * 6.6,  // maximum width for artist and song name
 		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
+
+	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
+	canvasCtx.lineJoin = 'round';
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
 		canvasCtx.fillStyle = '#fff';

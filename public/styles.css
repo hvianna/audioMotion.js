@@ -53,16 +53,16 @@ h1 {
 
 .analyzer {
 	background: #000;
+	height: 270px;
 }
 .analyzer canvas {
 	display: block;
-	height: 50vh;
-	margin: 0 auto;
-	width: 100%;
 }
+/*
 .analyzer canvas:-webkit-full-screen {
 	height: auto;
 }
+*/
 
 #player0,
 #player1 {
