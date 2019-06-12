@@ -26,14 +26,15 @@ import 'script-loader!./localStorage.js';
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 
-
 var audioStarted = false,
 	// playlist, index to the current song, indexes to current and next audio elements
 	playlist, playlistPos, currAudio, nextAudio,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes;
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes,
+	// fileMode: 1 = nodeJS server; 0 = standard web server; -1 = local mode (no server)
+	fileMode;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -356,7 +357,7 @@ function loadSavedPlaylists( keyName ) {
  */
 function addToPlaylist( content ) {
 
-	var title = content.common.title || content.file.substring( content.file.lastIndexOf('/') + 1 );
+	var title = content.common.title || content.file.substring( Math.max( content.file.lastIndexOf('/'), content.file.lastIndexOf('\\'), content.file.lastIndexOf('%2f') + 2 ), + 1 );
 
 	var el = document.createElement('li');
 
@@ -397,15 +398,17 @@ function loadPlaylist( path ) {
 			})
 			.then( function( content ) {
 				tmplist = content.split(/[\r\n]+/);
-				path = path.substring( 0, path.lastIndexOf('/') + 1 );
+				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\'), path.lastIndexOf('%2f') + 2 ) + 1 );
 				for ( var i = 0; i < tmplist.length; i++ ) {
 					if ( tmplist[ i ].charAt(0) != '#' && tmplist[ i ].trim() != '' ) { // not a comment or blank line?
 						n++;
 						if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\') ) + 1 );
+							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\'), tmplist[ i ].lastIndexOf('%2f') + 2 ) + 1 );
 							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 						}
-						if ( tmplist[ i ].substring( 0, 4 ) != 'http' )
+						if ( fileMode == 1 )
+							tmplist[ i ] = tmplist[ i ].replace( /[\/\\]/g, '%2f' ); // when running in the nodeJS server replace slashes in path
+						if ( tmplist[ i ].substring( 0, 4 ) != 'http' && tmplist[ i ][1] != ':' && tmplist[ i ][0] != '/' )
 							tmplist[ i ] = path + tmplist[ i ];
 						t = songInfo.indexOf(' - ');
 						if ( t == -1 )
@@ -433,7 +436,7 @@ function loadPlaylist( path ) {
 		if ( tmplist ) {
 			tmplist = JSON.parse( tmplist );
 			tmplist.forEach( item => {
-				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
+				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\'), item.lastIndexOf('%2f') + 2 ) + 1 );
 				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 				addToPlaylist( { file: item, common: { artist: '', title: songInfo } } )
 			});
@@ -1372,13 +1375,14 @@ function initialize() {
 	// initialize file explorer
 	fileExplorer.create( document.getElementById('file_explorer'), { defaultPath: '/music' } )
 		.then( function( status ) {
-			if ( status == 1 )
+			if ( status == 0 )
 				consoleLog( 'Running in standard web server mode.' );
 			else if ( status == -1 ) {
 				consoleLog( 'No server found. Running in local mode only.', true );
 				document.getElementById('local_file_panel').style.display = 'block';
 				document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
 			}
+			fileMode = status;
 
 			document.getElementById('btn_add_folder').addEventListener( 'click', function() {
 				fileExplorer.getFolderContents().forEach( entry => {
