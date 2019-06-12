@@ -351,6 +351,7 @@ h1 {
 /* File explorer */
 
 #file_explorer {
+	align-self: stretch;
 	display: flex;
 	flex-direction: column;
 }

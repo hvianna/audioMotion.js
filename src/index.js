@@ -353,11 +353,24 @@ function loadSavedPlaylists( keyName ) {
 }
 
 /**
+ * Add a song or playlist to the current playlist
+ */
+function addToPlaylist( file ) {
+
+	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+
+	if ( ['m3u','m3u8'].includes( ext ) )
+		loadPlaylist( file );
+	else
+		addSongToPlaylist( { file: file, common: {} } );
+}
+
+/**
  * Add a song to the playlist
  */
-function addToPlaylist( content ) {
+function addSongToPlaylist( content ) {
 
-	var title = content.common.title || content.file.substring( Math.max( content.file.lastIndexOf('/'), content.file.lastIndexOf('\\'), content.file.lastIndexOf('%2f') + 2 ), + 1 );
+	var title = content.common.title || content.file.substring( Math.max( content.file.lastIndexOf('/'), content.file.lastIndexOf('\\'), content.file.lastIndexOf('%2f') + 2 ) + 1 );
 
 	var el = document.createElement('li');
 
@@ -372,6 +385,10 @@ function addToPlaylist( content ) {
 	el.dataset.file = content.file.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
 	playlist.appendChild( el );
+
+	var len = playlist.children.length;
+	if ( len < 3 || playlistPos > len - 3 )
+		loadNextSong();
 }
 
 
@@ -388,7 +405,7 @@ function loadPlaylist( path ) {
 
 	ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
 
-	if ( ext == 'm3u' || ext == 'm3u8' ) {
+	if ( ['m3u','m3u8'].includes( ext ) ) {
 		fetch( path )
 			.then( function( response ) {
 				if ( response.status == 200 )
@@ -412,9 +429,9 @@ function loadPlaylist( path ) {
 							tmplist[ i ] = path + tmplist[ i ];
 						t = songInfo.indexOf(' - ');
 						if ( t == -1 )
-							addToPlaylist( { file: tmplist[ i ], common: { artist: '', title: songInfo } } );
+							addSongToPlaylist( { file: tmplist[ i ], common: { artist: '', title: songInfo } } );
 						else
-							addToPlaylist( { file: tmplist[ i ], common: { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } } );
+							addSongToPlaylist( { file: tmplist[ i ], common: { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } } );
 						songInfo = '';
 					}
 					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
@@ -438,7 +455,7 @@ function loadPlaylist( path ) {
 			tmplist.forEach( item => {
 				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\'), item.lastIndexOf('%2f') + 2 ) + 1 );
 				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-				addToPlaylist( { file: item, common: { artist: '', title: songInfo } } )
+				addSongToPlaylist( { file: item, common: { artist: '', title: songInfo } } )
 			});
 		}
 		else
@@ -1373,26 +1390,30 @@ function initialize() {
 	loadSavedPlaylists();
 
 	// initialize file explorer
-	fileExplorer.create( document.getElementById('file_explorer'), { defaultPath: '/music' } )
-		.then( function( status ) {
-			if ( status == 0 )
-				consoleLog( 'Running in standard web server mode.' );
-			else if ( status == -1 ) {
-				consoleLog( 'No server found. Running in local mode only.', true );
-				document.getElementById('local_file_panel').style.display = 'block';
-				document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
-			}
-			fileMode = status;
+	fileExplorer.create(
+		document.getElementById('file_explorer'),
+		{
+			dblClick: function ( file ) {
+				addToPlaylist( file );
+				if ( ! isPlaying() )
+					playSong( playlist.children.length - 1 );
+			},
+			defaultPath: '/music'
+		}
+	).then( function( status ) {
+		if ( status == 0 )
+			consoleLog( 'Running in standard web server mode.' );
+		else if ( status == -1 ) {
+			consoleLog( 'No server found. Running in local mode only.', true );
+			document.getElementById('local_file_panel').style.display = 'block';
+			document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
+		}
+		fileMode = status;
 
-			document.getElementById('btn_add_folder').addEventListener( 'click', function() {
-				fileExplorer.getFolderContents().forEach( entry => {
-					if ( entry.type == 'file' )
-						addToPlaylist( { file: entry.file, common: {} } );
-					else if ( entry.type == 'list' )
-						loadPlaylist( entry.file );
-				});
-			});
+		document.getElementById('btn_add_folder').addEventListener( 'click', () => {
+			fileExplorer.getFolderContents().forEach( entry => addToPlaylist( entry.file ) );
 		});
+	});
 
 	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
@@ -1401,7 +1422,6 @@ function initialize() {
 	window.addEventListener( 'click', initAudio );
 
 }
-
 
 
 initialize();
