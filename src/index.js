@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.1';
+var _VERSION = '19.6-dev.2';
 
 import 'script-loader!./localStorage.js';
 import * as audioMotion from './audioMotion-analyzer.js';
@@ -696,6 +696,7 @@ function playNextSong( play ) {
 			else
 				gradIdx = 0;
 			elGradient.selectedIndex = gradIdx;
+			audioMotion.setGradient( elGradient.value );
 		}
 	}
 	else
@@ -734,7 +735,7 @@ function outlineText( text, x, y, maxWidth ) {
 /**
  * Display message on canvas
  */
-function displayCanvasMsg( canvas, canvasCtx ) {
+function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 
 	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
@@ -759,7 +760,7 @@ function displayCanvasMsg( canvas, canvasCtx ) {
 		maxWidth    = canvas.width - fontSize * 6.6,  // maximum width for artist and song name
 		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
 
-	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
+	canvasCtx.lineWidth = 4 * pixelRatio;
 	canvasCtx.lineJoin = 'round';
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
@@ -1048,6 +1049,7 @@ function keyboardControls( event ) {
 				else
 					elGradient.selectedIndex = gradIdx + 1;
 			}
+			audioMotion.setGradient( elGradient.value );
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 'ArrowRight': 	// next song
@@ -1193,7 +1195,7 @@ function setLoRes() {
  */
 function initialize() {
 
-	consoleLog( 'audioMotion.js version ' + _VERSION );
+	consoleLog( 'audioMotion ver. ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
 	// Initialize playlist and set event listeners
@@ -1381,7 +1383,9 @@ function initialize() {
 
 	loadPreset('last');
 
-	consoleLog( 'Canvas size is ' + audioMotion.canvas.width + 'x' + audioMotion.canvas.height + ' pixels (device pixel ratio = ' + audioMotion.pixelRatio + ')' );
+	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
+	consoleLog( `Fullscreen resolution is ${screen.width * audioMotion.pixelRatio} x ${screen.height * audioMotion.pixelRatio} pixels` );
+	consoleLog( `Device pixel ratio is ${audioMotion.pixelRatio}` );
 
 	// Set audio source to built-in player
 	setSource();

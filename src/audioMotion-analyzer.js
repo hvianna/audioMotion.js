@@ -23,14 +23,13 @@
 // current visualization settings
 export var mode, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes, scaleSize;
 
-// data for drawing the analyzer bars and scale related variables
+// data for drawing the analyzer bars and scale-related variables
 var analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions;
 
 // Web Audio API related variables
-export var audioCtx, analyzer;
-var bufferLength, dataArray;
+export var audioCtx, analyzer, dataArray;
 
-// canvas related variables
+// canvas-related variables
 export var canvas, canvasCtx, pixelRatio, width, height;
 var animationReq, drawCallback, ledsMask, ledsCtx;
 
@@ -122,13 +121,8 @@ export function setMode( value = defaults.mode ) {
  * Set the size of the FFT performed by the analyzer node
  */
 export function setFFTSize( value = defaults.fftSize ) {
-
 	analyzer.fftSize = value;
-
-	// update all variables that depend on the FFT size
-	bufferLength = analyzer.frequencyBinCount;
-	dataArray = new Uint8Array( bufferLength );
-
+	dataArray = new Uint8Array( analyzer.frequencyBinCount );
 	preCalcPosX();
 }
 
@@ -275,8 +269,7 @@ export function setOptions( options ) {
 
 	setSensitivity( highSens );
 
-	bufferLength = analyzer.frequencyBinCount;
-	dataArray = new Uint8Array( bufferLength );
+	dataArray = new Uint8Array( analyzer.frequencyBinCount );
 
 	setCanvas();
 }
@@ -459,18 +452,20 @@ function preCalcPosX() {
 				accel: 0
 			} );
 
-			// adds a black vertical line to the left of this bar in the mask canvas, to separate the LED columns
+			// adds a vertical black line to the left of this bar in the mask canvas, to separate the LED columns
 			ledsCtx.fillRect( analyzerBars[ analyzerBars.length - 1 ].posX - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
 
 		} );
 	}
 
-	if ( mode > 1 )	// adds a rightmost black vertical line in the mask canvas, except for 1/24th-octave bands
-		ledsCtx.fillRect( canvas.width - ledOptions.spaceH / 2, 0, ledOptions.spaceH, canvas.height );
+	if ( mode > 0 ) {
+		// adds a vertical black line in the mask canvas after the last led column
+		ledsCtx.fillRect( analyzerBars[ analyzerBars.length - 1 ].posX + barWidth - ledOptions.spaceH / 2 + ( mode < 8 ? 2 : 1 ), 0, ledOptions.spaceH, canvas.height );
 
-	if ( mode > 0 ) // adds horizontal black lines in the mask canvas, to separate the LED rows
+		// adds horizontal black lines in the mask canvas, to separate the LED rows
 		for ( i = ledOptions.ledHeight; i < canvas.height; i += ledOptions.ledHeight + ledOptions.spaceV )
 			ledsCtx.fillRect( 0, i, canvas.width, ledOptions.spaceV );
+	}
 
 	drawScale();
 }
@@ -508,7 +503,7 @@ function drawScale() {
  */
 function draw() {
 
-	var i, j, l, bar, barHeight,
+	var l, bar, barHeight,
 		isLedDisplay = ( showLeds && mode > 0 );
 
 	if ( ! showBgColor )	// use black background
@@ -526,7 +521,7 @@ function draw() {
 	analyzer.getByteFrequencyData( dataArray );
 
 	l = analyzerBars.length;
-	for ( i = 0; i < l; i++ ) {
+	for ( let i = 0; i < l; i++ ) {
 
 		bar = analyzerBars[ i ];
 
@@ -536,13 +531,13 @@ function draw() {
 			barHeight = 0;
 			if ( bar.average ) {
 				// use the average value of the range
-				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
+				for ( let j = bar.dataIdx; j <= bar.endIdx; j++ )
 					barHeight += dataArray[ j ];
 				barHeight = barHeight / ( bar.endIdx - bar.dataIdx + 1 ) / 255 * canvas.height;
 			}
 			else {
 				// use the highest value in the range
-				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
+				for ( let j = bar.dataIdx; j <= bar.endIdx; j++ )
 					barHeight = Math.max( barHeight, dataArray[ j ] );
 				barHeight = barHeight / 255 * canvas.height;
 			}
@@ -586,7 +581,7 @@ function draw() {
 		drawScale();
 
 	if ( drawCallback )
-		drawCallback( canvas, canvasCtx );
+		drawCallback( canvas, canvasCtx, pixelRatio );
 
 	// schedule next canvas update
 	animationReq = requestAnimationFrame( draw );
@@ -689,11 +684,28 @@ export function connectAudio( element ) {
 }
 
 /**
- * Start canvas animation
+ * Start / stop canvas animation
  */
-export function start() {
-	if ( ! animationReq )
+export function toggleAnalyzer( value ) {
+	var started = isOn();
+	if ( value === undefined )
+		value = ! started;
+
+	if ( started && ! value ) {
+		cancelAnimationFrame( animationReq );
+		animationReq = undefined;
+	}
+	else if ( ! started && value )
 		animationReq = requestAnimationFrame( draw );
+
+	return isOn();
+}
+
+/**
+ * Return current status of analyzer
+ */
+export function isOn() {
+	return animationReq !== undefined;
 }
 
 /**
@@ -758,14 +770,12 @@ export function create( container, options = {} ) {
 
 	analyzer.fftSize               = options.fftSize   === undefined ? defaults.fftSize   : options.fftSize;
 	analyzer.smoothingTimeConstant = options.smoothing === undefined ? defaults.smoothing : options.smoothing;
+	dataArray = new Uint8Array( analyzer.frequencyBinCount );
 
 	if ( typeof options.drawCallback == 'function' )
 		drawCallback = options.drawCallback;
 
 	setSensitivity( highSens );
-
-	bufferLength = analyzer.frequencyBinCount;
-	dataArray = new Uint8Array( bufferLength );
 
 	// Canvas
 	canvas = document.createElement('canvas');
@@ -782,7 +792,7 @@ export function create( container, options = {} ) {
 
 	// Start canvas animation
 	if ( options.start === undefined || options.start !== false )
-		start();
+		toggleAnalyzer( true );
 
 	// returns connected audio source
 	return audioSource;
