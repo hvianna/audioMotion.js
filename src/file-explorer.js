@@ -284,13 +284,13 @@ export function create( container, options ) {
 					nodeServer = true;
 					drives = content;
 					enterDir( drives[0] );
-					resolve(0);
+					resolve(1);
 				}
 				else {
 					// no response for our custom query, so it's probably running on a standard web server
 					drives = [ options.defaultPath || '/' ];
 					enterDir( drives[0] );
-					resolve(1);
+					resolve(0);
 				}
 			})
 			.catch( function( err ) {
