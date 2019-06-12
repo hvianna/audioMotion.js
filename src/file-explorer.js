@@ -7,7 +7,8 @@ var drives = [],
 	nodeServer = false,
 	ui_path,
 	ui_files,
-	startUpTimer;
+	startUpTimer,
+	dblClickCallback;
 
 
 /**
@@ -239,7 +240,7 @@ export function getFolderContents() {
  *		defaultPath: string - start path when running in standard web server mode (defaults to '/')
  * }
  */
-export function create( container, options ) {
+export function create( container, options = {} ) {
 
 	ui_path = document.createElement('ul');
 	ui_path.className = 'breadcrumb';
@@ -257,17 +258,27 @@ export function create( container, options ) {
 	ui_path.innerHTML = 'Initializing... please wait...';
 
 	ui_path.addEventListener( 'click', function( e ) {
-		if ( e.target && e.target.localName == 'li' ) {
+		if ( e.target && e.target.nodeName == 'LI' ) {
 			resetPath( e.target.dataset.depth );
 		}
 	});
 
 	ui_files.addEventListener( 'click', function( e ) {
-		if ( e.target && e.target.localName == 'li' ) {
-			if ( e.target.dataset.type == 'dir' || e.target.dataset.type == 'drive' )
-				enterDir( e.target.dataset.path );
-			else
+		if ( e.target && e.target.nodeName == 'LI' ) {
+			if ( ['file','list'].includes( e.target.dataset.type ) )
 				e.target.classList.toggle('selected');
+		}
+	});
+
+	if ( typeof options.dblClick == 'function' )
+		dblClickCallback = options.dblClick;
+
+	ui_files.addEventListener( 'dblclick', function( e ) {
+		if ( e.target && e.target.nodeName == 'LI' ) {
+			if ( ['dir','drive'].includes( e.target.dataset.type ) )
+				enterDir( e.target.dataset.path );
+			else if ( dblClickCallback )
+				dblClickCallback( makePath( e.target.dataset.path ) );
 		}
 	});
 
