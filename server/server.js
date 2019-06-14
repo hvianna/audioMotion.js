@@ -1,20 +1,28 @@
+/**
+ * audioMotion custom file server
+ * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
+ */
+
+const _VERSION = '19.6';
 
 // libraries
 const path = require('path');
 const express = require('express')
 const open = require('open')
-const drives = require('./src/getWindowsDrives.js')
-const dir = require('./src/dir.js')
+const drives = require('./getWindowsDrives.js')
+const dir = require('./dir.js')
 
 var port = 8000;
 var host = 'localhost'
 var launchClient = true;
 
+console.log( `\naudioMotion.js file server ver. ${_VERSION}` );
+
 // processes command line arguments
 process.argv = process.argv.slice(2)
 process.argv.forEach( ( arg, index ) => {
 	if ( arg == '-h' || arg == '--help' ) {
-		console.log( `\nCommand line parameters:\n\n\t-p <port> : change server listening port (default: ${port})\n\t-s        : start server only (doesn\'t launch client)\n\t-e        : allow external connections (by default, only localhost)\n\n` )
+		console.log( `\nCommand line parameters:\n\n\t-p <port> : change server listening port (default: ${port})\n\t-s        : start server only (do not launch client)\n\t-e        : allow external connections (by default, only localhost)\n\n` )
 		process.exit(0)
 	}
 	else if ( arg == '-p' && process.argv[ index + 1 ] > 0 )
@@ -27,9 +35,9 @@ process.argv.forEach( ( arg, index ) => {
 
 // start Express web server
 const server = express()
-server.use( express.static( path.join( __dirname, 'public' ) ) )
+server.use( express.static( path.join( __dirname, '../public' ) ) )
 server.listen( port, host, () => {
-	console.log( `\n\nServer listening on port ${port}${ host ? ' in local mode only (run with -e to allow external connections)' : '!' }` )
+	console.log( `\n\nServer listening on port ${port} ${ host ? 'for localhost connections only (run with -e to allow external connections)' : '' }` )
 	if ( launchClient ) {
 		open( `http://localhost:${port}` )
 		console.log( '\nLaunching client in browser...' )
