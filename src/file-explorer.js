@@ -212,7 +212,7 @@ export function getSelectedFiles() {
 
 	var contents = [];
 
-	ui_files.getElementsByClassName('selected').forEach( entry => {
+	ui_files.querySelectorAll('.selected').forEach( entry => {
 		let type = entry.dataset.type;
 		if ( type == 'file' || type == 'list' )
 			contents.push( { file: makePath( entry.dataset.path ), type: type } );
@@ -248,7 +248,6 @@ export function create( container, options = {} ) {
 
 	ui_files = document.createElement('ul');
 	ui_files.className = 'filelist';
-	ui_files.id = 'file_explorer';
 	container.appendChild( ui_files );
 
 	startUpTimer = setTimeout( () => {
@@ -267,6 +266,8 @@ export function create( container, options = {} ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
 			if ( ['file','list'].includes( e.target.dataset.type ) )
 				e.target.classList.toggle('selected');
+			else if ( ['dir','drive'].includes( e.target.dataset.type ) )
+				enterDir( e.target.dataset.path );
 		}
 	});
 
@@ -275,9 +276,7 @@ export function create( container, options = {} ) {
 
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
-			if ( ['dir','drive'].includes( e.target.dataset.type ) )
-				enterDir( e.target.dataset.path );
-			else if ( dblClickCallback )
+			if ( dblClickCallback && ['file','list'].includes( e.target.dataset.type ) )
 				dblClickCallback( makePath( e.target.dataset.path ) );
 		}
 	});

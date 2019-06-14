@@ -96,8 +96,8 @@ h1 {
 .playlist-area {
 	align-items: center;
 	display: flex;
-	height: 35x;
 	justify-content: space-between;
+	margin-bottom: 10px;
 }
 .playlist-area button {
 	font-size: 18px;
@@ -240,13 +240,13 @@ h1 {
 }
 
 .help {
-	cursor: help;
 	position: relative;
 	text-decoration: none;
 }
 .help .config-label {
 	border-bottom: 1px dotted #080;
 	color: #080;
+	cursor: help;
 }
 .help:hover > .tooltip,
 .switch:hover > .tooltip {
@@ -357,9 +357,16 @@ h1 {
 	display: flex;
 	flex-direction: column;
 }
+#file_explorer .filelist {
+	height: 285px;
+}
+#file_explorer p {
+	margin-top: 0;
+	order: 9;
+}
 
 .breadcrumb {
-	line-height: 35px;
+	height: 35px;
 	list-style: none;
 	margin: 0;
 	order: -1;

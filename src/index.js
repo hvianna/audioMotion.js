@@ -307,7 +307,7 @@ function loadSavedPlaylists( keyName ) {
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	item = new Option( 'Select a playlist to load, update or delete', '' );
+	item = new Option( 'Select a playlist and click action to the right', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -1418,6 +1418,9 @@ function initialize() {
 		}
 		fileMode = status;
 
+		document.getElementById('btn_add_selected').addEventListener( 'click', () => {
+			fileExplorer.getSelectedFiles().forEach( entry => addToPlaylist( entry.file ) );
+		});
 		document.getElementById('btn_add_folder').addEventListener( 'click', () => {
 			fileExplorer.getFolderContents().forEach( entry => addToPlaylist( entry.file ) );
 		});

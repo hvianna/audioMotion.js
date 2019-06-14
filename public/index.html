@@ -53,8 +53,8 @@
 		<div>
 			<span class="help">
 				<span class="tooltip">
-					Loads a configuration preset.<br>
-					<strong>"Last session"</strong> restores the options used in the previous session.
+					Load a configuration preset.<br>
+					<strong>"Last session"</strong> restores last used configuration settings.
 				</span>
 				<select id="preset">
 					<option value="">Load Preset</option>
@@ -67,8 +67,8 @@
 				</select>
 			</span>
 			<span class="help">
-				<button id="btn_save">Save</button>
-				<span class="tooltip">Saves the current configuration options to the <strong>"Custom"</strong> preset.</span>
+				<button id="btn_save">Save settings</button>
+				<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
 			</span>
 		</div>
 
@@ -109,9 +109,9 @@
 	<div class="panels-container">
 
 		<ul id="panel_selector" class="panel-selector">
-			<li id="show_config" data-panel="config_panel"><i class="icons8-vertical-settings-mixer" title="analyzer configuration"></i><span>settings</span></li>
-			<li id="show_filelist" data-panel="file_panel"><i class="icons8-opened-folder-2" title="file explorer and playlist"></i><span>files</span></li>
-			<li id="show_console" data-panel="console"><i class="icons8-console" title="show console"></i><span>console</span></li>
+			<li id="show_config" data-panel="config_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer configuration"></i><span>settings</span></li>
+			<li id="show_filelist" data-panel="file_panel"><i class="icons8-opened-folder-2" title="File explorer and playlist"></i><span>files</span></li>
+			<li id="show_console" data-panel="console"><i class="icons8-console" title="Message console"></i><span>console</span></li>
 		</ul>
 
 		<div id="console" class="config-panel"></div>
@@ -120,7 +120,6 @@
 			<div class="ui-panels config-block">
 
 				<div id="file_explorer">
-
 					<div id="local_file_panel" class="local-file button-bar">
 						<p>You can load a song from your computer:</p>
 
@@ -130,15 +129,16 @@
 						<p>Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> to learn
 						how to setup a server and get the best of audioMotion.</p>
 					</div>
+					<p>Click to open folder or select file / Double-click to add to playlist</p>
 				</div>
 
 				<div class="button-column">
-					<span class="help"><button id="btn_add_folder">Add Folder</button>
-						<span class="tooltip">Add the current folder's contents to the playlist</span>
+					<span class="help"><button id="btn_add_selected">Add selected</button>
+						<span class="tooltip">Add selected files to the playlist</span>
 					</span>
 					<br>
-					<span class="help"><button id="btn_clear">Clear</button>
-						<span class="tooltip">Clear current playlist</span>
+					<span class="help"><button id="btn_add_folder">Add folder</button>
+						<span class="tooltip">Add the current folder's contents to the playlist</span>
 					</span>
 				</div>
 
@@ -151,15 +151,13 @@
 						<span class="help"><button id="save_playlist" title="update playlist"><i class="icons8-save"></i></button>
 							<span class="tooltip">Update selected playlist with current playlist contents</span>
 						</span>
-						<span class="help"><button id="create_playlist"><i class="icons8-save-as"></i></button>
-							<span class="tooltip">Save current playlist contents as a new playlist</span>
-						</span>
 						<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
 							<span class="tooltip">Delete selected playlist</span>
 						</span>
 					</div>
+					<button id="btn_clear">Clear current playlist</button> <button id="create_playlist">Save current playlist as...</button>
 					<ul id="playlist" class="filelist"></ul>
-					<p>Double-click to play a song / Click to select (Ctrl for multiple) / Delete to remove selected</p>
+					<p>Double-click to play / Click to select / Drag to reorder / Delete to remove</p>
 				</div>
 			</div>
 		</div> <!-- #file_panel -->
@@ -273,7 +271,7 @@
 				</div>
 
 				<div class="main-config center">
-					<span class="config-label">Performance options:</span>
+					<span class="config-label">Performance:</span>
 					<ul class="switch-bar">
 						<li class="switch" id="no_shadow">FLA<u>T</u>
 							<span class="tooltip">Disable shadows on text displayed on canvas</span>
