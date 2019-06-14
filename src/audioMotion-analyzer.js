@@ -1,8 +1,8 @@
 /**
  * audioMotion-analyzer.js
- * High-resolution real-time graphic audio spectrum analyzer
+ * High-resolution real-time graphic audio spectrum analyzer JS module
  *
- * https://github.com/hvianna/audioMotion-analyzer
+ * https://github.com/hvianna/audioMotion.js
  *
  * Copyright (C) 2018-2019 Henrique Vianna <hvianna@gmail.com>
  *
@@ -21,7 +21,7 @@
  */
 
 // current visualization settings
-export var mode, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes, scaleSize;
+export var mode, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes;
 
 // data for drawing the analyzer bars and scale-related variables
 var analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions;
@@ -30,7 +30,7 @@ var analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions;
 export var audioCtx, analyzer, dataArray;
 
 // canvas-related variables
-export var canvas, canvasCtx, pixelRatio, width, height;
+export var canvas, canvasCtx, pixelRatio, width, height, fsWidth, fsHeight;
 var animationReq, drawCallback, ledsMask, ledsCtx;
 
 // gradient definitions
@@ -84,11 +84,23 @@ var defaults = {
 	highSens    : false,
 	showPeaks   : true,
 	loRes       : false,
-	scaleSize   : 1,
 	width       : 640,
 	height      : 270
 };
 
+
+/**
+ * Checks if the analyzer is being displayed in fullscreen mode
+ */
+export function isFullscreen() {
+	return document.fullscreenElement === canvas;
+}
+/**
+ * Checks if the analyzer canvas animation is running or not
+ */
+export function isOn() {
+	return animationReq !== undefined;
+}
 
 /**
  * Set dimensions of analyzer's canvas
@@ -133,13 +145,6 @@ export function setFreqRange( min = defaults.freqMin, max = defaults.freqMax ) {
 	fMin = Math.min( min, max );
 	fMax = Math.max( min, max );
 	preCalcPosX();
-}
-
-/**
- * Set scale size
- */
-export function setScaleSize( value = defaults.scaleSize ) {
-	scaleSize = value;
 }
 
 /**
@@ -248,9 +253,6 @@ export function setOptions( options ) {
 
 	if ( options.loRes !== undefined )
 		loRes = options.loRes;
-
-	if ( options.scaleSize !== undefined )
-		scaleSize = options.scaleSize;
 
 	if ( options.fftSize !== undefined )
 		analyzer.fftSize = options.fftSize;
@@ -478,7 +480,10 @@ function drawScale() {
 	// octaves center frequencies
 	var bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
 
-	var size = 5 * pixelRatio * scaleSize;
+	var size = 5 * pixelRatio;
+
+	if ( isFullscreen() )
+		size *= 2;
 
 	canvasCtx.fillStyle = '#000c';
 	canvasCtx.fillRect( 0, canvas.height - size * 4, canvas.width, size * 4 );
@@ -616,24 +621,26 @@ function generateGradients() {
 /**
  * Internal function to change canvas dimensions on the fly
  */
-function setCanvas( w = width, h = height ) {
+function setCanvas() {
 	pixelRatio = window.devicePixelRatio; // for Retina / HiDPI devices
 
 	if ( loRes )
 		pixelRatio /= 2;
 
-	// Adjust canvas width and height to match the display's resolution
-	canvas.width = w * pixelRatio;
-	canvas.height = h * pixelRatio;
+	fsWidth = Math.max( window.screen.width, window.screen.height ) * pixelRatio;
+	fsHeight = Math.min( window.screen.height, window.screen.width ) * pixelRatio;
 
-	// always consider landscape orientation
-	if ( canvas.height > canvas.width ) {
-		var tmp = canvas.width;
-		canvas.width = canvas.height;
-		canvas.height = tmp;
+	if ( isFullscreen() ) {
+		canvas.width = fsWidth;
+		canvas.height = fsHeight;
+	}
+	else {
+		canvas.width = width * pixelRatio;
+		canvas.height = height * pixelRatio;
 	}
 
-	if ( pixelRatio == 2 && canvas.height <= 1080 ) // adjustment for wrong dPR reported on Shield TV
+	// workaround for wrong dPR reported on Android TV
+	if ( pixelRatio == 2 && window.screen.height <= 540 )
 		pixelRatio = 1;
 
 	// clear the canvas
@@ -656,7 +663,7 @@ function setCanvas( w = width, h = height ) {
  */
 export function toggleFullscreen() {
 
-	if ( document.fullscreenElement ) {
+	if ( isFullscreen() ) {
 		document.exitFullscreen();
 	}
 	else {
@@ -702,13 +709,6 @@ export function toggleAnalyzer( value ) {
 }
 
 /**
- * Return current status of analyzer
- */
-export function isOn() {
-	return animationReq !== undefined;
-}
-
-/**
  * Stop canvas animation
  */
 export function stop() {
@@ -723,9 +723,8 @@ export function stop() {
  */
 export function create( container, options = {} ) {
 
-	if ( ! container ) {
-		throw 'Container not specified';
-	}
+	if ( ! container )
+		container = document.body;
 
 	// Create audio context
 
@@ -735,8 +734,7 @@ export function create( container, options = {} ) {
 		audioCtx = new AudioContext();
 	}
 	catch( err ) {
-		console.log( 'Could not create audio context. Web Audio API not supported?' );
-		return false;
+		throw 'Could not create audio context. Web Audio API not supported?';
 	}
 
 	// Create analyzer node and connect to destination
@@ -764,7 +762,6 @@ export function create( container, options = {} ) {
 	highSens    = options.highSens    === undefined ? defaults.highSens    : options.highSens;
 	showPeaks   = options.showPeaks   === undefined ? defaults.showPeaks   : options.showPeaks;
 	loRes       = options.loRes       === undefined ? defaults.loRes       : options.loRes;
-	scaleSize   = options.scaleSize   === undefined ? defaults.scaleSize   : options.scaleSize;
 	width       = options.width       === undefined ? defaults.width       : options.width;
 	height      = options.height      === undefined ? defaults.height      : options.height;
 
@@ -777,25 +774,28 @@ export function create( container, options = {} ) {
 
 	setSensitivity( highSens );
 
-	// Canvas
+	// Create canvas
+
 	canvas = document.createElement('canvas');
+	canvas.style = 'max-width: 100%;';
 	container.appendChild( canvas );
 	canvasCtx = canvas.getContext('2d');
 	setCanvas();
 
-	canvas.addEventListener( 'fullscreenchange', () => {
-		if ( ! document.fullscreenElement )
-			setCanvas();
-		else
-			setCanvas( window.screen.width, window.screen.height );
+	// adjust canvas size on entering / leaving fullscreen
+	canvas.addEventListener( 'fullscreenchange', setCanvas );
+
+	// adjust canvas size on window resize
+	window.addEventListener( 'resize', () => {
+		width = options.width || container.clientWidth || defaults.width;
+		height = options.height || container.clientHeight || defaults.height;
+		setCanvas();
 	});
 
-	// Start canvas animation
+	// Start analyzer
 	if ( options.start === undefined || options.start !== false )
 		toggleAnalyzer( true );
 
-	// returns connected audio source
+	// Return connected audio source
 	return audioSource;
 }
-
-

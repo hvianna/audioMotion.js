@@ -1185,7 +1185,9 @@ function audioOnError( e ) {
  */
 function setLoRes() {
 	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
-	consoleLog( 'Canvas size is ' + audioMotion.canvas.width + 'x' + audioMotion.canvas.height + ' pixels (device pixel ratio = ' + audioMotion.pixelRatio + ')' );
+	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - current pixel ratio: ${audioMotion.pixelRatio}` );
+	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
+	consoleLog( `Fullscreen resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	updateLastConfig();
 }
 
@@ -1244,7 +1246,7 @@ function initialize() {
 		);
 	}
 	catch( err ) {
-		consoleLog( 'Aborting with error: ' + err, true );
+		consoleLog( 'Fatal error: ' + err, true );
 		return false;
 	}
 
@@ -1383,9 +1385,11 @@ function initialize() {
 
 	loadPreset('last');
 
+	consoleLog( `Device pixel ratio: ${window.devicePixelRatio}` );
+	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - current pixel ratio: ${audioMotion.pixelRatio}` );
 	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
-	consoleLog( `Fullscreen resolution is ${screen.width * audioMotion.pixelRatio} x ${screen.height * audioMotion.pixelRatio} pixels` );
-	consoleLog( `Device pixel ratio is ${audioMotion.pixelRatio}` );
+	consoleLog( `Fullscreen resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
+	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	// Set audio source to built-in player
 	setSource();
@@ -1408,7 +1412,7 @@ function initialize() {
 		if ( status == 0 )
 			consoleLog( 'Running in standard web server mode.' );
 		else if ( status == -1 ) {
-			consoleLog( 'No server found. Running in local mode only.', true );
+			consoleLog( 'No server found. Running in local mode. Playlists may not work.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
 		}
