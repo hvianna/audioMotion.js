@@ -20,11 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.2';
+var _VERSION = '19.6-dev.3';
 
 import 'script-loader!./localStorage.js';
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
+import * as mm from 'music-metadata-browser';
 
 var audioStarted = false,
 	// playlist, index to the current song, indexes to current and next audio elements
@@ -377,11 +378,7 @@ function addSongToPlaylist( content ) {
 	el.innerHTML = title;
 	el.dataset.artist = content.common.artist || '';
 	el.dataset.title = title;
-//	el.dataset.album = content.common.album ? content.common.album + ( content.common.year ? ' (' + content.common.year + ')' : '' ) : '';
-	el.dataset.codec = content.format ? content.format.codec || content.format.container : content.file.substring( content.file.lastIndexOf('.') + 1 );
-//	el.dataset.samplerate = content.format && content.format.sampleRate || '';
-//	el.dataset.bitdepth = content.format && content.format.bitsPerSample || '';
-//	el.dataset.cover = content.common.picture ? 'get' : '';
+	el.dataset.codec = content.format ? content.format.codec || content.format.container : content.file.substring( content.file.lastIndexOf('.') + 1 ).toUpperCase();
 	el.dataset.file = content.file.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
 	playlist.appendChild( el );
@@ -389,6 +386,33 @@ function addSongToPlaylist( content ) {
 	var len = playlist.children.length;
 	if ( len < 3 || playlistPos > len - 3 )
 		loadNextSong();
+
+	mm.fetchFromUrl( content.file, { skipCovers: true } )
+		.then( function( metadata ) {
+			if ( metadata ) {
+				el.dataset.artist = metadata.common.artist || el.dataset.artist;
+				el.dataset.title = metadata.common.title || el.dataset.title;
+				el.dataset.album = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ` (${metadata.common.year})` : '' ) : '';
+				el.dataset.codec = metadata.format ? metadata.format.codec || metadata.format.container : el.dataset.codec;
+				el.innerText = el.dataset.artist + ' / ' + el.dataset.title;
+
+				if ( metadata.format && metadata.format.bitsPerSample )
+					el.dataset.quality = `${(metadata.format.sampleRate / 1000).toFixed()}KHz / ${metadata.format.bitsPerSample}bits`;
+				else if ( metadata.format.bitrate )
+					el.dataset.quality = `${metadata.format.bitrate / 1000}K ${metadata.format.codecProfile || ''}`;
+				else
+					el.dataset.quality = '';
+
+				for ( var i in [0,1] )
+					if ( audioElement[ i ].dataset.file == el.dataset.file ) {
+						audioElement[ i ].dataset.artist = el.dataset.artist;
+						audioElement[ i ].dataset.title = el.dataset.title;
+						audioElement[ i ].dataset.album = el.dataset.album;
+						audioElement[ i ].dataset.codec = el.dataset.codec;
+						audioElement[ i ].dataset.quality = el.dataset.quality;
+					}
+			}
+	});
 }
 
 
@@ -591,9 +615,12 @@ function loadSong( n ) {
 	if ( playlist.children[ n ] ) {
 		playlistPos = n;
 		audioElement[ currAudio ].src = playlist.children[ playlistPos ].dataset.file;
+		audioElement[ currAudio ].dataset.file = playlist.children[ playlistPos ].dataset.file;
 		audioElement[ currAudio ].dataset.artist = playlist.children[ playlistPos ].dataset.artist;
 		audioElement[ currAudio ].dataset.title = playlist.children[ playlistPos ].dataset.title;
+		audioElement[ currAudio ].dataset.album = playlist.children[ playlistPos ].dataset.album || '';
 		audioElement[ currAudio ].dataset.codec = playlist.children[ playlistPos ].dataset.codec;
+		audioElement[ currAudio ].dataset.quality = playlist.children[ playlistPos ].dataset.quality || '';
 
 		updatePlaylistUI();
 
@@ -615,9 +642,12 @@ function loadNextSong() {
 	else
 		n = 0;
 	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
+	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
 	audioElement[ nextAudio ].dataset.artist = playlist.children[ n ].dataset.artist;
 	audioElement[ nextAudio ].dataset.title = playlist.children[ n ].dataset.title;
+	audioElement[ nextAudio ].dataset.album = playlist.children[ n ].dataset.album || '';
 	audioElement[ nextAudio ].dataset.codec = playlist.children[ n ].dataset.codec;
+	audioElement[ nextAudio ].dataset.quality = playlist.children[ n ].dataset.quality || '';
 }
 
 /**
@@ -750,14 +780,15 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 
 	var curTime, duration;
 
-	var	fontSize    = canvas.height / 16, // base font size - all the following measures are relative to this
+	var	fontSize    = canvas.height / 17, // base font size - all the following measures are relative to this
 		leftPos     = fontSize,
 		rightPos    = canvas.width - fontSize,
 		centerPos   = canvas.width / 2,
 		topLine     = fontSize * 1.4,
-		bottomLine1 = canvas.height - fontSize * 3,
-		bottomLine2 = canvas.height - fontSize * 1.6,
-		maxWidth    = canvas.width - fontSize * 6.6,  // maximum width for artist and song name
+		bottomLine1 = canvas.height - fontSize * 4,
+		bottomLine2 = canvas.height - fontSize * 2.8,
+		bottomLine3 = canvas.height - fontSize * 1.6,
+		maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
 
 	canvasCtx.lineWidth = 4 * pixelRatio;
@@ -790,19 +821,30 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
 		}
 
-		// file type and time
-		if ( audioElement[ currAudio ].duration ) {
-			canvasCtx.textAlign = 'right';
-			outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
-			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
-			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
-			outlineText( curTime + ' / ' + duration, rightPos, bottomLine2 );
-		}
-		// artist and song name
+		// codec and quality
+		canvasCtx.textAlign = 'right';
+		outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
+		outlineText( audioElement[ currAudio ].dataset.quality, rightPos, bottomLine1 + fontSize );
+
+		// artist name
 		canvasCtx.textAlign = 'left';
 		outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+
+		// album title
+		canvasCtx.font = 'bold italic ' + ( fontSize * .7 ) + 'px sans-serif';
+		outlineText( audioElement[ currAudio ].dataset.album, leftPos, bottomLine3, maxWidth );
+
+		// song title
 		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
 		outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
+
+		// time
+		if ( audioElement[ currAudio ].duration ) {
+			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
+			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+			canvasCtx.textAlign = 'right';
+			outlineText( curTime + ' / ' + duration, rightPos, bottomLine3 );
+		}
 	}
 }
 
@@ -876,7 +918,9 @@ function loadLocalFile( obj ) {
 		audioElement[ currAudio ].src = reader.result;
 		audioElement[ currAudio ].dataset.artist = '';
 		audioElement[ currAudio ].dataset.title = '';
+		audioElement[ currAudio ].dataset.album = '';
 		audioElement[ currAudio ].dataset.codec = '';
+		audioElement[ currAudio ].dataset.quality = '';
 		audioElement[ currAudio ].play();
 	};
 
@@ -1348,7 +1392,7 @@ function initialize() {
 	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
 	document.getElementById('load_playlist').addEventListener( 'click', () => loadPlaylist( elPlaylists.value ) );
 	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('create_playlist').addEventListener( 'click', storePlaylist );
+	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
 	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
 	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
 
