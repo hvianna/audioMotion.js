@@ -34,7 +34,7 @@ var audioStarted = false,
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes,
-	// fileMode: 1 = nodeJS server; 0 = standard web server; -1 = local mode (no server)
+	// fileMode: 1 = custom file server (node.js); 0 = standard web server; -1 = local mode (no server)
 	fileMode;
 
 // audio sources
@@ -277,6 +277,18 @@ function setBlackBg() {
 }
 
 
+/**
+ * Clear audio element
+ */
+function clearAudioElement( n = currAudio ) {
+	audioElement[ n ].removeAttribute('src');
+	audioElement[ n ].dataset.file = '';
+	audioElement[ n ].dataset.artist = '';
+	audioElement[ n ].dataset.title = '';
+	audioElement[ n ].dataset.album = '';
+	audioElement[ n ].dataset.codec = '';
+	audioElement[ n ].dataset.quality = '';
+}
 
 /**
  * Clear the playlist
@@ -288,11 +300,13 @@ function clearPlaylist() {
 
 	if ( ! isPlaying() ) {
 		playlistPos = 0;
-		audioElement[0].src = '';
-		audioElement[1].src = '';
+		clearAudioElement(0);
+		clearAudioElement(1);
 	}
-	else
+	else {
 		playlistPos = -1;
+		clearAudioElement( ! currAudio | 0 );
+	}
 
 	updatePlaylistUI();
 }
@@ -326,15 +340,15 @@ function loadSavedPlaylists( keyName ) {
 	}
 
 	fetch( 'playlists.cfg' )
-		.then( function( response ) {
+		.then( response => {
 			if ( response.status == 200 )
 				return response.text();
 			else
 				consoleLog( 'No playlists.cfg file found', true );
 		})
-		.then( function( content ) {
+		.then( content => {
 			list = content.split(/[\r\n]+/);
-			for ( var i = 0; i < list.length; i++ ) {
+			for ( let i = 0; i < list.length; i++ ) {
 				if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
 					item = list[ i ].split(/\|/);
 					if ( item.length == 2 ) {
@@ -344,13 +358,11 @@ function loadSavedPlaylists( keyName ) {
 				}
 			}
 			if ( n )
-				consoleLog( n + ' playlists found in playlists.cfg' );
+				consoleLog( `${n} playlists found in playlists.cfg` );
 			else
 				consoleLog( 'No playlists found in playlists.cfg', true );
 		})
-		.catch( function( err ) {
-			consoleLog( 'Could not read from playlists.cfg', true );
-		});
+		.catch( e => consoleLog( 'Could not read from playlists.cfg', true ) );
 }
 
 /**
@@ -363,23 +375,23 @@ function addToPlaylist( file ) {
 	if ( ['m3u','m3u8'].includes( ext ) )
 		loadPlaylist( file );
 	else
-		addSongToPlaylist( { file: file, common: {} } );
+		addSongToPlaylist( file );
 }
 
 /**
  * Add a song to the playlist
  */
-function addSongToPlaylist( content ) {
+function addSongToPlaylist( uri, content = {} ) {
 
-	var title = content.common.title || content.file.substring( Math.max( content.file.lastIndexOf('/'), content.file.lastIndexOf('\\'), content.file.lastIndexOf('%2f') + 2 ) + 1 );
+	var title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\'), uri.lastIndexOf('%2f') + 2 ) + 1 );
 
 	var el = document.createElement('li');
 
 	el.innerHTML = title;
-	el.dataset.artist = content.common.artist || '';
+	el.dataset.artist = content.artist || '';
 	el.dataset.title = title;
-	el.dataset.codec = content.format ? content.format.codec || content.format.container : content.file.substring( content.file.lastIndexOf('.') + 1 ).toUpperCase();
-	el.dataset.file = content.file.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+	el.dataset.file = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
 	playlist.appendChild( el );
 
@@ -387,23 +399,23 @@ function addSongToPlaylist( content ) {
 	if ( len < 3 || playlistPos > len - 3 )
 		loadNextSong();
 
-	mm.fetchFromUrl( content.file, { skipCovers: true } )
-		.then( function( metadata ) {
+	mm.fetchFromUrl( uri, { duration: false, skipCovers: true } )
+		.then( metadata => {
 			if ( metadata ) {
 				el.dataset.artist = metadata.common.artist || el.dataset.artist;
 				el.dataset.title = metadata.common.title || el.dataset.title;
-				el.dataset.album = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ` (${metadata.common.year})` : '' ) : '';
+				el.dataset.album = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
 				el.dataset.codec = metadata.format ? metadata.format.codec || metadata.format.container : el.dataset.codec;
-				el.innerText = el.dataset.artist + ' / ' + el.dataset.title;
+				el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
 
 				if ( metadata.format && metadata.format.bitsPerSample )
-					el.dataset.quality = `${(metadata.format.sampleRate / 1000).toFixed()}KHz / ${metadata.format.bitsPerSample}bits`;
+					el.dataset.quality = ( metadata.format.sampleRate / 1000 ).toFixed() + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
 				else if ( metadata.format.bitrate )
-					el.dataset.quality = `${metadata.format.bitrate / 1000}K ${metadata.format.codecProfile || ''}`;
+					el.dataset.quality = ( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
 				else
 					el.dataset.quality = '';
 
-				for ( var i in [0,1] )
+				for ( let i in [0,1] ) {
 					if ( audioElement[ i ].dataset.file == el.dataset.file ) {
 						audioElement[ i ].dataset.artist = el.dataset.artist;
 						audioElement[ i ].dataset.title = el.dataset.title;
@@ -411,17 +423,17 @@ function addSongToPlaylist( content ) {
 						audioElement[ i ].dataset.codec = el.dataset.codec;
 						audioElement[ i ].dataset.quality = el.dataset.quality;
 					}
+				}
 			}
-	});
+		});
 }
-
 
 /**
  * Load a playlist file into the current playlist
  */
 function loadPlaylist( path ) {
 
-	var tmplist, ext, songInfo, t,
+	var tmplist, ext, songInfo,
 		n = 0;
 
 	if ( ! path )
@@ -431,13 +443,13 @@ function loadPlaylist( path ) {
 
 	if ( ['m3u','m3u8'].includes( ext ) ) {
 		fetch( path )
-			.then( function( response ) {
+			.then( response => {
 				if ( response.status == 200 )
 					return response.text();
 				else
-					consoleLog( 'Fetch returned error code ' + response.status, true );
+					consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 			})
-			.then( function( content ) {
+			.then( content => {
 				tmplist = content.split(/[\r\n]+/);
 				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\'), path.lastIndexOf('%2f') + 2 ) + 1 );
 				for ( var i = 0; i < tmplist.length; i++ ) {
@@ -448,42 +460,45 @@ function loadPlaylist( path ) {
 							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 						}
 						if ( fileMode == 1 )
-							tmplist[ i ] = tmplist[ i ].replace( /[\/\\]/g, '%2f' ); // when running in the nodeJS server replace slashes in path
+							tmplist[ i ] = tmplist[ i ].replace( /[\/\\]/g, '%2f' ); // when running in the node.js server replace slashes in path
 						if ( tmplist[ i ].substring( 0, 4 ) != 'http' && tmplist[ i ][1] != ':' && tmplist[ i ][0] != '/' )
 							tmplist[ i ] = path + tmplist[ i ];
-						t = songInfo.indexOf(' - ');
+						let t = songInfo.indexOf(' - ');
 						if ( t == -1 )
-							addSongToPlaylist( { file: tmplist[ i ], common: { artist: '', title: songInfo } } );
+							addSongToPlaylist( tmplist[ i ], { title: songInfo } );
 						else
-							addSongToPlaylist( { file: tmplist[ i ], common: { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } } );
+							addSongToPlaylist( tmplist[ i ], { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
 						songInfo = '';
 					}
 					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
 						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 				}
-				consoleLog( 'Loaded ' + n + ' files into the playlist' );
-//				updatePlaylistUI();
+				consoleLog( `Loaded ${n} files into the playlist` );
 				if ( ! isPlaying() )
 					loadSong( 0 );
 				else
 					loadNextSong();
 			})
-			.catch( function( err ) {
-				consoleLog( err, true );
-			});
+			.catch( e => consoleLog( e, true ) );
 	}
 	else { // try to load playlist from localStorage
 		tmplist = localStorage.getItem( 'pl_' + path );
 		if ( tmplist ) {
 			tmplist = JSON.parse( tmplist );
 			tmplist.forEach( item => {
+				n++;
 				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\'), item.lastIndexOf('%2f') + 2 ) + 1 );
 				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-				addSongToPlaylist( { file: item, common: { artist: '', title: songInfo } } )
+				addSongToPlaylist( item, { title: songInfo } )
 			});
+			consoleLog( `Loaded ${n} files into the playlist` );
+			if ( ! isPlaying() )
+				loadSong( 0 );
+			else
+				loadNextSong();
 		}
 		else
-			consoleLog( 'Unrecognized playlist file - ' + path, true );
+			consoleLog( `Unrecognized playlist file: ${path}`, true );
 	}
 }
 
@@ -915,12 +930,8 @@ function loadLocalFile( obj ) {
 	var reader = new FileReader();
 
 	reader.onload = function() {
+		clearAudioElement();
 		audioElement[ currAudio ].src = reader.result;
-		audioElement[ currAudio ].dataset.artist = '';
-		audioElement[ currAudio ].dataset.title = '';
-		audioElement[ currAudio ].dataset.album = '';
-		audioElement[ currAudio ].dataset.codec = '';
-		audioElement[ currAudio ].dataset.quality = '';
 		audioElement[ currAudio ].play();
 	};
 
@@ -1186,7 +1197,9 @@ function keyboardControls( event ) {
  */
 function audioOnPlay( event ) {
 	if ( audioStarted ) {
-		if ( audioElement[ currAudio ].src == '' ) {
+		if ( elShowSong.dataset.active == '1' )
+			setCanvasMsg( 'song', 600, 180 );
+		if ( ! audioElement[ currAudio ].attributes.src ) {
 			if ( playlist.children.length == 0 ) {
 				consoleLog( 'No song loaded', true );
 				audioElement[ currAudio ].pause();
@@ -1194,8 +1207,6 @@ function audioOnPlay( event ) {
 			else
 				playSong( playlistPos );
 		}
-		else if ( elShowSong.dataset.active == '1' )
-			setCanvasMsg( 'song', 600, 180 );
 	}
 	else {
 		event.target.pause();
@@ -1221,7 +1232,8 @@ function audioOnEnded() {
  * Error event handler for audio elements
  */
 function audioOnError( e ) {
-	consoleLog( 'Error loading ' + e.target.src, true );
+	if ( e.target.attributes.src )
+		consoleLog( 'Error loading ' + e.target.src, true );
 }
 
 /**
@@ -1312,22 +1324,17 @@ function initialize() {
 	audioElement[0].style.display = 'block';
 	audioElement[1].style.display = 'none';
 
-	audioElement[0].addEventListener( 'play', audioOnPlay );
-	audioElement[1].addEventListener( 'play', audioOnPlay );
+	sourcePlayer = [];
 
-//	audioElement[0].addEventListener( 'ended', audioOnEnded );
-//	audioElement[1].addEventListener( 'ended', audioOnEnded );
+	for ( let i in [0,1] ) {
+		clearAudioElement( i );
+		audioElement[ i ].addEventListener( 'play', audioOnPlay );
+//		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
+		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-	audioElement[0].addEventListener( 'error', audioOnError );
-	audioElement[1].addEventListener( 'error', audioOnError );
-
-	sourcePlayer = [
-		audioCtx.createMediaElementSource( audioElement[0] ),
-		audioCtx.createMediaElementSource( audioElement[1] )
-	];
-
-	sourcePlayer[0].connect( analyzer );
-	sourcePlayer[1].connect( analyzer );
+		sourcePlayer.push( audioCtx.createMediaElementSource( audioElement[ i ] ) );
+		sourcePlayer[ i ].connect( analyzer );
+	}
 
 	// Set UI elements
 
