@@ -40,8 +40,8 @@ header {
 /*	background: #000; */
 	color: #eee;
 	padding: 10px 20px;
-	position: fixed;
-	right: 0;
+	position: absolute;
+	right: 40px;
 }
 h1 {
 	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);

@@ -33,7 +33,7 @@ var audioStarted = false,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes,
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS,
 	// fileMode: 1 = custom file server (node.js); 0 = standard web server; -1 = local mode (no server)
 	fileMode;
 
@@ -63,7 +63,8 @@ var presets = {
 			showSong    : 1,
 			repeat      : 0,
 			noShadow    : 1,
-			loRes       : 0
+			loRes       : 0,
+			showFPS     : 0
 		},
 
 		fullres: {
@@ -273,6 +274,14 @@ function setShowPeaks() {
  */
 function setBlackBg() {
 	audioMotion.toggleBgColor( elBlackBg.dataset.active == '0' );
+	updateLastConfig();
+}
+
+/**
+ * Set display of current frame rate
+ */
+function setFPS() {
+	audioMotion.toggleFPS( elFPS.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -991,6 +1000,9 @@ function loadPreset( name ) {
 	if ( presets[ name ].hasOwnProperty( 'loRes' ) )
 		elLoRes.dataset.active = Number( presets[ name ].loRes );
 
+	if ( presets[ name ].hasOwnProperty( 'showFPS' ) )
+		elFPS.dataset.active = Number( presets[ name ].showFPS );
+
 	if ( presets[ name ].hasOwnProperty( 'gradient' ) && gradients[ presets[ name ].gradient ] )
 		elGradient.value = presets[ name ].gradient;
 
@@ -1006,6 +1018,7 @@ function loadPreset( name ) {
 		showBgColor: ( elBlackBg.dataset.active == '0' ),
 		showLeds   : ( elLedDisplay.dataset.active == '1' ),
 		loRes      : ( elLoRes.dataset.active == '1' ),
+		showFPS    : ( elFPS.dataset.active == '1' ),
 		gradient   : elGradient.value
 	} );
 }
@@ -1031,7 +1044,8 @@ function saveConfig( config ) {
 		repeat      : elRepeat.dataset.active == '1',
 		showSong    : elShowSong.dataset.active == '1',
 		noShadow    : elNoShadow.dataset.active == '1',
-		loRes       : elLoRes.dataset.active == '1'
+		loRes       : elLoRes.dataset.active == '1',
+		showFPS     : elFPS.dataset.active == '1'
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1132,6 +1146,9 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyF': 		// toggle fullscreen
 			fullscreen();
+			break;
+		case 'KeyH': 		// toggle fps display
+			elFPS.click();
 			break;
 		case 'KeyI': 		// toggle info display on track change
 			elShowSong.click();
@@ -1237,7 +1254,7 @@ function audioOnError( e ) {
 }
 
 /**
- * Set canvas dimensions
+ * Toggle low resolution mode
  */
 function setLoRes() {
 	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
@@ -1354,6 +1371,7 @@ function initialize() {
 	elShowSong  = document.getElementById('show_song');
 	elNoShadow  = document.getElementById('no_shadow');
 	elLoRes     = document.getElementById('lo_res');
+	elFPS       = document.getElementById('fps');
 	elSource    = document.getElementById('source');
 	elPlaylists = document.getElementById('playlists');
 
@@ -1378,6 +1396,7 @@ function initialize() {
 	elShowSong.  addEventListener( 'click', updateLastConfig );
 	elNoShadow.  addEventListener( 'click', updateLastConfig );
 	elLoRes.     addEventListener( 'click', setLoRes );
+	elFPS.       addEventListener( 'click', setFPS );
 
 	// Add event listeners to UI config elements
 
@@ -1404,9 +1423,8 @@ function initialize() {
 	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
 
 	// clicks on canvas also toggle scale on/off
-	audioMotion.canvas.addEventListener( 'click', function() {
-		elShowScale.click();
-	});
+	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
+
 	setCanvasMsg();
 
 	// Register custom gradients
