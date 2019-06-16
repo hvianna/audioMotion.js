@@ -392,16 +392,14 @@ function addToPlaylist( file ) {
  */
 function addSongToPlaylist( uri, content = {} ) {
 
-	var title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\'), uri.lastIndexOf('%2f') + 2 ) + 1 );
-
 	var el = document.createElement('li');
 
-	el.innerHTML = title;
 	el.dataset.artist = content.artist || '';
-	el.dataset.title = title;
+	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\'), uri.lastIndexOf('%2f') + 2 ) + 1 );
 	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
 	el.dataset.file = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
+	el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
 	playlist.appendChild( el );
 
 	var len = playlist.children.length;
@@ -1200,7 +1198,7 @@ function keyboardControls( event ) {
 			setCanvasMsg( ( elNoShadow.dataset.active == '1' ? 'Flat' : 'Shadowed' ) + ' text mode' );
 			break;
 		case 'KeyU': 		// shuffle playlist
-			if ( playlist.length > 0 ) {
+			if ( playlist.children.length > 0 ) {
 				shufflePlaylist();
 				setCanvasMsg( 'Shuffled playlist' );
 			}
