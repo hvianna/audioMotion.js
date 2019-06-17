@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.3';
+var _VERSION = '19.6-dev.4';
 
 import 'script-loader!./localStorage.js';
 import * as audioMotion from './audioMotion-analyzer.js';
@@ -388,6 +388,32 @@ function addToPlaylist( file ) {
 }
 
 /**
+ * Add audio metadata to a playlist item or audio element
+ */
+function addMetadata( metadata, target ) {
+	if ( metadata.dataset ) { 	// just copy metadata from element dataset (playlist item)
+		target.dataset.artist  = metadata.dataset.artist || '';
+		target.dataset.title   = metadata.dataset.title || '';
+		target.dataset.album   = metadata.dataset.album || '';
+		target.dataset.codec   = metadata.dataset.codec || '';
+		target.dataset.quality = metadata.dataset.quality || '';
+	}
+	else {						// parse metadata read from file
+		target.dataset.artist  = metadata.common.artist || target.dataset.artist;
+		target.dataset.title   = metadata.common.title || target.dataset.title;
+		target.dataset.album   = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
+		target.dataset.codec   = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
+
+		if ( metadata.format && metadata.format.bitsPerSample )
+			target.dataset.quality = ( metadata.format.sampleRate / 1000 ).toFixed() + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
+		else if ( metadata.format.bitrate )
+			target.dataset.quality = ( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
+		else
+			target.dataset.quality = '';
+	}
+}
+
+/**
  * Add a song to the playlist
  */
 function addSongToPlaylist( uri, content = {} ) {
@@ -409,27 +435,12 @@ function addSongToPlaylist( uri, content = {} ) {
 	mm.fetchFromUrl( uri, { duration: false, skipCovers: true } )
 		.then( metadata => {
 			if ( metadata ) {
-				el.dataset.artist = metadata.common.artist || el.dataset.artist;
-				el.dataset.title = metadata.common.title || el.dataset.title;
-				el.dataset.album = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
-				el.dataset.codec = metadata.format ? metadata.format.codec || metadata.format.container : el.dataset.codec;
+				addMetadata( metadata, el ); // add metadata to playlist item
 				el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
 
-				if ( metadata.format && metadata.format.bitsPerSample )
-					el.dataset.quality = ( metadata.format.sampleRate / 1000 ).toFixed() + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
-				else if ( metadata.format.bitrate )
-					el.dataset.quality = ( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
-				else
-					el.dataset.quality = '';
-
 				for ( let i in [0,1] ) {
-					if ( audioElement[ i ].dataset.file == el.dataset.file ) {
-						audioElement[ i ].dataset.artist = el.dataset.artist;
-						audioElement[ i ].dataset.title = el.dataset.title;
-						audioElement[ i ].dataset.album = el.dataset.album;
-						audioElement[ i ].dataset.codec = el.dataset.codec;
-						audioElement[ i ].dataset.quality = el.dataset.quality;
-					}
+					if ( audioElement[ i ].dataset.file == el.dataset.file )
+						addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
 				}
 			}
 		});
@@ -638,11 +649,7 @@ function loadSong( n ) {
 		playlistPos = n;
 		audioElement[ currAudio ].src = playlist.children[ playlistPos ].dataset.file;
 		audioElement[ currAudio ].dataset.file = playlist.children[ playlistPos ].dataset.file;
-		audioElement[ currAudio ].dataset.artist = playlist.children[ playlistPos ].dataset.artist;
-		audioElement[ currAudio ].dataset.title = playlist.children[ playlistPos ].dataset.title;
-		audioElement[ currAudio ].dataset.album = playlist.children[ playlistPos ].dataset.album || '';
-		audioElement[ currAudio ].dataset.codec = playlist.children[ playlistPos ].dataset.codec;
-		audioElement[ currAudio ].dataset.quality = playlist.children[ playlistPos ].dataset.quality || '';
+		addMetadata( playlist.children[ playlistPos ], audioElement[ currAudio ] );
 
 		updatePlaylistUI();
 
@@ -665,11 +672,7 @@ function loadNextSong() {
 		n = 0;
 	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
 	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
-	audioElement[ nextAudio ].dataset.artist = playlist.children[ n ].dataset.artist;
-	audioElement[ nextAudio ].dataset.title = playlist.children[ n ].dataset.title;
-	audioElement[ nextAudio ].dataset.album = playlist.children[ n ].dataset.album || '';
-	audioElement[ nextAudio ].dataset.codec = playlist.children[ n ].dataset.codec;
-	audioElement[ nextAudio ].dataset.quality = playlist.children[ n ].dataset.quality || '';
+	addMetadata( playlist.children[ n ], audioElement[ nextAudio ] );
 }
 
 /**
@@ -934,15 +937,17 @@ function setSource() {
  */
 function loadLocalFile( obj ) {
 
+	var el = audioElement[ currAudio ];
 	var reader = new FileReader();
+
+	reader.readAsDataURL( obj.files[0] );
 
 	reader.onload = function() {
 		clearAudioElement();
-		audioElement[ currAudio ].src = reader.result;
-		audioElement[ currAudio ].play();
+		el.src = reader.result;
+		el.play();
+		mm.parseBlob( obj.files[0], { duration: false, skipCovers: true } ).then( metadata => addMetadata( metadata, el ) );
 	};
-
-	reader.readAsDataURL( obj.files[0] );
 }
 
 /**
