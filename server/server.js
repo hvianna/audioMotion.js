@@ -1,11 +1,11 @@
 /**
  * audioMotion custom file server
+ * https://github.com/hvianna/audioMotion.js
  * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
 const _VERSION = '19.6';
 
-// libraries
 const path = require('path');
 const express = require('express')
 const open = require('open')
@@ -48,7 +48,7 @@ server.listen( port, host, () => {
 /* Server routes */
 
 // retrieve list of drives / paths
-server.get( '/getDrives', function (req, res) {
+server.get( '/getDrives', ( req, res ) => {
 	if ( process.platform === 'win32' ) {
 		drives.getWindowsDrives( ( error, drives ) => {
 			if ( ! error )
@@ -60,21 +60,22 @@ server.get( '/getDrives', function (req, res) {
 })
 
 // retrieve a directory listing
-server.get( '/getDir/:path', function (req, res) {
+server.get( '/getDir/:path', ( req, res ) => {
 	var files = dir.files( req.params.path );
-	files.files = files.files.filter( function (file) {
+	files.files = files.files.filter( file => {
 		if ( file.toLowerCase().match(/(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/) )
 			files.cover = file
 		return file.match(/\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/) !== null
-	});
+	})
 	res.send( files )
 })
 
 // retrieve a file
-server.get( '/getFile/:path', function (req, res) {
+server.get( '/getFile/:path', ( req, res ) => {
+	var realPath = path.normalize( req.params.path );
 	// check for allowed file types
-	if ( req.params.path.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|jpg|jpeg|png|gif|bmp)$/ ) !== null )
-		res.sendFile( req.params.path )
+	if ( realPath.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|jpg|jpeg|png|gif|bmp)$/ ) !== null )
+		res.sendFile( realPath )
 	else
 		res.sendStatus(403)
 })
