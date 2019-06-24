@@ -15,7 +15,7 @@
     "music-metadata-browser": "^1.1.1",
     "open": "^6.3.0",
     "script-loader": "^0.7.2",
-    "webpack": "^4.34.0",
-    "webpack-cli": "^3.3.4"
+    "webpack": "^4.35.0",
+    "webpack-cli": "^3.3.5"
   }
 }
