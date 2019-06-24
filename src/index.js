@@ -33,9 +33,7 @@ var audioStarted = false,
 	// HTML elements from the UI
 	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS,
-	// fileMode: 1 = custom file server (node.js); 0 = standard web server; -1 = local mode (no server)
-	fileMode;
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -421,9 +419,10 @@ function addSongToPlaylist( uri, content = {} ) {
 	var el = document.createElement('li');
 
 	el.dataset.artist = content.artist || '';
-	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\'), uri.lastIndexOf('%2f') + 2 ) + 1 );
+	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 );
 	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
-	el.dataset.file = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+	el.dataset.file = uri;
 
 	el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
 	playlist.appendChild( el );
@@ -469,16 +468,14 @@ function loadPlaylist( path ) {
 			})
 			.then( content => {
 				tmplist = content.split(/[\r\n]+/);
-				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\'), path.lastIndexOf('%2f') + 2 ) + 1 );
+				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
 				for ( var i = 0; i < tmplist.length; i++ ) {
 					if ( tmplist[ i ].charAt(0) != '#' && tmplist[ i ].trim() != '' ) { // not a comment or blank line?
 						n++;
 						if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\'), tmplist[ i ].lastIndexOf('%2f') + 2 ) + 1 );
+							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\') ) + 1 );
 							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 						}
-						if ( fileMode == 1 )
-							tmplist[ i ] = tmplist[ i ].replace( /[\/\\]/g, '%2f' ); // when running in the node.js server replace slashes in path
 						if ( tmplist[ i ].substring( 0, 4 ) != 'http' && tmplist[ i ][1] != ':' && tmplist[ i ][0] != '/' )
 							tmplist[ i ] = path + tmplist[ i ];
 						let t = songInfo.indexOf(' - ');
@@ -505,7 +502,7 @@ function loadPlaylist( path ) {
 			tmplist = JSON.parse( tmplist );
 			tmplist.forEach( item => {
 				n++;
-				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\'), item.lastIndexOf('%2f') + 2 ) + 1 );
+				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
 				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 				addSongToPlaylist( item, { title: songInfo } )
 			});
@@ -1481,14 +1478,11 @@ function initialize() {
 			defaultPath: '/music'
 		}
 	).then( function( status ) {
-		if ( status == 0 )
-			consoleLog( 'Running in standard web server mode.' );
-		else if ( status == -1 ) {
+		if ( status == -1 ) {
 			consoleLog( 'No server found. Running in local mode. Playlists may not work.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
 		}
-		fileMode = status;
 
 		document.getElementById('btn_add_selected').addEventListener( 'click', () => {
 			fileExplorer.getSelectedFiles().forEach( entry => addToPlaylist( entry.file ) );

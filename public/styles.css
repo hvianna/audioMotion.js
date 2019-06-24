@@ -421,7 +421,7 @@ h1 {
 .filelist [data-path=".."]::before {
 	content: '\f119';
 }
-.filelist [data-type="drive"]::before {
+.filelist [data-type="mount"]::before {
 	content: '\f115';
 }
 .filelist [data-type="file"]::before {

@@ -4,27 +4,66 @@
  * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '19.6';
+const _VERSION = '19.6'
 
+const serverSignature = `audioMotion.js file server ver. ${_VERSION}`
+
+const fs = require('fs');
 const path = require('path');
 const express = require('express')
 const open = require('open')
-const drives = require('./getWindowsDrives.js')
-const dir = require('./dir.js')
 
-var port = 8000;
+var port = 8000
 var host = 'localhost'
-var launchClient = true;
+var launchClient = true
+var musicPath = ''
 
-console.log( `\naudioMotion.js file server ver. ${_VERSION}` );
+function showHelp() {
+	console.log( `
+	Usage:
+
+	audioMotion-server -m "c:\\users\\myUser\\music"
+
+	-m <path> : path to music directory (required)
+	-p <port> : change server listening port (default: ${port})
+	-s        : start server only (do not launch client)
+	-e        : allow external connections (by default, only localhost)
+
+	` )
+}
+
+function getDir( directoryPath ) {
+	let dirs = [];
+	let files = [];
+
+	let entries = fs.readdirSync( path.normalize( directoryPath ) );
+
+	entries.forEach( function ( entry ) {
+		try {
+			let stats = fs.statSync( directoryPath + '/' + entry )
+			if ( stats.isDirectory() )
+				dirs.push( entry );
+			else if ( stats.isFile() )
+				files.push( entry );
+		}
+		catch ( e ) {}
+	});
+
+	// case insensitive sorting - https://stackoverflow.com/a/40390844/2370385
+	return { dirs: dirs.sort( Intl.Collator().compare ), files: files.sort( Intl.Collator().compare ) }
+}
+
+console.log( `\n${serverSignature}` );
 
 // processes command line arguments
 process.argv = process.argv.slice(2)
 process.argv.forEach( ( arg, index ) => {
 	if ( arg == '-h' || arg == '--help' ) {
-		console.log( `\nCommand line parameters:\n\n\t-p <port> : change server listening port (default: ${port})\n\t-s        : start server only (do not launch client)\n\t-e        : allow external connections (by default, only localhost)\n\n` )
+		showHelp()
 		process.exit(0)
 	}
+	else if ( arg == '-m' && process.argv[ index + 1 ] )
+		musicPath = path.normalize( process.argv[ index + 1 ] )
 	else if ( arg == '-p' && process.argv[ index + 1 ] > 0 )
 		port = process.argv[ index + 1 ]
 	else if ( arg == '-s' )
@@ -33,35 +72,18 @@ process.argv.forEach( ( arg, index ) => {
 		host = ''
 })
 
+if ( ! musicPath ) {
+	console.log( '\n\nERROR: Music folder not defined. Run with -m <path> to set the music folder.' )
+	showHelp()
+	process.exit(0)
+}
+
 // start Express web server
 const server = express()
 server.use( express.static( path.join( __dirname, '../public' ) ) )
-server.listen( port, host, () => {
-	console.log( `\n\nServer listening on port ${port} ${ host ? 'for localhost connections only (run with -e to allow external connections)' : '' }` )
-	if ( launchClient ) {
-		open( `http://localhost:${port}` )
-		console.log( '\nLaunching client in browser...' )
-	}
-	console.log( '\n\nPress Ctrl+C to exit.' )
-})
 
-/* Server routes */
-
-// retrieve list of drives / paths
-server.get( '/getDrives', ( req, res ) => {
-	if ( process.platform === 'win32' ) {
-		drives.getWindowsDrives( ( error, drives ) => {
-			if ( ! error )
-				res.send( drives )
-		})
-	}
-	else
-		res.send( ['/'] )
-})
-
-// retrieve a directory listing
-server.get( '/getDir/:path', ( req, res ) => {
-	var files = dir.files( req.params.path );
+server.use( '/music', express.static( musicPath ), ( req, res ) => {
+	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) );
 	files.files = files.files.filter( file => {
 		if ( file.toLowerCase().match(/(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/) )
 			files.cover = file
@@ -70,12 +92,17 @@ server.get( '/getDir/:path', ( req, res ) => {
 	res.send( files )
 })
 
-// retrieve a file
-server.get( '/getFile/:path', ( req, res ) => {
-	var realPath = path.normalize( req.params.path );
-	// check for allowed file types
-	if ( realPath.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|jpg|jpeg|png|gif|bmp)$/ ) !== null )
-		res.sendFile( realPath )
-	else
-		res.sendStatus(403)
+server.listen( port, host, () => {
+	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only (run with -e to allow external connections)' : '' }` )
+	console.log( `\n\t/music mounting point: ${musicPath}` )
+	if ( launchClient ) {
+		open( `http://localhost:${port}` )
+		console.log( '\n\tLaunching client in browser...' )
+	}
+	console.log( '\n\nPress Ctrl+C to exit.' )
+})
+
+/* route for custom server detection */
+server.get( '/serverInfo', ( req, res ) => {
+	res.send( serverSignature )
 })

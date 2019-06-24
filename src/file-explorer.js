@@ -1,8 +1,8 @@
 /**
- * audioMotion file explorer module
+ * audioMotion.js file explorer module
  */
 
-var drives = [],
+var mounts = [],
 	currentPath = [],
 	nodeServer = false,
 	ui_path,
@@ -14,7 +14,7 @@ var drives = [],
 /**
  * Generates full path for a file or directory
  */
-function makePath( fileName, isDir = false ) {
+function makePath( fileName ) {
 
 	var fullPath = '';
 
@@ -25,13 +25,7 @@ function makePath( fileName, isDir = false ) {
 	if ( fileName )
 		fullPath += fileName;
 
-	if ( nodeServer ) {
-		fullPath = fullPath.replace(/[\\\/]/g,'%2f'); // escape slashes for use with the custom server queries
-		if ( isDir )
-			fullPath = '/getDir/' + fullPath;
-		else
-			fullPath = '/getFile/' + fullPath;
-	}
+	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
 	return fullPath;
 }
@@ -49,8 +43,8 @@ function updateUI( content, scrollTop ) {
 		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${entry.dir}</li> / `;
 	});
 
-	drives.forEach( drive => {
-		ui_files.innerHTML += `<li data-type="drive" data-path="${drive}">[ ${drive} ]</li>`;
+	mounts.forEach( mount => {
+		ui_files.innerHTML += `<li data-type="mount" data-path="${mount}">[ ${mount} ]</li>`;
 	});
 
 	if ( currentPath.length > 1 )
@@ -84,16 +78,13 @@ function enterDir( target, scrollTop ) {
 	var prev, url;
 
 	if ( target !== undefined ) {
-		if ( target[1] == ':' )
-			currentPath = [ { dir: target, scrollTop: 0 } ];
+		if ( target == '..' )
+			prev = currentPath.pop();
 		else
-			if ( target == '..' )
-				prev = currentPath.pop();
-			else
-				currentPath.push( { dir: target, scrollTop: ui_files.scrollTop } );
+			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop } );
 	}
 
-	url = makePath( '', true );
+	url = makePath();
 
 	fetch( url )
 		.then( function( response ) {
@@ -237,7 +228,7 @@ export function getFolderContents() {
  *
  * container: DOM element where the file explorer should be inserted
  * options: object {
- *		defaultPath: string - start path when running in standard web server mode (defaults to '/')
+ *		defaultPath: string - starting path (defaults to '/music')
  * }
  */
 export function create( container, options = {} ) {
@@ -266,8 +257,12 @@ export function create( container, options = {} ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
 			if ( ['file','list'].includes( e.target.dataset.type ) )
 				e.target.classList.toggle('selected');
-			else if ( ['dir','drive'].includes( e.target.dataset.type ) )
+			else if ( e.target.dataset.type == 'dir' )
 				enterDir( e.target.dataset.path );
+			else if ( e.target.dataset.type == 'mount' ) {
+				currentPath = [];
+				enterDir( e.target.dataset.path );
+			}
 		}
 	});
 
@@ -282,26 +277,24 @@ export function create( container, options = {} ) {
 	});
 
 	return new Promise( resolve => {
-		fetch( '/getDrives' )
+		fetch( '/serverInfo' )
 			.then( function( response ) {
-				if ( response.status == 200 ) {
-					return response.json();
-				}
+				return response.text();
 			})
 			.then( function( content ) {
 				clearTimeout( startUpTimer );
-				if ( content ) {
+				let status;
+				if ( content.startsWith('audioMotion') ) {
 					nodeServer = true;
-					drives = content;
-					enterDir( drives[0] );
-					resolve(1);
+					status = 1;
 				}
 				else {
 					// no response for our custom query, so it's probably running on a standard web server
-					drives = [ options.defaultPath || '/' ];
-					enterDir( drives[0] );
-					resolve(0);
+					status = 0;
 				}
+				mounts = [ options.defaultPath || '/music' ];
+				enterDir( mounts[0] );
+				resolve( status );
 			})
 			.catch( function( err ) {
 				clearTimeout( startUpTimer );
