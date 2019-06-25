@@ -23,7 +23,7 @@ function showHelp() {
 	console.log( `
 	Usage:
 
-	audioMotion-server -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
+	audioMotion -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
 
 	-m <path> : path to music directory (required)
 	-p <port> : change server listening port (default: ${port})
@@ -106,8 +106,8 @@ server.use( '/music', express.static( musicPath ), ( req, res ) => {
 })
 
 server.listen( port, host, () => {
-	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only (run with -e to allow external connections)' : '' }` )
-	console.log( `\n\t/music mounting point: ${musicPath}` )
+	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only' : 'accepting external connections!' }` )
+	console.log( `\n\t/music mounting point is ${musicPath}` )
 	if ( launchClient ) {
 		open( `http://localhost:${port}` )
 		console.log( '\n\tLaunching client in browser...' )
