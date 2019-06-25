@@ -348,28 +348,32 @@ function loadSavedPlaylists( keyName ) {
 
 	fetch( 'playlists.cfg' )
 		.then( response => {
-			if ( response.status == 200 )
+			if ( response.status == 200 ) {
+				consoleLog( 'Found legacy playlists.cfg file' );
 				return response.text();
+			}
 			else
-				consoleLog( 'No playlists.cfg file found', true );
+				return false;
 		})
 		.then( content => {
-			list = content.split(/[\r\n]+/);
-			for ( let i = 0; i < list.length; i++ ) {
-				if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
-					item = list[ i ].split(/\|/);
-					if ( item.length == 2 ) {
-						elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
-						n++;
+			if ( content !== false ) {
+				list = content.split(/[\r\n]+/);
+				for ( let i = 0; i < list.length; i++ ) {
+					if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
+						item = list[ i ].split(/\|/);
+						if ( item.length == 2 ) {
+							elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
+							n++;
+						}
 					}
 				}
+				if ( n )
+					consoleLog( `${n} playlists loaded from playlists.cfg` );
+				else
+					consoleLog( 'No playlists found in playlists.cfg', true );
 			}
-			if ( n )
-				consoleLog( `${n} playlists found in playlists.cfg` );
-			else
-				consoleLog( 'No playlists found in playlists.cfg', true );
 		})
-		.catch( e => consoleLog( 'Could not read from playlists.cfg', true ) );
+		.catch( e => {} );
 }
 
 /**
