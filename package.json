@@ -18,6 +18,7 @@
     "express": "^4.16.4",
     "music-metadata-browser": "^1.1.1",
     "open": "^6.3.0",
+    "readline-sync": "^1.4.9",
     "script-loader": "^0.7.2",
     "webpack": "^4.35.0",
     "webpack-cli": "^3.3.5"

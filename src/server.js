@@ -8,10 +8,11 @@ const _VERSION = '19.6'
 
 const serverSignature = `audioMotion.js file server ver. ${_VERSION}`
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 const express = require('express')
 const open = require('open')
+const readlineSync = require('readline-sync')
 
 var port = 8000
 var host = 'localhost'
@@ -22,7 +23,7 @@ function showHelp() {
 	console.log( `
 	Usage:
 
-	audioMotion-server -m "c:\\users\\myUser\\music"
+	audioMotion-server -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
 
 	-m <path> : path to music directory (required)
 	-p <port> : change server listening port (default: ${port})
@@ -73,8 +74,20 @@ process.argv.forEach( ( arg, index ) => {
 })
 
 if ( ! musicPath ) {
-	console.log( '\n\nERROR: Music folder not defined. Run with -m <path> to set the music folder.' )
+	console.log( '\n\n\tMusic folder not defined.\n\tUse the command-line argument -m <path> to set the folder upon launching audioMotion.' )
+	musicPath = readlineSync.questionPath(
+		`\n\tPlease enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }):\n\t> `, {
+		isDirectory: true,
+		defaultInput: '/null'
+	})
+}
+
+try {
+	fs.accessSync( musicPath, fs.constants.R_OK ) // check if music folder is readable
+}
+catch (err) {
 	showHelp()
+	console.error( `\n\nERROR: no access to music folder at ${musicPath}` )
 	process.exit(0)
 }
 
