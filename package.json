@@ -4,10 +4,14 @@
   "description": "",
   "private": true,
   "scripts": {
-    "start": "node ./server/server.js",
-    "build": "webpack"
+    "start": "node ./src/server.js",
+    "build": "webpack",
+    "pkg": "pkg . --out-path ./bin/"
   },
-  "keywords": [],
+  "bin": "src/server.js",
+  "pkg": {
+    "assets": "public/**/*"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
