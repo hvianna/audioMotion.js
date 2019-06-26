@@ -7,7 +7,6 @@ var mounts = [],
 	nodeServer = false,
 	ui_path,
 	ui_files,
-	startUpTimer,
 	dblClickCallback;
 
 
@@ -73,6 +72,7 @@ function updateUI( content, scrollTop ) {
 		ui_files.scrollTop = 0;
 }
 
+
 function enterDir( target, scrollTop ) {
 
 	var prev, url;
@@ -86,30 +86,29 @@ function enterDir( target, scrollTop ) {
 
 	url = makePath();
 
-	fetch( url )
-		.then( function( response ) {
-			if ( response.status == 200 ) {
-				if ( nodeServer )
-					return response.json();
-				else
-					return response.text();
-			}
-			else {
-//				consoleLog( 'Cannot access directory: ' + url, true );
-				if ( startUpTimer ) {
-					clearTimeout( startUpTimer );
-					ui_path.innerHTML = 'Cannot access /music directory. Check the documentation for help.';
+	return new Promise( resolve => {
+		fetch( url )
+			.then( response => {
+				if ( response.status == 200 ) {
+					if ( nodeServer )
+						return response.json();
+					else
+						return response.text();
 				}
-			}
-		})
-		.then( function( content ) {
-			if ( ! nodeServer )
-				content = parseWebDirectory( content );
-			updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
-		})
-		.catch( function( err ) {
-			console.log( 'Error on getDir ', err );
-		});
+				else
+					resolve( false );
+			})
+			.then( content => {
+				if ( ! nodeServer )
+					content = parseWebDirectory( content );
+				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
+				resolve( true );
+			})
+			.catch( err => {
+				console.log( `Error accessing directory. ${err}` );
+				resolve( false );
+			});
+	});
 }
 
 
@@ -122,7 +121,7 @@ function parseWebDirectory( content ) {
 		dirs = [],
 		cover;
 
-	var entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi );
+	var entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
 	for ( let e of entries ) {
 		let info = e.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
 		if ( info[1].substring( info[1].length - 1 ) == '/' ) {
@@ -233,6 +232,8 @@ export function getFolderContents() {
  */
 export function create( container, options = {} ) {
 
+	var startUpTimer;
+
 	ui_path = document.createElement('ul');
 	ui_path.className = 'breadcrumb';
 	container.appendChild( ui_path );
@@ -278,25 +279,28 @@ export function create( container, options = {} ) {
 
 	return new Promise( resolve => {
 		fetch( '/serverInfo' )
-			.then( function( response ) {
+			.then( response => {
 				return response.text();
 			})
-			.then( function( content ) {
+			.then( async content => {
 				clearTimeout( startUpTimer );
 				let status;
 				if ( content.startsWith('audioMotion') ) {
 					nodeServer = true;
 					status = 1;
 				}
-				else {
-					// no response for our custom query, so it's probably running on a standard web server
+				else { // no response for our custom query, so it's probably running on a standard web server
 					status = 0;
 				}
 				mounts = [ options.defaultPath || '/music' ];
-				enterDir( mounts[0] );
+				if ( await enterDir( mounts[0] ) === false ) {
+					ui_path.innerHTML = 'Cannot access media folder on server. File navigation is unavailable.';
+					ui_files.style.display = 'none';
+					status = -1;
+				}
 				resolve( status );
 			})
-			.catch( function( err ) {
+			.catch( err => {
 				clearTimeout( startUpTimer );
 				ui_path.innerHTML = 'No server found. File navigation is unavailable.';
 				ui_files.style.display = 'none';

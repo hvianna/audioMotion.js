@@ -113,26 +113,23 @@
 
 		<ul id="panel_selector" class="panel-selector">
 			<li id="show_config" data-panel="config_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer configuration"></i><span>settings</span></li>
-			<li id="show_filelist" data-panel="file_panel"><i class="icons8-opened-folder-2" title="File explorer and playlist"></i><span>files</span></li>
+			<li id="show_filelist" data-panel="files_panel"><i class="icons8-opened-folder-2" title="File explorer and playlist"></i><span>files</span></li>
 			<li id="show_console" data-panel="console"><i class="icons8-console" title="Message console"></i><span>console</span></li>
 		</ul>
 
 		<div id="console" class="config-panel"></div>
 
-		<div id="file_panel" class="config-panel">
+		<div id="files_panel" class="config-panel">
 			<div class="ui-panels config-block">
 
-				<div id="file_explorer">
-					<div id="local_file_panel" class="local-file button-bar">
-						<p>You can load a song from your computer:</p>
-
-						<label><strong>Play a song:</strong>
-						<input id="local_file" type="file" accept="audio/*"></label>
-
-						<p>Please refer to the <a href="https://github.com/hvianna/audioMotion.js/blob/master/README.md">documentation</a> to learn
-						how to setup a server and get the best of audioMotion.</p>
+				<div>
+					<div id="file_explorer">
+						<p>Click to open folder or select file / Double-click to add to playlist</p>
 					</div>
-					<p>Click to open folder or select file / Double-click to add to playlist</p>
+					<div id="local_file_panel" class="local-file button-bar">
+						<label><strong>Load a song from your computer:<br><br></strong>
+						<input id="local_file" type="file" accept="audio/*"></label>
+					</div>
 				</div>
 
 				<div class="button-column">
@@ -145,7 +142,7 @@
 					</span>
 				</div>
 
-				<div>
+				<div id="playlist_panel">
 					<div class="playlist-area">
 						<select id="playlists"></select>
 						<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
@@ -163,7 +160,7 @@
 					<p>Double-click to play / Click to select / Drag to reorder / Delete to remove</p>
 				</div>
 			</div>
-		</div> <!-- #file_panel -->
+		</div> <!-- #files_panel -->
 
 		<div id="config_panel" class="config-panel">
 			<div class="main-config config-block">

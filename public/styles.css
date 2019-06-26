@@ -181,19 +181,19 @@ h1 {
 
 .main-config,
 .ui-panels {
-	max-width: 1600px;
 	margin-left: auto;
 	margin-right: auto;
 }
-.ui-panels > div {
-	flex: 1 1 100%;
+
+#files_panel .ui-panels > div {
+	width: calc( 50% - 120px );
 }
-.ui-panels .button-column {
-	flex-shrink: 2;
+#files_panel .ui-panels > div:nth-child(2) {
+	width: 100px;
 }
 .button-column button {
 	margin: 10px 0;
-	width: 100px;
+	width: 100%;
 }
 
 .main-config {

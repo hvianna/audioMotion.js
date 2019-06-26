@@ -25,7 +25,7 @@ In the demo site you can play individual songs from your PC and also use the mic
 
 Download the latest version from the [releases page](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
 
-Launch audioMotion and you'll be asked for the path to your music files. Only files below this folder will be accessible to the player.
+Launch audioMotion and you'll be asked for the path to your music files. Only files under this folder will be accessible to the player.
 
 You can also use the command line argument `-m` to set the music folder:
 
@@ -83,7 +83,6 @@ Full screen view: 1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, "Aurora" gr
 * [What does the FFT data in the Web Audio API correspond to?](https://stackoverflow.com/a/14789992/2370385)
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
-* [localStorage polyfill](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Local_storage)
 * [Equations for equal-tempered scale frequencies](http://pages.mtu.edu/~suits/NoteFreqCalcs.html)
 
 ## License

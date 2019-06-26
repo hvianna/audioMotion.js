@@ -1263,7 +1263,7 @@ function audioOnError( e ) {
  */
 function setLoRes() {
 	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
-	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - current pixel ratio: ${audioMotion.pixelRatio}` );
+	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - pixel ratio is ${audioMotion.pixelRatio}` );
 	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
 	consoleLog( `Fullscreen resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	updateLastConfig();
@@ -1460,7 +1460,7 @@ function initialize() {
 	loadPreset('last');
 
 	consoleLog( `Device pixel ratio: ${window.devicePixelRatio}` );
-	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - current pixel ratio: ${audioMotion.pixelRatio}` );
+	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - pixel ratio is ${audioMotion.pixelRatio}` );
 	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
 	consoleLog( `Fullscreen resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
@@ -1484,9 +1484,12 @@ function initialize() {
 		}
 	).then( function( status ) {
 		if ( status == -1 ) {
-			consoleLog( 'No server found. Running in local mode. Playlists may not work.', true );
+			consoleLog( 'No server found. Running in local mode.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
+			document.getElementById('playlist_panel').style.display = 'none';
+			document.querySelector('#files_panel .button-column').style.display = 'none';
+			document.querySelector('#file_explorer p').style.display = 'none';
 		}
 
 		document.getElementById('btn_add_selected').addEventListener( 'click', () => {
