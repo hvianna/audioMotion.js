@@ -20,18 +20,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.4';
+var _VERSION = '19.6-dev.5';
 
-import 'script-loader!./localStorage.js';
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 
-var audioStarted = false,
-	// playlist, index to the current song, indexes to current and next audio elements
-	playlist, playlistPos, currAudio, nextAudio,
-	// HTML elements from the UI
-	elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
+var audioStarted = false;
+
+// playlist, index to the current song, indexes to current and next audio elements
+var playlist, playlistPos, currAudio, nextAudio;
+
+// HTML elements from the UI
+var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS;
 

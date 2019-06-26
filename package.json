@@ -1,7 +1,5 @@
 {
   "name": "audioMotion",
-  "version": "19.6.0",
-  "description": "",
   "private": true,
   "scripts": {
     "start": "node ./src/server.js",
@@ -12,14 +10,13 @@
   "pkg": {
     "assets": "public/**/*"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "express": "^4.16.4",
     "music-metadata-browser": "^1.1.1",
     "open": "^6.3.0",
     "readline-sync": "^1.4.9",
-    "script-loader": "^0.7.2",
     "webpack": "^4.35.0",
     "webpack-cli": "^3.3.5"
   }
