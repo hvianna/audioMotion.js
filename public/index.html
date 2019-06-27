@@ -124,7 +124,7 @@
 
 				<div>
 					<div id="file_explorer">
-						<p>Click to open folder or select file / Double-click to add to playlist</p>
+						<p>Click to open folder or select file / Double-click to add to play queue</p>
 					</div>
 					<div id="local_file_panel" class="local-file button-bar">
 						<label><strong>Load a song from your computer:<br><br></strong>
@@ -134,11 +134,11 @@
 
 				<div class="button-column">
 					<span class="help"><button id="btn_add_selected">Add selected</button>
-						<span class="tooltip">Add selected files to the playlist</span>
+						<span class="tooltip">Add selected files to play queue</span>
 					</span>
 					<br>
 					<span class="help"><button id="btn_add_folder">Add folder</button>
-						<span class="tooltip">Add the current folder's contents to the playlist</span>
+						<span class="tooltip">Add current folder to play queue</span>
 					</span>
 				</div>
 
@@ -148,14 +148,14 @@
 						<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
 							<span class="tooltip">Load selected playlist</span>
 						</span>
-						<span class="help"><button id="save_playlist" title="update playlist"><i class="icons8-save"></i></button>
-							<span class="tooltip">Update selected playlist with current playlist contents</span>
+						<span class="help"><button id="save_playlist"><i class="icons8-save"></i></button>
+							<span class="tooltip">Overwrite selected playlist with play queue</span>
 						</span>
 						<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
 							<span class="tooltip">Delete selected playlist</span>
 						</span>
 					</div>
-					<button id="btn_clear">Clear current playlist</button> <button id="create_playlist">Save current playlist as...</button>
+					<button id="btn_clear">Clear play queue</button> <button id="create_playlist">Save play queue as...</button>
 					<ul id="playlist" class="filelist"></ul>
 					<p>Double-click to play / Click to select / Drag to reorder / Delete to remove</p>
 				</div>

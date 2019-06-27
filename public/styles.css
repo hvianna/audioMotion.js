@@ -493,4 +493,8 @@ h1 {
 	.config-block > ul {
 		margin: 0 5px;
 	}
+
+	#files_panel .ui-panels > div {
+		width: calc( 50% - 70px );
+	}
 }

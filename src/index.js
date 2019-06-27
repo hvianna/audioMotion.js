@@ -527,15 +527,12 @@ function loadPlaylist( path ) {
  */
 function savePlaylist( index ) {
 
-	if ( playlist.children.length == 0 )
-		alert( 'Playlist is empty!' );
-	else if ( elPlaylists[ index ].value == '' )
+	if ( elPlaylists[ index ].value == '' )
 		storePlaylist();
 	else if ( ! elPlaylists[ index ].dataset.isLocal )
-		alert( 'This is a server playlist which cannot be overwritten.\n\nChoose "Save as" to create a new local playlist.' );
-	else
-		if ( confirm( `Overwrite "${elPlaylists[ index ].innerText}" with current playlist contents?` ) )
-			storePlaylist( elPlaylists[ index ].value );
+		alert( 'This is a server playlist which cannot be overwritten.\n\nChoose "Save as..." to create a new local playlist.' );
+	else if ( confirm( `Overwrite "${elPlaylists[ index ].innerText}" with current play queue?` ) )
+		storePlaylist( elPlaylists[ index ].value );
 }
 
 /**
@@ -545,8 +542,13 @@ function storePlaylist( name ) {
 
 	var overwrite = false;
 
+	if ( playlist.children.length == 0 ) {
+		alert( 'Play queue is empty!' );
+		return;
+	}
+
 	if ( ! name )
-		name = prompt( 'Save current playlist as:' );
+		name = prompt( 'Give this playlist a name:' );
 	else
 		overwrite = true;
 
@@ -584,7 +586,7 @@ function storePlaylist( name ) {
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
-	if ( confirm( `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?\n\nTHIS CANNOT BE UNDONE!` ) ) {
+	if ( elPlaylists[ index ].value && confirm( `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?\n\nTHIS CANNOT BE UNDONE!` ) ) {
 		var keyName = elPlaylists[ index ].value;
 		var playlists = localStorage.getItem('playlists');
 
@@ -597,7 +599,6 @@ function deletePlaylist( index ) {
 		localStorage.removeItem( `pl_${keyName}` );
 		loadSavedPlaylists();
 	}
-
 }
 
 /**
