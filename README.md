@@ -1,17 +1,20 @@
-![header](docs/img/audioMotion-header "audioMotion - high-resolution real-time graphic spectrum analyzer and audio player")
+![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time graphic spectrum analyzer and audio player")
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
+
+See your music move! **audioMotion** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
 
 ## Features
 
 * Beautiful high-resolution (retina / HiDPI ready) graphic audio spectrum analyzer with fullscreen display
 * Logarithmic frequency scale with customizable range
 * Visualize discrete frequencies, or octave bands based on the equal tempered scale
+* Several color gradients with optional vintage LED effect
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
-* HTML5 audio player supporting most popular audio formats, like MP3, M4A (AAC), OGG, FLAC (support may vary depending on browser and operating system)
+* HTML5 audio player supporting most popular audio formats, like MP3, AAC (M4A), OGG and FLAC (support may vary depending on browser and operating system)
 * Visual file explorer and play queue
-* Support for M3U and M3U8 playlists
-* Visualize audio input from your microphone (or "stereo mix", if your soundcard supports it)
+* Supports M3U playlists (`m3u` and `m3u8` file extensions)
+* Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 * Lightweight custom web/file server written in node.js — also runs on standard web servers with minimal additional configuration
 * Client runs in any modern browser
 
@@ -19,15 +22,15 @@
 
 https://hvianna.github.io/audioMotion.js/
 
-In the demo site you can play individual songs from your PC and also use the microphone input. The file explorer isn't available, since there are no media files on that server.
+On the demo site you can play songs from your PC and use the microphone input. Since there are no media files hosted on the site, the file explorer and play queue are not available.
 
 ## Quick start
 
 Download the latest version from the [releases page](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
 
-Launch audioMotion and you'll be asked for the path to your music files. Only files under this folder will be accessible to the player.
+Launch audioMotion and you'll be asked for the path to your music folder. Only files under that folder will be accessible to the player.
 
-You can also use the command line argument `-m` to set the music folder:
+You can also use the command line argument `-m` to set the music folder when launching audioMotion:
 
 ```
 audioMotion -m c:\users\john\music
