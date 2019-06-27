@@ -53,9 +53,15 @@ h1 {
 	-webkit-text-fill-color: transparent;
 }
 
+ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
 .analyzer {
 	background: #000;
-	height: calc( 100vh - 550px );
+	height: calc( 100vh - 570px );
 	min-height: 270px;
 }
 .analyzer canvas {
@@ -88,26 +94,39 @@ h1 {
 	margin: 20px 0 40px;
 }
 
+.container {
+	margin: 0 auto;
+	max-width: 1400px;
+}
+
+.flex {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+}
+.space-around {
+	justify-content: space-around;
+}
+.justify-left {
+	justify-content: start;
+}
+
 .config-label {
 	font-size: 11px;
 	text-transform: uppercase;
 }
 
-.playlist-area {
-	align-items: center;
-	display: flex;
-	justify-content: space-between;
+.playlist-bar,
+.playqueue-bar {
 	margin-bottom: 10px;
 }
-.playlist-area button {
+.playlist-bar button {
 	font-size: 18px;
 	margin-left: 5px;
 	padding: 3px 8px;
 }
-
-.panels-container {
-	margin: 0 auto;
-	max-width: 1400px;
+.playqueue-bar strong {
+	font-size: 16px;
 }
 
 .panel-selector {
@@ -116,7 +135,6 @@ h1 {
 	border-bottom-left-radius: 5px;
 	border-width: 1px 0 1px 1px;
 	float: left;
-	list-style: none;
 	margin: 10px 0;
 	padding: 0;
 	width: 100px;
@@ -169,26 +187,10 @@ h1 {
 	padding: 15px 0;
 }
 
-.config-block {
-	align-items: center;
-	display: flex;
-	justify-content: space-around;
-}
-.config-block > div,
-.config-block > ul {
-	margin: 0 20px;
-}
-
-.main-config,
-.ui-panels {
-	margin-left: auto;
-	margin-right: auto;
-}
-
-#files_panel .ui-panels > div {
+#files_panel .config-col {
 	width: calc( 50% - 120px );
 }
-#files_panel .ui-panels > div:nth-child(2) {
+#files_panel .config-col:nth-child(2) {
 	width: 100px;
 }
 .button-column button {
@@ -196,34 +198,26 @@ h1 {
 	width: 100%;
 }
 
-.main-config {
-	font-size: 11px;
-	margin-bottom: 30px;
+.config-row {
+	margin-bottom: 40px;
 }
-.main-config select,
-.main-config button {
-	font-size: 11px;
+.config-row select {
 	padding: 4px;
+}
+
+.config-col {
+	margin: 0 20px;
 }
 
 .fullscreen-button {
 	width: 200px;
 }
 
-.button-bar {
-	margin-bottom: 20px;
-}
-
 .center {
 	text-align: center;
 }
 
-.top40 {
-	margin-top: 40px;
-}
-
 .player-controls {
-	margin-bottom: 40px;
 	padding: 10px;
 }
 .player-controls button {
@@ -258,8 +252,6 @@ h1 {
 }
 .switch-bar {
 	display: inline-block;
-	margin: 0;
-	padding: 0;
 	position: relative;
 }
 .switch-bar .switch {
@@ -269,10 +261,10 @@ h1 {
 	cursor: pointer;
 	display: inline-block;
 	font-size: 11px;
+	min-width: 50px;
 	padding: 4px;
 	text-align: center;
 	text-transform: uppercase;
-	width: 50px;
 }
 .switch-bar .switch[data-active="1"] {
 	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
@@ -313,7 +305,7 @@ h1 {
 	top: -50px;
 }
 .switch .tooltip {
-	left: 0;
+	right: 0;
 	top: 30px;
 }
 .button-column .tooltip {
@@ -322,7 +314,7 @@ h1 {
 .player-controls .tooltip {
 	right: 0;
 }
-.playlist-area .tooltip {
+.playlist-bar .tooltip {
 	margin-top: 10px;
 	right: 0;
 }
@@ -352,22 +344,12 @@ h1 {
 
 /* File explorer */
 
-#file_explorer {
-	align-self: stretch;
-	display: flex;
-	flex-direction: column;
-}
 #file_explorer .filelist {
-	height: 285px;
-}
-#file_explorer p {
-	margin-top: 0;
-	order: 9;
+	height: 295px;
 }
 
 .breadcrumb {
 	height: 35px;
-	list-style: none;
 	margin: 0;
 	order: -1;
 	padding-left: 0;
@@ -391,7 +373,6 @@ h1 {
 	background: #fff;
 	border: 1px solid #ccc;
 	height: 250px;
-	list-style: none;
 	overflow: auto;
 	padding: 0;
 	vertical-align: top;
@@ -467,7 +448,7 @@ h1 {
 .credits {
 	color: #030;
 	font-size: 12px;
-	margin: 30px 0;
+	margin: 20px 0;
 	text-align: center;
 }
 .credits a {
@@ -489,12 +470,11 @@ h1 {
 }
 
 @media screen and (max-width: 1200px) {
-	.config-block > div,
-	.config-block > ul {
+	.config-col {
 		margin: 0 5px;
 	}
 
-	#files_panel .ui-panels > div {
+	#files_panel .config-col {
 		width: calc( 50% - 70px );
 	}
 }

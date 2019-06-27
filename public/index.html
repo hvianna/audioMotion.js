@@ -34,7 +34,7 @@
  	<meta name="msapplication-TileImage" content="img/favicon512.png">
 	<meta property="og:url" content="https://hvianna.github.io/audioMotion.js/">
 	<meta property="og:title" content="audioMotion.js">
-	<meta property="og:image" content="https://raw.githubusercontent.com/hvianna/audioMotion.js/master/docs/img/screenshot1.png">
+	<meta property="og:image" content="https://raw.githubusercontent.com/hvianna/audioMotion.js/master/docs/img/audioMotion-header.png">
 	<meta property="og:site_name" content="audioMotion.js">
 	<meta property="og:description" content="High-resolution real-time graphic spectrum analyzer and audio player written in JavaScript">
 	<meta property="og:type" content="website">
@@ -49,30 +49,17 @@
 	<audio id="player0" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 	<audio id="player1" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 
-	<div class="config-block">
-		<div>
-			<span class="help">
-				<span class="tooltip">
-					Load a configuration preset.<br>
-					<strong>"Last session"</strong> restores last used configuration settings.
-				</span>
-				<select id="preset">
-					<option value="">Load Preset</option>
-					<option value="fullres">Full resolution</option>
-					<option value="octave">Octave bands</option>
-					<option value="ledbars">LED bars</option>
-					<option value="custom">Custom</option>
-					<option value="last">Last session</option>
-					<option value="default">Restore defaults</option>
-				</select>
-			</span>
-			<span class="help">
-				<button id="btn_save">Save settings</button>
-				<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-			</span>
+	<div class="container flex">
+
+		<div class="config-col">
+			<span class="config-label">AUDIO SOURCE:</span>
+			<select id="source">
+				<option value="player">built-in Player</option>
+				<option value="mic">Microphone</option>
+			</select>
 		</div>
 
-		<div class="player-controls center">
+		<div class="player-controls">
 			<button id="btn_prev"><i class="icons8-previous-track-2"></i></button>
 			<button id="btn_play"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i></button>
 			<button id="btn_stop"><i class="icons8-stop-symbol"></i></button>
@@ -85,7 +72,7 @@
 			</span>
 		</div>
 
-		<div class="button-bar center">
+		<div class="config-col center">
 			<button id="btn_fullscreen" class="fullscreen-button"><u>F</u>ullscreen Analyzer</button>
 			<br>
 			<span class="help"><span class="config-label">KEYBOARD SHORTCUTS</span>
@@ -109,7 +96,7 @@
 	</div>
 
 
-	<div class="panels-container">
+	<div class="container">
 
 		<ul id="panel_selector" class="panel-selector">
 			<li id="show_config" data-panel="config_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer configuration"></i><span>settings</span></li>
@@ -120,19 +107,19 @@
 		<div id="console" class="config-panel"></div>
 
 		<div id="files_panel" class="config-panel">
-			<div class="ui-panels config-block">
-
-				<div>
-					<div id="file_explorer">
+			<div class="flex">
+				<div class="config-col">
+					<div class="file_explorer">
+						<div id="file_explorer"></div>
 						<p>Click to open folder or select file / Double-click to add to play queue</p>
 					</div>
-					<div id="local_file_panel" class="local-file button-bar">
+					<div id="local_file_panel" class="local-file">
 						<label><strong>Load a song from your computer:<br><br></strong>
 						<input id="local_file" type="file" accept="audio/*"></label>
 					</div>
 				</div>
 
-				<div class="button-column">
+				<div class="config-col button-column">
 					<span class="help"><button id="btn_add_selected">Add selected</button>
 						<span class="tooltip">Add selected files to play queue</span>
 					</span>
@@ -142,8 +129,8 @@
 					</span>
 				</div>
 
-				<div id="playlist_panel">
-					<div class="playlist-area">
+				<div id="playlist_panel" class="config-col">
+					<div class="playlist-bar flex">
 						<select id="playlists"></select>
 						<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
 							<span class="tooltip">Load selected playlist</span>
@@ -155,7 +142,13 @@
 							<span class="tooltip">Delete selected playlist</span>
 						</span>
 					</div>
-					<button id="btn_clear">Clear play queue</button> <button id="create_playlist">Save play queue as...</button>
+					<div class="playqueue-bar flex">
+						<strong>Play queue:</strong>
+						<div>
+							<button id="btn_clear">Clear</button>
+							<button id="create_playlist">Save as...</button>
+						</div>
+					</div>
 					<ul id="playlist" class="filelist"></ul>
 					<p>Double-click to play / Click to select / Drag to reorder / Delete to remove</p>
 				</div>
@@ -163,8 +156,28 @@
 		</div> <!-- #files_panel -->
 
 		<div id="config_panel" class="config-panel">
-			<div class="main-config config-block">
-				<div>
+			<div class="config-row flex">
+				<div class="config-col">
+					<span class="help"><span class="config-label">Load Preset:</span>
+						<span class="tooltip">
+							Load a configuration preset.<br>
+							<strong>"Last session"</strong> restores last used configuration settings.
+						</span>
+					</span>
+					<select id="preset">
+						<option value="" disabled>Select a preset</option>
+						<option value="fullres">Full resolution</option>
+						<option value="octave">Octave bands</option>
+						<option value="ledbars">LED bars</option>
+						<option value="custom">Custom</option>
+						<option value="last">Last session</option>
+						<option value="default">Restore defaults</option>
+					</select>
+				</div>
+			</div> <!-- .config-row -->
+
+			<div class="config-row flex">
+				<div class="config-col">
 					<span class="help"><span class="config-label"><u>M</u>ode:</span>
 						<span class="tooltip">
 						Visualization mode. Octave bands are based on the equal tempered scale.
@@ -181,7 +194,34 @@
 					</select>
 				</div>
 
-				<div>
+				<div class="config-col">
+					<span class="config-label"><u>G</u>radient:</span>
+					<select id="gradient"></select>
+
+					<ul class="switch-bar">
+						<li class="switch" id="black_bg">NO <u>B</u>G
+							<span class="tooltip">Use black background instead of background color defined by gradient</span>
+						<li class="switch" id="cycle_grad"><u>A</u>uto
+							<span class="tooltip">Select next gradient automatically on each track change</span>
+						<li class="switch" id="led_display"><u>L</u>ED
+							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+					</ul>
+				</div>
+
+				<ul class="config-col switch-bar">
+					<li class="switch" id="show_song"><u>I</u>NFO
+						<span class="tooltip">Display song info in the visualization area on every track change
+					<li class="switch" id="show_scale"><u>S</u>CALE
+						<span class="tooltip">Show / hide the frequency scale</span>
+					<li class="switch" id="sensitivity">SE<u>N</u>S
+						<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
+					<li class="switch" id="show_peaks"><u>P</u>EAKS
+						<span class="tooltip">Hold volume peaks on screen for a short time</span>
+				</ul>
+			</div> <!-- .config-row -->
+
+			<div class="config-row flex">
+				<div class="config-col">
 					<span class="help"><span class="config-label">FFT size:</span>
 						<span class="tooltip">
 						Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
@@ -199,8 +239,10 @@
 					</select>
 				</div>
 
-				<div>
-					<span class="config-label">Range:</span>
+				<div class="config-col">
+					<span class="help"><span class="config-label">Range:</span>
+						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
+					</span>
 					<select id="freq_min">
 						<option value="20">20</option>
 						<option value="30">30</option>
@@ -222,7 +264,7 @@
 					Hz
 				</div>
 
-				<div>
+				<div class="config-col">
 					<span class="help"><span class="config-label">Smoothing:</span>
 						<span class="tooltip">
 						Lower values make the analyzer respond faster to changes.
@@ -232,61 +274,31 @@
 					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
 				</div>
 
-				<ul class="switch-bar">
-					<li class="switch" id="show_song"><u>I</u>NFO
-						<span class="tooltip">Display song info in the visualization area on every track change
-					<li class="switch" id="show_scale"><u>S</u>CALE
-						<span class="tooltip">Show / hide the frequency scale</span>
-					<li class="switch" id="sensitivity">SE<u>N</u>S
-						<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
-					<li class="switch" id="show_peaks"><u>P</u>EAKS
-						<span class="tooltip">Hold volume peaks on screen for a short time</span>
-				</ul>
-			</div>
-
-			<div class="ui-panels config-block">
-
-				<div class="main-config config-block">
-					<div>
-						<span class="config-label">AUDIO SOURCE:</span>
-						<select id="source">
-							<option value="player">built-in Player</option>
-							<option value="mic">Microphone</option>
-						</select>
-					</div>
-				</div>
-
-				<div class="main-config center">
-					<span class="config-label"><u>G</u>radient:</span>
-					<select id="gradient"></select>
-
-					<ul class="switch-bar">
-						<li class="switch" id="black_bg">NO <u>B</u>G
-							<span class="tooltip">Use black background instead of background color defined by gradient</span>
-						<li class="switch" id="cycle_grad"><u>A</u>uto
-							<span class="tooltip">Select next gradient automatically on each track change</span>
-						<li class="switch" id="led_display"><u>L</u>ED
-							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
-					</ul>
-				</div>
-
-				<div class="main-config center">
+				<div class="config-col center">
 					<span class="config-label">Performance:</span>
 					<ul class="switch-bar">
 						<li class="switch" id="no_shadow">FLA<u>T</u>
-							<span class="tooltip">Disable shadows on text displayed on canvas</span>
+							<span class="tooltip">Disable shadows on canvas messages</span>
 						<li class="switch" id="lo_res">L<u>O</u>-RES
 							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 						<li class="switch" id="fps">FPS
 							<span class="tooltip">Display current frame rate</span>
 					</ul>
 				</div>
+			</div> <!-- .config-row -->
 
-			</div>
+			<div class="config-row flex">
+				<div class="config-col">
+					<span class="help">
+						<button id="btn_save">Save current settings</button>
+						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
+					</span>
+				</div>
+			</div> <!-- .config-row -->
 
 		</div> <!-- #config_panel -->
 
-	</div> <!-- .panels-container -->
+	</div> <!-- .container -->
 
 	<div class="credits">
 		<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Avila Vianna.
