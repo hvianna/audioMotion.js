@@ -6,7 +6,7 @@
 
 const _VERSION = '19.6'
 
-const serverSignature = `audioMotion.js file server ver. ${_VERSION}`
+const serverSignature = `audioMotion server version ${_VERSION}`
 
 const fs = require('fs')
 const path = require('path')
@@ -78,7 +78,7 @@ if ( ! musicPath ) {
 	musicPath = readlineSync.questionPath(
 		`\n\tPlease enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }):\n\t> `, {
 		isDirectory: true,
-		defaultInput: '/null'
+		defaultInput: '/:' // invalid path to avoid using current directory if user just presses enter
 	})
 }
 
@@ -98,9 +98,9 @@ server.use( express.static( path.join( __dirname, '../public' ) ) )
 server.use( '/music', express.static( musicPath ), ( req, res ) => {
 	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) );
 	files.files = files.files.filter( file => {
-		if ( file.toLowerCase().match(/(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/) )
+		if ( file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
 			files.cover = file
-		return file.match(/\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/) !== null
+		return file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null
 	})
 	res.send( files )
 })
