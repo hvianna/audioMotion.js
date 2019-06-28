@@ -14,7 +14,7 @@
   "license": "AGPL-3.0",
   "devDependencies": {
     "express": "^4.16.4",
-    "music-metadata-browser": "^1.1.1",
+    "music-metadata-browser": "^1.2.0",
     "open": "^6.3.0",
     "readline-sync": "^1.4.9",
     "webpack": "^4.35.0",
