@@ -1,6 +1,6 @@
 /**
  * audioMotion.js
- * A real-time graphic spectrum analyzer and audio player using Web Audio and Canvas APIs
+ * high-resolution real-time audio spectrum analyzer and music player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -608,10 +608,12 @@ function updatePlaylistUI() {
 
 	var current = playlist.querySelector('.current');
 	if ( current )
-		current.className = '';
+		current.classList.remove('current');
 
-	if ( playlistPos < playlist.children.length )
-		playlist.children[ playlistPos ].className = 'current';
+	if ( playlistPos < playlist.children.length ) {
+		playlist.children[ playlistPos ].classList.add('current');
+		playlist.children[ playlistPos ].scrollIntoView( false );
+	}
 }
 
 /**
@@ -713,8 +715,14 @@ function stop() {
 function playPreviousSong() {
 	if ( cfgSource == 'mic' )
 		return;
-	if ( isPlaying() )
-		playSong( playlistPos - 1 );
+	if ( isPlaying() ) {
+		if ( audioElement[ currAudio ].currentTime > 2 )
+			audioElement[ currAudio ].currentTime = 0;
+		else if ( playlistPos > 0 )
+			playSong( playlistPos - 1 );
+		else
+			setCanvasMsg( 'Already at first song' );
+	}
 	else
 		loadSong( playlistPos - 1 );
 }
@@ -730,7 +738,10 @@ function playNextSong( play ) {
 		playlistPos++;
 	else if ( elRepeat.dataset.active == '1' )
 		playlistPos = 0;
-	else return;
+	else {
+		setCanvasMsg( 'Already at last song' );
+		return;
+	}
 
 	play = play || isPlaying();
 
@@ -797,7 +808,7 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 
 	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
-		audioOnEnded();
+		playNextSong( true );
 
 	if ( canvasMsg.timer < 1 )
 		return;
@@ -1080,9 +1091,6 @@ function keyboardControls( event ) {
 	if ( ! audioStarted )
 		initAudio();
 
-//	if ( event.target.tagName.toLowerCase() != 'body' && event.target.className != 'fullscreen-button' )
-//		return;
-
 	var gradIdx = elGradient.selectedIndex,
 		modeIdx = elMode.selectedIndex;
 
@@ -1106,7 +1114,6 @@ function keyboardControls( event ) {
 			break;
 		case 'ArrowLeft': 	// previous song
 		case 'KeyJ':
-			setCanvasMsg( 'Previous song' );
 			playPreviousSong();
 			break;
 		case 'ArrowUp': 	// gradient
@@ -1129,7 +1136,6 @@ function keyboardControls( event ) {
 			break;
 		case 'ArrowRight': 	// next song
 		case 'KeyK':
-			setCanvasMsg( 'Next song' );
 			playNextSong();
 			break;
 		case 'KeyA': 		// toggle auto gradient change
@@ -1247,8 +1253,10 @@ function audioOnEnded() {
 	// song ended, skip to next one if available
 	if ( playlistPos < playlist.children.length - 1 || elRepeat.dataset.active == '1' )
 		playNextSong( true );
-	else
+	else {
 		loadSong( 0 );
+		setCanvasMsg('Play queue ended');
+	}
 }
 
 /**
@@ -1352,7 +1360,7 @@ function initialize() {
 	for ( let i in [0,1] ) {
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
-//		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
+		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
 		sourcePlayer.push( audioCtx.createMediaElementSource( audioElement[ i ] ) );
@@ -1487,10 +1495,8 @@ function initialize() {
 		if ( status == -1 ) {
 			consoleLog( 'No server found. Running in local mode.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
-			document.getElementById('local_file').addEventListener( 'change', ( e ) => loadLocalFile( e.target ) );
-			document.getElementById('playlist_panel').style.display = 'none';
-			document.querySelector('#files_panel .button-column').style.display = 'none';
-			document.querySelector('#file_explorer p').style.display = 'none';
+			document.getElementById('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
+			document.querySelectorAll('#playlist_panel, #files_panel .button-column, #file_explorer p').forEach( e => e.style.display = 'none' );
 		}
 
 		document.getElementById('btn_add_selected').addEventListener( 'click', () => {
@@ -1506,7 +1512,6 @@ function initialize() {
 
 	// On Webkit audio must be started on some user gesture
 	window.addEventListener( 'click', initAudio );
-
 }
 
 
