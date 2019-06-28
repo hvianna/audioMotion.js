@@ -604,7 +604,7 @@ function deletePlaylist( index ) {
 /**
  * Update the playlist shown to the user
  */
-function updatePlaylistUI() {
+function updatePlaylistUI( scroll ) {
 
 	var current = playlist.querySelector('.current');
 	if ( current )
@@ -612,7 +612,8 @@ function updatePlaylistUI() {
 
 	if ( playlistPos < playlist.children.length ) {
 		playlist.children[ playlistPos ].classList.add('current');
-		playlist.children[ playlistPos ].scrollIntoView( false );
+		if ( scroll )
+			playlist.children[ playlistPos ].scrollIntoView( false );
 	}
 }
 
@@ -630,7 +631,7 @@ function shufflePlaylist() {
 	}
 
 	playSong(0);
-	updatePlaylistUI();
+	updatePlaylistUI( true );
 }
 
 /**
@@ -656,8 +657,7 @@ function loadSong( n ) {
 		audioElement[ currAudio ].dataset.file = playlist.children[ playlistPos ].dataset.file;
 		addMetadata( playlist.children[ playlistPos ], audioElement[ currAudio ] );
 
-		updatePlaylistUI();
-
+		updatePlaylistUI( n == 0 ); // reset scroll only when returning back to first song
 		loadNextSong();
 		return true;
 	}
@@ -771,7 +771,7 @@ function playNextSong( play ) {
 	else
 		loadNextSong();
 
-	updatePlaylistUI();
+	updatePlaylistUI( true );
 }
 
 /**
@@ -1291,13 +1291,9 @@ function initialize() {
 	playlist = document.getElementById('playlist');
 	playlist.addEventListener( 'click', function ( e ) {
 		if ( e.target ) {
-			var classes = e.target.className;
-			if ( ! e.ctrlKey ) // Ctrl key allows multiple selections
-				playlist.querySelectorAll('.selected').forEach( n => n.className = n.className.replace( 'selected', '' ) );
-			if ( classes.indexOf('selected') == -1 )
-				e.target.className = classes + ' selected';
-			else
-				e.target.className = classes.replace( 'selected', '' );
+//			if ( ! e.ctrlKey ) // Ctrl key allows multiple selections
+//				playlist.querySelectorAll('.selected').forEach( n => n.classList.remove( 'selected' ) );
+			e.target.classList.toggle( 'selected' );
 		}
 	});
 	playlist.addEventListener( 'dblclick', function ( e ) {
@@ -1313,7 +1309,6 @@ function initialize() {
 			document.getElementById( e.dataset.panel ).style.display = 'none';
 		});
 		let el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
-//			el.style.display = ( el.offsetWidth > 0 && el.offsetHeight > 0 ) ? 'none' : 'block';
 		el.style.display = 'block';
 		if ( event.target.nodeName == 'LI' )
 			event.target.className = 'active';
@@ -1422,12 +1417,12 @@ function initialize() {
 	elSource.    addEventListener( 'change', setSource );
 	elSmoothing. addEventListener( 'change', setSmoothing );
 
-	document.getElementById('preset').addEventListener( 'change', ( e ) => loadPreset( e.target.value ) );
+	document.getElementById('preset').addEventListener( 'change', e => loadPreset( e.target.value ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
 	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
 	document.getElementById('btn_play').addEventListener( 'click', playPause );
 	document.getElementById('btn_stop').addEventListener( 'click', stop );
-	document.getElementById('btn_next').addEventListener( 'click', playNextSong );
+	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
 	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
 	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
 	document.getElementById('load_playlist').addEventListener( 'click', () => loadPlaylist( elPlaylists.value ) );
