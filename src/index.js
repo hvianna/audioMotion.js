@@ -237,6 +237,14 @@ function setFreqRange() {
 }
 
 /**
+ * Set Gradient
+ */
+function setGradient() {
+	audioMotion.setGradient( elGradient.value );
+	updateLastConfig();
+}
+
+/**
  * Set visualization mode
  */
 function setMode() {
@@ -1134,7 +1142,7 @@ function keyboardControls( event ) {
 				else
 					elGradient.selectedIndex = gradIdx + 1;
 			}
-			audioMotion.setGradient( elGradient.value );
+			setGradient();
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 'ArrowRight': 	// next song
@@ -1416,7 +1424,7 @@ function initialize() {
 	elFFTsize.   addEventListener( 'change', setFFTsize );
 	elRangeMin.  addEventListener( 'change', setFreqRange );
 	elRangeMax.  addEventListener( 'change', setFreqRange );
-	elGradient.  addEventListener( 'change', updateLastConfig );
+	elGradient.  addEventListener( 'change', setGradient );
 	elSource.    addEventListener( 'change', setSource );
 	elSmoothing. addEventListener( 'change', setSmoothing );
 
