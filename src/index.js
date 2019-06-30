@@ -440,7 +440,9 @@ function addSongToPlaylist( uri, content = {} ) {
 	playlist.appendChild( el );
 
 	var len = playlist.children.length;
-	if ( len < 3 || playlistPos > len - 3 )
+	if ( len == 1 && ! isPlaying() )
+		loadSong(0);
+	if ( playlistPos > len - 3 )
 		loadNextSong();
 
 	mm.fetchFromUrl( uri, { duration: false, skipCovers: true } )
@@ -503,10 +505,6 @@ function loadPlaylist( path ) {
 						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 				}
 				consoleLog( `Loaded ${n} files into the playlist` );
-				if ( ! isPlaying() )
-					loadSong( 0 );
-				else
-					loadNextSong();
 			})
 			.catch( e => consoleLog( e, true ) );
 	}
@@ -521,10 +519,6 @@ function loadPlaylist( path ) {
 				addSongToPlaylist( item, { title: songInfo } )
 			});
 			consoleLog( `Loaded ${n} files into the playlist` );
-			if ( ! isPlaying() )
-				loadSong( 0 );
-			else
-				loadNextSong();
 		}
 		else
 			consoleLog( `Unrecognized playlist file: ${path}`, true );
