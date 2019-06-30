@@ -76,9 +76,8 @@ process.argv.forEach( ( arg, index ) => {
 if ( ! musicPath ) {
 	console.log( '\n\n\tMusic folder not defined.\n\tUse the command-line argument -m <path> to set the folder upon launching audioMotion.' )
 	musicPath = readlineSync.questionPath(
-		`\n\tPlease enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }):\n\t> `, {
-		isDirectory: true,
-		defaultInput: '/:' // invalid path to avoid using current directory if user just presses enter
+		`\n\tPlease enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' })\n\tor just press Enter to use current directory:\n\t> `, {
+		isDirectory: true
 	})
 }
 
