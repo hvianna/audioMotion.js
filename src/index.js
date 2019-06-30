@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.5';
+var _VERSION = '19.6-dev.6';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -296,6 +296,7 @@ function clearAudioElement( n = currAudio ) {
 	audioElement[ n ].dataset.album = '';
 	audioElement[ n ].dataset.codec = '';
 	audioElement[ n ].dataset.quality = '';
+	audioElement[ n ].dataset.duration = '';
 }
 
 /**
@@ -395,17 +396,18 @@ function addToPlaylist( file ) {
  */
 function addMetadata( metadata, target ) {
 	if ( metadata.dataset ) { 	// just copy metadata from element dataset (playlist item)
-		target.dataset.artist  = metadata.dataset.artist || '';
-		target.dataset.title   = metadata.dataset.title || '';
-		target.dataset.album   = metadata.dataset.album || '';
-		target.dataset.codec   = metadata.dataset.codec || '';
-		target.dataset.quality = metadata.dataset.quality || '';
+		target.dataset.artist   = metadata.dataset.artist || '';
+		target.dataset.title    = metadata.dataset.title || '';
+		target.dataset.album    = metadata.dataset.album || '';
+		target.dataset.codec    = metadata.dataset.codec || '';
+		target.dataset.quality  = metadata.dataset.quality || '';
+		target.dataset.duration = metadata.dataset.duration || '';
 	}
 	else {						// parse metadata read from file
-		target.dataset.artist  = metadata.common.artist || target.dataset.artist;
-		target.dataset.title   = metadata.common.title || target.dataset.title;
-		target.dataset.album   = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
-		target.dataset.codec   = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
+		target.dataset.artist   = metadata.common.artist || target.dataset.artist;
+		target.dataset.title    = metadata.common.title || target.dataset.title;
+		target.dataset.album    = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
+		target.dataset.codec    = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
 
 		if ( metadata.format && metadata.format.bitsPerSample )
 			target.dataset.quality = ( metadata.format.sampleRate / 1000 ).toFixed() + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
@@ -413,6 +415,11 @@ function addMetadata( metadata, target ) {
 			target.dataset.quality = ( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
 		else
 			target.dataset.quality = '';
+
+		if ( metadata.format && metadata.format.duration )
+			target.dataset.duration = Math.floor( metadata.format.duration / 60 ) + ':' + ( '0' + Math.round( metadata.format.duration % 60 ) ).slice(-2);
+		else
+			target.dataset.duration = '';
 	}
 }
 
@@ -440,7 +447,9 @@ function addSongToPlaylist( uri, content = {} ) {
 		.then( metadata => {
 			if ( metadata ) {
 				addMetadata( metadata, el ); // add metadata to playlist item
-				el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
+				el.innerHTML = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
+				if ( el.dataset.duration )
+					el.innerHTML += `<span class="duration">${el.dataset.duration}</span>`;
 
 				for ( let i in [0,1] ) {
 					if ( audioElement[ i ].dataset.file == el.dataset.file )
@@ -878,9 +887,9 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
 
 		// time
-		if ( audioElement[ currAudio ].duration ) {
+		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
 			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
-			duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+			duration = audioElement[ currAudio ].dataset.duration || Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
 			canvasCtx.textAlign = 'right';
 			outlineText( curTime + ' / ' + duration, rightPos, bottomLine3 );
 		}

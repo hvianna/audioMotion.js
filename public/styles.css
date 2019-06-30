@@ -411,6 +411,9 @@ ul {
 .filelist [data-type="list"]::before {
 	content: '\f102';
 }
+.filelist li .duration {
+	float: right;
+}
 
 #console {
 	background: #1c231a;
