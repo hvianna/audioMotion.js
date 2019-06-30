@@ -78,7 +78,7 @@ For Nginx:
 
 ???
 
-## Running from Docker
+## Standard web server with Docker
 
 If you use Docker, you can open a command prompt in audioMotion's directory and run:
 

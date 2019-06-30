@@ -15,13 +15,16 @@ audioMotion.js Documentation
 
 * [Custom file server](server.md)
 * [Using a standard web server](server.md#using-a-standard-web-server)
-* [Running from Docker](server.md#running-from-docker)
+* [Standard web server with Docker](server.md#standard-web-server-with-docker)
+
+**Building audioMotion**
+
+* [Building the client](building.md#building-the-client)
+* [Building binaries](building.md#building-binaries)
 
 **Legacy**
 
 * [Legacy playlists file](legacy.md)
-
-
 
 
 
@@ -125,4 +128,5 @@ You can use the keyboard shortcuts below to control the player and change displa
 **S** | click on analyzer | toggle frequency scale display on/off
 **T** | | toggle flat text option
 **U** | | shuffle playlist
+
 

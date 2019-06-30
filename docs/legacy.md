@@ -1,7 +1,10 @@
+Legacy audioMotion
+==================
+
 ## Legacy playlists
 
 Up to version 19.5 audioMotion depended on a `playlists.cfg` file where you could register several playlists to load music files from.
-The file explorer introduced in version 19.??? made this obsolete, but this option is still supported for legacy users. Below is the original documentation.
+The file explorer introduced in version 19.??? made this obsolete, but its functionality is still supported for legacy users. Below is the original documentation.
 
 The `playlists.cfg` file must be located in the same directory as the `index.html` file.
 It is a plain text file with one playlist per line, in the format `playlist title | /path/to/playlist-file.ext` (that's a "pipe" character between the title and the path).
