@@ -26,6 +26,8 @@ import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 
+import './styles.css';
+
 var audioStarted = false;
 
 // playlist, index to the current song, indexes to current and next audio elements
