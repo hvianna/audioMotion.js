@@ -17,6 +17,7 @@
     "express": "^4.16.4",
     "mini-css-extract-plugin": "^0.7.0",
     "music-metadata-browser": "^1.2.1",
+    "notie": "^4.3.1",
     "open": "^6.4.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "readline-sync": "^1.4.9",

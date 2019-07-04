@@ -20,11 +20,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.6';
+var _VERSION = '19.6-dev.7';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
+
+import notie from 'notie';
+import './notie.css';
 
 import './styles.css';
 
@@ -543,32 +546,48 @@ function savePlaylist( index ) {
 	if ( elPlaylists[ index ].value == '' )
 		storePlaylist();
 	else if ( ! elPlaylists[ index ].dataset.isLocal )
-		alert( 'This is a server playlist which cannot be overwritten.\n\nChoose "Save as..." to create a new local playlist.' );
-	else if ( confirm( `Overwrite "${elPlaylists[ index ].innerText}" with current play queue?` ) )
-		storePlaylist( elPlaylists[ index ].value );
+		notie.alert({ type: 2, text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
+	else
+		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
+			submitText: 'Overwrite',
+			submitCallback: () => {
+				storePlaylist( elPlaylists[ index ].value );
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' });
+			}
+		});
 }
 
 /**
  * Store a playlist in localStorage
  */
-function storePlaylist( name ) {
-
-	var overwrite = false;
+function storePlaylist( name, update = true ) {
 
 	if ( playlist.children.length == 0 ) {
-		alert( 'Play queue is empty!' );
+		notie.alert({ type: 2, text: 'Play queue is empty!' });
 		return;
 	}
 
-	if ( ! name )
-		name = prompt( 'Give this playlist a name:' );
-	else
-		overwrite = true;
+	if ( ! name ) {
+		notie.input({
+			text: 'Give this playlist a name:',
+			submitText: 'Save',
+			submitCallback: value => {
+				if ( value )
+					storePlaylist( value, false );
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' });
+			}
+		});
+		return;
+	}
 
 	if ( name ) {
 		var safename = name;
 
-		if ( ! overwrite ) {
+		if ( ! update ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
@@ -579,7 +598,7 @@ function storePlaylist( name ) {
 			else
 				playlists = {};
 
-			while ( ! overwrite && playlists.hasOwnProperty( safename ) )
+			while ( playlists.hasOwnProperty( safename ) )
 				safename += '_1';
 
 			playlists[ safename ] = name;
@@ -592,6 +611,7 @@ function storePlaylist( name ) {
 		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
 		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
+		notie.alert({ type: 2, text: `Saving playlist` });
 	}
 }
 
@@ -599,18 +619,28 @@ function storePlaylist( name ) {
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
-	if ( elPlaylists[ index ].value && confirm( `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?\n\nTHIS CANNOT BE UNDONE!` ) ) {
-		var keyName = elPlaylists[ index ].value;
-		var playlists = localStorage.getItem('playlists');
+	if ( elPlaylists[ index ].value ) {
+		notie.confirm({
+			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
+			submitText: 'Delete',
+			submitCallback: () => {
+				var keyName = elPlaylists[ index ].value;
+				var playlists = localStorage.getItem('playlists');
 
-		if ( playlists ) {
-			playlists = JSON.parse( playlists );
-			delete playlists[ keyName ];
-			localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
-		}
+				if ( playlists ) {
+					playlists = JSON.parse( playlists );
+					delete playlists[ keyName ];
+					localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
+				}
 
-		localStorage.removeItem( `pl_${keyName}` );
-		loadSavedPlaylists();
+				localStorage.removeItem( `pl_${keyName}` );
+				notie.alert({ type: 2, text: 'Playlist deleted!' });
+				loadSavedPlaylists();
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' })
+			},
+		});
 	}
 }
 
@@ -1103,6 +1133,9 @@ function keyboardControls( event ) {
 
 	if ( ! audioStarted )
 		initAudio();
+
+	if ( event.target.tagName != 'BODY' )
+		return;
 
 	var gradIdx = elGradient.selectedIndex,
 		modeIdx = elMode.selectedIndex;

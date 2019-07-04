@@ -1,0 +1,85 @@
+.notie-container {
+  background: #f8f8f8;
+  color: #444;
+  font-size: 1.2rem;
+  height: auto;
+  left: 0;
+  margin: 0 auto;
+  max-width: 100%;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  width: 600px;
+  z-index: 1000;
+  box-sizing: border-box;
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.5);
+}
+
+.notie-background-overlay {
+  background: #000;
+}
+
+.notie-background-warning {
+  background: #666;
+  color: #f0f0f0;
+}
+
+.notie-textbox {
+  padding: 40px 20px;
+}
+
+.notie-textbox-inner {
+  line-height: 1.8;
+}
+
+.notie-overlay {
+  height: 100%;
+  left: 0;
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 999;
+}
+
+.notie-button {
+  cursor: pointer;
+  padding: 16px 10px;
+}
+
+.notie-element {
+  padding: 10px;
+}
+
+.notie-element-half {
+  border-color: #ccc;
+  border-style: solid;
+  border-width: 1px 1px 0 0;
+  box-sizing: border-box;
+  display: inline-block;
+  width: 50%;
+}
+
+.notie-element-third {
+  display: inline-block;
+  width: 33.3333%;
+  box-sizing: border-box;
+}
+
+.notie-alert {
+  cursor: pointer;
+}
+
+.notie-input-field {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0 auto 30px;
+  outline: 0;
+  padding: 10px;
+  text-align: center;
+  width: calc( 100% - 20px );
+}
