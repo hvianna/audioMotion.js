@@ -26,6 +26,9 @@ import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 
+import Sortable, { MultiDrag } from 'sortablejs';
+Sortable.mount( new MultiDrag() );
+
 import notie from 'notie';
 import './notie.css';
 
@@ -1333,20 +1336,32 @@ function initialize() {
 	consoleLog( 'audioMotion ver. ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
-	// Initialize playlist and set event listeners
+	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
-	playlist.addEventListener( 'click', function ( e ) {
-		if ( e.target ) {
-//			if ( ! e.ctrlKey ) // Ctrl key allows multiple selections
-//				playlist.querySelectorAll('.selected').forEach( n => n.classList.remove( 'selected' ) );
-			e.target.classList.toggle( 'selected' );
-		}
-	});
 	playlist.addEventListener( 'dblclick', function ( e ) {
 		if ( e.target && e.target.dataset.file )
 			playSong( getIndex( e.target ) );
 	});
 	playlistPos = 0;
+
+	// Add drag-n-drop functionality to the play queue
+	Sortable.create( playlist, {
+		animation: 150,
+		group: {
+			name: 'filelist',
+			pull: false,
+			put: true
+		},
+		multiDrag: true,
+		multiDragKey: 'ctrl',
+		selectedClass: 'selected',
+		onEnd: evt => {
+			playlistPos = getIndex( playlist.querySelector('.current') );
+			if ( evt.newIndex == 0 && ! isPlaying() )
+				loadSong(0);
+			loadNextSong();
+		}
+	});
 
 	// Add event listeners for config panel selectors
 	document.getElementById('panel_selector').addEventListener( 'click', function ( event ) {
@@ -1525,23 +1540,46 @@ function initialize() {
 	fileExplorer.create(
 		document.getElementById('file_explorer'),
 		{
-			dblClick: function ( file ) {
+			dblClick: file => {
 				addToPlaylist( file );
 				if ( ! isPlaying() )
 					playSong( playlist.children.length - 1 );
 			},
 			defaultPath: '/music'
 		}
-	).then( function( status ) {
+	).then( ([ status, filelist ]) => {
 		if ( status == -1 ) {
 			consoleLog( 'No server found. Running in local mode.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
 			document.querySelectorAll('#playlist_panel, #files_panel .button-column, #file_explorer p').forEach( e => e.style.display = 'none' );
+			filelist.style.display = 'none';
+		}
+		else {
+			Sortable.create( filelist, {
+				animation: 150,
+				draggable: '[data-type="file"], [data-type="list"]',
+				group: {
+					name: 'filelist',
+					pull: 'clone',
+					put: false
+				},
+				multiDrag: true,
+				multiDragKey: 'ctrl',
+				selectedClass: 'selected',
+				sort: false,
+				onEnd: evt => {
+					let items = evt.items.length ? evt.items : [ evt.item ];
+					items.forEach( item => {
+						addToPlaylist( fileExplorer.makePath( item.dataset.path ) );
+						item.remove();
+					});
+				}
+			});
 		}
 
-		document.getElementById('btn_add_selected').addEventListener( 'click', () => {
-			fileExplorer.getSelectedFiles().forEach( entry => addToPlaylist( entry.file ) );
+		document.getElementById('btn_add_selected').addEventListener( 'mousedown', () => {
+			fileExplorer.getFolderContents('.selected').forEach( entry => addToPlaylist( entry.file ) );
 		});
 		document.getElementById('btn_add_folder').addEventListener( 'click', () => {
 			fileExplorer.getFolderContents().forEach( entry => addToPlaylist( entry.file ) );

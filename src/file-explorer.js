@@ -10,25 +10,6 @@ var mounts = [],
 	dblClickCallback;
 
 
-/**
- * Generates full path for a file or directory
- */
-function makePath( fileName ) {
-
-	var fullPath = '';
-
-	currentPath.forEach( entry => {
-		fullPath += entry.dir + '/';
-	})
-
-	if ( fileName )
-		fullPath += fileName;
-
-	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
-
-	return fullPath;
-}
-
 
 function updateUI( content, scrollTop ) {
 
@@ -194,30 +175,40 @@ function getSongMetadata( target ) {
 		});
 }
 
-/*
-	Public functions:
-*/
+/* Public functions: */
 
-export function getSelectedFiles() {
+/**
+ * Generates full path for a file or directory
+ */
+export function makePath( fileName ) {
 
-	var contents = [];
+	var fullPath = '';
 
-	ui_files.querySelectorAll('.selected').forEach( entry => {
-		let type = entry.dataset.type;
-		if ( type == 'file' || type == 'list' )
-			contents.push( { file: makePath( entry.dataset.path ), type: type } );
-	});
-	return contents;
+	currentPath.forEach( entry => {
+		fullPath += entry.dir + '/';
+	})
+
+	if ( fileName )
+		fullPath += fileName;
+
+	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+
+	return fullPath;
 }
 
-export function getFolderContents() {
+/**
+ * Returns current folder's file list
+ *
+ * @param {string} [selector='li']  optional CSS selector
+ * @returns {array}
+ */
+export function getFolderContents( selector = 'li' ) {
 
 	var contents = [];
 
-	ui_files.childNodes.forEach( entry => {
-		let type = entry.dataset.type;
-		if ( type == 'file' || type == 'list' )
-			contents.push( { file: makePath( entry.dataset.path ), type: type } );
+	ui_files.querySelectorAll( selector ).forEach( entry => {
+		if ( ['file', 'list'].includes( entry.dataset.type ) )
+			contents.push( { file: makePath( entry.dataset.path ), type: entry.dataset.type } );
 	});
 	return contents;
 }
@@ -225,10 +216,9 @@ export function getFolderContents() {
 /**
  * Constructor function
  *
- * container: DOM element where the file explorer should be inserted
- * options: object {
- *		defaultPath: string - starting path (defaults to '/music')
- * }
+ * @param {Element} container  DOM element where the file explorer should be inserted
+ * @param {object} [options]   { dblClick: callback function, defaultPath: starting path (defaults to '/music') }
+ * @returns {Promise<array>}   A promise with the server status and the filelist's DOM element
  */
 export function create( container, options = {} ) {
 
@@ -256,9 +246,7 @@ export function create( container, options = {} ) {
 
 	ui_files.addEventListener( 'click', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
-			if ( ['file','list'].includes( e.target.dataset.type ) )
-				e.target.classList.toggle('selected');
-			else if ( e.target.dataset.type == 'dir' )
+			if ( e.target.dataset.type == 'dir' )
 				enterDir( e.target.dataset.path );
 			else if ( e.target.dataset.type == 'mount' ) {
 				currentPath = [];
@@ -295,16 +283,14 @@ export function create( container, options = {} ) {
 				mounts = [ options.defaultPath || '/music' ];
 				if ( await enterDir( mounts[0] ) === false ) {
 					ui_path.innerHTML = 'Cannot access media folder on server. File navigation is unavailable.';
-					ui_files.style.display = 'none';
 					status = -1;
 				}
-				resolve( status );
+				resolve([ status, ui_files ]);
 			})
 			.catch( err => {
 				clearTimeout( startUpTimer );
 				ui_path.innerHTML = 'No server found. File navigation is unavailable.';
-				ui_files.style.display = 'none';
-				resolve(-1);
+				resolve([ -1, ui_files ]);
 			});
 	});
 

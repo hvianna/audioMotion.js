@@ -324,22 +324,31 @@ ul {
 }
 
 .key {
-	background: #f0f0f0;
-	border: 1px solid #ccc;
+	background: #444;
+	border: 1px solid #444;
 	border-radius: 6px;
-	box-shadow: 1px 1px 0 1px rgba(0,0,0,.5);
+	color: #fff;
 	display: inline-block;
+	font-size: 11px;
 	font-weight: bold;
-	height: 16px;
-	min-width: 16px;
+	height: 20px;
+	line-height: 1.2;
+	min-width: 20px;
+	padding: 2px;
 	text-align: center;
 }
 .key-big {
-	font-size: 130%;
+	font-size: 14px;
 	line-height: 1;
 }
 .key-wide {
 	width: 50px;
+}
+.kbd-table .key {
+	background: #f0f0f0;
+	border-color: #ccc;
+	box-shadow: 1px 1px 0 1px rgba(0,0,0,.5);
+	color: #333;
 }
 
 /* File explorer */
