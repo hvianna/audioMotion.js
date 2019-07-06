@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
-See your music move! **audioMotion** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
+Watch your music move! **audioMotion** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
 
 ## Features
 
@@ -62,31 +62,47 @@ Full screen view: Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, "Class
 Full screen view: 1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, "Aurora" gradient
 ![screenshot4](docs/img/screenshot4.png "1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, 'Aurora' gradient")
 
-## Third-party resources
+## Credits and acknowledgments
+
+**audioMotion** was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike.
+
+### JavaScript libraries
+
+Some of audioMotion's great features are provided by these awesome open-source libraries:
 
 * [express](https://www.npmjs.com/package/express) - fast, unopinionated, minimalist web framework for node
 * [music-metadata-browser](https://www.npmjs.com/package/music-metadata-browser) - stream and file based music metadata parser for the browser
+* [notie](https://www.npmjs.com/package/notie) - clean and simple notification, input, and selection suite for javascript, with no dependencies
 * [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
 * [pkg](https://www.npmjs.com/package/pkg) - single-command Node.js binary compiler
-* [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively running to have a conversation with the user via a console
+* [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively requesting user input via console
+* [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser
+  * [mini-css-extract-plugin](https://www.npmjs.com/package/mini-css-extract-plugin) - extracts CSS into separate files
+  * [optimize-css-assets-webpack-plugin](https://www.npmjs.com/package/optimize-css-assets-webpack-plugin) - a webpack plugin to optimize / minimize CSS assets
+  * [terser-webpack-plugin](https://www.npmjs.com/package/terser-webpack-plugin) - JavaScript compressor
+
+### Graphic resources
 
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
 * Gradients used in the UI buttons from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
-* The font used for audioMotion's logo is [Orbitron](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
-* Icons by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
+* The audioMotion logo uses the [Orbitron font](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
+* Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 
-## References and acknowledgments
+### References
 
-* audioMotion.js was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike
+These online references were invaluable for the development and improvement of audioMotion:
+
+* [HTML Canvas Reference @W3Schools](https://www.w3schools.com/tags/ref_canvas.asp)
 * [Web Audio API documentation @MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 * [Web Audio API Specification](https://webaudio.github.io/web-audio-api/)
-* [HTML Canvas Reference @W3Schools](https://www.w3schools.com/tags/ref_canvas.asp)
 * [What does the FFT data in the Web Audio API correspond to?](https://stackoverflow.com/a/14789992/2370385)
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
 * [Equations for equal-tempered scale frequencies](http://pages.mtu.edu/~suits/NoteFreqCalcs.html)
+* [Efficient case-insensitive sorting in JavaScript](https://stackoverflow.com/a/40390844/2370385)
+
 
 ## License
 

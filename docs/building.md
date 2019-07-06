@@ -17,7 +17,7 @@ npm run build
 
 ## Building binaries
 
-The provided binaries are compiled with [pkg](https://www.npmjs.com/package/pkg) and include both the server and the client in a single, self-contained package.
+The provided binaries are compiled with [pkg](https://www.npmjs.com/package/pkg) and include both the server and the client in a single, self-contained executable file.
 
 If you want to build your own binaries, first install pkg:
 
