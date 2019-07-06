@@ -1,5 +1,7 @@
 /**
  * audioMotion.js file explorer module
+ * https://github.com/hvianna/audioMotion.js
+ * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
 var mounts = [],
@@ -9,27 +11,35 @@ var mounts = [],
 	ui_files,
 	dblClickCallback;
 
-
-
+/**
+ * Updates the file explorer user interface
+ *
+ * @param {object} directory content returned by the node server or parseWebDirectory()
+ * @param {number} scrollTop scroll position for the filelist container
+ */
 function updateUI( content, scrollTop ) {
 
 //	ui_cover.src = '';
 	ui_path.innerHTML = '';
 	ui_files.innerHTML = '';
 
+	// breadcrumbs
 	currentPath.forEach( ( entry, index ) => {
 		if ( entry.dir == '' )
 			entry.dir = 'root';
 		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${entry.dir}</li> / `;
 	});
 
+	// mounting points
 	mounts.forEach( mount => {
 		ui_files.innerHTML += `<li data-type="mount" data-path="${mount}">[ ${mount} ]</li>`;
 	});
 
+	// link to parent directory
 	if ( currentPath.length > 1 )
 		ui_files.innerHTML += '<li data-type="dir" data-path="..">[ parent folder ]</li>';
 
+	// current directory contents
 	if ( content ) {
 		if ( content.dirs ) {
 			content.dirs.forEach( dir => {
@@ -41,19 +51,24 @@ function updateUI( content, scrollTop ) {
 				ui_files.innerHTML += `<li data-type="${ file.match(/\.(m3u|m3u8)$/) !== null ? 'list' : 'file' }" data-path="${file}">${file}</li>`;
 			});
 		}
-/*
-		if ( content.cover )
-			UI_cover.src = makePath( content.cover );
-*/
+//		if ( content.cover )
+//			UI_cover.src = makePath( content.cover );
 	}
 
+	// restore scroll position when returning from subdirectory
 	if ( scrollTop )
 		ui_files.scrollTop = scrollTop;
 	else
 		ui_files.scrollTop = 0;
 }
 
-
+/**
+ * Enters a subdirectory
+ *
+ * @param {string} [target]    directory name (if undefined will open the current path)
+ * @param {number} [scrollTop] scrollTop attribute for the filelist container
+ * @returns {Promise<boolean>} A promise that resolves to true if the directory change was successful, or false otherwise
+ */
 function enterDir( target, scrollTop ) {
 
 	var prev, url;
@@ -64,6 +79,8 @@ function enterDir( target, scrollTop ) {
 		else
 			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop } );
 	}
+
+	ui_files.innerHTML = '<li>Loading...</li>';
 
 	url = makePath();
 
@@ -92,9 +109,11 @@ function enterDir( target, scrollTop ) {
 	});
 }
 
-
 /**
  * Parses file and directory names from a standard web server directory listing
+ *
+ * @param {string}   content HTML body of a web server directory listing
+ * @returns {object} folder/cover image, list of directories, list of files
  */
 function parseWebDirectory( content ) {
 
@@ -124,7 +143,11 @@ function parseWebDirectory( content ) {
 	return { cover: cover, dirs: dirs, files: files }
 }
 
-
+/**
+ * Climbs up the current path (breadcrumbs navigation)
+ *
+ * @param {number} depth  how many levels to climb up
+ */
 function resetPath( depth ) {
 
 	var prev;
@@ -137,48 +160,13 @@ function resetPath( depth ) {
 	enterDir( undefined, prev && prev.scrollTop );
 }
 
-
-function getSongMetadata( target ) {
-
-	var fullPath = makePath( target );
-
-	mm.fetchFromUrl( fullPath )
-		.then( function( content ) {
-			let artist, title, album, codec, samplerate, bitdepth, cover = '';
-
-			if ( content ) {
-				artist = content.common.artist || '',
-				title = content.common.title || target,
-				album = content.common.album ? content.common.album + ( content.common.year ? ' (' + content.common.year + ')' : '' ) : '',
-//				codec = content.format.codec || content.format.container || path.extname( target ).substring(1),
-				codec = content.format.codec || content.format.container || target.substring( target.lastIndexOf('.') + 1 ),
-				samplerate = content.format.sampleRate || '',
-				bitdepth = content.format.bitsPerSample || '',
-				cover = content.common.picture ? 'get' : '';
-			}
-			else {
-				title = target;
-				codec = target.substring( target.lastIndexOf('.') + 1 );
-			}
-
-			let el = document.createElement('li');
-			el.innerHTML = title;
-			el.dataset.artist = artist;
-			el.dataset.title = title;
-			el.dataset.album = album;
-			el.dataset.codec = codec;
-			el.dataset.samplerate = samplerate;
-			el.dataset.bitdepth = bitdepth;
-			el.dataset.cover = cover;
-			el.dataset.path = fullPath;
-			UI_playlist.appendChild( el );
-		});
-}
-
-/* Public functions: */
+/* ******************* Public functions: ******************* */
 
 /**
  * Generates full path for a file or directory
+ *
+ * @param {string} fileName
+ * @returns {string} full path to filename
  */
 export function makePath( fileName ) {
 
@@ -200,7 +188,7 @@ export function makePath( fileName ) {
  * Returns current folder's file list
  *
  * @param {string} [selector='li']  optional CSS selector
- * @returns {array}
+ * @returns {array} list of music files and playlists only
  */
 export function getFolderContents( selector = 'li' ) {
 
