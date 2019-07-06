@@ -1,18 +1,19 @@
 /**
- * audioMotion custom file server
+ * audioMotion.js custom file server
  * https://github.com/hvianna/audioMotion.js
  * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
 const _VERSION = '19.6'
 
-const serverSignature = `audioMotion server version ${_VERSION}`
+const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
 const open = require('open')
 const readlineSync = require('readline-sync')
+const semver = require('semver')
 
 var port = 8000
 var host = 'localhost'
@@ -33,28 +34,31 @@ function showHelp() {
 	` )
 }
 
-function getDir( directoryPath ) {
+function getDir( directoryPath, showHidden = false ) {
 	let dirs = [];
 	let files = [];
 
-	let entries = fs.readdirSync( path.normalize( directoryPath ) );
+	let entries = fs.readdirSync( path.normalize( directoryPath ), { withFileTypes: true } );
 
 	entries.forEach( function ( entry ) {
-		try {
-			let stats = fs.statSync( directoryPath + '/' + entry )
-			if ( stats.isDirectory() )
-				dirs.push( entry );
-			else if ( stats.isFile() )
-				files.push( entry );
+		if ( entry.name[0] != '.' || showHidden ) {
+			if ( entry.isDirectory() )
+				dirs.push( entry.name );
+			else if ( entry.isFile() )
+				files.push( entry.name );
 		}
-		catch ( e ) {}
 	});
 
-	// case insensitive sorting - https://stackoverflow.com/a/40390844/2370385
-	return { dirs: dirs.sort( Intl.Collator().compare ), files: files.sort( Intl.Collator().compare ) }
+	let collator = new Intl.Collator(); // for case-insensitive string sorting
+	return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
 console.log( `\n${serverSignature}` );
+
+if ( ! semver.gte( process.version, '10.10.0' ) ) {
+	console.log( `\n\nERROR: the minimum required version of node.js is v10.10.0 and you're running ${process.version}` );
+	process.exit(0);
+}
 
 // processes command line arguments
 process.argv = process.argv.slice(2)
@@ -76,8 +80,9 @@ process.argv.forEach( ( arg, index ) => {
 if ( ! musicPath ) {
 	console.log( '\n\n\tMusic folder not defined.\n\tUse the command-line argument -m <path> to set the folder upon launching audioMotion.' )
 	musicPath = readlineSync.questionPath(
-		`\n\tPlease enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' })\n\tor just press Enter to use current directory:\n\t> `, {
-		isDirectory: true
+		`\n\tPlease enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' })\n\tor just press Enter to use your home directory:\n\t> `, {
+		isDirectory: true,
+		defaultInput: '~'
 	})
 }
 
@@ -106,7 +111,7 @@ server.use( '/music', express.static( musicPath ), ( req, res ) => {
 
 server.listen( port, host, () => {
 	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only' : 'accepting external connections!' }` )
-	console.log( `\n\t/music mounting point is ${musicPath}` )
+	console.log( `\n\t/music mounted to ${musicPath}` )
 	if ( launchClient ) {
 		open( `http://localhost:${port}` )
 		console.log( '\n\tLaunching client in browser...' )
@@ -114,7 +119,7 @@ server.listen( port, host, () => {
 	console.log( '\n\nPress Ctrl+C to exit.' )
 })
 
-/* route for custom server detection */
+// route for custom server detection
 server.get( '/serverInfo', ( req, res ) => {
 	res.send( serverSignature )
 })
