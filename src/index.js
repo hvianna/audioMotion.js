@@ -1144,6 +1144,7 @@ function keyboardControls( event ) {
 
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
+		case 'Backspace':	// for Mac
 			playlist.querySelectorAll('.selected').forEach( e => {
 				e.remove();
 			});
@@ -1155,6 +1156,7 @@ function keyboardControls( event ) {
 			else
 				playlistPos--;
 			loadNextSong();
+			event.preventDefault();
 			break;
 		case 'Space': 		// play / pause
 			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
