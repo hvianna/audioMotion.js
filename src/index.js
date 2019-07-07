@@ -461,13 +461,11 @@ function addSongToPlaylist( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
-	mm.fetchFromUrl( uri, { duration: false, skipCovers: true } )
+	mm.fetchFromUrl( uri, { skipCovers: true } )
 		.then( metadata => {
 			if ( metadata ) {
 				addMetadata( metadata, el ); // add metadata to playlist item
 				el.innerHTML = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
-				if ( el.dataset.duration )
-					el.innerHTML += `<span class="duration">${el.dataset.duration}</span>`;
 
 				for ( let i in [0,1] ) {
 					if ( audioElement[ i ].dataset.file == el.dataset.file )
@@ -926,7 +924,8 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		// time
 		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
 			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
-			duration = audioElement[ currAudio ].dataset.duration || Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+			duration = audioElement[ currAudio ].dataset.duration ||
+					   ( audioElement[ currAudio ].dataset.duration = playlist.children[ playlistPos ].dataset.duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2) );
 			canvasCtx.textAlign = 'right';
 			outlineText( curTime + ' / ' + duration, rightPos, bottomLine3 );
 		}
@@ -1006,7 +1005,7 @@ function loadLocalFile( obj ) {
 		clearAudioElement();
 		el.src = reader.result;
 		el.play();
-		mm.parseBlob( obj.files[0], { duration: false, skipCovers: true } ).then( metadata => addMetadata( metadata, el ) );
+		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) );
 	};
 }
 

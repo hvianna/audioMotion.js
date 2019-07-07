@@ -420,7 +420,8 @@ ul {
 .filelist [data-type="list"]::before {
 	content: '\f102';
 }
-.filelist li .duration {
+.filelist li::after {
+	content: attr(data-duration);
 	float: right;
 }
 
