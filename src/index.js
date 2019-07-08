@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.6-dev.7';
+var _VERSION = '19.7-dev';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -34,7 +34,9 @@ import './notie.css';
 
 import './styles.css';
 
-var audioStarted = false;
+// flags for audio elements initialized and skip track in progress
+var audioStarted = false,
+	skipping = false;
 
 // playlist, index to the current song, indexes to current and next audio elements
 var playlist, playlistPos, currAudio, nextAudio;
@@ -722,6 +724,7 @@ function loadNextSong() {
 	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
 	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
 	addMetadata( playlist.children[ n ], audioElement[ nextAudio ] );
+	skipping = false; // finished skipping track
 }
 
 /**
@@ -773,8 +776,10 @@ function playPreviousSong() {
 
 function playNextSong( play ) {
 
-	if ( cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
+	if ( skipping || cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
 		return;
+
+	skipping = true;
 
 	var gradIdx;
 
@@ -784,6 +789,7 @@ function playNextSong( play ) {
 		playlistPos = 0;
 	else {
 		setCanvasMsg( 'Already at last song' );
+		skipping = false;
 		return;
 	}
 
@@ -797,11 +803,13 @@ function playNextSong( play ) {
 
 	if ( play ) {
 		audioElement[ currAudio ].play()
-			.then( loadNextSong )
-			.catch( function( err ) {
-				consoleLog( err, true );
-				loadNextSong();
-			});
+		.then( () => {
+			loadNextSong();
+		})
+		.catch( err => {
+			consoleLog( err, true );
+			loadNextSong();
+		});
 		if ( elCycleGrad.dataset.active == '1' ) {
 			gradIdx = elGradient.selectedIndex;
 			if ( gradIdx < elGradient.options.length - 1 )
@@ -1300,7 +1308,8 @@ function audioOnPlay( event ) {
  * Event handler for 'ended' on audio elements
  */
 function audioOnEnded() {
-	// song ended, skip to next one if available
+	if ( skipping )
+		return;
 	if ( playlistPos < playlist.children.length - 1 || elRepeat.dataset.active == '1' )
 		playNextSong( true );
 	else {
