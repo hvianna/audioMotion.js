@@ -124,9 +124,9 @@ var	gradients = {
 					{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
 				  ] },
 		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
-				 	{ pos: .1, color: '#ffaf7b' },
-				 	{ pos: .5, color: '#d76d77' },
-				 	{ pos: 1, color: '#3a1c71' }
+					{ pos: .1, color: '#ffaf7b' },
+					{ pos: .5, color: '#d76d77' },
+					{ pos: 1, color: '#3a1c71' }
 				  ] },
 		classic:  { name: 'Classic' },
 		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
@@ -134,11 +134,11 @@ var	gradients = {
 					{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
 				  ] },
 		miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
-				    { pos: .024, color: 'rgb( 251, 198, 6 )' },
-				    { pos: .283, color: 'rgb( 224, 82, 95 )' },
-				    { pos: .462, color: 'rgb( 194, 78, 154 )' },
-				    { pos: .794, color: 'rgb( 32, 173, 190 )' },
-				    { pos: 1, color: 'rgb( 22, 158, 95 )' }
+					{ pos: .024, color: 'rgb( 251, 198, 6 )' },
+					{ pos: .283, color: 'rgb( 224, 82, 95 )' },
+					{ pos: .462, color: 'rgb( 194, 78, 154 )' },
+					{ pos: .794, color: 'rgb( 32, 173, 190 )' },
+					{ pos: 1, color: 'rgb( 22, 158, 95 )' }
 				  ] },
 		orient:   { name: 'Orient', bgColor: '#100', colorStops: [
 					{ pos: .1, color: '#f00' },
@@ -151,24 +151,24 @@ var	gradients = {
 					{ pos: .525, color: 'rgb( 133, 80, 255 )' },
 					{ pos: .688, color: 'rgb( 74, 104, 247 )' },
 					{ pos: 1, color: 'rgb( 35, 210, 255 )' }
-		          ] },
+				  ] },
 		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
-				 	{ pos: .1, color: '#34e89e' },
-				 	{ pos: 1, color: '#0f3443' }
+					{ pos: .1, color: '#34e89e' },
+					{ pos: 1, color: '#0f3443' }
 				  ] },
 		prism:    { name: 'Prism' },
 		rainbow:  { name: 'Rainbow' },
 		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
-				 	{ pos: .1, color: '#66ff00' },
-				 	{ pos: 1, color: '#a80077' }
+					{ pos: .1, color: '#66ff00' },
+					{ pos: 1, color: '#a80077' }
 				  ] },
 		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
-				 	{ pos: .1, color: '#fdbb2d' },
-				 	{ pos: 1, color: '#22c1c3' }
+					{ pos: .1, color: '#fdbb2d' },
+					{ pos: 1, color: '#22c1c3' }
 				  ] },
 		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
-				 	{ pos: .1, color: '#f56217' },
-				 	{ pos: 1, color: '#0b486b' }
+					{ pos: .1, color: '#f56217' },
+					{ pos: 1, color: '#0b486b' }
 				  ] },
 		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
 					{ pos: .038, color: 'rgb( 15, 209, 165 )' },
@@ -176,7 +176,7 @@ var	gradients = {
 					{ pos: .519, color: 'rgb( 133, 13, 230 )' },
 					{ pos: .731, color: 'rgb( 230, 13, 202 )' },
 					{ pos: .941, color: 'rgb( 242, 180, 107 )' }
-		          ] },
+				  ] },
 	};
 
 
@@ -650,7 +650,7 @@ function deletePlaylist( index ) {
 /**
  * Update the playlist shown to the user
  */
-function updatePlaylistUI( scroll ) {
+function updatePlaylistUI() {
 
 	var current = playlist.querySelector('.current');
 	if ( current )
@@ -658,8 +658,7 @@ function updatePlaylistUI( scroll ) {
 
 	if ( playlistPos < playlist.children.length ) {
 		playlist.children[ playlistPos ].classList.add('current');
-		if ( scroll )
-			playlist.children[ playlistPos ].scrollIntoView( false );
+		playlist.children[ playlistPos ].scrollIntoViewIfNeeded();
 	}
 }
 
@@ -677,16 +676,14 @@ function shufflePlaylist() {
 	}
 
 	playSong(0);
-	updatePlaylistUI( true );
 }
 
 /**
  * Return the index of an element inside its parent
- * https://stackoverflow.com/questions/13656921/fastest-way-to-find-the-index-of-a-child-node-in-parent
  */
 function getIndex( node ) {
 	if ( ! node )
-		return undefined;
+		return;
 	var i = 0;
 	while ( node = node.previousElementSibling )
 		i++;
@@ -703,7 +700,7 @@ function loadSong( n ) {
 		audioElement[ currAudio ].dataset.file = playlist.children[ playlistPos ].dataset.file;
 		addMetadata( playlist.children[ playlistPos ], audioElement[ currAudio ] );
 
-		updatePlaylistUI( n == 0 ); // reset scroll only when returning back to first song
+		updatePlaylistUI();
 		loadNextSong();
 		return true;
 	}
@@ -823,7 +820,7 @@ function playNextSong( play ) {
 	else
 		loadNextSong();
 
-	updatePlaylistUI( true );
+	updatePlaylistUI();
 }
 
 /**
@@ -1339,16 +1336,16 @@ function setLoRes() {
 
 
 /**
- * Initialization
+ * Initialization function
  */
-function initialize() {
+(function() {
 
 	consoleLog( 'audioMotion ver. ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
 	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
-	playlist.addEventListener( 'dblclick', function ( e ) {
+	playlist.addEventListener( 'dblclick', e => {
 		if ( e.target && e.target.dataset.file )
 			playSong( getIndex( e.target ) );
 	});
@@ -1374,7 +1371,7 @@ function initialize() {
 	});
 
 	// Add event listeners for config panel selectors
-	document.getElementById('panel_selector').addEventListener( 'click', function ( event ) {
+	document.getElementById('panel_selector').addEventListener( 'click', event => {
 		document.querySelectorAll('#panel_selector li').forEach( e => {
 			e.className = '';
 			document.getElementById( e.dataset.panel ).style.display = 'none';
@@ -1399,14 +1396,14 @@ function initialize() {
 		);
 	}
 	catch( err ) {
-		consoleLog( 'Fatal error: ' + err, true );
+		consoleLog( `Fatal error: ${err}`, true );
 		return false;
 	}
 
 	var audioCtx = audioMotion.audioCtx;
 	var analyzer = audioMotion.analyzer;
 
-	consoleLog( 'Audio context sample rate is ' + audioCtx.sampleRate + 'Hz' );
+	consoleLog( `Audio context sample rate is ${audioCtx.sampleRate}Hz` );
 
 	// Create audio elements
 
@@ -1458,7 +1455,7 @@ function initialize() {
 	// Add event listeners to the custom checkboxes
 	var switches = document.querySelectorAll('.switch');
 	for ( let i = 0; i < switches.length; i++ ) {
-		switches[ i ].addEventListener( 'click', function( e ) {
+		switches[ i ].addEventListener( 'click', e => {
 			if ( e.target.className.match( /switch/ ) ) // check for clicks on child nodes
 				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
 			else
@@ -1508,7 +1505,7 @@ function initialize() {
 	setCanvasMsg();
 
 	// Register custom gradients
-	Object.keys( gradients ).forEach( function( key ) {
+	Object.keys( gradients ).forEach( key => {
 		if ( gradients[ key ].bgColor && gradients[ key ].colorStops )
 			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
 
@@ -1601,7 +1598,36 @@ function initialize() {
 
 	// On Webkit audio must be started on some user gesture
 	window.addEventListener( 'click', initAudio );
+})();
+
+/**
+ * scrollIntoViewIfNeeded() polyfill
+ * by Hubert Sablonnière - https://gist.github.com/hsablonniere/2581101
+ */
+if (!Element.prototype.scrollIntoViewIfNeeded) {
+	Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
+		centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
+
+		var parent = this.parentNode,
+			parentComputedStyle = window.getComputedStyle(parent, null),
+			parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
+			parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
+			overTop = this.offsetTop - parent.offsetTop < parent.scrollTop,
+			overBottom = (this.offsetTop - parent.offsetTop + this.clientHeight - parentBorderTopWidth) > (parent.scrollTop + parent.clientHeight),
+			overLeft = this.offsetLeft - parent.offsetLeft < parent.scrollLeft,
+			overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
+			alignWithTop = overTop && !overBottom;
+
+		if ((overTop || overBottom) && centerIfNeeded) {
+			parent.scrollTop = this.offsetTop - parent.offsetTop - parent.clientHeight / 2 - parentBorderTopWidth + this.clientHeight / 2;
+		}
+
+		if ((overLeft || overRight) && centerIfNeeded) {
+			parent.scrollLeft = this.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 - parentBorderLeftWidth + this.clientWidth / 2;
+		}
+
+		if ((overTop || overBottom || overLeft || overRight) && !centerIfNeeded) {
+			this.scrollIntoView(alignWithTop);
+		}
+	};
 }
-
-
-initialize();
