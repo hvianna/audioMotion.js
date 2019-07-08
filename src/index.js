@@ -1010,61 +1010,63 @@ function loadLocalFile( obj ) {
 /**
  * Load a configuration preset
  */
-function loadPreset( name ) {
+function loadPreset( name, alert ) {
 
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	if ( presets[ name ].hasOwnProperty( 'mode' ) )
-		elMode.value = presets[ name ].mode;
+	var thisPreset = presets[ name ];
 
-	if ( presets[ name ].hasOwnProperty( 'fftSize' ) )
-		elFFTsize.value = presets[ name ].fftSize;
+	if ( thisPreset.hasOwnProperty( 'mode' ) )
+		elMode.value = thisPreset.mode;
 
-	if ( presets[ name ].hasOwnProperty( 'freqMin' ) )
-		elRangeMin.value = presets[ name ].freqMin;
+	if ( thisPreset.hasOwnProperty( 'fftSize' ) )
+		elFFTsize.value = thisPreset.fftSize;
 
-	if ( presets[ name ].hasOwnProperty( 'freqMax' ) )
-		elRangeMax.value = presets[ name ].freqMax;
+	if ( thisPreset.hasOwnProperty( 'freqMin' ) )
+		elRangeMin.value = thisPreset.freqMin;
 
-	if ( presets[ name ].hasOwnProperty( 'smoothing' ) )
-		elSmoothing.value = presets[ name ].smoothing;
+	if ( thisPreset.hasOwnProperty( 'freqMax' ) )
+		elRangeMax.value = thisPreset.freqMax;
 
-	if ( presets[ name ].hasOwnProperty( 'showScale' ) )
-		elShowScale.dataset.active = Number( presets[ name ].showScale );
+	if ( thisPreset.hasOwnProperty( 'smoothing' ) )
+		elSmoothing.value = thisPreset.smoothing;
 
-	if ( presets[ name ].hasOwnProperty( 'highSens' ) )
-		elHighSens.dataset.active = Number( presets[ name ].highSens );
+	if ( thisPreset.hasOwnProperty( 'showScale' ) )
+		elShowScale.dataset.active = Number( thisPreset.showScale );
 
-	if ( presets[ name ].hasOwnProperty( 'showPeaks' ) )
-		elShowPeaks.dataset.active = Number( presets[ name ].showPeaks );
+	if ( thisPreset.hasOwnProperty( 'highSens' ) )
+		elHighSens.dataset.active = Number( thisPreset.highSens );
 
-	if ( presets[ name ].hasOwnProperty( 'blackBg' ) )
-		elBlackBg.dataset.active = Number( presets[ name ].blackBg );
+	if ( thisPreset.hasOwnProperty( 'showPeaks' ) )
+		elShowPeaks.dataset.active = Number( thisPreset.showPeaks );
 
-	if ( presets[ name ].hasOwnProperty( 'cycleGrad' ) )
-		elCycleGrad.dataset.active = Number( presets[ name ].cycleGrad );
+	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
+		elBlackBg.dataset.active = Number( thisPreset.blackBg );
 
-	if ( presets[ name ].hasOwnProperty( 'ledDisplay' ) )
-		elLedDisplay.dataset.active = Number( presets[ name ].ledDisplay );
+	if ( thisPreset.hasOwnProperty( 'cycleGrad' ) )
+		elCycleGrad.dataset.active = Number( thisPreset.cycleGrad );
 
-	if ( presets[ name ].hasOwnProperty( 'repeat' ) )
-		elRepeat.dataset.active = Number( presets[ name ].repeat );
+	if ( thisPreset.hasOwnProperty( 'ledDisplay' ) )
+		elLedDisplay.dataset.active = Number( thisPreset.ledDisplay );
 
-	if ( presets[ name ].hasOwnProperty( 'showSong' ) )
-		elShowSong.dataset.active = Number( presets[ name ].showSong );
+	if ( thisPreset.hasOwnProperty( 'repeat' ) )
+		elRepeat.dataset.active = Number( thisPreset.repeat );
 
-	if ( presets[ name ].hasOwnProperty( 'noShadow' ) )
-		elNoShadow.dataset.active = Number( presets[ name ].noShadow );
+	if ( thisPreset.hasOwnProperty( 'showSong' ) )
+		elShowSong.dataset.active = Number( thisPreset.showSong );
 
-	if ( presets[ name ].hasOwnProperty( 'loRes' ) )
-		elLoRes.dataset.active = Number( presets[ name ].loRes );
+	if ( thisPreset.hasOwnProperty( 'noShadow' ) )
+		elNoShadow.dataset.active = Number( thisPreset.noShadow );
 
-	if ( presets[ name ].hasOwnProperty( 'showFPS' ) )
-		elFPS.dataset.active = Number( presets[ name ].showFPS );
+	if ( thisPreset.hasOwnProperty( 'loRes' ) )
+		elLoRes.dataset.active = Number( thisPreset.loRes );
 
-	if ( presets[ name ].hasOwnProperty( 'gradient' ) && gradients[ presets[ name ].gradient ] )
-		elGradient.value = presets[ name ].gradient;
+	if ( thisPreset.hasOwnProperty( 'showFPS' ) )
+		elFPS.dataset.active = Number( thisPreset.showFPS );
+
+	if ( thisPreset.hasOwnProperty( 'gradient' ) && gradients[ thisPreset.gradient ] )
+		elGradient.value = thisPreset.gradient;
 
 	audioMotion.setOptions( {
 		mode       : elMode.value,
@@ -1081,6 +1083,9 @@ function loadPreset( name ) {
 		showFPS    : ( elFPS.dataset.active == '1' ),
 		gradient   : elGradient.value
 	} );
+
+	if ( alert )
+		notie.alert({ text: 'Preset loaded!' });
 }
 
 /**
@@ -1124,6 +1129,7 @@ function updateLastConfig() {
 function updateCustomPreset() {
 	saveConfig( 'custom-preset' );
 	document.getElementById('preset').value = 'custom';
+	notie.alert({ text: 'Custom preset saved!' });
 }
 
 /**
@@ -1475,7 +1481,7 @@ function setLoRes() {
 	elSource.    addEventListener( 'change', setSource );
 	elSmoothing. addEventListener( 'change', setSmoothing );
 
-	document.getElementById('preset').addEventListener( 'change', e => loadPreset( e.target.value ) );
+	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
 	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
 	document.getElementById('btn_play').addEventListener( 'click', playPause );

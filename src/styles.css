@@ -13,6 +13,11 @@ select,
 input[type="text"] {
 	padding: 6px;
 }
+input[type="number"] {
+	padding: 4px;
+	vertical-align: middle;
+	width: 60px;
+}
 
 button {
 	background: #e1e1e1;
@@ -29,11 +34,6 @@ button.switch[data-active="1"] {
 	box-shadow: inset 1px 1px 0 #0008;
 	color: #b2ff00;
 	text-shadow: 1px 1px 5px;
-}
-
-input[type="range"] {
-	vertical-align: middle;
-	width: 80px;
 }
 
 header {

@@ -158,14 +158,14 @@
 		<div id="config_panel" class="config-panel">
 			<div class="config-row flex">
 				<div class="config-col">
-					<span class="help"><span class="config-label">Load Preset:</span>
+					<span class="help"><span class="config-label">Preset:</span>
 						<span class="tooltip">
 							Load a configuration preset.<br>
 							<strong>"Last session"</strong> restores last used configuration settings.
 						</span>
 					</span>
 					<select id="preset">
-						<option value="" disabled selected>Select a preset</option>
+						<option value="" disabled selected>choose a preset</option>
 						<option value="fullres">Full resolution</option>
 						<option value="octave">Octave bands</option>
 						<option value="ledbars">LED bars</option>
@@ -173,6 +173,7 @@
 						<option value="last">Last session</option>
 						<option value="default">Restore defaults</option>
 					</select>
+					<button id="load_preset">Load</button>
 				</div>
 			</div> <!-- .config-row -->
 
@@ -224,8 +225,7 @@
 				<div class="config-col">
 					<span class="help"><span class="config-label">FFT size:</span>
 						<span class="tooltip">
-						Number of samples used for the FFT. Larger values provide greater detail on lower frequencies,
-						but require more CPU power.
+						Larger values provide more detail in the frequency domain, but less detail in the time domain.
 						</span>
 					</span>
 					<select id="fft_size">
@@ -268,10 +268,9 @@
 					<span class="help"><span class="config-label">Smoothing:</span>
 						<span class="tooltip">
 						Lower values make the analyzer respond faster to changes.
-						Increase it if the animation looks too "jumpy".
 						</span>
 					</span>
-					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
+					<input type="number" id="smoothing" min="0" max="0.9" step="0.1">
 				</div>
 
 				<div class="config-col center">
