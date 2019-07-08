@@ -207,14 +207,7 @@ function fullscreen() {
  * Adjust the analyzer's sensitivity
  */
 function setSensitivity() {
-	if ( elHighSens.dataset.active == '1' ) {
-		analyzer.minDecibels = -100; // WebAudio API defaults
-		analyzer.maxDecibels = -30;
-	}
-	else {
-		analyzer.minDecibels = -85;
-		analyzer.maxDecibels = -25;
-	}
+	audioMotion.setSensitivity( elHighSens.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -222,8 +215,8 @@ function setSensitivity() {
  * Set the smoothing time constant
  */
 function setSmoothing() {
-	analyzer.smoothingTimeConstant = elSmoothing.value;
-	consoleLog( 'smoothingTimeConstant is ' + analyzer.smoothingTimeConstant );
+	audioMotion.setSmoothing( elSmoothing.value );
+	consoleLog( 'smoothingTimeConstant is ' + audioMotion.analyzer.smoothingTimeConstant );
 	updateLastConfig();
 }
 
@@ -1099,7 +1092,7 @@ function saveConfig( config ) {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
-		smoothing	: analyzer.smoothingTimeConstant,
+		smoothing	: audioMotion.analyzer.smoothingTimeConstant,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
 		showScale 	: elShowScale.dataset.active == '1',
@@ -1400,10 +1393,7 @@ function setLoRes() {
 		return false;
 	}
 
-	var audioCtx = audioMotion.audioCtx;
-	var analyzer = audioMotion.analyzer;
-
-	consoleLog( `Audio context sample rate is ${audioCtx.sampleRate}Hz` );
+	consoleLog( `Audio context sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
 	// Create audio elements
 
@@ -1426,8 +1416,8 @@ function setLoRes() {
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-		sourcePlayer.push( audioCtx.createMediaElementSource( audioElement[ i ] ) );
-		sourcePlayer[ i ].connect( analyzer );
+		sourcePlayer.push( audioMotion.audioCtx.createMediaElementSource( audioElement[ i ] ) );
+		sourcePlayer[ i ].connect( audioMotion.analyzer );
 	}
 
 	// Set UI elements
