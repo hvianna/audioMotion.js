@@ -2,7 +2,9 @@
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
-Watch your music move! **audioMotion** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
+:notes: Watch your music move! :notes:
+
+**audioMotion** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
 
 ## Features
 
@@ -12,10 +14,10 @@ Watch your music move! **audioMotion** is a high-resolution real-time graphic au
 * Several color gradients with optional vintage LED effect
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * HTML5 audio player supporting most popular audio formats, like MP3, AAC (M4A), OGG and FLAC (support may vary depending on browser and operating system)
-* Visual file explorer and play queue
+* Visual file explorer and play queue, with drag-n-drop support
 * Supports M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
-* Lightweight custom web/file server written in node.js — also runs on standard web servers with minimal additional configuration
+* Lightweight custom web/file server written in node.js — also works on standard web servers with minimal additional configuration
 * Client runs in any modern browser
 
 ## Online demo
@@ -45,6 +47,8 @@ Other server options are:
 -s        : start server only (do not launch client)
 -e        : allow external connections (by default, only localhost)
 ```
+
+## Documentation
 
 For complete documentation, see the [docs folder](docs/).
 
@@ -76,6 +80,7 @@ Some of audioMotion's great features are provided by these awesome open-source l
 * [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
 * [pkg](https://www.npmjs.com/package/pkg) - single-command Node.js binary compiler
 * [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively requesting user input via console
+* [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101]) - polyfill for non-standard scrollIntoViewIfNeeded() method
 * [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser
   * [mini-css-extract-plugin](https://www.npmjs.com/package/mini-css-extract-plugin) - extracts CSS into separate files
@@ -102,6 +107,7 @@ These online references were invaluable for the development and improvement of a
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
 * [Equations for equal-tempered scale frequencies](http://pages.mtu.edu/~suits/NoteFreqCalcs.html)
 * [Efficient case-insensitive sorting in JavaScript](https://stackoverflow.com/a/40390844/2370385)
+* [Fastest way to find the index of a child node in parent](https://stackoverflow.com/a/13657635/2370385)
 
 
 ## License

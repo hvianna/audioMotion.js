@@ -1,13 +1,26 @@
-audioMotion server options
-==========================
+audioMotion.js server options
+=============================
+
+Due to security mechanisms employed by web browsers, JavaScript can only read files via HTTP protocol, so it can't read music files from your local computer unless you have some server software running.
+
+audioMotion works with a variety of server options:
+
++ [Custom file server](#custom-file-server)
++ [Standard web servers (Apache, Lighttpd, Nginx)](#using-a-standard-web-server)
++ [Apache web server with Docker](#apache-web-server-with-docker)
+
+You can also run audioMotion in local mode by directly opening the `index.html` file inside the `public` folder. In this mode you can play single music files, but the file explorer won't be available.
+
 
 ## Custom file server
 
 audioMotion's custom file server allows you to easily access music files anywhere in your computer. This is the easiest and preferred way to run audioMotion.
 
-You can download portable binaries of the server for Windows, Linux and macOS from the project's [releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
+You can download portable binaries for Windows, Linux and macOS from the project's [releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
 
-To start audioMotion, open a command prompt and run:
+Simply double-click the executable to launch audioMotion and you'll be asked for the path to your music folder.
+
+You can also start audioMotion from the command-line to provide the path, by running:
 
 ```
 audioMotion -m /path/to/music
@@ -40,7 +53,8 @@ npm start -- -m /path/to/music
 
 ## Using a standard web server
 
-If you already have a web server available, like Apache, Lighttpd or Nginx, you can also run audioMotion from it.
+You can also use audioMotion with a standard web server, like Apache, Lighttpd or Nginx, to play music stored even in older [NAS](https://en.wikipedia.org/wiki/Network-attached_storage) servers not capable of running Node.js.
+
 Just copy the contents of the `public` folder to your server and make the necessary configurations:
 
 * Assign a dedicated listening port to audioMotion so it can be accessed at the server's root, e.g., `http://192.168.0.32:8000` and not in a subdirectory like `http://192.168.0.32/audioMotion`;
@@ -50,7 +64,7 @@ Just copy the contents of the `public` folder to your server and make the necess
 
 ### Configuration tips:
 
-For Lighttpd:
+**Lighttpd:**
 
 ```
 $SERVER["socket"] == ":8000" {
@@ -60,7 +74,7 @@ $SERVER["socket"] == ":8000" {
 }
 ```
 
-For Apache:
+**Apache:**
 
 ```
 Listen 8000
@@ -69,18 +83,20 @@ Listen 8000
 	DocumentRoot "/mnt/HD/HD_a2/web/audioMotion/"
 </VirtualHost>
 
-<Directory /files>
+Alias "/music" "/mnt/HD/HD_a2/MUSIC"
+
+<Directory "/mnt/HD/HD_a2/MUSIC">
     Options Indexes FollowSymLinks
 </Directory>
 ```
 
-For Nginx:
+**Nginx:**
 
-???
+*Soon?*
 
-## Standard web server with Docker
+## Apache web server with Docker
 
-If you use Docker, you can open a command prompt in audioMotion's directory and run:
+If you use Docker, you can simply open a command prompt in audioMotion's directory and run:
 
 `docker-compose up -d`
 
@@ -93,4 +109,6 @@ This should work for the default "Music" folder on Windows. If you want to map a
     - ~/music:/usr/local/apache2/htdocs/music/
 ```
 
-and change `~/music` for your desired local path, for example `j:\media\music` or `/j/media/music`. On Windows, if you're using a drive other than C: you might need to add it to the shared drives in Docker's configuration.
+and change `~/music` for your desired local path, for example `j:\media\music` or `/j/media/music`. **Do not** change the path after the colon.
+
+On Windows, if you're using a drive other than C: you might need to add it to the shared drives in Docker's configuration.

@@ -1,5 +1,5 @@
-Legacy audioMotion
-==================
+audioMotion.js legacy features
+==============================
 
 ## Legacy playlists
 
@@ -38,6 +38,6 @@ Example of an m3u playlist file:
 (1973) The Dark Side of the Moon\03 Time.flac
 ```
 
-Note that you can use either Windows-style backslashes `\` or Linux-style forward slashes `/` in your pathnames. See the provided playlist files inside the `demo` folder for more examples.
+Note that you can use either Windows-style backslashes `\` or Linux-style forward slashes `/` in your pathnames.
 
 
