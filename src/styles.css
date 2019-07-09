@@ -319,36 +319,36 @@ ul {
 	right: 0;
 }
 
+.kbd-table {
+	width: 100%;
+}
 .kbd-table tr td:first-child {
 	width: 50px;
 }
 
-.key {
-	background: #444;
-	border: 1px solid #444;
-	border-radius: 6px;
-	color: #fff;
+kbd {
+	background-color: #eee;
+	border-radius: 3px;
+	border: 1px solid #b4b4b4;
+	box-shadow: 0 1px 1px rgba(0,0,0,.2),0 2px 0 0 rgba(255,255,255,.7) inset;
+	color: #333;
 	display: inline-block;
-	font-size: 11px;
-	font-weight: bold;
+	font-family: consolas,"Liberation Mono",courier,monospace;
+	font-size: 12px;
+	font-weight: 700;
 	height: 20px;
 	line-height: 1.2;
 	min-width: 20px;
-	padding: 2px;
+	padding: 2px 4px;
 	text-align: center;
+	white-space: nowrap;
 }
-.key-big {
+kbd.big {
 	font-size: 14px;
 	line-height: 1;
 }
-.key-wide {
+kbd.wide {
 	width: 50px;
-}
-.kbd-table .key {
-	background: #f0f0f0;
-	border-color: #ccc;
-	box-shadow: 1px 1px 0 1px rgba(0,0,0,.5);
-	color: #333;
 }
 
 /* File explorer */
