@@ -649,7 +649,7 @@ function updatePlaylistUI() {
 	if ( current )
 		current.classList.remove('current');
 
-	if ( playlistPos < playlist.children.length ) {
+	if ( playlist.children[ playlistPos ] ) {
 		playlist.children[ playlistPos ].classList.add('current');
 		playlist.children[ playlistPos ].scrollIntoViewIfNeeded();
 	}
@@ -859,8 +859,6 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		return;
 	}
 
-	var curTime, duration;
-
 	var	fontSize    = canvas.height / 17, // base font size - all the following measures are relative to this
 		leftPos     = fontSize,
 		rightPos    = canvas.width - fontSize,
@@ -921,11 +919,14 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 
 		// time
 		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
-			curTime = Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2);
-			duration = audioElement[ currAudio ].dataset.duration ||
-					   ( audioElement[ currAudio ].dataset.duration = playlist.children[ playlistPos ].dataset.duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2) );
+			if ( ! audioElement[ currAudio ].dataset.duration ) {
+				audioElement[ currAudio ].dataset.duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+				if ( playlist.children[ playlistPos ] )
+					playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
+			}
 			canvasCtx.textAlign = 'right';
-			outlineText( curTime + ' / ' + duration, rightPos, bottomLine3 );
+			outlineText( Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2) + ' / ' +
+						 audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
 		}
 	}
 }
