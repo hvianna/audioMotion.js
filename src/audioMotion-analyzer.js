@@ -21,10 +21,10 @@
  */
 
 // current visualization settings
-export var mode, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes, showFPS;
+export var mode, minFreq, maxFreq, gradient, showBgColor, showLeds, showScale, showPeaks, highSens, loRes, showFPS;
 
 // data for drawing the analyzer bars and scale-related variables
-var analyzerBars, fMin, fMax, deltaX, bandWidth, barWidth, ledOptions;
+var analyzerBars, barWidth, ledOptions, freqLabels;
 
 // Web Audio API related variables
 export var audioCtx, analyzer, dataArray;
@@ -75,8 +75,8 @@ var	gradients = {
 var defaults = {
 	mode        : 0,
 	fftSize     : 8192,
-	freqMin     : 20,
-	freqMax     : 22000,
+	minFreq     : 20,
+	maxFreq     : 22000,
 	smoothing   : 0.5,
 	gradient    : 'classic',
 	showBgColor : true,
@@ -93,12 +93,19 @@ var defaults = {
 
 /**
  * Checks if the analyzer is being displayed in fullscreen mode
+ *
+ * @returns {boolean}
  */
 export function isFullscreen() {
-	return document.fullscreenElement === canvas;
+	if ( document.fullscreenElement )
+		return document.fullscreenElement === canvas;
+	else if ( document.webkitFullscreenElement )
+		return document.webkitFullscreenElement === canvas;
 }
 /**
  * Checks if the analyzer canvas animation is running or not
+ *
+ * @returns {boolean}
  */
 export function isOn() {
 	return animationReq !== undefined;
@@ -106,6 +113,9 @@ export function isOn() {
 
 /**
  * Set dimensions of analyzer's canvas
+ *
+ * @param {number} [w] width in pixels
+ * @param {number} [h] height in pixels
  */
 export function setCanvasSize( w = defaults.width, h = defaults.height ) {
 	width = w;
@@ -115,6 +125,8 @@ export function setCanvasSize( w = defaults.width, h = defaults.height ) {
 
 /**
  * Set callback function
+ *
+ * @param {function} [func] if undefined or not a function, clears any previously set function
  */
 export function setDrawCallback( func ) {
 	if ( typeof func == 'function' )
@@ -125,6 +137,8 @@ export function setDrawCallback( func ) {
 
 /**
  * Set visualization mode
+ *
+ * @param {number} [value]
  */
 export function setMode( value = defaults.mode ) {
 	mode = Number( value );
@@ -133,6 +147,8 @@ export function setMode( value = defaults.mode ) {
 
 /**
  * Set the size of the FFT performed by the analyzer node
+ *
+ * @param {number} [value]
  */
 export function setFFTSize( value = defaults.fftSize ) {
 	analyzer.fftSize = value;
@@ -142,15 +158,20 @@ export function setFFTSize( value = defaults.fftSize ) {
 
 /**
  * Set desired frequency range
+ *
+ * @param {number} [min] lowest frequency represented in the x-axis
+ * @param {number} [max] highest frequency represented in the x-axis
  */
-export function setFreqRange( min = defaults.freqMin, max = defaults.freqMax ) {
-	fMin = Math.min( min, max );
-	fMax = Math.max( min, max );
+export function setFreqRange( min = defaults.minFreq, max = defaults.maxFreq ) {
+	minFreq = Math.min( min, max );
+	maxFreq = Math.max( min, max );
 	preCalcPosX();
 }
 
 /**
  * Set the analyzer's smoothing time constant
+ *
+ * @param {number} [value] float value from 0 to 1
  */
 export function setSmoothing( value = defaults.smoothing ) {
 	analyzer.smoothingTimeConstant = value;
@@ -158,13 +179,18 @@ export function setSmoothing( value = defaults.smoothing ) {
 
 /**
  * Select gradient
+ *
+ * @param {string} [name] name of a built-in or previously registered gradient
  */
-export function setGradient( value = defaults.gradient ) {
-	gradient = value;
+export function setGradient( name = defaults.gradient ) {
+	gradient = name;
 }
 
 /**
  * Toggle peaks on/off
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function togglePeaks( value ) {
 	return showPeaks = value === undefined ? ! showPeaks : value;
@@ -172,6 +198,9 @@ export function togglePeaks( value ) {
 
 /**
  * Toggle background color on/off
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function toggleBgColor( value ) {
 	return showBgColor = value === undefined ? ! showBgColor : value;
@@ -179,6 +208,9 @@ export function toggleBgColor( value ) {
 
 /**
  * Toggle FPS display
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function toggleFPS( value ) {
 	return showFPS = value === undefined ? ! showFPS : value;
@@ -186,6 +218,9 @@ export function toggleFPS( value ) {
 
 /**
  * Toggle LED effect on/off
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function toggleLeds( value ) {
 	return showLeds = value === undefined ? ! showLeds : value;
@@ -193,6 +228,9 @@ export function toggleLeds( value ) {
 
 /**
  * Toggle scale on/off
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function toggleScale ( value ) {
 	return showScale = value === undefined ? ! showScale : value;
@@ -200,6 +238,9 @@ export function toggleScale ( value ) {
 
 /**
  * Toggle low-resolution mode on/off
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function toggleLoRes ( value ) {
 	loRes = value === undefined ? ! loRes : value;
@@ -210,8 +251,8 @@ export function toggleLoRes ( value ) {
 /**
  * Adjust the analyzer's sensitivity
  *
- * @param {(boolean|number)} [min=-85] - min decibels or true for high sensitivity, false for low sensitivity
- * @param {number}           [max=-25] - max decibels
+ * @param {(boolean|number)} [min=-85] min decibels or true for high sensitivity, false for low sensitivity
+ * @param {number}           [max=-25] max decibels
  */
 export function setSensitivity( min = -85, max = -25 ) {
 	if ( min === true ) {
@@ -230,17 +271,19 @@ export function setSensitivity( min = -85, max = -25 ) {
 
 /**
  * Shorthand to setting several options at once
+ *
+ * @param {object} options
  */
 export function setOptions( options ) {
 
 	if ( options.mode !== undefined )
 		mode = Number( options.mode );
 
-	if ( options.freqMin !== undefined )
-		fMin = options.freqMin;
+	if ( options.minFreq !== undefined )
+		minFreq = options.minFreq;
 
-	if ( options.freqMax !== undefined )
-		fMax = options.freqMax;
+	if ( options.maxFreq !== undefined )
+		maxFreq = options.maxFreq;
 
 	if ( options.gradient !== undefined )
 		gradient = options.gradient;
@@ -290,6 +333,9 @@ export function setOptions( options ) {
 
 /**
  * Registers a custom gradient
+ *
+ * @param {string} name
+ * @param {object} options
  */
 export function registerGradient( name, options ) {
 	if ( typeof options !== 'object' )
@@ -315,26 +361,41 @@ export function registerGradient( name, options ) {
 
 /**
  * Pre-calculate the actual X-coordinate on screen for each analyzer bar
+ *
+ * Since the frequency scale is logarithmic, each position in the X-axis actually represents a power of 10.
+ * To improve performace, the position of each frequency is calculated in advance and stored in an array.
+ * Canvas space usage is optimized to accommodate exactly the frequency range the user needs.
+ * Positions need to be recalculated whenever the frequency range, FFT size or canvas size change.
+ *
+ *                              +-------------------------- canvas --------------------------+
+ *                              |                                                            |
+ *    |-------------------|-----|-------------|-------------------!-------------------|------|------------|
+ *    1                  10     |            100                  1K                 10K     |           100K (Hz)
+ * (10^0)              (10^1)   |          (10^2)               (10^3)              (10^4)   |          (10^5)
+ *                              |-------------|<--- bandWidth --->|--------------------------|
+ *                  minFreq--> 20                   (pixels)                                22K <--maxFreq
+ *                          (10^1.3)                                                     (10^4.34)
+ *                           minLog
  */
 function preCalcPosX() {
 
-	var i, freq;
-
-	deltaX = Math.log10( fMin );
-	bandWidth = canvas.width / ( Math.log10( fMax ) - deltaX );
+	var i, freq,
+		minLog = Math.log10( minFreq ),
+		bandWidth = canvas.width / ( Math.log10( maxFreq ) - minLog );
 
 	analyzerBars = [];
 
-	if ( mode == 0 ) {
-	// discrete frequencies
- 		var pos, lastPos = -1;
-		var iMin = Math.floor( fMin * analyzer.fftSize / audioCtx.sampleRate ),
-		    iMax = Math.round( fMax * analyzer.fftSize / audioCtx.sampleRate );
+	if ( mode == 0 ) { // discrete frequencies mode
 		barWidth = 1;
 
-		for ( i = iMin; i <= iMax; i++ ) {
+ 		var pos,
+ 			lastPos = -1,
+			minIndex = Math.floor( minFreq * analyzer.fftSize / audioCtx.sampleRate ),
+		    maxIndex = Math.min( Math.round( maxFreq * analyzer.fftSize / audioCtx.sampleRate ), analyzer.frequencyBinCount - 1 );
+
+		for ( i = minIndex; i <= maxIndex; i++ ) {
 			freq = i * audioCtx.sampleRate / analyzer.fftSize; // frequency represented in this bin
-			pos = Math.round( bandWidth * ( Math.log10( freq ) - deltaX ) ); // avoid fractionary pixel values
+			pos = Math.round( bandWidth * ( Math.log10( freq ) - minLog ) ); // avoid fractionary pixel values
 
 			// if it's on a different X-coordinate, create a new bar for this frequency
 			if ( pos > lastPos ) {
@@ -345,17 +406,16 @@ function preCalcPosX() {
 				analyzerBars[ analyzerBars.length - 1 ].endIdx = i;
 		}
 	}
-	else {
-	// octave bands
+	else { // octave bands modes
 
+		// calculates the best attributes for the LEDs effect, based on the visualization mode and canvas resolution
 		var spaceV;
 
 		switch ( mode ) {
 			case 24:
 				spaceV = Math.min( 16, canvas.height / ( 33 * pixelRatio ) | 0 );
 				ledOptions = {
-					nLeds: Math.min( 24, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
-					spaceV: spaceV,
+					nLeds: 24,
 					spaceH: Math.min( 24, canvas.width / ( 40 * pixelRatio ) | 0 )
 				};
 				break;
@@ -363,8 +423,7 @@ function preCalcPosX() {
 			case 12:
 				spaceV = Math.min( 8, canvas.height / ( 67 * pixelRatio ) | 0 );
 				ledOptions = {
-					nLeds: Math.min( 48, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
-					spaceV: spaceV,
+					nLeds: 48,
 					spaceH: Math.min( 16, canvas.width / ( 60 * pixelRatio ) | 0 )
 				};
 				break;
@@ -372,8 +431,7 @@ function preCalcPosX() {
 			case  8:
 				spaceV = Math.min( 6, canvas.height / ( 90 * pixelRatio ) | 0 );
 				ledOptions = {
-					nLeds: Math.min( 64, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
-					spaceV: spaceV,
+					nLeds: 64,
 					spaceH: Math.min( 10, canvas.width / ( 96 * pixelRatio ) | 0 )
 				};
 				break;
@@ -381,8 +439,7 @@ function preCalcPosX() {
 			case  4:
 				spaceV = Math.min( 6, canvas.height / ( 90 * pixelRatio ) | 0 );
 				ledOptions = {
-					nLeds: Math.min( 80, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
-					spaceV: spaceV,
+					nLeds: 80,
 					spaceH: Math.min( 8, canvas.width / ( 120 * pixelRatio ) | 0 )
 				};
 				break;
@@ -390,8 +447,7 @@ function preCalcPosX() {
 			case  2:
 				spaceV = Math.min( 4, canvas.height / ( 135 * pixelRatio ) | 0 );
 				ledOptions = {
-					nLeds: Math.min( 128, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
-					spaceV: spaceV,
+					nLeds: 128,
 					spaceH: Math.min( 4, canvas.width / ( 240 * pixelRatio ) | 0 )
 				};
 				break;
@@ -399,14 +455,14 @@ function preCalcPosX() {
 			default:
 				spaceV = Math.min( 3, Math.max( 2, canvas.height / ( 180 * pixelRatio ) | 0 ) );
 				ledOptions = {
-					nLeds: Math.min( 128, canvas.height / ( spaceV * 2 * pixelRatio ) | 0 ),
-					spaceV: spaceV,
+					nLeds: 128,
 					spaceH: Math.min( 4, canvas.width / ( 320 * pixelRatio ) | 0 )
 				};
 		}
 
 		ledOptions.spaceH *= pixelRatio;
-		ledOptions.spaceV *= pixelRatio;
+		ledOptions.spaceV = spaceV * pixelRatio;
+		ledOptions.nLeds = Math.min( ledOptions.nLeds, canvas.height / ( ledOptions.spaceV * 2 ) | 0 );
 		ledOptions.ledHeight = canvas.height / ledOptions.nLeds - ledOptions.spaceV;
 
 		// generate a table of frequencies based on the equal tempered scale
@@ -416,15 +472,17 @@ function preCalcPosX() {
 		var prevBin = 0;
 
 		i = 0;
-		while ( ( freq = c0 * root24 ** i ) <= fMax ) {
-			if ( freq >= fMin && i % mode == 0 )
+		while ( ( freq = c0 * root24 ** i ) <= maxFreq ) {
+			if ( freq >= minFreq && i % mode == 0 )
 				temperedScale.push( freq );
 			i++;
 		}
 
-		// canvas space will be divided by the number of frequencies we have to display
+		// divide canvas space by the number of frequencies to display, allowing at least one pixel between bars
 		barWidth = Math.floor( canvas.width / temperedScale.length ) - 1;
-		var barSpace = Math.round( canvas.width - barWidth * temperedScale.length ) / ( temperedScale.length - 1 );
+
+		// the space remaining from the integer division is split equally among the bars as separator
+		var barSpace = ( canvas.width - barWidth * temperedScale.length ) / ( temperedScale.length - 1 );
 
 		ledsMask.width |= 0; // clear LEDs mask canvas
 
@@ -481,37 +539,26 @@ function preCalcPosX() {
 			ledsCtx.fillRect( 0, i, canvas.width, ledOptions.spaceV );
 	}
 
-	drawScale();
-}
+	// calculate the position of the labels (octaves center frequencies) for the X-axis scale
+	freqLabels = [
+		{ freq: 16 },
+		{ freq: 31 },
+		{ freq: 63 },
+		{ freq: 125 },
+		{ freq: 250 },
+		{ freq: 500 },
+		{ freq: 1000 },
+		{ freq: 2000 },
+		{ freq: 4000 },
+		{ freq: 8000 },
+		{ freq: 16000 }
+	];
 
-/**
- * Draws the x-axis scale
- */
-function drawScale() {
-
-	// octaves center frequencies
-	var bands = [ 16, 31, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000 ];
-
-	var size = 5 * pixelRatio;
-
-	if ( isFullscreen() )
-		size *= 2;
-
-	canvasCtx.fillStyle = '#000c';
-	canvasCtx.fillRect( 0, canvas.height - size * 4, canvas.width, size * 4 );
-
-	if ( ! showScale )
-		return;
-
-	canvasCtx.fillStyle = '#fff';
-	canvasCtx.font = ( size * 2 ) + 'px sans-serif';
-	canvasCtx.textAlign = 'center';
-
-	bands.forEach( function( freq ) {
-		var posX = bandWidth * ( Math.log10( freq ) - deltaX );
-		canvasCtx.fillText( freq >= 1000 ? ( freq / 1000 ) + 'k' : freq, posX, canvas.height - size );
+	freqLabels.forEach( label => {
+		label.posX = bandWidth * ( Math.log10( label.freq ) - minLog );
+		if ( label.freq >= 1000 )
+			label.freq = ( label.freq / 1000 ) + 'k';
 	});
-
 }
 
 /**
@@ -520,7 +567,7 @@ function drawScale() {
  */
 function draw() {
 
-	var l, bar, barHeight,
+	var i, j, l, bar, barHeight, size,
 		isLedDisplay = ( showLeds && mode > 0 );
 
 	if ( ! showBgColor )	// use black background
@@ -538,7 +585,7 @@ function draw() {
 	analyzer.getByteFrequencyData( dataArray );
 
 	l = analyzerBars.length;
-	for ( let i = 0; i < l; i++ ) {
+	for ( i = 0; i < l; i++ ) {
 
 		bar = analyzerBars[ i ];
 
@@ -548,13 +595,13 @@ function draw() {
 			barHeight = 0;
 			if ( bar.average ) {
 				// use the average value of the range
-				for ( let j = bar.dataIdx; j <= bar.endIdx; j++ )
+				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
 					barHeight += dataArray[ j ];
 				barHeight = barHeight / ( bar.endIdx - bar.dataIdx + 1 );
 			}
 			else {
 				// use the highest value in the range
-				for ( let j = bar.dataIdx; j <= bar.endIdx; j++ )
+				for ( j = bar.dataIdx; j <= bar.endIdx; j++ )
 					barHeight = Math.max( barHeight, dataArray[ j ] );
 			}
 		}
@@ -595,19 +642,32 @@ function draw() {
 	if ( isLedDisplay ) // applies LEDs mask over the canvas
 		canvasCtx.drawImage( ledsMask, 0, 0 );
 
-	if ( showScale )
-		drawScale();
+	if ( showScale ) {
+		size = 5 * pixelRatio;
+
+		if ( isFullscreen() )
+			size *= 2;
+
+		canvasCtx.fillStyle = '#000c';
+		canvasCtx.fillRect( 0, canvas.height - size * 4, canvas.width, size * 4 );
+
+		canvasCtx.fillStyle = '#fff';
+		canvasCtx.font = ( size * 2 ) + 'px sans-serif';
+		canvasCtx.textAlign = 'center';
+
+		freqLabels.forEach( label => canvasCtx.fillText( label.freq, label.posX, canvas.height - size ) );
+	}
 
 	frame++;
-	let now = performance.now();
-	let elapsed = now - time;
+	var now = performance.now();
+	var elapsed = now - time;
 	if ( elapsed >= 1000 ) {
 		fps = frame / ( elapsed / 1000 );
 		frame = 0;
 		time = now;
 	}
 	if ( showFPS ) {
-		let size = 20 * pixelRatio;
+		size = 20 * pixelRatio;
 		canvasCtx.font = `bold ${size}px sans-serif`;
 		canvasCtx.fillStyle = '#0f0';
 		canvasCtx.textAlign = 'right';
@@ -688,30 +748,28 @@ function setCanvas() {
 }
 
 /**
- * Display the canvas in full-screen mode
+ * Toggles canvas full-screen mode
  */
 export function toggleFullscreen() {
-
 	if ( isFullscreen() ) {
-		document.exitFullscreen();
+		if ( document.exitFullscreen )
+			document.exitFullscreen();
+		else if ( document.webkitExitFullscreen )
+			document.webkitExitFullscreen();
 	}
 	else {
 		if ( canvas.requestFullscreen )
 			canvas.requestFullscreen();
 		else if ( canvas.webkitRequestFullscreen )
 			canvas.webkitRequestFullscreen();
-		else if ( canvas.mozRequestFullScreen )
-			canvas.mozRequestFullScreen();
-		else if ( canvas.msRequestFullscreen )
-			canvas.msRequestFullscreen();
 	}
 }
 
 /**
  * Connect HTML audio element to analyzer
  *
- * @param {Object} element - DOM audio element
- * @returns {Object} a MediaElementAudioSourceNode object
+ * @param {object} element HTML audio element
+ * @returns {object} a MediaElementAudioSourceNode object
  */
 export function connectAudio( element ) {
 	var audioSource = audioCtx.createMediaElementSource( element );
@@ -721,6 +779,9 @@ export function connectAudio( element ) {
 
 /**
  * Start / stop canvas animation
+ *
+ * @param {boolean} [value] if undefined, inverts the current status
+ * @returns {boolean} resulting status after the change
  */
 export function toggleAnalyzer( value ) {
 	var started = isOn();
@@ -741,17 +802,11 @@ export function toggleAnalyzer( value ) {
 }
 
 /**
- * Stop canvas animation
- */
-export function stop() {
-	if ( animationReq ) {
-		cancelAnimationFrame( animationReq );
-		animationReq = null;
-	}
-}
-
-/**
- * Initialization
+ * Constructor
+ *
+ * @param {object} [container] DOM element where to insert the analyzer; if undefined, uses the document body
+ * @param {object} [options]
+ * @returns {object} MediaElementAudioSourceNode object to connected audio source
  */
 export function create( container, options = {} ) {
 
@@ -785,8 +840,8 @@ export function create( container, options = {} ) {
 	defaults.height = container.clientHeight || defaults.height;
 
 	mode        = options.mode        === undefined ? defaults.mode        : Number( options.mode );
-	fMin        = options.freqMin     === undefined ? defaults.freqMin     : options.freqMin;
-	fMax        = options.freqMax     === undefined ? defaults.freqMax     : options.freqMax;
+	minFreq     = options.minFreq     === undefined ? defaults.minFreq     : options.minFreq;
+	maxFreq     = options.maxFreq     === undefined ? defaults.maxFreq     : options.maxFreq;
 	gradient    = options.gradient    === undefined ? defaults.gradient    : options.gradient;
 	showBgColor = options.showBgColor === undefined ? defaults.showBgColor : options.showBgColor;
 	showLeds    = options.showLeds    === undefined ? defaults.showLeds    : options.showLeds;
@@ -817,6 +872,7 @@ export function create( container, options = {} ) {
 
 	// adjust canvas size on entering / leaving fullscreen
 	canvas.addEventListener( 'fullscreenchange', setCanvas );
+	canvas.addEventListener( 'webkitfullscreenchange', setCanvas ); // for Safari
 
 	// adjust canvas size on window resize
 	window.addEventListener( 'resize', () => {

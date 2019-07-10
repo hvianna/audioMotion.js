@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7-dev';
+var _VERSION = '19.7-dev.1';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -1071,8 +1071,8 @@ function loadPreset( name, alert ) {
 	audioMotion.setOptions( {
 		mode       : elMode.value,
 		fftSize    : elFFTsize.value,
-		freqMin    : elRangeMin.value,
-		freqMax    : elRangeMax.value,
+		minFreq    : elRangeMin.value,
+		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
 		showScale  : ( elShowScale.dataset.active == '1' ),
 		highSens   : ( elHighSens.dataset.active == '1' ),
