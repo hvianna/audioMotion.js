@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7-dev.1';
+var _VERSION = '19.7-dev.2';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -33,10 +33,6 @@ import notie from 'notie';
 import './notie.css';
 
 import './styles.css';
-
-// flags for audio elements initialized and skip track in progress
-var audioStarted = false,
-	skipping = false;
 
 // playlist, index to the current song, indexes to current and next audio elements
 var playlist, playlistPos, currAudio, nextAudio;
@@ -51,6 +47,9 @@ var	audioElement, sourcePlayer, sourceMic, cfgSource;
 
 // on-screen messages
 var	canvasMsg;
+
+// flag for skip track in progress
+var skipping = false;
 
 /**
  * Configuration presets
@@ -179,21 +178,6 @@ var	gradients = {
 				  ] },
 	};
 
-
-/**
- * Start audio elements on user gesture (click or keypress)
- */
-function initAudio() {
-	// fix for suspended audio context on Safari
-	if ( audioMotion.audioCtx.state == 'suspended' )
-		audioMotion.audioCtx.resume();
-
-	if ( ! audioStarted ) {
-		audioElement[0].play();
-		audioElement[1].play();
-		window.removeEventListener( 'click', initAudio );
-	}
-}
 
 /**
  * Display the canvas in full-screen mode
@@ -1138,9 +1122,6 @@ function updateCustomPreset() {
  */
 function keyboardControls( event ) {
 
-	if ( ! audioStarted )
-		initAudio();
-
 	if ( event.target.tagName != 'BODY' )
 		return;
 
@@ -1280,24 +1261,15 @@ function keyboardControls( event ) {
  * Event handler for 'play' on audio elements
  */
 function audioOnPlay( event ) {
-	if ( audioStarted ) {
-		if ( elShowSong.dataset.active == '1' )
-			setCanvasMsg( 'song', 600, 180 );
-		if ( ! audioElement[ currAudio ].attributes.src ) {
-			if ( playlist.children.length == 0 ) {
-				consoleLog( 'No song loaded', true );
-				audioElement[ currAudio ].pause();
-			}
-			else
-				playSong( playlistPos );
+	if ( elShowSong.dataset.active == '1' )
+		setCanvasMsg( 'song', 600, 180 );
+	if ( ! audioElement[ currAudio ].attributes.src ) {
+		if ( playlist.children.length == 0 ) {
+			consoleLog( 'No song loaded', true );
+			audioElement[ currAudio ].pause();
 		}
-	}
-	else {
-		event.target.pause();
-		if ( event.target.id == 'player1' ) {
-			audioStarted = true;
-			consoleLog( 'Started audio elements' );
-		}
+		else
+			playSong( playlistPos );
 	}
 }
 
@@ -1595,8 +1567,19 @@ function setLoRes() {
 	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
 
-	// On Webkit audio must be started on some user gesture
-	window.addEventListener( 'click', initAudio );
+	// Start / resume AudioContext on user gesture (autoplay policy)
+	window.addEventListener( 'click', () => {
+		if ( audioMotion.audioCtx.state == 'suspended' ) {
+			audioMotion.audioCtx.resume()
+			.then( () => {
+				consoleLog( 'AudioContext started' );
+			})
+			.catch( err => {
+				consoleLog( `Failed starting AudioContext: ${err}`, true );
+			});
+		}
+	});
+
 })();
 
 /**
