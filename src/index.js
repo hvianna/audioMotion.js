@@ -442,9 +442,9 @@ function addSongToPlaylist( uri, content = {} ) {
 	var el = document.createElement('li');
 
 	el.dataset.artist = content.artist || '';
-	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 );
+	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' );
 	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
-	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	el.dataset.file = uri;
 
 	el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
