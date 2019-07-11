@@ -13,10 +13,9 @@ select,
 input[type="text"] {
 	padding: 6px;
 }
-input[type="number"] {
-	padding: 4px;
+input[type="range"] {
 	vertical-align: middle;
-	width: 60px;
+	width: 80px;
 }
 
 button {
