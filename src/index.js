@@ -1573,11 +1573,13 @@ function setLoRes() {
 				selectedClass: 'selected',
 				sort: false,
 				onEnd: evt => {
-					let items = evt.items.length ? evt.items : [ evt.item ];
-					items.forEach( item => {
-						addToPlaylist( fileExplorer.makePath( item.dataset.path ) );
-						item.remove();
-					});
+					if ( evt.to.id == 'playlist') {
+						let items = evt.items.length ? evt.items : [ evt.item ];
+						items.forEach( item => {
+							addToPlaylist( fileExplorer.makePath( item.dataset.path ) );
+							item.remove();
+						});
+					}
 				}
 			});
 		}
