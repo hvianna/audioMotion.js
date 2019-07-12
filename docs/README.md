@@ -3,26 +3,31 @@ audioMotion.js Documentation
 
 ## Summary
 
-**User interface**
+### User interface
 
-* Configuration presets
-* Settings
-* File explorer and playlist
-* Fullscreen mode and keyboard shortcuts
-* Console
+- [Main controls](user-interface#main-controls)
+  - [Audio source](user-interface#audio-source)
+  - [Player controls](user-interface#player-controls)
+  - [Fullscreen mode and keyboard shortcuts](user-interface#fullscreen-mode-and-keyboard-shortcuts)
+- [Panels](user-interface#panels)
+  - [Settings Panel](user-interface#settings-panel)
+  - [Files Panel](user-interface#files-panel)
+    - [File explorer](user-interface#file-explorer)
+    - [Play queue and playlists](user-interface#play-queue-and-playlists)
+  - [Console](user-interface#console)
 
-**Server modes**
+### Server modes
 
-* [Local mode](server.md)
-* [Custom file server](server.md#custom-file-server)
-* [Using a standard web server](server.md#using-a-standard-web-server)
-* [Apache web server with Docker](server.md#apache-web-server-with-docker)
+- [Local mode](server.md)
+- [Custom file server](server.md#custom-file-server)
+- [Using a standard web server](server.md#using-a-standard-web-server)
+- [Apache web server with Docker](server.md#apache-web-server-with-docker)
 
-**Building audioMotion**
+### Building audioMotion
 
-* [Building the client](building.md#building-the-client)
-* [Building binaries](building.md#building-binaries)
+- [Building the client](building.md#building-the-client)
+- [Building binaries](building.md#building-binaries)
 
-**Legacy features**
+### Legacy features
 
-* [Legacy playlists file](legacy.md)
+- [Legacy playlists file](legacy.md)
