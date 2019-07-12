@@ -4,7 +4,9 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * Copyright (C) 2018-2019 Henrique Vianna <hvianna@gmail.com>
+ * @author    Henrique Vianna <hvianna@gmail.com>
+ * @copyright (c) 2018-2019 Henrique Avila Vianna
+ * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -430,8 +432,6 @@ function addSongToPlaylist( uri, content = {} ) {
 	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	el.dataset.file = uri;
-
-	el.innerText = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
 	playlist.appendChild( el );
 
 	var len = playlist.children.length;
@@ -440,18 +440,14 @@ function addSongToPlaylist( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
-	mm.fetchFromUrl( uri, { skipCovers: true } )
-		.then( metadata => {
-			if ( metadata ) {
-				addMetadata( metadata, el ); // add metadata to playlist item
-				el.innerHTML = ( el.dataset.artist ? el.dataset.artist + ' / ' : '' ) + el.dataset.title;
-
-				for ( let i in [0,1] ) {
-					if ( audioElement[ i ].dataset.file == el.dataset.file )
-						addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
-				}
-			}
-		});
+	mm.fetchFromUrl( uri, { skipCovers: true } ).then( metadata => {
+		if ( metadata ) {
+			addMetadata( metadata, el ); // add metadata to playlist item
+			for ( let i in [0,1] )
+				if ( audioElement[ i ].dataset.file == el.dataset.file )
+					addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
+		}
+	});
 }
 
 /**
@@ -1312,7 +1308,7 @@ function setLoRes() {
  */
 (function() {
 
-	consoleLog( 'audioMotion ver. ' + _VERSION );
+	consoleLog( 'audioMotion.js ver. ' + _VERSION );
 	consoleLog( 'Initializing...' );
 
 	// Initialize play queue and set event listeners
@@ -1372,7 +1368,7 @@ function setLoRes() {
 		return false;
 	}
 
-	consoleLog( `Audio context sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
+	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
 	// Create audio elements
 

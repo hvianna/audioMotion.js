@@ -419,6 +419,14 @@ kbd.wide {
 .filelist [data-type="list"]::before {
 	content: '\f102';
 }
+
+#playlist li::before {
+	content: attr(data-title);
+	display: inline-block;
+	overflow: hidden;
+	vertical-align: text-bottom;
+	width: calc( 100% - 3em );
+}
 .filelist li::after {
 	content: attr(data-duration);
 	float: right;
