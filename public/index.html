@@ -175,25 +175,6 @@
 					</select>
 					<button id="load_preset">Load</button>
 				</div>
-			</div> <!-- .config-row -->
-
-			<div class="config-row flex">
-				<div class="config-col">
-					<span class="help"><span class="config-label"><u>M</u>ode:</span>
-						<span class="tooltip">
-						Visualization mode. Octave bands are based on the equal tempered scale.
-						</span>
-					</span>
-					<select id="mode">
-						<option value="0">Discrete frequencies</option>
-						<option value="24">Full-octave bands</option>
-						<option value="12">Half-octave bands</option>
-						<option value="8">1/3rd-octave bands</option>
-						<option value="4">1/6th-octave bands</option>
-						<option value="2">1/12th-octave bands</option>
-						<option value="1">1/24th-octave bands</option>
-					</select>
-				</div>
 
 				<div class="config-col">
 					<span class="config-label"><u>G</u>radient:</span>
@@ -222,6 +203,23 @@
 			</div> <!-- .config-row -->
 
 			<div class="config-row flex">
+				<div class="config-col">
+					<span class="help"><span class="config-label"><u>M</u>ode:</span>
+						<span class="tooltip">
+						Visualization mode. Octave bands are based on the equal tempered scale.
+						</span>
+					</span>
+					<select id="mode">
+						<option value="0">Discrete frequencies</option>
+						<option value="24">Full-octave bands</option>
+						<option value="12">Half-octave bands</option>
+						<option value="8">1/3rd-octave bands</option>
+						<option value="4">1/6th-octave bands</option>
+						<option value="2">1/12th-octave bands</option>
+						<option value="1">1/24th-octave bands</option>
+					</select>
+				</div>
+
 				<div class="config-col">
 					<span class="help"><span class="config-label">FFT size:</span>
 						<span class="tooltip">
@@ -272,6 +270,15 @@
 					</span>
 					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
 				</div>
+			</div> <!-- .config-row -->
+
+			<div class="config-row flex">
+				<div class="config-col">
+					<span class="help">
+						<button id="btn_save">Save current settings</button>
+						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
+					</span>
+				</div>
 
 				<div class="config-col center">
 					<span class="config-label">Performance:</span>
@@ -283,15 +290,6 @@
 						<li class="switch" id="fps">FPS
 							<span class="tooltip">Display current frame rate</span>
 					</ul>
-				</div>
-			</div> <!-- .config-row -->
-
-			<div class="config-row flex">
-				<div class="config-col">
-					<span class="help">
-						<button id="btn_save">Save current settings</button>
-						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-					</span>
 				</div>
 			</div> <!-- .config-row -->
 

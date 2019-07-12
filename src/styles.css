@@ -36,7 +36,6 @@ button.switch[data-active="1"] {
 }
 
 header {
-/*	background: #000; */
 	color: #eee;
 	padding: 10px 20px;
 	position: absolute;
@@ -73,8 +72,7 @@ ul {
 
 #player0,
 #player1 {
-	display: block;
-/*	margin-bottom: 10px; */
+	display: none;
 	width: 100%
 }
 
@@ -198,7 +196,7 @@ ul {
 }
 
 .config-row {
-	margin-bottom: 40px;
+	margin: 20px 0 30px;
 }
 .config-row select {
 	padding: 4px;
@@ -220,13 +218,6 @@ ul {
 	padding: 10px;
 }
 .player-controls button {
-/*
-	background: #f0f0f0;
-	border-radius: 5px;
-	box-shadow: 1px 1px 1px 0 #999;
-	cursor: pointer;
-	display: inline-block;
-*/
 	margin: 5px 0;
 	padding: 0 8px;
 	font-size: 30px;
@@ -304,8 +295,10 @@ ul {
 	top: -50px;
 }
 .switch .tooltip {
-	right: 0;
 	top: 30px;
+}
+.config-col:last-child .tooltip {
+	right: 0;
 }
 .button-column .tooltip {
 	left: -50%;
