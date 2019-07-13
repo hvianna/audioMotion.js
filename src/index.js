@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7-dev.2';
+var _VERSION = '19.7-dev.3';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -294,6 +294,7 @@ function clearAudioElement( n = currAudio ) {
 	audioElement[ n ].dataset.codec = '';
 	audioElement[ n ].dataset.quality = '';
 	audioElement[ n ].dataset.duration = '';
+	audioElement[ n ].load();
 }
 
 /**
@@ -306,14 +307,12 @@ function clearPlaylist() {
 
 	if ( ! isPlaying() ) {
 		playlistPos = 0;
-		clearAudioElement(0);
-		clearAudioElement(1);
+		clearAudioElement( currAudio );
 	}
-	else {
+	else
 		playlistPos = -1;
-		clearAudioElement( ! currAudio | 0 );
-	}
 
+	clearAudioElement( nextAudio );
 	updatePlaylistUI();
 }
 
@@ -1259,14 +1258,9 @@ function keyboardControls( event ) {
 function audioOnPlay( event ) {
 	if ( elShowSong.dataset.active == '1' )
 		setCanvasMsg( 'song', 600, 180 );
-	if ( ! audioElement[ currAudio ].attributes.src ) {
-		if ( playlist.children.length == 0 ) {
-			consoleLog( 'No song loaded', true );
-			audioElement[ currAudio ].pause();
-		}
-		else
-			playSong( playlistPos );
-	}
+
+	if ( ! audioElement[ currAudio ].attributes.src )
+		playSong( playlistPos );
 }
 
 /**
@@ -1563,16 +1557,14 @@ function setLoRes() {
 	// Add event listener for keyboard controls
 	window.addEventListener( 'keyup', keyboardControls );
 
-	// Start / resume AudioContext on user gesture (autoplay policy)
+	// Unlock AudioContext on user gesture (autoplay policy)
 	window.addEventListener( 'click', () => {
 		if ( audioMotion.audioCtx.state == 'suspended' ) {
 			audioMotion.audioCtx.resume()
-			.then( () => {
-				consoleLog( 'AudioContext started' );
-			})
-			.catch( err => {
-				consoleLog( `Failed starting AudioContext: ${err}`, true );
-			});
+				.then( () => consoleLog( 'AudioContext started' ) )
+				.catch( err => consoleLog( `Failed starting AudioContext: ${err}`, true ) );
+
+			audioElement[ nextAudio ].load(); // unlock next audio element - required on iOS Safari
 		}
 	});
 
