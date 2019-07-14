@@ -202,6 +202,7 @@ function setSensitivity() {
  */
 function setSmoothing() {
 	audioMotion.setSmoothing( elSmoothing.value );
+	document.getElementById('smoothingValue').innerText = elSmoothing.value;
 	consoleLog( 'smoothingTimeConstant is ' + audioMotion.analyzer.smoothingTimeConstant );
 	updateLastConfig();
 }
@@ -1010,7 +1011,7 @@ function loadPreset( name, alert ) {
 		elRangeMax.value = thisPreset.freqMax;
 
 	if ( thisPreset.hasOwnProperty( 'smoothing' ) )
-		elSmoothing.value = thisPreset.smoothing;
+		document.getElementById('smoothingValue').innerText = elSmoothing.value = thisPreset.smoothing;
 
 	if ( thisPreset.hasOwnProperty( 'showScale' ) )
 		elShowScale.dataset.active = Number( thisPreset.showScale );
