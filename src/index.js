@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7-dev.3';
+var _VERSION = '19.7-dev.4';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -921,6 +921,18 @@ function setCanvasMsg( msg, timer = 120, fade = 60 ) {
 		canvasMsg = { msg: msg, timer: timer, fade: fade };
 }
 
+/**
+ * Display information about canvas size changes
+ */
+function showCanvasInfo( reason, width, height, isFullscreen, isLoRes, pixelRatio ) {
+	if ( ['lores','user'].includes( reason ) )
+		consoleLog( `Lo-res mode ${ isLoRes ? 'ON' : 'OFF' } - pixelRatio is ${ pixelRatio }` );
+
+	if ( reason == 'user' )
+		consoleLog( `Canvas size set to ${ width } x ${ height } pixels` );
+	else if ( ['lores','resize'].includes( reason ) )
+		consoleLog( `Canvas resized to ${ width } x ${ height } pixels ${ isFullscreen ? '(fullscreen)' : '' }` )
+}
 
 /**
  * Output messages to the UI "console"
@@ -1291,9 +1303,6 @@ function audioOnError( e ) {
  */
 function setLoRes() {
 	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
-	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - pixel ratio is ${audioMotion.pixelRatio}` );
-	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
-	consoleLog( `Fullscreen resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	updateLastConfig();
 }
 
@@ -1303,8 +1312,9 @@ function setLoRes() {
  */
 (function() {
 
-	consoleLog( 'audioMotion.js ver. ' + _VERSION );
+	consoleLog( `audioMotion.js ver. ${_VERSION}` );
 	consoleLog( 'Initializing...' );
+	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
@@ -1354,7 +1364,8 @@ function setLoRes() {
 		audioMotion.create(
 			document.getElementById('analyzer'),
 			{
-				drawCallback: displayCanvasMsg
+				onCanvasDraw: displayCanvasMsg,
+				onCanvasResize: showCanvasInfo
 			}
 		);
 	}
@@ -1489,13 +1500,10 @@ function setLoRes() {
 	else
 		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
 
-	loadPreset('last');
-
+	consoleLog( `Device resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	consoleLog( `Device pixel ratio: ${window.devicePixelRatio}` );
-	consoleLog( `Lo-res mode ${audioMotion.loRes ? 'ON' : 'OFF'} - pixel ratio is ${audioMotion.pixelRatio}` );
-	consoleLog( `Canvas size is ${audioMotion.canvas.width} x ${audioMotion.canvas.height} pixels` );
-	consoleLog( `Fullscreen resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
-	consoleLog( `User agent: ${window.navigator.userAgent}` );
+
+	loadPreset('last');
 
 	// Set audio source to built-in player
 	setSource();
