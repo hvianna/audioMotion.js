@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7-dev.4';
+var _VERSION = '19.7-dev.5';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -41,7 +41,7 @@ var playlist, playlistPos, currAudio, nextAudio;
 
 // HTML elements from the UI
 var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
-	elHighSens, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
+	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS;
 
 // audio sources
@@ -52,6 +52,9 @@ var	canvasMsg;
 
 // flag for skip track in progress
 var skipping = false;
+
+// for sensitivity presets (keyboard shortcut)
+var sensitivity = 1;
 
 /**
  * Configuration presets
@@ -67,8 +70,9 @@ var presets = {
 			blackBg     : 0,
 			cycleGrad   : 1,
 			ledDisplay  : 0,
+			maxDb       : -25,
+			minDb       : -85,
 			showScale   : 1,
-			highSens    : 0,
 			showPeaks   : 1,
 			showSong    : 1,
 			repeat      : 0,
@@ -193,7 +197,7 @@ function fullscreen() {
  * Adjust the analyzer's sensitivity
  */
 function setSensitivity() {
-	audioMotion.setSensitivity( elHighSens.dataset.active == '1' );
+	audioMotion.setSensitivity( elMinDb.value, elMaxDb.value );
 	updateLastConfig();
 }
 
@@ -1028,8 +1032,11 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'showScale' ) )
 		elShowScale.dataset.active = Number( thisPreset.showScale );
 
-	if ( thisPreset.hasOwnProperty( 'highSens' ) )
-		elHighSens.dataset.active = Number( thisPreset.highSens );
+	if ( thisPreset.hasOwnProperty( 'minDb' ) )
+		elMinDb.value = thisPreset.minDb;
+
+	if ( thisPreset.hasOwnProperty( 'maxDb' ) )
+		elMaxDb.value = thisPreset.maxDb;
 
 	if ( thisPreset.hasOwnProperty( 'showPeaks' ) )
 		elShowPeaks.dataset.active = Number( thisPreset.showPeaks );
@@ -1067,8 +1074,9 @@ function loadPreset( name, alert ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
+		minDb      : elMinDb.value,
+		maxDb      : elMaxDb.value,
 		showScale  : ( elShowScale.dataset.active == '1' ),
-		highSens   : ( elHighSens.dataset.active == '1' ),
 		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
 		showBgColor: ( elBlackBg.dataset.active == '0' ),
 		showLeds   : ( elLedDisplay.dataset.active == '1' ),
@@ -1093,8 +1101,9 @@ function saveConfig( config ) {
 		smoothing	: audioMotion.analyzer.smoothingTimeConstant,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
+		minDb       : elMinDb.value,
+		maxDb       : elMaxDb.value,
 		showScale 	: elShowScale.dataset.active == '1',
-		highSens	: elHighSens.dataset.active == '1',
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
 		cycleGrad   : elCycleGrad.dataset.active == '1',
@@ -1231,9 +1240,31 @@ function keyboardControls( event ) {
 			setMode();
 			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
 			break;
-		case 'KeyN': 		// toggle sensitivity
-			elHighSens.click();
-			setCanvasMsg( ( elHighSens.dataset.active == '1' ? 'HIGH' : 'LOW' ) + ' sensitivity' );
+		case 'KeyN': 		// increase or reduce sensitivity
+			if ( event.shiftKey ) {
+				if ( sensitivity > 0 )
+					sensitivity--;
+			}
+			else {
+				if ( sensitivity < 2 )
+					sensitivity++;
+				else
+					sensitivity = 0;
+			}
+			if ( sensitivity == 0 ) {
+				elMinDb.value = -70;
+				elMaxDb.value = -20;
+			}
+			else if ( sensitivity == 1 ) {
+				elMinDb.value = -85;
+				elMaxDb.value = -25;
+			}
+			else {
+				elMinDb.value = -100;
+				elMaxDb.value = - 30;
+			}
+			setSensitivity();
+			setCanvasMsg( `${ ['LOW','NORMAL','HIGH'][ sensitivity ] } sensitivity` );
 			break;
 		case 'KeyO': 		// toggle resolution
 			elLoRes.click();
@@ -1403,25 +1434,43 @@ function setLoRes() {
 
 	// Set UI elements
 
-	elFFTsize   = document.getElementById('fft_size');
-	elRangeMin  = document.getElementById('freq_min');
-	elRangeMax  = document.getElementById('freq_max');
-	elSmoothing = document.getElementById('smoothing');
-	elMode      = document.getElementById('mode');
-	elGradient  = document.getElementById('gradient');
-	elShowScale = document.getElementById('show_scale');
-	elHighSens  = document.getElementById('sensitivity');
-	elShowPeaks = document.getElementById('show_peaks');
-	elBlackBg   = document.getElementById('black_bg');
-	elCycleGrad = document.getElementById('cycle_grad');
-	elLedDisplay= document.getElementById('led_display');
-	elRepeat    = document.getElementById('repeat');
-	elShowSong  = document.getElementById('show_song');
-	elNoShadow  = document.getElementById('no_shadow');
-	elLoRes     = document.getElementById('lo_res');
-	elFPS       = document.getElementById('fps');
-	elSource    = document.getElementById('source');
-	elPlaylists = document.getElementById('playlists');
+	elFFTsize     = document.getElementById('fft_size');
+	elRangeMin    = document.getElementById('freq_min');
+	elRangeMax    = document.getElementById('freq_max');
+	elSmoothing   = document.getElementById('smoothing');
+	elMode        = document.getElementById('mode');
+	elGradient    = document.getElementById('gradient');
+	elShowScale   = document.getElementById('show_scale');
+	elMinDb       = document.getElementById('min_db');
+	elMaxDb       = document.getElementById('max_db');
+	elShowPeaks   = document.getElementById('show_peaks');
+	elBlackBg     = document.getElementById('black_bg');
+	elCycleGrad   = document.getElementById('cycle_grad');
+	elLedDisplay  = document.getElementById('led_display');
+	elRepeat      = document.getElementById('repeat');
+	elShowSong    = document.getElementById('show_song');
+	elNoShadow    = document.getElementById('no_shadow');
+	elLoRes       = document.getElementById('lo_res');
+	elFPS         = document.getElementById('fps');
+	elSource      = document.getElementById('source');
+	elPlaylists   = document.getElementById('playlists');
+
+	// Populate combo boxes
+	for ( let i = 9; i < 16; i++ )
+		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
+
+	for ( let i of [20,30,40,50,60,100,250,500,1000,2000] )
+		elRangeMin[ elRangeMin.options.length ] = new Option( i >= 1000 ? ( i / 1000 ) + 'k' : i, i );
+
+	for ( let i of [1000,2000,4000,8000,12000,16000,22000] )
+		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
+
+	for ( let i = -60; i >= -110; i -= 5 )
+		elMinDb[ elMinDb.options.length ] = new Option( i );
+
+	for ( let i = 0; i >= -40; i -= 5 )
+		elMaxDb[ elMaxDb.options.length ] = new Option( i );
+
 
 	// Add event listeners to the custom checkboxes
 	var switches = document.querySelectorAll('.switch');
@@ -1434,27 +1483,28 @@ function setLoRes() {
 		});
 	}
 
-	elShowScale. addEventListener( 'click', setScale );
-	elHighSens.  addEventListener( 'click', setSensitivity );
-	elShowPeaks. addEventListener( 'click', setShowPeaks );
-	elBlackBg.   addEventListener( 'click', setBlackBg );
-	elCycleGrad. addEventListener( 'click', updateLastConfig );
-	elLedDisplay.addEventListener( 'click', setLedDisplay );
-	elRepeat.    addEventListener( 'click', updateLastConfig );
-	elShowSong.  addEventListener( 'click', updateLastConfig );
-	elNoShadow.  addEventListener( 'click', updateLastConfig );
-	elLoRes.     addEventListener( 'click', setLoRes );
-	elFPS.       addEventListener( 'click', setFPS );
+	elShowScale.  addEventListener( 'click', setScale );
+	elShowPeaks.  addEventListener( 'click', setShowPeaks );
+	elBlackBg.    addEventListener( 'click', setBlackBg );
+	elCycleGrad.  addEventListener( 'click', updateLastConfig );
+	elLedDisplay. addEventListener( 'click', setLedDisplay );
+	elRepeat.     addEventListener( 'click', updateLastConfig );
+	elShowSong.   addEventListener( 'click', updateLastConfig );
+	elNoShadow.   addEventListener( 'click', updateLastConfig );
+	elLoRes.      addEventListener( 'click', setLoRes );
+	elFPS.        addEventListener( 'click', setFPS );
 
 	// Add event listeners to UI config elements
 
-	elMode.      addEventListener( 'change', setMode );
-	elFFTsize.   addEventListener( 'change', setFFTsize );
-	elRangeMin.  addEventListener( 'change', setFreqRange );
-	elRangeMax.  addEventListener( 'change', setFreqRange );
-	elGradient.  addEventListener( 'change', setGradient );
-	elSource.    addEventListener( 'change', setSource );
-	elSmoothing. addEventListener( 'change', setSmoothing );
+	elMode.       addEventListener( 'change', setMode );
+	elFFTsize.    addEventListener( 'change', setFFTsize );
+	elRangeMin.   addEventListener( 'change', setFreqRange );
+	elRangeMax.   addEventListener( 'change', setFreqRange );
+	elGradient.   addEventListener( 'change', setGradient );
+	elSource.     addEventListener( 'change', setSource );
+	elSmoothing.  addEventListener( 'change', setSmoothing );
+	elMinDb.      addEventListener( 'change', setSensitivity );
+	elMaxDb.      addEventListener( 'change', setSensitivity );
 
 	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );

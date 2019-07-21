@@ -86,6 +86,7 @@
 						<tr><td><kbd>F</kbd></td><td>toggle fullscreen</td></tr>
 						<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
 						<tr><td><kbd>M</kbd> / <kbd>m</kbd></td><td>previous / next mode</td></tr>
+						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>change sensitivity</td></tr>
 						<tr><td><kbd>R</kbd></td><td>toggle playlist repeat</td></tr>
 						<tr><td><kbd>U</kbd></td><td>shuffle playlist</td></tr>
 						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
@@ -185,8 +186,6 @@
 							<span class="tooltip">Use black background instead of background color defined by gradient</span>
 						<li class="switch" id="cycle_grad"><u>A</u>uto
 							<span class="tooltip">Select next gradient automatically on each track change</span>
-						<li class="switch" id="led_display"><u>L</u>ED
-							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 					</ul>
 				</div>
 
@@ -195,10 +194,14 @@
 						<span class="tooltip">Display song info in the visualization area on every track change
 					<li class="switch" id="show_scale"><u>S</u>CALE
 						<span class="tooltip">Show / hide the frequency scale</span>
-					<li class="switch" id="sensitivity">SE<u>N</u>S
-						<span class="tooltip">Increase analyzer sensitivity to improve visualization of songs too quiet</span>
 					<li class="switch" id="show_peaks"><u>P</u>EAKS
 						<span class="tooltip">Hold volume peaks on screen for a short time</span>
+					<li class="switch" id="no_shadow">FLA<u>T</u>
+						<span class="tooltip">Disable shadows on canvas messages</span>
+					<li class="switch" id="lo_res">L<u>O</u>-RES
+						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+					<li class="switch" id="fps">FPS
+						<span class="tooltip">Display current frame rate</span>
 				</ul>
 			</div> <!-- .config-row -->
 
@@ -218,6 +221,10 @@
 						<option value="2">1/12th-octave bands</option>
 						<option value="1">1/24th-octave bands</option>
 					</select>
+					<ul class="switch-bar">
+						<li class="switch" id="led_display"><u>L</u>EDS
+							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+					</ul>
 				</div>
 
 				<div class="config-col">
@@ -226,46 +233,21 @@
 						Larger values provide more detail in the frequency domain, but less detail in the time domain.
 						</span>
 					</span>
-					<select id="fft_size">
-						<option value="512">512</option>
-						<option value="1024">1024</option>
-						<option value="2048">2048</option>
-						<option value="4096">4096</option>
-						<option value="8192">8192</option>
-						<option value="16384">16384</option>
-						<option value="32768">32768</option>
-					</select>
+					<select id="fft_size"></select>
 				</div>
 
 				<div class="config-col">
 					<span class="help"><span class="config-label">Range:</span>
 						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
 					</span>
-					<select id="freq_min">
-						<option value="20">20</option>
-						<option value="30">30</option>
-						<option value="40">40</option>
-						<option value="50">50</option>
-						<option value="100">100</option>
-						<option value="500">500</option>
-						<option value="1000">1k</option>
-					</select>
-					-
-					<select id="freq_max">
-						<option value="1000">1k</option>
-						<option value="2000">2k</option>
-						<option value="4000">4k</option>
-						<option value="8000">8k</option>
-						<option value="16000">16k</option>
-						<option value="22000">22k</option>
-					</select>
-					Hz
+					<select id="freq_min"></select> -
+					<select id="freq_max"></select>	Hz
 				</div>
 
 				<div class="config-col">
 					<span class="help"><span class="config-label">Smoothing:</span>
 						<span class="tooltip">
-						Lower values make the analyzer respond faster to changes.
+						Lower values make the analyzer respond faster to changes
 						</span>
 					</span>
 					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
@@ -282,15 +264,13 @@
 				</div>
 
 				<div class="config-col center">
-					<span class="config-label">Performance:</span>
-					<ul class="switch-bar">
-						<li class="switch" id="no_shadow">FLA<u>T</u>
-							<span class="tooltip">Disable shadows on canvas messages</span>
-						<li class="switch" id="lo_res">L<u>O</u>-RES
-							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-						<li class="switch" id="fps">FPS
-							<span class="tooltip">Display current frame rate</span>
-					</ul>
+					<span class="help"><span class="config-label">Sensitivity:</span>
+						<span class="tooltip">
+						Adjust analyzer sensitivity to improve visualization of songs too quiet or too loud
+						</span>
+					</span>
+					<select id="min_db"></select> to
+					<select id="max_db"></select> dB
 				</div>
 			</div> <!-- .config-row -->
 
