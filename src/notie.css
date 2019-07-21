@@ -6,7 +6,7 @@
   left: 0;
   margin: 0 auto;
   max-width: 100%;
-  position: absolute;
+  position: fixed;
   right: 0;
   text-align: center;
   width: 600px;
@@ -19,7 +19,7 @@
   background: #000;
 }
 
-.notie-background-warning {
+.notie-alert {
   background: #666;
   color: #f0f0f0;
 }

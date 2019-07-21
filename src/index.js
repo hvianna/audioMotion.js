@@ -526,7 +526,7 @@ function savePlaylist( index ) {
 	if ( elPlaylists[ index ].value == '' )
 		storePlaylist();
 	else if ( ! elPlaylists[ index ].dataset.isLocal )
-		notie.alert({ type: 2, text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
+		notie.alert({ text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
 	else
 		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
 			submitText: 'Overwrite',
@@ -545,7 +545,7 @@ function savePlaylist( index ) {
 function storePlaylist( name, update = true ) {
 
 	if ( playlist.children.length == 0 ) {
-		notie.alert({ type: 2, text: 'Play queue is empty!' });
+		notie.alert({ text: 'Play queue is empty!' });
 		return;
 	}
 
@@ -591,7 +591,7 @@ function storePlaylist( name, update = true ) {
 		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
 		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
-		notie.alert({ type: 2, text: `Saving playlist` });
+		notie.alert({ text: `Playlist saved!` });
 	}
 }
 
@@ -599,7 +599,7 @@ function storePlaylist( name, update = true ) {
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
-	if ( elPlaylists[ index ].value ) {
+	if ( elPlaylists[ index ].dataset.isLocal ) {
 		notie.confirm({
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
@@ -614,7 +614,7 @@ function deletePlaylist( index ) {
 				}
 
 				localStorage.removeItem( `pl_${keyName}` );
-				notie.alert({ type: 2, text: 'Playlist deleted!' });
+				notie.alert({ text: 'Playlist deleted' });
 				loadSavedPlaylists();
 			},
 			cancelCallback: () => {
@@ -622,6 +622,8 @@ function deletePlaylist( index ) {
 			},
 		});
 	}
+	else if ( elPlaylists[ index ].value )
+		notie.alert({ text: 'Cannot delete a server playlist!' });
 }
 
 /**
@@ -1550,8 +1552,8 @@ function setLoRes() {
 	else
 		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
 
-	consoleLog( `Device resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
-	consoleLog( `Device pixel ratio: ${window.devicePixelRatio}` );
+	consoleLog( `Display resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
+	consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
 
 	loadPreset('last');
 
@@ -1625,6 +1627,11 @@ function setLoRes() {
 
 			audioElement[ nextAudio ].load(); // unlock next audio element - required on iOS Safari
 		}
+	});
+
+	// notie options
+	notie.setOptions({
+		positions: { alert: 'bottom' }
 	});
 
 })();
