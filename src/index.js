@@ -134,6 +134,10 @@ var	gradients = {
 					{ pos: 1, color: '#3a1c71' }
 				  ] },
 		classic:  { name: 'Classic' },
+		cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
+					'hsl( 208, 0%, 100% )',
+					'hsl( 208, 100%, 35% )'
+				  ] },
 		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
 					{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
 					{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
