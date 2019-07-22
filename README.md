@@ -54,17 +54,17 @@ For complete documentation, see the [docs folder](docs/).
 
 ## Screenshots
 
-Analyzer on discrete frequencies mode and "Apple ][" gradient. User interface showing the files panel, with file explorer and play queue.
-![screenshot1](docs/img/screenshot1.png "Analyzer on discrete frequencies mode and 'Apple ][' gradient. User interface showing the files panel, with file explorer and play queue.")
+Discrete frequencies mode. User interface showing the file explorer and play queue.
+![screenshot1](docs/img/screenshot1.png "Discrete frequencies mode. User interface showing the file explorer and play queue.")
 
-Analyzer on 1/6th-octave bands mode with LED effect, "Outrun" gradient and on-screen song information. User interface showing the settings panel.
-![screenshot2](docs/img/screenshot2.png "Analyzer on 1/6th-octave bands mode with LED effect, 'Outrun' gradient and on-screen song information. User interface showing the settings panel.")
+1/6th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.
+![screenshot2](docs/img/screenshot2.png "1/6th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.")
 
-Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Classic" gradient, with complete on-screen information
+Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Classic" gradient, with complete on-screen information.
 ![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Classic' gradient, with complete on-screen information")
 
-Full screen view: Discrete frequencies mode, 20Hz-22KHz, "Prism" gradient
-![screenshot4](docs/img/screenshot4.png "Full screen view: Discrete frequencies mode, 20Hz-22KHz, 'Prism' gradient")
+Full screen view: Discrete frequencies mode, 20Hz-22KHz, frequency scale on, "Prism" gradient.
+![screenshot4](docs/img/screenshot4.png "Full screen view: Discrete frequencies mode, 20Hz-22KHz, frequency scale on,'Prism' gradient")
 
 
 ## Credits and acknowledgments

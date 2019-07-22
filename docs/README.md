@@ -5,16 +5,16 @@ audioMotion.js Documentation
 
 ### User interface
 
-- [Main controls](user-interface#main-controls)
-  - [Audio source](user-interface#audio-source)
-  - [Player controls](user-interface#player-controls)
-  - [Fullscreen mode and keyboard shortcuts](user-interface#fullscreen-mode-and-keyboard-shortcuts)
-- [Panels](user-interface#panels)
-  - [Settings Panel](user-interface#settings-panel)
-  - [Files Panel](user-interface#files-panel)
-    - [File explorer](user-interface#file-explorer)
-    - [Play queue and playlists](user-interface#play-queue-and-playlists)
-  - [Console](user-interface#console)
+- [Main controls](user-interface.md)
+  - [Audio source](user-interface.md#audio-source)
+  - [Player controls](user-interface.md#player-controls)
+  - [Fullscreen mode and keyboard shortcuts](user-interface.md#fullscreen-mode-and-keyboard-shortcuts)
+- [Panels](user-interface.md#panels)
+  - [Settings Panel](user-interface.md#settings-panel)
+  - [Files Panel](user-interface.md#files-panel)
+    - [File explorer](user-interface.md#file-explorer)
+    - [Play queue and playlists](user-interface.md#play-queue-and-playlists)
+  - [Console](user-interface.md#console)
 
 ### Server modes
 

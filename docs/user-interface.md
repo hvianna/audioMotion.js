@@ -5,8 +5,6 @@ audioMotion.js User Interface
 
 ## Main controls
 
-![controls](img/controls.png)
-
 ### Audio source
 
 ![ui-source](img/UI_source.png)
@@ -23,7 +21,7 @@ Please note that the graphic visualization from this source might suffer a sligh
 
 You can use the player controls to play, pause and skip through songs in the play queue.
 
-The **Shuffle** button will shuffle the songs in the play queue and start playing.
+The **Shuffle** button will shuffle the songs in the play queue and start playback.
 
 If the **Repeat** option is active, the player will loop back to the first song after playing the entire queue.
 
@@ -42,7 +40,7 @@ You can use the keyboard shortcuts below to control the player and change displa
 **Up** / **Down** | **Shift+G** / **G** | select previous / next gradient
 **A** | | toggle auto gradient change
 **B** | | toggle background
-**D** | | display song info - press again for current settings
+**D** | | display current song info - press again for settings info
 **F** | | toggle fullscreen mode
 **H** | | toggle FPS display
 **I** | | toggle song info display on track change
@@ -115,7 +113,7 @@ The *octave bands* modes will display wider bars, representing ranges of frequen
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 
-The **LEDS** switches toggles the vintage LED effect applied to the analyzer bars
+The **LEDS** switch toggles the LED effect applied to the analyzer bars.
 
 #### FFT Size
 
@@ -141,7 +139,7 @@ Increase it if the animation looks too "jumpy".
 
 ![ui-sensitivity](img/UI_sensitivity.png)
 
-Adjust the minimum and maximum decibels values to improve the visualization of songs too quiet or too loud. **0** is the loudest possible sound volume.
+Adjust the minimum and maximum decibel values to improve the visualization of songs too quiet or too loud. **0** is the loudest possible sound volume.
 
 You can also choose from three predefined sensitivity settings (low, normal and high) via the **N** and **Shift + N** keyboard shortcuts.
 
