@@ -1,10 +1,10 @@
-![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time graphic spectrum analyzer and audio player")
+![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time audio spectrum analyzer and music player")
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
-:notes: Watch your music move! :notes:
+♪♫ **See** your music with **audioMotion**! ♪♫
 
-**audioMotion** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
+**audioMotion.js** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
 
 ## Features
 
@@ -17,14 +17,14 @@
 * Visual file explorer and play queue, with drag-n-drop support
 * Supports M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
-* Lightweight custom web/file server written in node.js — also works on standard web servers with minimal additional configuration
+* Lightweight custom file server written in node.js — also works on standard web servers with minimal additional configuration
 * Client runs in any modern browser
 
 ## Online demo
 
 https://hvianna.github.io/audioMotion.js/
 
-On the demo site you can play songs from your PC and use the microphone input. Since there are no media files hosted on the site, the file explorer and play queue are not available.
+The demo allows you to play songs from your PC and use the microphone input. File explorer and play queue are not available, since there are no media files hosted on that server.
 
 ## Quick start
 
@@ -54,17 +54,18 @@ For complete documentation, see the [docs folder](docs/).
 
 ## Screenshots
 
-audioMotion.js user interface
-![screenshot1](docs/img/screenshot1.png "audioMotion.js user interface")
+Analyzer on discrete frequencies mode and "Apple ][" gradient. User interface showing the files panel, with file explorer and play queue.
+![screenshot1](docs/img/screenshot1.png "Analyzer on discrete frequencies mode and 'Apple ][' gradient. User interface showing the files panel, with file explorer and play queue.")
 
-Full screen view: 1/6th-octave bands mode with LED effect, "Outrun" gradient, showing on-screen information
-![screenshot2](docs/img/screenshot2.png "1/6th-octave bands mode with LED effect, 'Outrun' gradient, showing on-screen information")
+Analyzer on 1/6th-octave bands mode with LED effect, "Outrun" gradient and on-screen song information. User interface showing the settings panel.
+![screenshot2](docs/img/screenshot2.png "Analyzer on 1/6th-octave bands mode with LED effect, 'Outrun' gradient and on-screen song information. User interface showing the settings panel.")
 
-Full screen view: Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, "Classic" gradient
-![screenshot3](docs/img/screenshot3.png "Discrete frequencies mode, 20Hz-22KHz, 8192-sample FFT, 'Classic' gradient")
+Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Classic" gradient, with complete on-screen information
+![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Classic' gradient, with complete on-screen information")
 
-Full screen view: 1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, "Aurora" gradient
-![screenshot4](docs/img/screenshot4.png "1/24th-octave bands, 30Hz-16KHz, 16384-sample FFT, 'Aurora' gradient")
+Full screen view: Discrete frequencies mode, 20Hz-22KHz, "Prism" gradient
+![screenshot4](docs/img/screenshot4.png "Full screen view: Discrete frequencies mode, 20Hz-22KHz, 'Prism' gradient")
+
 
 ## Credits and acknowledgments
 
@@ -80,7 +81,7 @@ Some of audioMotion's great features are provided by these awesome open-source l
 * [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
 * [pkg](https://www.npmjs.com/package/pkg) - single-command Node.js binary compiler
 * [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively requesting user input via console
-* [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101]) - polyfill for non-standard scrollIntoViewIfNeeded() method
+* [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101) - polyfill for non-standard scrollIntoViewIfNeeded() method
 * [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser
   * [mini-css-extract-plugin](https://www.npmjs.com/package/mini-css-extract-plugin) - extracts CSS into separate files

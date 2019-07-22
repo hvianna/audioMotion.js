@@ -1,13 +1,15 @@
 audioMotion.js User Interface
 =============================
 
-![screenshot1](docs/img/screenshot1.png "audioMotion.js user interface")
+![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 
 ## Main controls
 
 ![controls](img/controls.png)
 
 ### Audio source
+
+![ui-source](img/UI_source.png)
 
 Select *Microphone* to make audioMotion visualize audio from your microphone.
 
@@ -17,6 +19,8 @@ Please note that the graphic visualization from this source might suffer a sligh
 
 ### Player controls
 
+![ui-player](img/UI_player.png)
+
 You can use the player controls to play, pause and skip through songs in the play queue.
 
 The **Shuffle** button will shuffle the songs in the play queue and start playing.
@@ -24,6 +28,8 @@ The **Shuffle** button will shuffle the songs in the play queue and start playin
 If the **Repeat** option is active, the player will loop back to the first song after playing the entire queue.
 
 ### Fullscreen mode and keyboard shortcuts
+
+![ui-fullscreen](img/UI_fullscreen.png)
 
 Click the **Fullscreen Analyzer** button, or press the **F** key, to display the spectrum analyzer in fullscreen.
 
@@ -42,8 +48,8 @@ You can use the keyboard shortcuts below to control the player and change displa
 **I** | | toggle song info display on track change
 **L** | | toggle LED effect on analyzer bars
 **Shift+M** / **M** | | select previous / next visualization mode
-**N** | | toggle analyzer sensitivity
-**O** | | toggle low-resolution option
+**Shift+N** / **N** | | reduce / increase analyzer sensitivity
+**O** | | toggle low-resolution mode
 **P** | | toggle peaks display
 **R** | | toggle playlist repeat
 **S** | click on analyzer | toggle frequency scale display on/off
@@ -61,6 +67,8 @@ Below the main controls there are three tabbed panels: **Settings**, **Files** a
 
 #### Preset
 
+![ui-preset](img/UI_preset.png)
+
 The **Full resolution**, **Octave bands** and **LED bars** presets adjust the settings to recommended values for the discrete frequencies and octave bands visualization modes, with optional LED effect mode.
 
 You can tweak any options and save a favorite configuration by clicking the **Save current settings** button. You can later revert to this configuration by selecting the **Custom** preset.
@@ -72,49 +80,70 @@ The **Restore defaults** preset resets all options to their initial values as in
 
 #### Gradient
 
+![ui-gradient](img/UI_gradient.png)
+
 Several options of color gradients for the analyzer bars. You can change gradients with the **Up** and **Down** arrow keys, or alternatively, **G** and **Shift + G** keys.
 
 Gradient-related switches:
 
-+ **NO BG** when active, sets a black background for the analyzer, instead of the color defined by each gradient (improves contrast)
 + **AUTO** when active, every track change will select the next gradient, cycling through the available options
-+ **LED** applies a vintage LED effect to the analyzer bars
++ **NO BG** when active, sets a black background for the analyzer, instead of the color defined by each gradient (improves contrast)
 
 #### Analyzer switches
+
+![ui-switches](img/UI_switches.png)
 
 + **INFO** toggles the on-screen display of song information on every track change
 + **SCALE** toggles the display of the frequency scale on the X-axis; clicking the visualization area also toggles this option
 + **SENS** increases analyzer sensitivity to improve the visualization of songs too quiet
 + **PEAKS** shows volume peaks for each frequency
 
+**Performance-related options:**
+
++ **FLAT** applies an outline instead of shadow on text displayed on canvas - may improve performance, depending on you graphic card and browser
++ **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays)
++ **FPS** displays current framerate at the top right corner
+
 The underlined character in each switch label indicates its keyboard shortcut, when available.
 
 #### Mode
+
+![ui-mode](img/UI_mode.png)
 
 Selects the visualization mode. *Discrete frequencies* allows you to visualize individual frequencies, limited only by the resolution of both the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your display.
 The *octave bands* modes will display wider bars, representing ranges of frequencies based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 
+The **LEDS** switches toggles the vintage LED effect applied to the analyzer bars
+
 #### FFT Size
+
+![ui-fftsize](img/UI_fftsize.png)
 
 The number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
 Larger values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
 
 #### Range
 
+![ui-range](img/UI_range.png)
+
 The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this feature to "zoom in" a specific frequency range.
 
 #### Smoothing
 
+![ui-smoothing](img/UI_smoothing.png)
+
 Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
 Increase it if the animation looks too "jumpy".
 
-#### Performance switches
+#### Sensitivity
 
-+ **FLAT** applies an outline instead of shadow on text displayed on canvas - may improve performance, depending on you graphic card and browser
-+ **LO-RES** reduces canvas resolution to improve rendering speed (especially useful for 4K+ displays)
-+ **FPS** displays current framerate at the top right corner
+![ui-sensitivity](img/UI_sensitivity.png)
+
+Adjust the minimum and maximum decibels values to improve the visualization of songs too quiet or too loud. **0** is the loudest possible sound volume.
+
+You can also choose from three predefined sensitivity settings (low, normal and high) via the **N** and **Shift + N** keyboard shortcuts.
 
 
 ### Files Panel
@@ -123,14 +152,15 @@ Increase it if the animation looks too "jumpy".
 
 #### File explorer
 
-The file explorer allows you to navigate through your shared music folder.
+The file explorer allows you to navigate through the music folder shared by the server.
 
-Double-click a music file or playlist to quickly add it to the play queue. Press *Ctrl* to select multiple files and click the **Add selected** button to add them to the play queue.
-Use the **Add all files** button to enqueue all music files in the current folder.
+Double-click a music file or playlist to quickly add it to the play queue. Press *Ctrl* to select multiple files, or *Ctrl*+*Shift* to select a range of files.
+
+Click the **Add selected** button to add selected files to the play queue, or the **Add all files** button to enqueue all music files in the current folder.
 
 You can also drag and drop files from the file explorer into the play queue.
 
-Supported music files are flac, m4a, mp3, ogg and wav, but codec support may vary, depending on your web browser and operating system. Supported playlist formats are m3u and m3u8.
+Supported extensions are flac, m4a, mp3, ogg and wav for music files, and m3u or m3u8 for playlists. Codec support may vary, depending on your web browser and operating system.
 
 #### Play queue and playlists
 
