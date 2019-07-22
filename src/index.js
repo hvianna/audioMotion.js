@@ -200,7 +200,22 @@ function fullscreen() {
 /**
  * Adjust the analyzer's sensitivity
  */
-function setSensitivity() {
+function setSensitivity( value ) {
+	if ( value !== undefined ) {
+		switch ( value ) {
+			case 0:
+				elMinDb.value = -70;
+				elMaxDb.value = -20;
+				break;
+			case 1:
+				elMinDb.value = -85;
+				elMaxDb.value = -25;
+				break;
+			case 2:
+				elMinDb.value = -100;
+				elMaxDb.value = -30;
+		}
+	}
 	audioMotion.setSensitivity( elMinDb.value, elMaxDb.value );
 	updateLastConfig();
 }
@@ -1038,6 +1053,13 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'showScale' ) )
 		elShowScale.dataset.active = Number( thisPreset.showScale );
 
+	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option
+		if ( thisPreset.highSens )
+			setSensitivity(2);
+		else
+			setSensitivity(1);
+	}
+
 	if ( thisPreset.hasOwnProperty( 'minDb' ) )
 		elMinDb.value = thisPreset.minDb;
 
@@ -1250,6 +1272,8 @@ function keyboardControls( event ) {
 			if ( event.shiftKey ) {
 				if ( sensitivity > 0 )
 					sensitivity--;
+				else
+					sensitivity = 2;
 			}
 			else {
 				if ( sensitivity < 2 )
@@ -1257,19 +1281,7 @@ function keyboardControls( event ) {
 				else
 					sensitivity = 0;
 			}
-			if ( sensitivity == 0 ) {
-				elMinDb.value = -70;
-				elMaxDb.value = -20;
-			}
-			else if ( sensitivity == 1 ) {
-				elMinDb.value = -85;
-				elMaxDb.value = -25;
-			}
-			else {
-				elMinDb.value = -100;
-				elMaxDb.value = - 30;
-			}
-			setSensitivity();
+			setSensitivity( sensitivity );
 			setCanvasMsg( `${ ['LOW','NORMAL','HIGH'][ sensitivity ] } sensitivity` );
 			break;
 		case 'KeyO': 		// toggle resolution
@@ -1305,7 +1317,7 @@ function keyboardControls( event ) {
 /**
  * Event handler for 'play' on audio elements
  */
-function audioOnPlay( event ) {
+function audioOnPlay() {
 	if ( elShowSong.dataset.active == '1' )
 		setCanvasMsg( 'song', 600, 180 );
 
@@ -1323,7 +1335,7 @@ function audioOnEnded() {
 		playNextSong( true );
 	else {
 		loadSong( 0 );
-		setCanvasMsg('Play queue ended');
+		setCanvasMsg( 'Play queue ended', 300 );
 	}
 }
 
@@ -1509,8 +1521,8 @@ function setLoRes() {
 	elGradient.   addEventListener( 'change', setGradient );
 	elSource.     addEventListener( 'change', setSource );
 	elSmoothing.  addEventListener( 'change', setSmoothing );
-	elMinDb.      addEventListener( 'change', setSensitivity );
-	elMaxDb.      addEventListener( 'change', setSensitivity );
+	elMinDb.      addEventListener( 'change', () => setSensitivity() );
+	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
 
 	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
