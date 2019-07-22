@@ -1054,10 +1054,8 @@ function loadPreset( name, alert ) {
 		elShowScale.dataset.active = Number( thisPreset.showScale );
 
 	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option
-		if ( thisPreset.highSens )
-			setSensitivity(2);
-		else
-			setSensitivity(1);
+		sensitivity = thisPreset.highSens ? 2 : 1;
+		setSensitivity( sensitivity );
 	}
 
 	if ( thisPreset.hasOwnProperty( 'minDb' ) )
