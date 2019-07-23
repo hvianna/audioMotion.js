@@ -314,10 +314,6 @@ ul {
 .kbd-table {
 	width: 100%;
 }
-.kbd-table tr td:first-child {
-	width: 50px;
-}
-
 kbd {
 	background-color: #eee;
 	border-radius: 3px;
@@ -338,6 +334,7 @@ kbd {
 kbd.big {
 	font-size: 14px;
 	line-height: 1;
+	width: 20px;
 }
 kbd.wide {
 	width: 50px;

@@ -988,13 +988,13 @@ function setSource() {
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
-			.then( function( stream ) {
+			.then( stream => {
 				sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
 				consoleLog( 'Audio source set to microphone' );
 				setSource(); // recursive call, sourceMic is now set
 			})
-			.catch( function( err ) {
-				consoleLog( 'Could not change audio source', true );
+			.catch( err => {
+				consoleLog( `Could not change audio source - ${err}`, true );
 				elSource.selectedIndex = 0; // revert to player
 				cfgSource = 'player';
 			});
@@ -1334,7 +1334,7 @@ function audioOnEnded() {
 		playNextSong( true );
 	else {
 		loadSong( 0 );
-		setCanvasMsg( 'Play queue ended', 300 );
+		setCanvasMsg( 'Play queue ended', 600 );
 	}
 }
 
