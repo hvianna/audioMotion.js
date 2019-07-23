@@ -1,20 +1,21 @@
-![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time audio spectrum analyzer and music player")
+![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time spectrum analyzer and audio player")
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
 ♪♫ **See** your music with **audioMotion**! ♪♫
 
-**audioMotion.js** is a high-resolution real-time graphic audio spectrum analyzer and full-featured music player written in JavaScript.
+**audioMotion.js** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
 
 ## Features
 
-* Beautiful high-resolution (retina / HiDPI ready) graphic audio spectrum analyzer with fullscreen display
+* High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer
+* Fullscreen support at up to 60 frames per second
 * Logarithmic frequency scale with customizable range
 * Visualize discrete frequencies, or octave bands based on the equal tempered scale
 * Several color gradients with optional vintage LED effect
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * HTML5 audio player supporting most popular audio formats, like MP3, AAC (M4A), OGG and FLAC (support may vary depending on browser and operating system)
-* Visual file explorer and play queue, with drag-n-drop support
+* Visual file explorer and play queue with drag-and-drop support
 * Supports M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 * Lightweight custom file server written in node.js — also works on standard web servers with minimal additional configuration
@@ -40,9 +41,10 @@ audioMotion -m c:\users\john\music
 
 This will start the server and should also launch the client in your browser.
 
-Other server options are:
+The complete command line options are:
 
 ```
+-m <path> : path to music directory
 -p <port> : change server listening port (default is 8000)
 -s        : start server only (do not launch client)
 -e        : allow external connections (by default, only localhost)
@@ -57,11 +59,11 @@ For complete documentation, see the [docs folder](docs/).
 Discrete frequencies mode. User interface showing the file explorer and play queue.
 ![screenshot1](docs/img/screenshot1.png "Discrete frequencies mode. User interface showing the file explorer and play queue.")
 
-1/6th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.
-![screenshot2](docs/img/screenshot2.png "1/6th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.")
+1/12th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.
+![screenshot2](docs/img/screenshot2.png "1/12th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.")
 
-Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Classic" gradient, with complete on-screen information.
-![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Classic' gradient, with complete on-screen information")
+Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Outrun" gradient, with complete on-screen information.
+![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Outrun' gradient, with complete on-screen information")
 
 Full screen view: Discrete frequencies mode, 20Hz-22KHz, frequency scale on, "Prism" gradient.
 ![screenshot4](docs/img/screenshot4.png "Full screen view: Discrete frequencies mode, 20Hz-22KHz, frequency scale on,'Prism' gradient")

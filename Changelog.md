@@ -1,6 +1,35 @@
 Changelog
 =========
 
+## version 19.7
+
+### Added:
+
++ :fire: File explorer for easy navigation through your music files and folders;
++ Add, reorder and remove songs from the play queue, with drag-and-drop support;
++ Song info now shows actual metadata read from music files;
++ Save custom playlists to your browser's local storage;
++ Option to show the current frame rate;
++ New gradient: **Cool**;
++ Custom file server with portable binaries available for Windows, Linux and macOS - no setup required; :tada:
+
+### Changed:
+
++ :sunglasses: Major user interface overhaul - added tabbed panels for settings, file explorer / playlists, and console;
++ The analyzer canvas now properly adjusts to window size, without looking stretched;
++ Improved analyzer sensitivity customization - user can now set minimum and maximum dB values, or choose from three presets via [N] key;
++ The *previous* player button now skips to the beginning of the current song, press again within 2 seconds to skip to the previous track;
++ Shuffle button now immediatelly starts playing the shuffled playlist;
++ Frequency scale bar is now semi-transparent;
++ Increased frequency scale font size while in fullscreen;
++ `playlists.cfg` file is no longer required, but still supported as a legacy feature;
+
+### Removed:
+
++ *SENS* switch (toggle high sensitivity);
++ Demo playlists and music files.
+
+
 ## version 19.5
 
 ### Added:

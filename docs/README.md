@@ -9,7 +9,7 @@ audioMotion.js Documentation
   - [Audio source](user-interface.md#audio-source)
   - [Player controls](user-interface.md#player-controls)
   - [Fullscreen mode and keyboard shortcuts](user-interface.md#fullscreen-mode-and-keyboard-shortcuts)
-- [Panels](user-interface.md#panels)
+- [Panels](user-interface.md#user-interface-panels)
   - [Settings Panel](user-interface.md#settings-panel)
   - [Files Panel](user-interface.md#files-panel)
     - [File explorer](user-interface.md#file-explorer)

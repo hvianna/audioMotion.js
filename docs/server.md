@@ -1,7 +1,7 @@
 audioMotion.js server options
 =============================
 
-Due to security mechanisms employed by web browsers, JavaScript can only read files via HTTP protocol, so it can't read music files from your local computer unless you have some server software running.
+Due to security mechanisms employed by web browsers, JavaScript can only read files via HTTP protocol, so it can't read music files from your local computer unless you have some HTTP server software running.
 
 audioMotion works with a variety of server options:
 
