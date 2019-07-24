@@ -1,15 +1,17 @@
 audioMotion.js server options
 =============================
 
-Due to security mechanisms employed by web browsers, JavaScript can only read files via HTTP protocol, so it can't read music files from your local computer unless you have some HTTP server software running.
+You can run audioMotion in **local mode** by directly opening the `index.html` file located inside the `public` folder.
+In this mode you can play single music files and use the microphone input, but the file explorer won't be available.
+
+Due to the security policy of web browsers, JavaScript can only read files via HTTP protocol.
+So, in order for audioMotion to read music files from your hard disk, you must have an HTTP server software running in your computer.
 
 audioMotion works with a variety of server options:
 
 + [Custom file server](#custom-file-server)
 + [Standard web servers (Apache, Lighttpd, Nginx)](#using-a-standard-web-server)
 + [Apache web server with Docker](#apache-web-server-with-docker)
-
-You can also run audioMotion in local mode by directly opening the `index.html` file inside the `public` folder. In this mode you can play single music files, but the file explorer won't be available.
 
 
 ## Custom file server
