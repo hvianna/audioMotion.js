@@ -1594,7 +1594,7 @@ function setLoRes() {
 			consoleLog( 'No server found. Running in local mode.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			document.querySelectorAll('#playlist_panel, #files_panel .button-column, #file_explorer p').forEach( e => e.style.display = 'none' );
+			document.querySelectorAll('#playlist_panel, #files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
 			filelist.style.display = 'none';
 		}
 		else {

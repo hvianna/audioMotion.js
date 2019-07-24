@@ -141,7 +141,7 @@ ul {
 	border-bottom: 1px solid #ccc;
 	color: #444;
 	cursor: pointer;
-	padding: 10px;
+	padding: 10px 0 10px 10px;
 }
 .panel-selector li.active {
 	background: #ccc;
@@ -172,7 +172,7 @@ ul {
 }
 .panel-selector [class^="icons8-"] {
 	font-size: 20px;
-	margin-right: 10px;
+	margin-right: 8px;
 	vertical-align: middle;
 }
 
