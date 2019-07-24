@@ -1,4 +1,4 @@
-![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time spectrum analyzer and audio player")
+![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time spectrum analyzer and music player")
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
@@ -14,12 +14,12 @@
 * Visualize discrete frequencies, or octave bands based on the equal tempered scale
 * Several color gradients with optional vintage LED effect
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
-* HTML5 audio player supporting most popular audio formats, like MP3, AAC (M4A), OGG and FLAC (support may vary depending on browser and operating system)
-* Visual file explorer and play queue with drag-and-drop support
-* Supports M3U playlists (`m3u` and `m3u8` file extensions)
+* HTML5 audio player for MP3, AAC (M4A), OGG and FLAC files (codec support may vary depending on browser and operating system)
+* Visual file explorer and play queue with drag-and-drop functionality
+* Support for M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
-* Lightweight custom file server written in node.js — also works on standard web servers with minimal additional configuration
-* Client runs in any modern browser
+* Lightweight custom file server — also works on standard web servers with minimal configuration
+* Client runs on any modern browser (tested with Firefox, Chrome and Safari)
 
 ## Online demo
 

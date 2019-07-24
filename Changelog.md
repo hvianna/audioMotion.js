@@ -6,12 +6,12 @@ Changelog
 ### Added:
 
 + :fire: File explorer for easy navigation through your music files and folders;
++ Custom file server written in node.js with portable binaries available for Windows, Linux and macOS - no setup required; :tada:
 + Add, reorder and remove songs from the play queue, with drag-and-drop support;
 + Song info now shows actual metadata read from music files;
 + Save custom playlists to your browser's local storage;
 + Option to show the current frame rate;
 + New gradient: **Cool**;
-+ Custom file server with portable binaries available for Windows, Linux and macOS - no setup required; :tada:
 
 ### Changed:
 
