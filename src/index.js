@@ -1,6 +1,6 @@
 /**
  * audioMotion.js
- * high-resolution real-time audio spectrum analyzer and music player
+ * High-resolution real-time spectrum analyzer and music player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7-dev.5';
+var _VERSION = '19.7';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';

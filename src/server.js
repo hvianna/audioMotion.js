@@ -4,7 +4,7 @@
  * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '19.6'
+const _VERSION = '19.7'
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
@@ -26,7 +26,7 @@ function showHelp() {
 
 	audioMotion -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
 
-	-m <path> : path to music directory (required)
+	-m <path> : path to music directory
 	-p <port> : change server listening port (default: ${port})
 	-s        : start server only (do not launch client)
 	-e        : allow external connections (by default, only localhost)
