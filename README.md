@@ -23,7 +23,7 @@
 
 ## Online demo
 
-https://hvianna.github.io/audioMotion.js/public/
+[https://hvianna.github.io/audioMotion.js/public/](https://hvianna.github.io/audioMotion.js/public/)
 
 The demo allows you to play songs from your PC and use the microphone input. File explorer and play queue are not available, since there are no media files hosted on that server.
 
