@@ -724,40 +724,35 @@ function loadNextSong() {
 }
 
 /**
- * Play a song from the playlist
+ * Play a song from the play queue
  */
 function playSong( n ) {
-
-	if ( cfgSource == 'mic' )
-		return;
-
 	if ( loadSong( n ) )
-		audioElement[ currAudio ].play();
+		playPause( true );
 }
 
 /**
  * Player controls
  */
-function playPause() {
+function playPause( play ) {
 	if ( cfgSource == 'mic' )
 		return;
-	if ( isPlaying() )
+	if ( isPlaying() && ! play )
 		audioElement[ currAudio ].pause();
 	else
-		audioElement[ currAudio ].play();
+		audioElement[ currAudio ].play().catch( err => {
+			consoleLog( err, true );
+			playNextSong( true );
+		});
 }
 
 function stop() {
-	if ( cfgSource == 'mic' )
-		return;
 	audioElement[ currAudio ].pause();
 	setCanvasMsg();
 	loadSong( 0 );
 }
 
 function playPreviousSong() {
-	if ( cfgSource == 'mic' )
-		return;
 	if ( isPlaying() ) {
 		if ( audioElement[ currAudio ].currentTime > 2 )
 			audioElement[ currAudio ].currentTime = 0;
@@ -803,6 +798,7 @@ function playNextSong( play ) {
 		.catch( err => {
 			consoleLog( err, true );
 			loadNextSong();
+			playNextSong( true );
 		});
 		if ( elCycleGrad.dataset.active == '1' ) {
 			let gradIdx = elGradient.selectedIndex;
@@ -1521,7 +1517,7 @@ function setLoRes() {
 	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
 	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
-	document.getElementById('btn_play').addEventListener( 'click', playPause );
+	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
 	document.getElementById('btn_stop').addEventListener( 'click', stop );
 	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
 	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
