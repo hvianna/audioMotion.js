@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7';
+var _VERSION = '19.8-dev';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -712,12 +712,12 @@ function loadSong( n ) {
  */
 function loadNextSong() {
 	var n;
-	audioElement[ nextAudio ].pause();
 	if ( playlistPos < playlist.children.length - 1 )
 		n = playlistPos + 1;
 	else
 		n = 0;
 	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
+	audioElement[ nextAudio ].load();
 	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
 	addMetadata( playlist.children[ n ], audioElement[ nextAudio ] );
 	skipping = false; // finished skipping track
@@ -773,11 +773,9 @@ function playPreviousSong() {
 function playNextSong( play ) {
 
 	if ( skipping || cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
-		return;
+		return true;
 
 	skipping = true;
-
-	var gradIdx;
 
 	if ( playlistPos < playlist.children.length - 1 )
 		playlistPos++;
@@ -786,12 +784,12 @@ function playNextSong( play ) {
 	else {
 		setCanvasMsg( 'Already at last song' );
 		skipping = false;
-		return;
+		return false;
 	}
 
-	play = play || isPlaying();
+	play |= isPlaying();
 
-	currAudio = ! currAudio | 0;
+	currAudio = nextAudio;
 	nextAudio = ! currAudio | 0;
 
 	audioElement[ nextAudio ].style.display = 'none';
@@ -807,7 +805,7 @@ function playNextSong( play ) {
 			loadNextSong();
 		});
 		if ( elCycleGrad.dataset.active == '1' ) {
-			gradIdx = elGradient.selectedIndex;
+			let gradIdx = elGradient.selectedIndex;
 			if ( gradIdx < elGradient.options.length - 1 )
 				gradIdx++;
 			else
@@ -820,6 +818,7 @@ function playNextSong( play ) {
 		loadNextSong();
 
 	updatePlaylistUI();
+	return true;
 }
 
 /**
@@ -854,8 +853,8 @@ function outlineText( text, x, y, maxWidth ) {
  */
 function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 
-	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
+	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
+	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
 	if ( canvasMsg.timer < 1 )
@@ -1328,11 +1327,7 @@ function audioOnPlay() {
  * Event handler for 'ended' on audio elements
  */
 function audioOnEnded() {
-	if ( skipping )
-		return;
-	if ( playlistPos < playlist.children.length - 1 || elRepeat.dataset.active == '1' )
-		playNextSong( true );
-	else {
+	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
 		setCanvasMsg( 'Play queue ended', 600 );
 	}
