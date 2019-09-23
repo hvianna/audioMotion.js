@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.8-dev';
+var _VERSION = '19.9-dev';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -431,14 +431,14 @@ function addMetadata( metadata, target ) {
 		target.dataset.codec    = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
 
 		if ( metadata.format && metadata.format.bitsPerSample )
-			target.dataset.quality = ( metadata.format.sampleRate / 1000 ).toFixed() + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
+			target.dataset.quality = Math.floor( metadata.format.sampleRate / 1000 ) + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
 		else if ( metadata.format.bitrate )
-			target.dataset.quality = ( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
+			target.dataset.quality = Math.floor( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
 		else
 			target.dataset.quality = '';
 
 		if ( metadata.format && metadata.format.duration )
-			target.dataset.duration = Math.floor( metadata.format.duration / 60 ) + ':' + ( '0' + Math.round( metadata.format.duration % 60 ) ).slice(-2);
+			target.dataset.duration = formatHHMMSS( metadata.format.duration );
 		else
 			target.dataset.duration = '';
 	}
@@ -464,13 +464,18 @@ function addSongToPlaylist( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
-	mm.fetchFromUrl( uri, { skipCovers: true } ).then( metadata => {
-		if ( metadata ) {
-			addMetadata( metadata, el ); // add metadata to playlist item
-			for ( let i in [0,1] )
-				if ( audioElement[ i ].dataset.file == el.dataset.file )
-					addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
-		}
+	fetch( uri ).then( response => {
+		return response.body;
+	}).then( stream => {
+		mm.parseReadableStream( stream, null, { skipCovers: true } ).then( metadata => {
+			if ( metadata ) {
+				addMetadata( metadata, el ); // add metadata to playlist item
+				for ( let i in [0,1] )
+					if ( audioElement[ i ].dataset.file == el.dataset.file )
+						addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
+			}
+			stream.cancel(); // release stream
+		});
 	});
 }
 
@@ -845,6 +850,22 @@ function outlineText( text, x, y, maxWidth ) {
 }
 
 /**
+ * Format time in seconds to hh:mm:ss
+ */
+function formatHHMMSS( time ) {
+	var str = '';
+
+	if ( time >= 3600 ) {
+		str = Math.floor( time / 3600 ) + ':';
+		time %= 3600;
+	}
+
+	str += Math.floor( time / 60 ) + ':' + ( '0' + Math.floor( time % 60 ) ).slice(-2);
+
+	return str;
+}
+
+/**
  * Display message on canvas
  */
 function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
@@ -921,13 +942,15 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		// time
 		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
 			if ( ! audioElement[ currAudio ].dataset.duration ) {
-				audioElement[ currAudio ].dataset.duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+				audioElement[ currAudio ].dataset.duration =
+					audioElement[ currAudio ].duration === Infinity ? 'LIVE' : formatHHMMSS( audioElement[ currAudio ].duration );
+
 				if ( playlist.children[ playlistPos ] )
 					playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
 			}
 			canvasCtx.textAlign = 'right';
-			outlineText( Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2) + ' / ' +
-						 audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+
+			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
 		}
 	}
 }

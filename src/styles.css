@@ -415,7 +415,7 @@ kbd.wide {
 	display: inline-block;
 	overflow: hidden;
 	vertical-align: text-bottom;
-	width: calc( 100% - 3em );
+	width: calc( 100% - 4em );
 }
 .filelist li::after {
 	content: attr(data-duration);
