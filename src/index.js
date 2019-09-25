@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.9-dev';
+var _VERSION = '19.9-dev.1';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -1054,8 +1054,14 @@ function loadPreset( name, alert ) {
 
 	var thisPreset = presets[ name ];
 
-	if ( thisPreset.hasOwnProperty( 'mode' ) )
-		elMode.value = thisPreset.mode;
+	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
+		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
+			elMode.value = 8;
+		else if ( thisPreset.mode == 12 ) // ditto
+			elMode.value = 7;
+		else
+			elMode.value = thisPreset.mode;
+	}
 
 	if ( thisPreset.hasOwnProperty( 'fftSize' ) )
 		elFFTsize.value = thisPreset.fftSize;
@@ -1072,7 +1078,7 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'showScale' ) )
 		elShowScale.dataset.active = Number( thisPreset.showScale );
 
-	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option
+	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option (version =< 19.5)
 		sensitivity = thisPreset.highSens ? 2 : 1;
 		setSensitivity( sensitivity );
 	}
