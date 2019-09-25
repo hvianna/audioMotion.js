@@ -116,8 +116,15 @@
 						<p><kbd>Ctrl</kbd>+click to select multiple / <kbd>Ctrl</kbd> <kbd>Shift</kbd> to select range</p>
 					</div>
 					<div id="local_file_panel" class="local-file">
-						<label><strong>Load a song from your computer:<br><br></strong>
-						<input id="local_file" type="file" accept="audio/*"></label>
+						<label>
+							<strong>Play an audio file from your computer:<br></strong>
+							<input id="local_file" type="file" accept="audio/*">
+						</label>
+
+						<label>
+							<strong>Load a remote file or stream from URL:<br></strong>
+							<input id="remote_url" type="text" size="50" placeholder="http://"> <button id="load_remote_url">Load >></button>
+						</label>
 					</div>
 				</div>
 

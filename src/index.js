@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.9-dev.1';
+var _VERSION = '19.9-dev.2';
 
 import * as audioMotion from './audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -402,7 +402,7 @@ function loadSavedPlaylists( keyName ) {
 /**
  * Add a song or playlist to the current playlist
  */
-function addToPlaylist( file ) {
+function addToPlaylist( file, autoplay = false ) {
 
 	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
 
@@ -410,6 +410,9 @@ function addToPlaylist( file ) {
 		loadPlaylist( file );
 	else
 		addSongToPlaylist( file );
+
+	if ( autoplay && ! isPlaying() )
+		playSong( playlist.children.length - 1 );
 }
 
 /**
@@ -452,10 +455,16 @@ function addSongToPlaylist( uri, content = {} ) {
 	var el = document.createElement('li');
 
 	el.dataset.artist = content.artist || '';
-	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' );
+
+	el.dataset.title = content.title ||
+		uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' ) ||
+		uri.substring( uri.lastIndexOf('//') + 2 );
+
 	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	el.dataset.file = uri;
+
 	playlist.appendChild( el );
 
 	var len = playlist.children.length;
@@ -467,7 +476,7 @@ function addSongToPlaylist( uri, content = {} ) {
 	fetch( uri ).then( response => {
 		return response.body;
 	}).then( stream => {
-		mm.parseReadableStream( stream, null, { skipCovers: true } ).then( metadata => {
+		mm.parseReadableStream( stream, '', { skipCovers: true } ).then( metadata => {
 			if ( metadata ) {
 				addMetadata( metadata, el ); // add metadata to playlist item
 				for ( let i in [0,1] )
@@ -1602,19 +1611,21 @@ function setLoRes() {
 	fileExplorer.create(
 		document.getElementById('file_explorer'),
 		{
-			dblClick: file => {
-				addToPlaylist( file );
-				if ( ! isPlaying() )
-					playSong( playlist.children.length - 1 );
-			},
-			defaultPath: '/music'
+			dblClick: file => addToPlaylist( file, true )
 		}
 	).then( ([ status, filelist ]) => {
 		if ( status == -1 ) {
-			consoleLog( 'No server found. Running in local mode.', true );
+			consoleLog( 'No server found. File explorer will not be available.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			document.querySelectorAll('#playlist_panel, #files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
+			document.getElementById('load_remote_url').addEventListener( 'click', () => {
+				let el = document.getElementById('remote_url');
+				if ( el.value )
+					addToPlaylist( el.value, true );
+				el.value = '';
+			});
+
+			document.querySelectorAll('#files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
 			filelist.style.display = 'none';
 		}
 		else {
