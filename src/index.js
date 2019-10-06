@@ -22,9 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.9-dev.2';
+var _VERSION = '19.10-dev.1';
 
-import * as audioMotion from './audioMotion-analyzer.js';
+import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
@@ -36,6 +36,9 @@ import notie from 'notie';
 import './notie.css';
 
 import './styles.css';
+
+// AudioMotionAnalyzer object
+var audioMotion;
 
 // playlist, index to the current song, indexes to current and next audio elements
 var playlist, playlistPos, currAudio, nextAudio;
@@ -225,9 +228,9 @@ function setSensitivity( value ) {
  * Set the smoothing time constant
  */
 function setSmoothing() {
-	audioMotion.setSmoothing( elSmoothing.value );
+	audioMotion.smoothing = elSmoothing.value;
 	document.getElementById('smoothingValue').innerText = elSmoothing.value;
-	consoleLog( 'smoothingTimeConstant is ' + audioMotion.analyzer.smoothingTimeConstant );
+	consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 	updateLastConfig();
 }
 
@@ -235,8 +238,8 @@ function setSmoothing() {
  * Set the size of the FFT performed by the analyzer node
  */
 function setFFTsize() {
-	audioMotion.setFFTSize( elFFTsize.value );
-	consoleLog( 'FFT size is ' + audioMotion.analyzer.fftSize + ' samples' );
+	audioMotion.fftSize = elFFTsize.value;
+	consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 	updateLastConfig();
 }
 
@@ -254,7 +257,7 @@ function setFreqRange() {
  * Set Gradient
  */
 function setGradient() {
-	audioMotion.setGradient( elGradient.value );
+	audioMotion.gradient = elGradient.value;
 	updateLastConfig();
 }
 
@@ -262,7 +265,7 @@ function setGradient() {
  * Set visualization mode
  */
 function setMode() {
-	audioMotion.setMode( elMode.value );
+	audioMotion.mode = elMode.value;
 	updateLastConfig();
 }
 
@@ -270,7 +273,7 @@ function setMode() {
  * Set scale preferences
  */
 function setScale() {
-	audioMotion.toggleScale( elShowScale.dataset.active == '1' );
+	audioMotion.showScale = ( elShowScale.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -278,7 +281,7 @@ function setScale() {
  * Set scale preferences
  */
 function setLedDisplay() {
-	audioMotion.toggleLeds( elLedDisplay.dataset.active == '1' );
+	audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -286,7 +289,7 @@ function setLedDisplay() {
  * Set show peaks preference
  */
 function setShowPeaks() {
-	audioMotion.togglePeaks( elShowPeaks.dataset.active == '1' );
+	audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -294,7 +297,7 @@ function setShowPeaks() {
  * Set background color preference
  */
 function setBlackBg() {
-	audioMotion.toggleBgColor( elBlackBg.dataset.active == '0' );
+	audioMotion.showBgColor = ( elBlackBg.dataset.active == '0' );
 	updateLastConfig();
 }
 
@@ -302,7 +305,7 @@ function setBlackBg() {
  * Set display of current frame rate
  */
 function setFPS() {
-	audioMotion.toggleFPS( elFPS.dataset.active == '1' );
+	audioMotion.showFPS = ( elFPS.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -821,7 +824,7 @@ function playNextSong( play ) {
 			else
 				gradIdx = 0;
 			elGradient.selectedIndex = gradIdx;
-			audioMotion.setGradient( elGradient.value );
+			audioMotion.gradient = elGradient.value;
 		}
 	}
 	else
@@ -879,7 +882,10 @@ function formatHHMMSS( time ) {
 /**
  * Display message on canvas
  */
-function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
+function displayCanvasMsg() {
+
+	var canvas = audioMotion.canvas,
+		canvasCtx = audioMotion.canvasCtx;
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
@@ -903,7 +909,7 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
 
-	canvasCtx.lineWidth = 4 * pixelRatio;
+	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
@@ -979,14 +985,14 @@ function setCanvasMsg( msg, timer = 120, fade = 60 ) {
 /**
  * Display information about canvas size changes
  */
-function showCanvasInfo( reason, width, height, isFullscreen, isLoRes, pixelRatio ) {
+function showCanvasInfo( reason ) {
 	if ( ['lores','user'].includes( reason ) )
-		consoleLog( `Lo-res mode ${ isLoRes ? 'ON' : 'OFF' } - pixelRatio is ${ pixelRatio }` );
+		consoleLog( `Lo-res mode ${ audioMotion.loRes ? 'ON' : 'OFF' } - pixelRatio is ${ audioMotion.pixelRatio }` );
 
 	if ( reason == 'user' )
-		consoleLog( `Canvas size set to ${ width } x ${ height } pixels` );
+		consoleLog( `Canvas size set to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels` );
 	else if ( ['lores','resize'].includes( reason ) )
-		consoleLog( `Canvas resized to ${ width } x ${ height } pixels ${ isFullscreen ? '(fullscreen)' : '' }` )
+		consoleLog( `Canvas resized to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels ${ audioMotion.isFullscreen ? '(fullscreen)' : '' }` )
 }
 
 /**
@@ -1136,8 +1142,8 @@ function loadPreset( name, alert ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		minDb      : elMinDb.value,
-		maxDb      : elMaxDb.value,
+		minDecibels: elMinDb.value,
+		maxDecibels: elMaxDb.value,
 		showScale  : ( elShowScale.dataset.active == '1' ),
 		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
 		showBgColor: ( elBlackBg.dataset.active == '0' ),
@@ -1160,7 +1166,7 @@ function saveConfig( config ) {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
-		smoothing	: audioMotion.analyzer.smoothingTimeConstant,
+		smoothing	: audioMotion.smoothing,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
 		minDb       : elMinDb.value,
@@ -1381,7 +1387,7 @@ function audioOnError( e ) {
  * Toggle low resolution mode
  */
 function setLoRes() {
-	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
+	audioMotion.loRes = ( elLoRes.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -1440,7 +1446,7 @@ function setLoRes() {
 	// Create audioMotion analyzer
 
 	try {
-		audioMotion.create(
+		audioMotion = new AudioMotionAnalyzer(
 			document.getElementById('analyzer'),
 			{
 				onCanvasDraw: displayCanvasMsg,

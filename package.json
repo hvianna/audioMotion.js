@@ -13,6 +13,7 @@
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
   "devDependencies": {
+    "audiomotion-analyzer": "^1.0.0",
     "css-loader": "^3.2.0",
     "express": "^4.16.4",
     "mini-css-extract-plugin": "^0.8.0",

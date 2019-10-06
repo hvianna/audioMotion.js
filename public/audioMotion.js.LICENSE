@@ -24,10 +24,10 @@ object-assign
  */
 
 /**
- * audioMotion-analyzer.js
+ * audioMotion-analyzer
  * High-resolution real-time graphic audio spectrum analyzer JS module
  *
- * https://github.com/hvianna/audioMotion.js
+ * https://github.com/hvianna/audioMotion-analyzer
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2019 Henrique Avila Vianna
