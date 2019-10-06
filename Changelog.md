@@ -1,6 +1,20 @@
 Changelog
 =========
 
+## version 19.10
+
+### Added:
+
++ 1/4th and 1/8th octave bands modes;
++ Improved metadata fetching for streams and time display for longer audio files;
++ Load files from remote URLs and manage playlists when running audioMotion in file mode (no server);
+
+### Changed:
+
++ Player automatically skip to next track on playback errors (file not found or format not supported);
++ Improved gapless playback (hopefully).
+
+
 ## version 19.7
 
 ### Added:
