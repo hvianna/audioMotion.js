@@ -862,14 +862,16 @@ function outlineText( text, x, y, maxWidth ) {
  * Format time in seconds to hh:mm:ss
  */
 function formatHHMMSS( time ) {
-	var str = '';
+	var str = '',
+		lead = '';
 
 	if ( time >= 3600 ) {
 		str = Math.floor( time / 3600 ) + ':';
 		time %= 3600;
+		lead = '0';
 	}
 
-	str += Math.floor( time / 60 ) + ':' + ( '0' + Math.floor( time % 60 ) ).slice(-2);
+	str += ( lead + Math.floor( time / 60 ) ).slice(-2) + ':' + ( '0' + Math.floor( time % 60 ) ).slice(-2);
 
 	return str;
 }
