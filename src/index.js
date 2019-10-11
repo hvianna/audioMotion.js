@@ -1053,7 +1053,7 @@ function loadLocalFile( obj ) {
 
 	reader.readAsDataURL( obj.files[0] );
 
-	reader.onload = function() {
+	reader.onload = () => {
 		clearAudioElement();
 		el.src = reader.result;
 		el.play();
