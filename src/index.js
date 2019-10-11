@@ -582,7 +582,7 @@ function savePlaylist( index ) {
 function storePlaylist( name, update = true ) {
 
 	if ( playlist.children.length == 0 ) {
-		notie.alert({ text: 'Play queue is empty!' });
+		notie.alert({ text: 'Queue is empty!' });
 		return;
 	}
 
@@ -1371,7 +1371,7 @@ function audioOnPlay() {
 function audioOnEnded() {
 	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
-		setCanvasMsg( 'Play queue ended', 600 );
+		setCanvasMsg( 'Queue ended', 600 );
 	}
 }
 
