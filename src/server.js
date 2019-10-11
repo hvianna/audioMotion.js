@@ -4,7 +4,7 @@
  * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '19.7'
+const _VERSION = '19.10'
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
@@ -35,12 +35,18 @@ function showHelp() {
 }
 
 function getDir( directoryPath, showHidden = false ) {
-	let dirs = [];
-	let files = [];
+	let dirs = [],
+		files = [],
+		entries = [];
 
-	let entries = fs.readdirSync( path.normalize( directoryPath ), { withFileTypes: true } );
+	try {
+		entries = fs.readdirSync( path.normalize( directoryPath ), { withFileTypes: true } );
+	}
+	catch( e ) {
+		return false;
+	}
 
-	entries.forEach( function ( entry ) {
+	entries.forEach( entry => {
 		if ( entry.name[0] != '.' || showHidden ) {
 			if ( entry.isDirectory() )
 				dirs.push( entry.name );
@@ -100,13 +106,18 @@ const server = express()
 server.use( express.static( path.join( __dirname, '../public' ) ) )
 
 server.use( '/music', express.static( musicPath ), ( req, res ) => {
-	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) );
-	files.files = files.files.filter( file => {
-		if ( file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
-			files.cover = file
-		return file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null
-	})
-	res.send( files )
+	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) )
+
+	if ( files === false )
+		res.status(404).send( 'Not found!' )
+	else {
+		files.files = files.files.filter( file => {
+			if ( file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
+				files.cover = file
+			return file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null
+		})
+		res.send( files )
+	}
 })
 
 server.listen( port, host, () => {
