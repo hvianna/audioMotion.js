@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.10-dev.1';
+var _VERSION = '19.10-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -349,13 +349,12 @@ function clearPlaylist() {
  */
 function loadSavedPlaylists( keyName ) {
 
-	var list, item, n = 0,
-		playlists = localStorage.getItem('playlists');
+	var playlists = localStorage.getItem('playlists');
 
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	item = new Option( 'Select a playlist and click action to the right', '' );
+	var item = new Option( 'Select a playlist and click action to the right', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -364,7 +363,7 @@ function loadSavedPlaylists( keyName ) {
 		playlists = JSON.parse( playlists );
 
 		Object.keys( playlists ).forEach( key => {
-			item = new Option( playlists[ key ], key );
+			let item = new Option( playlists[ key ], key );
 			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
@@ -383,16 +382,16 @@ function loadSavedPlaylists( keyName ) {
 		})
 		.then( content => {
 			if ( content !== false ) {
-				list = content.split(/[\r\n]+/);
-				for ( let i = 0; i < list.length; i++ ) {
-					if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
-						item = list[ i ].split(/\|/);
-						if ( item.length == 2 ) {
-							elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
+				var n = 0;
+				content.split(/[\r\n]+/).forEach( line => {
+					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+						let info = line.split(/\|/);
+						if ( info.length == 2 ) {
+							elPlaylists.options[ elPlaylists.options.length ] = new Option( info[0].trim(), info[1].trim() );
 							n++;
 						}
 					}
-				}
+				});
 				if ( n )
 					consoleLog( `${n} playlists loaded from playlists.cfg` );
 				else
@@ -455,20 +454,20 @@ function addMetadata( metadata, target ) {
  */
 function addSongToPlaylist( uri, content = {} ) {
 
-	var el = document.createElement('li');
+	var newEl = document.createElement('li');
 
-	el.dataset.artist = content.artist || '';
+	newEl.dataset.artist = content.artist || '';
 
-	el.dataset.title = content.title ||
+	newEl.dataset.title = content.title ||
 		uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' ) ||
 		uri.substring( uri.lastIndexOf('//') + 2 );
 
-	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+	newEl.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
 
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-	el.dataset.file = uri;
+	newEl.dataset.file = uri;
 
-	playlist.appendChild( el );
+	playlist.appendChild( newEl );
 
 	var len = playlist.children.length;
 	if ( len == 1 && ! isPlaying() )
@@ -481,10 +480,11 @@ function addSongToPlaylist( uri, content = {} ) {
 	}).then( stream => {
 		mm.parseReadableStream( stream, '', { skipCovers: true } ).then( metadata => {
 			if ( metadata ) {
-				addMetadata( metadata, el ); // add metadata to playlist item
-				for ( let i in [0,1] )
-					if ( audioElement[ i ].dataset.file == el.dataset.file )
-						addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
+				addMetadata( metadata, newEl ); // add metadata to playlist item
+				audioElement.forEach( el => {
+					if ( el.dataset.file == newEl.dataset.file )
+						addMetadata( newEl, el ); // transfer metadata to audio element
+				});
 			}
 			stream.cancel(); // release stream
 		});
@@ -492,17 +492,16 @@ function addSongToPlaylist( uri, content = {} ) {
 }
 
 /**
- * Load a playlist file into the current playlist
+ * Load a playlist file into the play queue
  */
 function loadPlaylist( path ) {
-
-	var tmplist, ext, songInfo,
-		n = 0;
 
 	if ( ! path )
 		return;
 
-	ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
+	var ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase(),
+		n = 0,
+		songInfo;
 
 	if ( ['m3u','m3u8'].includes( ext ) ) {
 		fetch( path )
@@ -513,42 +512,41 @@ function loadPlaylist( path ) {
 					consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 			})
 			.then( content => {
-				tmplist = content.split(/[\r\n]+/);
 				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
-				for ( var i = 0; i < tmplist.length; i++ ) {
-					if ( tmplist[ i ].charAt(0) != '#' && tmplist[ i ].trim() != '' ) { // not a comment or blank line?
+				content.split(/[\r\n]+/).forEach( line => {
+					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
 						n++;
 						if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\') ) + 1 );
+							songInfo = line.substring( Math.max( line.lastIndexOf('/'), line.lastIndexOf('\\') ) + 1 );
 							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 						}
-						if ( tmplist[ i ].substring( 0, 4 ) != 'http' && tmplist[ i ][1] != ':' && tmplist[ i ][0] != '/' )
-							tmplist[ i ] = path + tmplist[ i ];
+						if ( line.substring( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
+							line = path + line;
 						let t = songInfo.indexOf(' - ');
 						if ( t == -1 )
-							addSongToPlaylist( tmplist[ i ], { title: songInfo } );
+							addSongToPlaylist( line, { title: songInfo } );
 						else
-							addSongToPlaylist( tmplist[ i ], { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
+							addSongToPlaylist( line, { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
 						songInfo = '';
 					}
-					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
-						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
-				}
-				consoleLog( `Loaded ${n} files into the playlist` );
+					else if ( line.substring( 0, 7 ) == '#EXTINF' )
+						songInfo = line.substring( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+				});
+				notie.alert({ text: `${n} songs added to the queue`, time: 5 });
 			})
 			.catch( e => consoleLog( e, true ) );
 	}
 	else { // try to load playlist from localStorage
-		tmplist = localStorage.getItem( 'pl_' + path );
-		if ( tmplist ) {
-			tmplist = JSON.parse( tmplist );
-			tmplist.forEach( item => {
+		var list = localStorage.getItem( 'pl_' + path );
+		if ( list ) {
+			list = JSON.parse( list );
+			list.forEach( item => {
 				n++;
 				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
 				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 				addSongToPlaylist( item, { title: songInfo } )
 			});
-			consoleLog( `Loaded ${n} files into the playlist` );
+			notie.alert({ text: `${n} songs added to the queue`, time: 5 });
 		}
 		else
 			consoleLog( `Unrecognized playlist file: ${path}`, true );
@@ -1476,7 +1474,7 @@ function setLoRes() {
 
 	sourcePlayer = [];
 
-	for ( let i in [0,1] ) {
+	for ( let i of [0,1] ) {
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
@@ -1531,15 +1529,14 @@ function setLoRes() {
 
 
 	// Add event listeners to the custom checkboxes
-	var switches = document.querySelectorAll('.switch');
-	for ( let i = 0; i < switches.length; i++ ) {
-		switches[ i ].addEventListener( 'click', e => {
-			if ( e.target.className.match( /switch/ ) ) // check for clicks on child nodes
+	document.querySelectorAll('.switch').forEach( el => {
+		el.addEventListener( 'click', e => {
+			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
 				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
 			else
 				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
 		});
-	}
+	});
 
 	elShowScale.  addEventListener( 'click', setScale );
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
