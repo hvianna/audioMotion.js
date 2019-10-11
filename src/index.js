@@ -1622,7 +1622,7 @@ function setLoRes() {
 		{
 			dblClick: file => addToPlaylist( file, true )
 		}
-	).then( ([ status, filelist ]) => {
+	).then( ([ status, filelist, serversignature ]) => {
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
@@ -1638,6 +1638,7 @@ function setLoRes() {
 			filelist.style.display = 'none';
 		}
 		else {
+			consoleLog( `${serversignature} detected` );
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
@@ -1689,4 +1690,5 @@ function setLoRes() {
 		positions: { alert: 'bottom' }
 	});
 
+	consoleLog( 'Initialization complete!' );
 })();

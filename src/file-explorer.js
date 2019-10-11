@@ -274,7 +274,7 @@ export function create( container, options = {} ) {
 					ui_path.innerHTML = `Cannot access media folder (${mounts[0]}) on server!`;
 					status = -1;
 				}
-				resolve([ status, ui_files ]);
+				resolve([ status, ui_files, status ? content : 'Standard web server' ]);
 			})
 			.catch( err => {
 				clearTimeout( startUpTimer );
