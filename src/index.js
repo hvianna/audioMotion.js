@@ -1510,6 +1510,10 @@ function setLoRes() {
 	elPlaylists   = document.getElementById('playlists');
 
 	// Populate combo boxes
+	['Discrete frequencies','Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) =>
+		elMode[ elMode.options.length ] = i ? new Option( `${text} octave bands`, 9 - i ) : new Option( text, 0 )
+	);
+
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
