@@ -402,19 +402,42 @@ function loadSavedPlaylists( keyName ) {
 }
 
 /**
+ * Adds a batch of files to the queue and displays total songs added when finished
+ *
+ * @param files {array} array of objects with a 'file' property
+ * @param [autoplay] {boolean}
+ */
+function addBatchToQueue( files, autoplay = false ) {
+	const promises = files.map( entry => addToPlaylist( entry.file, autoplay ) );
+	Promise.all( promises ).then( added => {
+		const total = added.reduce( ( sum, val ) => sum + val, 0 );
+		notie.alert({ text: `${total} song${ total > 1 ? 's' : '' } added to the queue`, time: 5 });
+	});
+}
+
+/**
  * Add a song or playlist to the current playlist
  */
 function addToPlaylist( file, autoplay = false ) {
 
-	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase(),
+		ret;
 
 	if ( ['m3u','m3u8'].includes( ext ) )
-		loadPlaylist( file );
+		ret = loadPlaylist( file );
 	else
-		addSongToPlaylist( file );
+		ret = new Promise( resolve => {
+			addSongToPlaylist( file );
+			resolve(1);
+		});
 
-	if ( autoplay && ! isPlaying() )
-		playSong( playlist.children.length - 1 );
+	// when promise resolved, if autoplay requested start playing the first added song
+	ret.then( n => {
+		if ( autoplay && ! isPlaying() )
+			playSong( playlist.children.length - n );
+	});
+
+	return ret;
 }
 
 /**
@@ -503,54 +526,60 @@ function loadPlaylist( path ) {
 		n = 0,
 		songInfo;
 
-	if ( ['m3u','m3u8'].includes( ext ) ) {
-		fetch( path )
-			.then( response => {
-				if ( response.status == 200 )
-					return response.text();
-				else
-					consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
-			})
-			.then( content => {
-				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
-				content.split(/[\r\n]+/).forEach( line => {
-					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-						n++;
-						if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-							songInfo = line.substring( Math.max( line.lastIndexOf('/'), line.lastIndexOf('\\') ) + 1 );
-							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+	return new Promise( resolve => {
+		if ( ['m3u','m3u8'].includes( ext ) ) {
+			fetch( path )
+				.then( response => {
+					if ( response.status == 200 )
+						return response.text();
+					else
+						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+				})
+				.then( content => {
+					path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
+					content.split(/[\r\n]+/).forEach( line => {
+						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+							n++;
+							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
+								songInfo = line.substring( Math.max( line.lastIndexOf('/'), line.lastIndexOf('\\') ) + 1 );
+								songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+							}
+							if ( line.substring( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
+								line = path + line;
+							let t = songInfo.indexOf(' - ');
+							if ( t == -1 )
+								addSongToPlaylist( line, { title: songInfo } );
+							else
+								addSongToPlaylist( line, { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
+							songInfo = '';
 						}
-						if ( line.substring( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
-							line = path + line;
-						let t = songInfo.indexOf(' - ');
-						if ( t == -1 )
-							addSongToPlaylist( line, { title: songInfo } );
-						else
-							addSongToPlaylist( line, { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
-						songInfo = '';
-					}
-					else if ( line.substring( 0, 7 ) == '#EXTINF' )
-						songInfo = line.substring( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+						else if ( line.substring( 0, 7 ) == '#EXTINF' )
+							songInfo = line.substring( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+					});
+					resolve( n );
+				})
+				.catch( e => {
+					consoleLog( e, true );
+					resolve( n );
 				});
-				notie.alert({ text: `${n} songs added to the queue`, time: 5 });
-			})
-			.catch( e => consoleLog( e, true ) );
-	}
-	else { // try to load playlist from localStorage
-		var list = localStorage.getItem( 'pl_' + path );
-		if ( list ) {
-			list = JSON.parse( list );
-			list.forEach( item => {
-				n++;
-				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
-				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-				addSongToPlaylist( item, { title: songInfo } )
-			});
-			notie.alert({ text: `${n} songs added to the queue`, time: 5 });
 		}
-		else
-			consoleLog( `Unrecognized playlist file: ${path}`, true );
-	}
+		else { // try to load playlist from localStorage
+			var list = localStorage.getItem( 'pl_' + path );
+			if ( list ) {
+				list = JSON.parse( list );
+				list.forEach( item => {
+					n++;
+					songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
+					songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+					addSongToPlaylist( item, { title: songInfo } )
+				});
+			}
+			else
+				consoleLog( `Unrecognized playlist file: ${path}`, true );
+
+			resolve( n );
+		}
+	});
 }
 
 /**
@@ -1569,7 +1598,9 @@ function setLoRes() {
 	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
 	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
 	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
-	document.getElementById('load_playlist').addEventListener( 'click', () => loadPlaylist( elPlaylists.value ) );
+	document.getElementById('load_playlist').addEventListener( 'click', () => {
+		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
+	});
 	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
 	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
@@ -1620,7 +1651,7 @@ function setLoRes() {
 	fileExplorer.create(
 		document.getElementById('file_explorer'),
 		{
-			dblClick: file => addToPlaylist( file, true )
+			dblClick: file => addBatchToQueue( [ { file } ], true )
 		}
 	).then( ([ status, filelist, serversignature ]) => {
 		if ( status == -1 ) {
@@ -1663,12 +1694,8 @@ function setLoRes() {
 			});
 		}
 
-		document.getElementById('btn_add_selected').addEventListener( 'mousedown', () => {
-			fileExplorer.getFolderContents('.selected').forEach( entry => addToPlaylist( entry.file ) );
-		});
-		document.getElementById('btn_add_folder').addEventListener( 'click', () => {
-			fileExplorer.getFolderContents().forEach( entry => addToPlaylist( entry.file ) );
-		});
+		document.getElementById('btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
+		document.getElementById('btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
 	});
 
 	// Add event listener for keyboard controls
