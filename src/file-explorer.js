@@ -250,7 +250,7 @@ export function create( container, options = {} ) {
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
 			if ( dblClickCallback && ['file','list'].includes( e.target.dataset.type ) )
-				dblClickCallback( makePath( e.target.dataset.path ) );
+				dblClickCallback( makePath( e.target.dataset.path ), e );
 		}
 	});
 

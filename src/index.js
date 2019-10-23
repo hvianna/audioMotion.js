@@ -1437,8 +1437,10 @@ function setLoRes() {
 	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
 	playlist.addEventListener( 'dblclick', e => {
-		if ( e.target && e.target.dataset.file )
+		if ( e.target && e.target.dataset.file ) {
 			playSong( getIndex( e.target ) );
+			e.target.classList.remove( 'selected', 'sortable-chosen' );
+		}
 	});
 	playlistPos = 0;
 
@@ -1657,7 +1659,10 @@ function setLoRes() {
 	fileExplorer.create(
 		document.getElementById('file_explorer'),
 		{
-			dblClick: file => addBatchToQueue( [ { file } ], true )
+			dblClick: ( file, event ) => {
+				addBatchToQueue( [ { file } ], true );
+				event.target.classList.remove( 'selected', 'sortable-chosen' );
+			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {
 		if ( status == -1 ) {
