@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.10-dev.2';
+var _VERSION = '19.10-dev.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -951,11 +951,15 @@ function displayCanvasMsg() {
 	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
-	if ( canvasMsg.msg != 'all' && canvasMsg.msg != 'song' ) {
+	// Display custom message if any and info level 2 is not set
+	if ( canvasMsg.msg && canvasMsg.info != 2 )
 		outlineText( canvasMsg.msg, centerPos, topLine );
-	}
-	else {
-		if ( canvasMsg.msg == 'all' ) {
+
+	// Display song and config info
+	if ( canvasMsg.info ) {
+
+		// display additional information (level 2) at the top
+		if ( canvasMsg.info == 2 ) {
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
 			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.8 );
 
@@ -1004,9 +1008,15 @@ function displayCanvasMsg() {
  */
 function setCanvasMsg( msg, timer = 120, fade = 60 ) {
 	if ( ! msg )
-		canvasMsg = { timer: 0 };
-	else
-		canvasMsg = { msg: msg, timer: timer, fade: fade };
+		canvasMsg = { timer: 0 }; // clear all canvas messages
+	else {
+		if ( typeof msg == 'number' )
+			canvasMsg.info = msg; // set info level 1 or 2
+		else
+			canvasMsg.msg = msg;  // set custom message
+		canvasMsg.timer = timer;
+		canvasMsg.fade = fade;
+	}
 }
 
 /**
@@ -1295,14 +1305,10 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Background ' + ( elBlackBg.dataset.active == '1' ? 'OFF' : 'ON' ) );
 			break;
 		case 'KeyD': 		// display information
-			if ( canvasMsg.msg ) {
-				if ( canvasMsg.msg == 'all' )
-					setCanvasMsg();
-				else
-					setCanvasMsg( 'all', 300 );
-			}
+			if ( canvasMsg.info == 2 )
+				setCanvasMsg();
 			else
-				setCanvasMsg( 'song', 300 );
+				setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 300 );
 			break;
 		case 'KeyF': 		// toggle fullscreen
 			fullscreen();
@@ -1361,7 +1367,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyR': 		// toggle playlist repeat
 			elRepeat.click();
-			setCanvasMsg( 'Playlist repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 'KeyS': 		// toggle scale
 			elShowScale.click();
@@ -1374,7 +1380,7 @@ function keyboardControls( event ) {
 		case 'KeyU': 		// shuffle playlist
 			if ( playlist.children.length > 0 ) {
 				shufflePlaylist();
-				setCanvasMsg( 'Shuffled playlist' );
+				setCanvasMsg( 'Shuffle' );
 			}
 			break;
 	}
@@ -1386,7 +1392,7 @@ function keyboardControls( event ) {
  */
 function audioOnPlay() {
 	if ( elShowSong.dataset.active == '1' )
-		setCanvasMsg( 'song', 600, 180 );
+		setCanvasMsg( 1, 600, 180 );
 
 	if ( ! audioElement[ currAudio ].attributes.src )
 		playSong( playlistPos );
