@@ -413,6 +413,9 @@ kbd.wide {
 	content: '\f102';
 }
 
+#playlist li {
+	position: relative;
+}
 #playlist li::before {
 	content: attr(data-title);
 	display: inline-block;
@@ -422,13 +425,14 @@ kbd.wide {
 }
 #playlist li::after {
 	content: attr(data-duration);
-	float: right;
+	position: absolute;
+	right: .75em;
 }
 #playlist li.current {
-	padding-left: 0;
+	padding-left: .25em;
 }
 #playlist li.current::before {
-	content: "\25b8" attr(data-title);
+	content: "\25b8"" " attr(data-title);
 }
 
 #console {
