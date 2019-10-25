@@ -278,7 +278,7 @@ export function create( container, options = {} ) {
 			})
 			.catch( err => {
 				clearTimeout( startUpTimer );
-				ui_path.innerHTML = 'No server found.';
+				ui_path.innerHTML = 'No file server found.';
 				resolve([ -1, ui_files ]);
 			});
 	});
