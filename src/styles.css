@@ -381,15 +381,18 @@ kbd.wide {
 	padding: 0 .75em;
 	white-space: nowrap;
 }
-.filelist li:hover,
 .filelist li.current {
+	color: #06c;
+}
+.filelist li.selected {
+	outline: 1px dashed #c5e2ff;
+	background: #c5e2ff;
+}
+.filelist li:hover {
 	background: #06c;
 	color: #fff;
 }
-.filelist li.selected {
-	outline: 1px dashed #5daaf7;
-	background: #5daaf7;
-}
+
 .filelist [data-type]::before {
 	font-family: audioMotion;
 	margin-right: 10px;
@@ -417,9 +420,15 @@ kbd.wide {
 	vertical-align: text-bottom;
 	width: calc( 100% - 4em );
 }
-.filelist li::after {
+#playlist li::after {
 	content: attr(data-duration);
 	float: right;
+}
+#playlist li.current {
+	padding-left: 0;
+}
+#playlist li.current::before {
+	content: "\25b8" attr(data-title);
 }
 
 #console {
