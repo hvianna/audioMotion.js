@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.10-dev.3';
+var _VERSION = '19.10';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1430,8 +1430,7 @@ function setLoRes() {
  */
 (function() {
 
-	consoleLog( `audioMotion.js ver. ${_VERSION}` );
-	consoleLog( 'Initializing...' );
+	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	// Initialize play queue and set event listeners
