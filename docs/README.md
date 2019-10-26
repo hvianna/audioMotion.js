@@ -25,7 +25,7 @@ audioMotion.js Documentation
 
 ### Building audioMotion
 
-- [Building the client](building.md#building-the-client)
+- [Building the web app](building.md#building-the-web-app)
 - [Building binaries](building.md#building-binaries)
 
 ### Legacy features

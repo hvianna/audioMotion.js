@@ -3,16 +3,22 @@ Changelog
 
 ## version 19.10
 
+:sunglasses: audioMotion's graphic spectrum analyzer is now available as a [standalone project](https://github.com/hvianna/audioMotion-analyzer) and a zero-dependency [npm package](https://www.npmjs.com/package/audiomotion-analyzer) you can use in your own JavaScript projects! :tada:
+
 ### Added:
 
-+ 1/4th and 1/8th octave bands modes;
-+ Improved metadata fetching for streams and time display for longer audio files;
++ 1/4th and 1/8th octave bands visualization modes;
 + Load files from remote URLs and manage playlists when running audioMotion in file mode (no server);
 
 ### Changed:
 
-+ Player automatically skip to next track on playback errors (file not found or format not supported);
-+ Improved gapless playback (hopefully).
++ Double-clicking a playlist in the file explorer now correctly starts playing it, if player is idle;
++ Player automatically skips to next track on playback errors, e.g. file not found or format not supported;
++ Number of songs added to the playlist is now shown in a notification, instead of logged to the console;
++ Improved metadata fetching for streams and time display for longer audio files;
++ Improved error handling on file server;
++ Slightly improved gapless playback;
++ Updated npm packages.
 
 
 ## version 19.7
