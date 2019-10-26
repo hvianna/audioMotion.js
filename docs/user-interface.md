@@ -22,9 +22,9 @@ Please note that the visualization from microphone or stereo mix audio might suf
 
 ![ui-player](img/UI_player.png)
 
-You can use the player controls to play, pause and skip through songs in the play queue.
+You can use the player controls to play, pause and skip through queued songs.
 
-The **Shuffle** button will shuffle the songs in the play queue and start playback.
+The **Shuffle** button shuffles the queue and starts playing it from the beginning.
 
 When the **Repeat** option is active, the player will loop back to the first song after playing the entire queue.
 
@@ -154,9 +154,9 @@ You can also choose from three predefined sensitivity settings (low, normal and 
 
 The file explorer allows you to navigate through the music folder shared by the server.
 
-Double-click a music file or playlist to quickly add it to the play queue. Press *Ctrl* to select multiple files, or *Ctrl*+*Shift* to select a range of files.
+Double-click a music file or playlist to quickly add it to the queue. Press *Ctrl* to select multiple files, or *Ctrl*+*Shift* to select a range of files.
 
-Click the **Add selected** button to add selected files to the play queue, or the **Add all files** button to enqueue all music files in the current folder.
+Click the **Add selected** button to add selected files to the queue, or the **Add all files** button to enqueue all music files in the current folder.
 
 You can also drag and drop files from the file explorer into the play queue.
 
@@ -164,15 +164,15 @@ Supported extensions are flac, m4a, mp3, ogg and wav for music files, and m3u or
 
 #### Play queue and playlists
 
-Double-click a song in the play queue to play it.
+Double-click a queued song to play it.
 
-You can drag and drop songs inside the play queue to reorder them. Press *Ctrl* to select multiple files, or *Ctrl*+*Shift* to select a range.
+You can drag and drop queued songs to reorder them. Press *Ctrl* to select multiple files, or *Ctrl*+*Shift* to select a range.
 Press *Delete* (*Backspace* on Mac) to remove selected songs from the queue.
 
-**Clear** clears the current play queue. **Save as...** saves the current play queue as a new local playlist - these are stored in your browser's local storage.
+**Clear** clears the queue. **Save as...** saves the queue as a new local playlist, stored in your browser's local storage.
 
-Saved playlists appear in the playlist selection box. Select a playlist and click the ![folder-button](img/folder-button.png "folder") button to load it into the play queue.
-Press the ![disk-button](img/save-button.png "diskette") button to update the selected playlist with the current play queue contents.
+Saved playlists appear in the playlist selection box. Select a playlist and click the ![folder-button](img/folder-button.png "folder") button to load it into the queue.
+Press the ![disk-button](img/save-button.png "diskette") button to update the selected playlist with the current queue contents.
 Press the ![trash-button](img/trash-button.png "trashcan") button to permanently deleted the selected playlist.
 
 ### Console

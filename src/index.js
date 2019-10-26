@@ -22,9 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.7';
+var _VERSION = '19.10';
 
-import * as audioMotion from './audioMotion-analyzer.js';
+import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
@@ -36,6 +36,9 @@ import notie from 'notie';
 import './notie.css';
 
 import './styles.css';
+
+// AudioMotionAnalyzer object
+var audioMotion;
 
 // playlist, index to the current song, indexes to current and next audio elements
 var playlist, playlistPos, currAudio, nextAudio;
@@ -225,9 +228,9 @@ function setSensitivity( value ) {
  * Set the smoothing time constant
  */
 function setSmoothing() {
-	audioMotion.setSmoothing( elSmoothing.value );
+	audioMotion.smoothing = elSmoothing.value;
 	document.getElementById('smoothingValue').innerText = elSmoothing.value;
-	consoleLog( 'smoothingTimeConstant is ' + audioMotion.analyzer.smoothingTimeConstant );
+	consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 	updateLastConfig();
 }
 
@@ -235,8 +238,8 @@ function setSmoothing() {
  * Set the size of the FFT performed by the analyzer node
  */
 function setFFTsize() {
-	audioMotion.setFFTSize( elFFTsize.value );
-	consoleLog( 'FFT size is ' + audioMotion.analyzer.fftSize + ' samples' );
+	audioMotion.fftSize = elFFTsize.value;
+	consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 	updateLastConfig();
 }
 
@@ -254,7 +257,7 @@ function setFreqRange() {
  * Set Gradient
  */
 function setGradient() {
-	audioMotion.setGradient( elGradient.value );
+	audioMotion.gradient = elGradient.value;
 	updateLastConfig();
 }
 
@@ -262,7 +265,7 @@ function setGradient() {
  * Set visualization mode
  */
 function setMode() {
-	audioMotion.setMode( elMode.value );
+	audioMotion.mode = elMode.value;
 	updateLastConfig();
 }
 
@@ -270,7 +273,7 @@ function setMode() {
  * Set scale preferences
  */
 function setScale() {
-	audioMotion.toggleScale( elShowScale.dataset.active == '1' );
+	audioMotion.showScale = ( elShowScale.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -278,7 +281,7 @@ function setScale() {
  * Set scale preferences
  */
 function setLedDisplay() {
-	audioMotion.toggleLeds( elLedDisplay.dataset.active == '1' );
+	audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -286,7 +289,7 @@ function setLedDisplay() {
  * Set show peaks preference
  */
 function setShowPeaks() {
-	audioMotion.togglePeaks( elShowPeaks.dataset.active == '1' );
+	audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -294,7 +297,7 @@ function setShowPeaks() {
  * Set background color preference
  */
 function setBlackBg() {
-	audioMotion.toggleBgColor( elBlackBg.dataset.active == '0' );
+	audioMotion.showBgColor = ( elBlackBg.dataset.active == '0' );
 	updateLastConfig();
 }
 
@@ -302,7 +305,7 @@ function setBlackBg() {
  * Set display of current frame rate
  */
 function setFPS() {
-	audioMotion.toggleFPS( elFPS.dataset.active == '1' );
+	audioMotion.showFPS = ( elFPS.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -346,13 +349,12 @@ function clearPlaylist() {
  */
 function loadSavedPlaylists( keyName ) {
 
-	var list, item, n = 0,
-		playlists = localStorage.getItem('playlists');
+	var playlists = localStorage.getItem('playlists');
 
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	item = new Option( 'Select a playlist and click action to the right', '' );
+	var item = new Option( 'Select a playlist and click action to the right', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -361,7 +363,7 @@ function loadSavedPlaylists( keyName ) {
 		playlists = JSON.parse( playlists );
 
 		Object.keys( playlists ).forEach( key => {
-			item = new Option( playlists[ key ], key );
+			let item = new Option( playlists[ key ], key );
 			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
@@ -380,16 +382,16 @@ function loadSavedPlaylists( keyName ) {
 		})
 		.then( content => {
 			if ( content !== false ) {
-				list = content.split(/[\r\n]+/);
-				for ( let i = 0; i < list.length; i++ ) {
-					if ( list[ i ].charAt(0) != '#' && list[ i ].trim() != '' ) { // not a comment or blank line?
-						item = list[ i ].split(/\|/);
-						if ( item.length == 2 ) {
-							elPlaylists.options[ elPlaylists.options.length ] = new Option( item[0].trim(), item[1].trim() );
+				var n = 0;
+				content.split(/[\r\n]+/).forEach( line => {
+					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+						let info = line.split(/\|/);
+						if ( info.length == 2 ) {
+							elPlaylists.options[ elPlaylists.options.length ] = new Option( info[0].trim(), info[1].trim() );
 							n++;
 						}
 					}
-				}
+				});
 				if ( n )
 					consoleLog( `${n} playlists loaded from playlists.cfg` );
 				else
@@ -400,16 +402,42 @@ function loadSavedPlaylists( keyName ) {
 }
 
 /**
+ * Adds a batch of files to the queue and displays total songs added when finished
+ *
+ * @param files {array} array of objects with a 'file' property
+ * @param [autoplay] {boolean}
+ */
+function addBatchToQueue( files, autoplay = false ) {
+	const promises = files.map( entry => addToPlaylist( entry.file, autoplay ) );
+	Promise.all( promises ).then( added => {
+		const total = added.reduce( ( sum, val ) => sum + val, 0 );
+		notie.alert({ text: `${total} song${ total > 1 ? 's' : '' } added to the queue`, time: 5 });
+	});
+}
+
+/**
  * Add a song or playlist to the current playlist
  */
-function addToPlaylist( file ) {
+function addToPlaylist( file, autoplay = false ) {
 
-	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase(),
+		ret;
 
 	if ( ['m3u','m3u8'].includes( ext ) )
-		loadPlaylist( file );
+		ret = loadPlaylist( file );
 	else
-		addSongToPlaylist( file );
+		ret = new Promise( resolve => {
+			addSongToPlaylist( file );
+			resolve(1);
+		});
+
+	// when promise resolved, if autoplay requested start playing the first added song
+	ret.then( n => {
+		if ( autoplay && ! isPlaying() )
+			playSong( playlist.children.length - n );
+	});
+
+	return ret;
 }
 
 /**
@@ -431,14 +459,14 @@ function addMetadata( metadata, target ) {
 		target.dataset.codec    = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
 
 		if ( metadata.format && metadata.format.bitsPerSample )
-			target.dataset.quality = ( metadata.format.sampleRate / 1000 ).toFixed() + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
+			target.dataset.quality = Math.floor( metadata.format.sampleRate / 1000 ) + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
 		else if ( metadata.format.bitrate )
-			target.dataset.quality = ( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
+			target.dataset.quality = Math.floor( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
 		else
 			target.dataset.quality = '';
 
 		if ( metadata.format && metadata.format.duration )
-			target.dataset.duration = Math.floor( metadata.format.duration / 60 ) + ':' + ( '0' + Math.round( metadata.format.duration % 60 ) ).slice(-2);
+			target.dataset.duration = formatHHMMSS( metadata.format.duration );
 		else
 			target.dataset.duration = '';
 	}
@@ -449,14 +477,20 @@ function addMetadata( metadata, target ) {
  */
 function addSongToPlaylist( uri, content = {} ) {
 
-	var el = document.createElement('li');
+	var newEl = document.createElement('li');
 
-	el.dataset.artist = content.artist || '';
-	el.dataset.title = content.title || uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' );
-	el.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+	newEl.dataset.artist = content.artist || '';
+
+	newEl.dataset.title = content.title ||
+		uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' ) ||
+		uri.substring( uri.lastIndexOf('//') + 2 );
+
+	newEl.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-	el.dataset.file = uri;
-	playlist.appendChild( el );
+	newEl.dataset.file = uri;
+
+	playlist.appendChild( newEl );
 
 	var len = playlist.children.length;
 	if ( len == 1 && ! isPlaying() )
@@ -464,78 +498,88 @@ function addSongToPlaylist( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
-	mm.fetchFromUrl( uri, { skipCovers: true } ).then( metadata => {
-		if ( metadata ) {
-			addMetadata( metadata, el ); // add metadata to playlist item
-			for ( let i in [0,1] )
-				if ( audioElement[ i ].dataset.file == el.dataset.file )
-					addMetadata( el, audioElement[ i ] ); // transfer metadata to audio element
-		}
+	fetch( uri ).then( response => {
+		return response.body;
+	}).then( stream => {
+		mm.parseReadableStream( stream, '', { skipCovers: true } ).then( metadata => {
+			if ( metadata ) {
+				addMetadata( metadata, newEl ); // add metadata to playlist item
+				audioElement.forEach( el => {
+					if ( el.dataset.file == newEl.dataset.file )
+						addMetadata( newEl, el ); // transfer metadata to audio element
+				});
+			}
+			stream.cancel(); // release stream
+		});
 	});
 }
 
 /**
- * Load a playlist file into the current playlist
+ * Load a playlist file into the play queue
  */
 function loadPlaylist( path ) {
-
-	var tmplist, ext, songInfo,
-		n = 0;
 
 	if ( ! path )
 		return;
 
-	ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
+	var ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase(),
+		n = 0,
+		songInfo;
 
-	if ( ['m3u','m3u8'].includes( ext ) ) {
-		fetch( path )
-			.then( response => {
-				if ( response.status == 200 )
-					return response.text();
-				else
-					consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
-			})
-			.then( content => {
-				tmplist = content.split(/[\r\n]+/);
-				path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
-				for ( var i = 0; i < tmplist.length; i++ ) {
-					if ( tmplist[ i ].charAt(0) != '#' && tmplist[ i ].trim() != '' ) { // not a comment or blank line?
-						n++;
-						if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-							songInfo = tmplist[ i ].substring( Math.max( tmplist[ i ].lastIndexOf('/'), tmplist[ i ].lastIndexOf('\\') ) + 1 );
-							songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+	return new Promise( resolve => {
+		if ( ['m3u','m3u8'].includes( ext ) ) {
+			fetch( path )
+				.then( response => {
+					if ( response.status == 200 )
+						return response.text();
+					else
+						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+				})
+				.then( content => {
+					path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
+					content.split(/[\r\n]+/).forEach( line => {
+						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+							n++;
+							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
+								songInfo = line.substring( Math.max( line.lastIndexOf('/'), line.lastIndexOf('\\') ) + 1 );
+								songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+							}
+							if ( line.substring( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
+								line = path + line;
+							let t = songInfo.indexOf(' - ');
+							if ( t == -1 )
+								addSongToPlaylist( line, { title: songInfo } );
+							else
+								addSongToPlaylist( line, { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
+							songInfo = '';
 						}
-						if ( tmplist[ i ].substring( 0, 4 ) != 'http' && tmplist[ i ][1] != ':' && tmplist[ i ][0] != '/' )
-							tmplist[ i ] = path + tmplist[ i ];
-						let t = songInfo.indexOf(' - ');
-						if ( t == -1 )
-							addSongToPlaylist( tmplist[ i ], { title: songInfo } );
-						else
-							addSongToPlaylist( tmplist[ i ], { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
-						songInfo = '';
-					}
-					else if ( tmplist[ i ].substring( 0, 7 ) == '#EXTINF' )
-						songInfo = tmplist[ i ].substring( tmplist[ i ].indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
-				}
-				consoleLog( `Loaded ${n} files into the playlist` );
-			})
-			.catch( e => consoleLog( e, true ) );
-	}
-	else { // try to load playlist from localStorage
-		tmplist = localStorage.getItem( 'pl_' + path );
-		if ( tmplist ) {
-			tmplist = JSON.parse( tmplist );
-			tmplist.forEach( item => {
-				n++;
-				songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
-				songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-				addSongToPlaylist( item, { title: songInfo } )
-			});
-			consoleLog( `Loaded ${n} files into the playlist` );
+						else if ( line.substring( 0, 7 ) == '#EXTINF' )
+							songInfo = line.substring( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+					});
+					resolve( n );
+				})
+				.catch( e => {
+					consoleLog( e, true );
+					resolve( n );
+				});
 		}
-		else
-			consoleLog( `Unrecognized playlist file: ${path}`, true );
-	}
+		else { // try to load playlist from localStorage
+			var list = localStorage.getItem( 'pl_' + path );
+			if ( list ) {
+				list = JSON.parse( list );
+				list.forEach( item => {
+					n++;
+					songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
+					songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+					addSongToPlaylist( item, { title: songInfo } )
+				});
+			}
+			else
+				consoleLog( `Unrecognized playlist file: ${path}`, true );
+
+			resolve( n );
+		}
+	});
 }
 
 /**
@@ -565,7 +609,7 @@ function savePlaylist( index ) {
 function storePlaylist( name, update = true ) {
 
 	if ( playlist.children.length == 0 ) {
-		notie.alert({ text: 'Play queue is empty!' });
+		notie.alert({ text: 'Queue is empty!' });
 		return;
 	}
 
@@ -712,52 +756,47 @@ function loadSong( n ) {
  */
 function loadNextSong() {
 	var n;
-	audioElement[ nextAudio ].pause();
 	if ( playlistPos < playlist.children.length - 1 )
 		n = playlistPos + 1;
 	else
 		n = 0;
 	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
+	audioElement[ nextAudio ].load();
 	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
 	addMetadata( playlist.children[ n ], audioElement[ nextAudio ] );
 	skipping = false; // finished skipping track
 }
 
 /**
- * Play a song from the playlist
+ * Play a song from the play queue
  */
 function playSong( n ) {
-
-	if ( cfgSource == 'mic' )
-		return;
-
 	if ( loadSong( n ) )
-		audioElement[ currAudio ].play();
+		playPause( true );
 }
 
 /**
  * Player controls
  */
-function playPause() {
+function playPause( play ) {
 	if ( cfgSource == 'mic' )
 		return;
-	if ( isPlaying() )
+	if ( isPlaying() && ! play )
 		audioElement[ currAudio ].pause();
 	else
-		audioElement[ currAudio ].play();
+		audioElement[ currAudio ].play().catch( err => {
+			consoleLog( err, true );
+			playNextSong( true );
+		});
 }
 
 function stop() {
-	if ( cfgSource == 'mic' )
-		return;
 	audioElement[ currAudio ].pause();
 	setCanvasMsg();
 	loadSong( 0 );
 }
 
 function playPreviousSong() {
-	if ( cfgSource == 'mic' )
-		return;
 	if ( isPlaying() ) {
 		if ( audioElement[ currAudio ].currentTime > 2 )
 			audioElement[ currAudio ].currentTime = 0;
@@ -773,11 +812,9 @@ function playPreviousSong() {
 function playNextSong( play ) {
 
 	if ( skipping || cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
-		return;
+		return true;
 
 	skipping = true;
-
-	var gradIdx;
 
 	if ( playlistPos < playlist.children.length - 1 )
 		playlistPos++;
@@ -786,12 +823,12 @@ function playNextSong( play ) {
 	else {
 		setCanvasMsg( 'Already at last song' );
 		skipping = false;
-		return;
+		return false;
 	}
 
-	play = play || isPlaying();
+	play |= isPlaying();
 
-	currAudio = ! currAudio | 0;
+	currAudio = nextAudio;
 	nextAudio = ! currAudio | 0;
 
 	audioElement[ nextAudio ].style.display = 'none';
@@ -805,21 +842,23 @@ function playNextSong( play ) {
 		.catch( err => {
 			consoleLog( err, true );
 			loadNextSong();
+			playNextSong( true );
 		});
 		if ( elCycleGrad.dataset.active == '1' ) {
-			gradIdx = elGradient.selectedIndex;
+			let gradIdx = elGradient.selectedIndex;
 			if ( gradIdx < elGradient.options.length - 1 )
 				gradIdx++;
 			else
 				gradIdx = 0;
 			elGradient.selectedIndex = gradIdx;
-			audioMotion.setGradient( elGradient.value );
+			audioMotion.gradient = elGradient.value;
 		}
 	}
 	else
 		loadNextSong();
 
 	updatePlaylistUI();
+	return true;
 }
 
 /**
@@ -850,12 +889,33 @@ function outlineText( text, x, y, maxWidth ) {
 }
 
 /**
+ * Format time in seconds to hh:mm:ss
+ */
+function formatHHMMSS( time ) {
+	var str = '',
+		lead = '';
+
+	if ( time >= 3600 ) {
+		str = Math.floor( time / 3600 ) + ':';
+		time %= 3600;
+		lead = '0';
+	}
+
+	str += ( lead + Math.floor( time / 60 ) ).slice(-2) + ':' + ( '0' + Math.floor( time % 60 ) ).slice(-2);
+
+	return str;
+}
+
+/**
  * Display message on canvas
  */
-function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
+function displayCanvasMsg() {
 
-	// if it's less than 50ms from the end of the song, start the next one (for improved gapless playback)
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .05 )
+	var canvas = audioMotion.canvas,
+		canvasCtx = audioMotion.canvasCtx;
+
+	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
+	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
 	if ( canvasMsg.timer < 1 )
@@ -876,7 +936,7 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
 
-	canvasCtx.lineWidth = 4 * pixelRatio;
+	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
 
 	if ( canvasMsg.timer > canvasMsg.fade ) {
@@ -891,11 +951,15 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
-	if ( canvasMsg.msg != 'all' && canvasMsg.msg != 'song' ) {
+	// Display custom message if any and info level 2 is not set
+	if ( canvasMsg.msg && canvasMsg.info != 2 )
 		outlineText( canvasMsg.msg, centerPos, topLine );
-	}
-	else {
-		if ( canvasMsg.msg == 'all' ) {
+
+	// Display song and config info
+	if ( canvasMsg.info ) {
+
+		// display additional information (level 2) at the top
+		if ( canvasMsg.info == 2 ) {
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
 			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.8 );
 
@@ -926,13 +990,15 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
 		// time
 		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
 			if ( ! audioElement[ currAudio ].dataset.duration ) {
-				audioElement[ currAudio ].dataset.duration = Math.floor( audioElement[ currAudio ].duration / 60 ) + ':' + ( '0' + Math.round( audioElement[ currAudio ].duration % 60 ) ).slice(-2);
+				audioElement[ currAudio ].dataset.duration =
+					audioElement[ currAudio ].duration === Infinity ? 'LIVE' : formatHHMMSS( audioElement[ currAudio ].duration );
+
 				if ( playlist.children[ playlistPos ] )
 					playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
 			}
 			canvasCtx.textAlign = 'right';
-			outlineText( Math.floor( audioElement[ currAudio ].currentTime / 60 ) + ':' + ( "0" + Math.floor( audioElement[ currAudio ].currentTime % 60 ) ).slice(-2) + ' / ' +
-						 audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+
+			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
 		}
 	}
 }
@@ -942,22 +1008,28 @@ function displayCanvasMsg( canvas, canvasCtx, pixelRatio ) {
  */
 function setCanvasMsg( msg, timer = 120, fade = 60 ) {
 	if ( ! msg )
-		canvasMsg = { timer: 0 };
-	else
-		canvasMsg = { msg: msg, timer: timer, fade: fade };
+		canvasMsg = { timer: 0 }; // clear all canvas messages
+	else {
+		if ( typeof msg == 'number' )
+			canvasMsg.info = msg; // set info level 1 or 2
+		else
+			canvasMsg.msg = msg;  // set custom message
+		canvasMsg.timer = timer;
+		canvasMsg.fade = fade;
+	}
 }
 
 /**
  * Display information about canvas size changes
  */
-function showCanvasInfo( reason, width, height, isFullscreen, isLoRes, pixelRatio ) {
+function showCanvasInfo( reason ) {
 	if ( ['lores','user'].includes( reason ) )
-		consoleLog( `Lo-res mode ${ isLoRes ? 'ON' : 'OFF' } - pixelRatio is ${ pixelRatio }` );
+		consoleLog( `Lo-res mode ${ audioMotion.loRes ? 'ON' : 'OFF' } - pixelRatio is ${ audioMotion.pixelRatio }` );
 
 	if ( reason == 'user' )
-		consoleLog( `Canvas size set to ${ width } x ${ height } pixels` );
+		consoleLog( `Canvas size set to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels` );
 	else if ( ['lores','resize'].includes( reason ) )
-		consoleLog( `Canvas resized to ${ width } x ${ height } pixels ${ isFullscreen ? '(fullscreen)' : '' }` )
+		consoleLog( `Canvas resized to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels ${ audioMotion.isFullscreen ? '(fullscreen)' : '' }` )
 }
 
 /**
@@ -1018,7 +1090,7 @@ function loadLocalFile( obj ) {
 
 	reader.readAsDataURL( obj.files[0] );
 
-	reader.onload = function() {
+	reader.onload = () => {
 		clearAudioElement();
 		el.src = reader.result;
 		el.play();
@@ -1036,8 +1108,14 @@ function loadPreset( name, alert ) {
 
 	var thisPreset = presets[ name ];
 
-	if ( thisPreset.hasOwnProperty( 'mode' ) )
-		elMode.value = thisPreset.mode;
+	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
+		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
+			elMode.value = 8;
+		else if ( thisPreset.mode == 12 ) // ditto
+			elMode.value = 7;
+		else
+			elMode.value = thisPreset.mode;
+	}
 
 	if ( thisPreset.hasOwnProperty( 'fftSize' ) )
 		elFFTsize.value = thisPreset.fftSize;
@@ -1054,7 +1132,7 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'showScale' ) )
 		elShowScale.dataset.active = Number( thisPreset.showScale );
 
-	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option
+	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option (version =< 19.5)
 		sensitivity = thisPreset.highSens ? 2 : 1;
 		setSensitivity( sensitivity );
 	}
@@ -1101,8 +1179,8 @@ function loadPreset( name, alert ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		minDb      : elMinDb.value,
-		maxDb      : elMaxDb.value,
+		minDecibels: elMinDb.value,
+		maxDecibels: elMaxDb.value,
 		showScale  : ( elShowScale.dataset.active == '1' ),
 		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
 		showBgColor: ( elBlackBg.dataset.active == '0' ),
@@ -1125,7 +1203,7 @@ function saveConfig( config ) {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
-		smoothing	: audioMotion.analyzer.smoothingTimeConstant,
+		smoothing	: audioMotion.smoothing,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
 		minDb       : elMinDb.value,
@@ -1227,14 +1305,10 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Background ' + ( elBlackBg.dataset.active == '1' ? 'OFF' : 'ON' ) );
 			break;
 		case 'KeyD': 		// display information
-			if ( canvasMsg.msg ) {
-				if ( canvasMsg.msg == 'all' )
-					setCanvasMsg();
-				else
-					setCanvasMsg( 'all', 300 );
-			}
+			if ( canvasMsg.info == 2 )
+				setCanvasMsg();
 			else
-				setCanvasMsg( 'song', 300 );
+				setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 300 );
 			break;
 		case 'KeyF': 		// toggle fullscreen
 			fullscreen();
@@ -1293,7 +1367,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyR': 		// toggle playlist repeat
 			elRepeat.click();
-			setCanvasMsg( 'Playlist repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 'KeyS': 		// toggle scale
 			elShowScale.click();
@@ -1306,7 +1380,7 @@ function keyboardControls( event ) {
 		case 'KeyU': 		// shuffle playlist
 			if ( playlist.children.length > 0 ) {
 				shufflePlaylist();
-				setCanvasMsg( 'Shuffled playlist' );
+				setCanvasMsg( 'Shuffle' );
 			}
 			break;
 	}
@@ -1318,7 +1392,7 @@ function keyboardControls( event ) {
  */
 function audioOnPlay() {
 	if ( elShowSong.dataset.active == '1' )
-		setCanvasMsg( 'song', 600, 180 );
+		setCanvasMsg( 1, 600, 180 );
 
 	if ( ! audioElement[ currAudio ].attributes.src )
 		playSong( playlistPos );
@@ -1328,13 +1402,9 @@ function audioOnPlay() {
  * Event handler for 'ended' on audio elements
  */
 function audioOnEnded() {
-	if ( skipping )
-		return;
-	if ( playlistPos < playlist.children.length - 1 || elRepeat.dataset.active == '1' )
-		playNextSong( true );
-	else {
+	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
-		setCanvasMsg( 'Play queue ended', 600 );
+		setCanvasMsg( 'Queue ended', 600 );
 	}
 }
 
@@ -1350,7 +1420,7 @@ function audioOnError( e ) {
  * Toggle low resolution mode
  */
 function setLoRes() {
-	audioMotion.toggleLoRes( elLoRes.dataset.active == '1' );
+	audioMotion.loRes = ( elLoRes.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -1360,15 +1430,16 @@ function setLoRes() {
  */
 (function() {
 
-	consoleLog( `audioMotion.js ver. ${_VERSION}` );
-	consoleLog( 'Initializing...' );
+	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
 	playlist.addEventListener( 'dblclick', e => {
-		if ( e.target && e.target.dataset.file )
+		if ( e.target && e.target.dataset.file ) {
 			playSong( getIndex( e.target ) );
+			e.target.classList.remove( 'selected', 'sortable-chosen' );
+		}
 	});
 	playlistPos = 0;
 
@@ -1409,7 +1480,7 @@ function setLoRes() {
 	// Create audioMotion analyzer
 
 	try {
-		audioMotion.create(
+		audioMotion = new AudioMotionAnalyzer(
 			document.getElementById('analyzer'),
 			{
 				onCanvasDraw: displayCanvasMsg,
@@ -1439,7 +1510,7 @@ function setLoRes() {
 
 	sourcePlayer = [];
 
-	for ( let i in [0,1] ) {
+	for ( let i of [0,1] ) {
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
@@ -1473,6 +1544,10 @@ function setLoRes() {
 	elPlaylists   = document.getElementById('playlists');
 
 	// Populate combo boxes
+	['Discrete frequencies','Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) =>
+		elMode[ elMode.options.length ] = i ? new Option( `${text} octave bands`, 9 - i ) : new Option( text, 0 )
+	);
+
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
@@ -1490,15 +1565,14 @@ function setLoRes() {
 
 
 	// Add event listeners to the custom checkboxes
-	var switches = document.querySelectorAll('.switch');
-	for ( let i = 0; i < switches.length; i++ ) {
-		switches[ i ].addEventListener( 'click', e => {
-			if ( e.target.className.match( /switch/ ) ) // check for clicks on child nodes
+	document.querySelectorAll('.switch').forEach( el => {
+		el.addEventListener( 'click', e => {
+			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
 				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
 			else
 				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
 		});
-	}
+	});
 
 	elShowScale.  addEventListener( 'click', setScale );
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
@@ -1526,12 +1600,14 @@ function setLoRes() {
 	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
 	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
-	document.getElementById('btn_play').addEventListener( 'click', playPause );
+	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
 	document.getElementById('btn_stop').addEventListener( 'click', stop );
 	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
 	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
 	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
-	document.getElementById('load_playlist').addEventListener( 'click', () => loadPlaylist( elPlaylists.value ) );
+	document.getElementById('load_playlist').addEventListener( 'click', () => {
+		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
+	});
 	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
 	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
@@ -1582,22 +1658,28 @@ function setLoRes() {
 	fileExplorer.create(
 		document.getElementById('file_explorer'),
 		{
-			dblClick: file => {
-				addToPlaylist( file );
-				if ( ! isPlaying() )
-					playSong( playlist.children.length - 1 );
-			},
-			defaultPath: '/music'
+			dblClick: ( file, event ) => {
+				addBatchToQueue( [ { file } ], true );
+				event.target.classList.remove( 'selected', 'sortable-chosen' );
+			}
 		}
-	).then( ([ status, filelist ]) => {
+	).then( ([ status, filelist, serversignature ]) => {
 		if ( status == -1 ) {
-			consoleLog( 'No server found. Running in local mode.', true );
+			consoleLog( 'No server found. File explorer will not be available.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
 			document.getElementById('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			document.querySelectorAll('#playlist_panel, #files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
+			document.getElementById('load_remote_url').addEventListener( 'click', () => {
+				let el = document.getElementById('remote_url');
+				if ( el.value )
+					addToPlaylist( el.value, true );
+				el.value = '';
+			});
+
+			document.querySelectorAll('#files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
 			filelist.style.display = 'none';
 		}
 		else {
+			consoleLog( `${serversignature} detected` );
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
@@ -1622,12 +1704,8 @@ function setLoRes() {
 			});
 		}
 
-		document.getElementById('btn_add_selected').addEventListener( 'mousedown', () => {
-			fileExplorer.getFolderContents('.selected').forEach( entry => addToPlaylist( entry.file ) );
-		});
-		document.getElementById('btn_add_folder').addEventListener( 'click', () => {
-			fileExplorer.getFolderContents().forEach( entry => addToPlaylist( entry.file ) );
-		});
+		document.getElementById('btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
+		document.getElementById('btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
 	});
 
 	// Add event listener for keyboard controls
@@ -1649,4 +1727,5 @@ function setLoRes() {
 		positions: { alert: 'bottom' }
 	});
 
+	consoleLog( 'Initialization complete!' );
 })();

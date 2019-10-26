@@ -6,6 +6,8 @@
 
 **audioMotion.js** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
 
+The spectrum analyzer module is also available as a [standalone project](https://github.com/hvianna/audioMotion-analyzer) and a zero-dependency [npm package](https://www.npmjs.com/package/audiomotion-analyzer) you can use in your own JavaScript projects!
+
 ## Features
 
 * High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer
@@ -23,9 +25,9 @@
 
 ## Online demo
 
-[https://hvianna.github.io/audioMotion.js/public/](https://hvianna.github.io/audioMotion.js/public/)
+[:arrow_right: https://hvianna.github.io/audioMotion.js/public/](https://hvianna.github.io/audioMotion.js/public/)
 
-The demo allows you to play songs from your PC and use the microphone input. File explorer and play queue are not available, since there are no media files hosted on that server.
+The demo allows you to play audio files from your PC, load songs and streams from a remote URL and use the microphone input. The file explorer is not available in the demo, since there are no media files hosted on that server.
 
 ## Quick start
 

@@ -7,6 +7,7 @@
 var mounts = [],
 	currentPath = [],
 	nodeServer = false,
+	defaultRoot = '/music',
 	ui_path,
 	ui_files,
 	dblClickCallback;
@@ -205,7 +206,7 @@ export function getFolderContents( selector = 'li' ) {
  * Constructor function
  *
  * @param {Element} container  DOM element where the file explorer should be inserted
- * @param {object} [options]   { dblClick: callback function, defaultPath: starting path (defaults to '/music') }
+ * @param {object} [options]   { dblClick: callback function, rootPath: starting path (defaults to '/music') }
  * @returns {Promise<array>}   A promise with the server status and the filelist's DOM element
  */
 export function create( container, options = {} ) {
@@ -249,7 +250,7 @@ export function create( container, options = {} ) {
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
 			if ( dblClickCallback && ['file','list'].includes( e.target.dataset.type ) )
-				dblClickCallback( makePath( e.target.dataset.path ) );
+				dblClickCallback( makePath( e.target.dataset.path ), e );
 		}
 	});
 
@@ -268,16 +269,16 @@ export function create( container, options = {} ) {
 				else { // no response for our custom query, so it's probably running on a standard web server
 					status = 0;
 				}
-				mounts = [ options.defaultPath || '/music' ];
+				mounts = [ options.rootPath || defaultRoot ];
 				if ( await enterDir( mounts[0] ) === false ) {
-					ui_path.innerHTML = 'Cannot access media folder on server. File navigation is unavailable.';
+					ui_path.innerHTML = `Cannot access media folder (${mounts[0]}) on server!`;
 					status = -1;
 				}
-				resolve([ status, ui_files ]);
+				resolve([ status, ui_files, status ? content : 'Standard web server' ]);
 			})
 			.catch( err => {
 				clearTimeout( startUpTimer );
-				ui_path.innerHTML = 'No server found. File navigation is unavailable.';
+				ui_path.innerHTML = 'No file server found.';
 				resolve([ -1, ui_files ]);
 			});
 	});

@@ -1,0 +1,39 @@
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
+ */
+
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
+/*!
+ * content-type
+ * Copyright(c) 2015 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+/*!
+ * media-typer
+ * Copyright(c) 2014-2017 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+/**
+ * audioMotion-analyzer
+ * High-resolution real-time graphic audio spectrum analyzer JS module
+ *
+ * @author  Henrique Avila Vianna <hvianna@gmail.com> <https://henriquevianna.com>
+ * @license AGPL-3.0-or-later
+ */
+
+/**!
+ * Sortable 1.10.1
+ * @author	RubaXa   <trash@rubaxa.org>
+ * @author	owenm    <owen23355@gmail.com>
+ * @license MIT
+ */
