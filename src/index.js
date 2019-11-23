@@ -46,7 +46,7 @@ var playlist, playlistPos, currAudio, nextAudio;
 // HTML elements from the UI
 var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS;
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -74,6 +74,7 @@ var presets = {
 			blackBg     : 0,
 			cycleGrad   : 1,
 			ledDisplay  : 0,
+			lumiBars    : 0,
 			maxDb       : -25,
 			minDb       : -85,
 			showScale   : 1,
@@ -270,7 +271,7 @@ function setMode() {
 }
 
 /**
- * Set scale preferences
+ * Set scale display preference
  */
 function setScale() {
 	audioMotion.showScale = ( elShowScale.dataset.active == '1' );
@@ -278,10 +279,18 @@ function setScale() {
 }
 
 /**
- * Set scale preferences
+ * Set LED display mode preference
  */
 function setLedDisplay() {
 	audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
+	updateLastConfig();
+}
+
+/**
+ * Set lumi bars preference
+ */
+function setLumiBars() {
+	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -1155,6 +1164,9 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'ledDisplay' ) )
 		elLedDisplay.dataset.active = Number( thisPreset.ledDisplay );
 
+	if ( thisPreset.hasOwnProperty( 'lumiBars' ) )
+		elLumiBars.dataset.active = Number( thisPreset.lumiBars );
+
 	if ( thisPreset.hasOwnProperty( 'repeat' ) )
 		elRepeat.dataset.active = Number( thisPreset.repeat );
 
@@ -1185,6 +1197,7 @@ function loadPreset( name, alert ) {
 		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
 		showBgColor: ( elBlackBg.dataset.active == '0' ),
 		showLeds   : ( elLedDisplay.dataset.active == '1' ),
+		lumiBars   : ( elLumiBars.dataset.active == '1' ),
 		loRes      : ( elLoRes.dataset.active == '1' ),
 		showFPS    : ( elFPS.dataset.active == '1' ),
 		gradient   : elGradient.value
@@ -1213,6 +1226,7 @@ function saveConfig( config ) {
 		blackBg     : elBlackBg.dataset.active == '1',
 		cycleGrad   : elCycleGrad.dataset.active == '1',
 		ledDisplay  : elLedDisplay.dataset.active == '1',
+		lumiBars    : elLumiBars.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
 		showSong    : elShowSong.dataset.active == '1',
 		noShadow    : elNoShadow.dataset.active == '1',
@@ -1535,6 +1549,7 @@ function setLoRes() {
 	elBlackBg     = document.getElementById('black_bg');
 	elCycleGrad   = document.getElementById('cycle_grad');
 	elLedDisplay  = document.getElementById('led_display');
+	elLumiBars    = document.getElementById('lumi_bars');
 	elRepeat      = document.getElementById('repeat');
 	elShowSong    = document.getElementById('show_song');
 	elNoShadow    = document.getElementById('no_shadow');
@@ -1583,6 +1598,7 @@ function setLoRes() {
 	elBlackBg.    addEventListener( 'click', setBlackBg );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
+	elLumiBars.   addEventListener( 'click', setLumiBars );
 	elRepeat.     addEventListener( 'click', updateLastConfig );
 	elShowSong.   addEventListener( 'click', updateLastConfig );
 	elNoShadow.   addEventListener( 'click', updateLastConfig );
