@@ -1021,8 +1021,11 @@ function setCanvasMsg( msg, timer = 120, fade = 60 ) {
 	else {
 		if ( typeof msg == 'number' )
 			canvasMsg.info = msg; // set info level 1 or 2
-		else
+		else {
 			canvasMsg.msg = msg;  // set custom message
+			if ( canvasMsg.info == 2 )
+				canvasMsg.info = 1;
+		}
 		canvasMsg.timer = timer;
 		canvasMsg.fade = fade;
 	}
