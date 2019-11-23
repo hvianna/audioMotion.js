@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.10';
+var _VERSION = '19.12-dev';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1544,9 +1544,13 @@ function setLoRes() {
 	elPlaylists   = document.getElementById('playlists');
 
 	// Populate combo boxes
-	['Discrete frequencies','Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) =>
-		elMode[ elMode.options.length ] = i ? new Option( `${text} octave bands`, 9 - i ) : new Option( text, 0 )
-	);
+
+	elMode[0] = new Option( 'Discrete frequencies', 0 );
+	elMode[1] = new Option( 'Area fill', 10 );
+
+	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
+		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
+	});
 
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
