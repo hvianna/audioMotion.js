@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12-dev';
+var _VERSION = '19.12-dev.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -46,7 +46,7 @@ var playlist, playlistPos, currAudio, nextAudio;
 // HTML elements from the UI
 var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars;
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -73,6 +73,7 @@ var presets = {
 			gradient    : 'prism',
 			blackBg     : 0,
 			cycleGrad   : 1,
+			randomMode  : 0,
 			ledDisplay  : 0,
 			lumiBars    : 0,
 			maxDb       : -25,
@@ -853,8 +854,18 @@ function playNextSong( play ) {
 			loadNextSong();
 			playNextSong( true );
 		});
+		// select random mode
+		if ( elRandomMode.dataset.active == '1' ) {
+			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
+			elLedDisplay.dataset.active = Math.random() * 2 | 0;
+			elLumiBars.dataset.active   = Math.random() * 2 | 0;
+			audioMotion.mode     = elMode.value;
+			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+		}
+		// cycle (or random) gradient
 		if ( elCycleGrad.dataset.active == '1' ) {
-			let gradIdx = elGradient.selectedIndex;
+			let gradIdx = elRandomMode.dataset.active == '1' ? Math.random() * elGradient.options.length | 0 : elGradient.selectedIndex;
 			if ( gradIdx < elGradient.options.length - 1 )
 				gradIdx++;
 			else
@@ -974,6 +985,7 @@ function displayCanvasMsg() {
 
 			canvasCtx.textAlign = 'left';
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
+			outlineText( 'Random mode is ' + ( elRandomMode.dataset.active == '1' ? 'ON' : 'OFF' ), leftPos, topLine * 1.8 );
 
 			canvasCtx.textAlign = 'right';
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
@@ -1164,6 +1176,9 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'cycleGrad' ) )
 		elCycleGrad.dataset.active = Number( thisPreset.cycleGrad );
 
+	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
+		elRandomMode.dataset.active = Number( thisPreset.randomMode );
+
 	if ( thisPreset.hasOwnProperty( 'ledDisplay' ) )
 		elLedDisplay.dataset.active = Number( thisPreset.ledDisplay );
 
@@ -1228,6 +1243,7 @@ function saveConfig( config ) {
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
 		cycleGrad   : elCycleGrad.dataset.active == '1',
+		randomMode  : elRandomMode.dataset.active == '1',
 		ledDisplay  : elLedDisplay.dataset.active == '1',
 		lumiBars    : elLumiBars.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
@@ -1551,6 +1567,7 @@ function setLoRes() {
 	elShowPeaks   = document.getElementById('show_peaks');
 	elBlackBg     = document.getElementById('black_bg');
 	elCycleGrad   = document.getElementById('cycle_grad');
+	elRandomMode  = document.getElementById('random_mode');
 	elLedDisplay  = document.getElementById('led_display');
 	elLumiBars    = document.getElementById('lumi_bars');
 	elRepeat      = document.getElementById('repeat');
@@ -1600,6 +1617,7 @@ function setLoRes() {
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
 	elBlackBg.    addEventListener( 'click', setBlackBg );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
+	elRandomMode. addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
 	elLumiBars.   addEventListener( 'click', setLumiBars );
 	elRepeat.     addEventListener( 'click', updateLastConfig );
