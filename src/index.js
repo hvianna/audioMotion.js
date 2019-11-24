@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12-dev.1';
+var _VERSION = '19.12-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1329,9 +1329,23 @@ function keyboardControls( event ) {
 		case 'KeyK':
 			playNextSong();
 			break;
-		case 'KeyA': 		// toggle auto gradient change
-			elCycleGrad.click();
-			setCanvasMsg( 'Auto gradient ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ) );
+		case 'KeyA': 		// toggle auto gradient / random mode
+			if ( elCycleGrad.dataset.active == '1' ) {
+				if ( elRandomMode.dataset.active == '1' ) {
+					elCycleGrad.dataset.active = '0';
+					elRandomMode.dataset.active = '0';
+					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
+				}
+				else {
+					elRandomMode.dataset.active = '1';
+					setCanvasMsg( 'Random mode ON' );
+				}
+			}
+			else {
+				elCycleGrad.dataset.active = '1';
+				setCanvasMsg( 'Auto gradient ON' );
+			}
+			updateLastConfig();
 			break;
 		case 'KeyB': 		// toggle black background
 			elBlackBg.click();
@@ -1398,6 +1412,12 @@ function keyboardControls( event ) {
 			elShowPeaks.click();
 			setCanvasMsg( 'Peaks ' + ( elShowPeaks.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
+		case 'KeyQ': 		// shuffle queue
+			if ( playlist.children.length > 0 ) {
+				shufflePlaylist();
+				setCanvasMsg( 'Shuffle' );
+			}
+			break;
 		case 'KeyR': 		// toggle playlist repeat
 			elRepeat.click();
 			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
@@ -1410,11 +1430,9 @@ function keyboardControls( event ) {
 			elNoShadow.click();
 			setCanvasMsg( ( elNoShadow.dataset.active == '1' ? 'Flat' : 'Shadowed' ) + ' text mode' );
 			break;
-		case 'KeyU': 		// shuffle playlist
-			if ( playlist.children.length > 0 ) {
-				shufflePlaylist();
-				setCanvasMsg( 'Shuffle' );
-			}
+		case 'KeyU': 		// toggle lumi bars
+			elLumiBars.click();
+			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 	}
 }
