@@ -54,7 +54,12 @@ The complete command line options are:
 
 ## Documentation
 
-For complete documentation, see the [docs folder](docs/).
++ [User interface](docs/user-interface.md)
++ [Server modes](docs/server.md)
++ [Building audioMotion](docs/building.md)
++ [Legacy features](docs/legacy.md)
+
+For documentation summary, see the [docs folder](docs/).
 
 ## Screenshots
 
