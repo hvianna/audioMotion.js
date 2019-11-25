@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12-dev.2';
+var _VERSION = '19.12-dev.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -854,25 +854,6 @@ function playNextSong( play ) {
 			loadNextSong();
 			playNextSong( true );
 		});
-		// select random mode
-		if ( elRandomMode.dataset.active == '1' ) {
-			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
-			elLedDisplay.dataset.active = Math.random() * 2 | 0;
-			elLumiBars.dataset.active   = Math.random() * 2 | 0;
-			audioMotion.mode     = elMode.value;
-			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
-			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
-		}
-		// cycle (or random) gradient
-		if ( elCycleGrad.dataset.active == '1' ) {
-			let gradIdx = elRandomMode.dataset.active == '1' ? Math.random() * elGradient.options.length | 0 : elGradient.selectedIndex;
-			if ( gradIdx < elGradient.options.length - 1 )
-				gradIdx++;
-			else
-				gradIdx = 0;
-			elGradient.selectedIndex = gradIdx;
-			audioMotion.gradient = elGradient.value;
-		}
 	}
 	else
 		loadNextSong();
@@ -1442,11 +1423,35 @@ function keyboardControls( event ) {
  * Event handler for 'play' on audio elements
  */
 function audioOnPlay() {
+	if ( ! audioElement[ currAudio ].attributes.src ) {
+		playSong( playlistPos );
+		return;
+	}
+
+	if ( audioElement[ currAudio ].currentTime == 0 ) {
+		// select random mode
+		if ( elRandomMode.dataset.active == '1' ) {
+			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
+			elLedDisplay.dataset.active = Math.random() * 2 | 0;
+			elLumiBars.dataset.active   = Math.random() * 2 | 0;
+			audioMotion.mode     = elMode.value;
+			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+		}
+		// cycle (or random) gradient
+		if ( elCycleGrad.dataset.active == '1' ) {
+			let gradIdx = elRandomMode.dataset.active == '1' ? Math.random() * elGradient.options.length | 0 : elGradient.selectedIndex;
+			if ( gradIdx < elGradient.options.length - 1 )
+				gradIdx++;
+			else
+				gradIdx = 0;
+			elGradient.selectedIndex = gradIdx;
+			audioMotion.gradient = elGradient.value;
+		}
+	}
+
 	if ( elShowSong.dataset.active == '1' )
 		setCanvasMsg( 1, 600, 180 );
-
-	if ( ! audioElement[ currAudio ].attributes.src )
-		playSong( playlistPos );
 }
 
 /**
