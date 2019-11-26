@@ -72,8 +72,8 @@ Discrete frequencies mode. User interface showing the file explorer and play que
 Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Outrun" gradient, with complete on-screen information.
 ![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Outrun' gradient, with complete on-screen information")
 
-Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, "Prism" gradient.
-![screenshot4](docs/img/screenshot4.png "Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, 'Prism' gradient")
+Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, "Rainbow" gradient.
+![screenshot4](docs/img/screenshot4.png "Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, 'Rainbow' gradient")
 
 Full screen view: 1/8th-octave bands mode with luminance effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
 ![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with luminance effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")

@@ -123,7 +123,7 @@ Switches:
 
 + **LEDS** toggles the vintage LED effect for the analyzer bars *(octave bands modes only)*
 + **LUMI** toggles the luminance bars effect - analyzer bars are displayed always at full-height, varying their luminance instead *(octave bands modes only)*
-+ **RAND** selects a random visualization mode and effects on every track change; if the AUTO gradient switch is active, a random gradient will be selected as well.
++ **RAND** selects a random visualization mode, LED and luminance effects on every track change; if the AUTO gradient switch is active, a random gradient will be selected as well.
 
 #### FFT Size
 
@@ -185,4 +185,4 @@ Press the ![trash-button](img/trash-button.png "trashcan") button to permanently
 
 ### Console
 
-The console registers several useful information, like audio and video settings, configuration changes and error messages.
+The console records several useful information, like audio and video settings, configuration changes and error messages.
