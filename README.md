@@ -14,7 +14,8 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 * Fullscreen support at up to 60 frames per second
 * Logarithmic frequency scale with customizable range
 * Visualize discrete frequencies, or octave bands based on the equal tempered scale
-* Several color gradients with optional vintage LED effect
+* 10 visualization modes, with optional vintage LED and variable luminance effects
+* 17 beautiful color gradients
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
 * HTML5 audio player for MP3, AAC (M4A), OGG and FLAC files (codec support may vary depending on browser and operating system)
 * Visual file explorer and play queue with drag-and-drop functionality
@@ -25,11 +26,12 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 
 ## Online demo
 
-[:arrow_right: https://hvianna.github.io/audioMotion.js/public/](https://hvianna.github.io/audioMotion.js/public/)
+[DEMO SITE ▶ audioMotion.me/public](https://audiomotion.me/public/)
 
-The demo allows you to play audio files from your PC, load songs and streams from a remote URL and use the microphone input. The file explorer is not available in the demo, since there are no media files hosted on that server.
+The demo allows you to play audio files from your PC, load songs and streams from remote URLs and use the microphone input.
+The file explorer is not available in the demo, since there are no media files hosted on the demo server.
 
-## Quick start
+## Download
 
 Download the latest version from the [releases page](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
 
@@ -59,7 +61,7 @@ The complete command line options are:
 + [Building audioMotion](docs/building.md)
 + [Legacy features](docs/legacy.md)
 
-For documentation summary, see the [docs folder](docs/).
+For full documentation summary, see the [docs folder](docs/).
 
 ## Screenshots
 
