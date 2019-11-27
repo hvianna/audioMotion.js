@@ -520,7 +520,7 @@ function addSongToPlaylist( uri, content = {} ) {
 				});
 			}
 			stream.cancel(); // release stream
-		});
+		}).catch( e => {} ); // fail silently
 	});
 }
 
@@ -1099,7 +1099,7 @@ function loadLocalFile( obj ) {
 		clearAudioElement();
 		el.src = reader.result;
 		el.play();
-		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) );
+		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) ).catch( e => {} );
 	};
 }
 
