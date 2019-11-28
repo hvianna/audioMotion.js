@@ -913,10 +913,25 @@ function formatHHMMSS( time ) {
 function displayCanvasMsg() {
 
 	var canvas = audioMotion.canvas,
-		canvasCtx = audioMotion.canvasCtx;
+		canvasCtx = audioMotion.canvasCtx,
+		timeLeft = audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime,
+		fontSize = canvas.height / 17, // base font size
+		alpha = 1;
 
+	if ( playlistPos == playlist.children.length - 1 && timeLeft <= 15 ) {
+		if ( timeLeft > 12 ) // fade-in
+			alpha = ( 15 - timeLeft ) / 3;
+		else if ( timeLeft < 3 ) // fade-out
+			alpha = timeLeft / 3;
+
+		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
+		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
+		canvasCtx.font = 'bold ' + ( fontSize + fontSize * ( 15 - timeLeft ) / 7 ) + 'px sans-serif';
+		canvasCtx.textAlign = 'center';
+		outlineText( 'audioMotion.me', canvas.width >> 1, canvas.height >> 1 );
+	}
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
+	else if ( timeLeft < .1 )
 		playNextSong( true );
 
 	if ( canvasMsg.timer < 1 )
@@ -926,8 +941,7 @@ function displayCanvasMsg() {
 		return;
 	}
 
-	var	fontSize    = canvas.height / 17, // base font size - all the following measures are relative to this
-		leftPos     = fontSize,
+	var	leftPos     = fontSize,
 		rightPos    = canvas.width - fontSize,
 		centerPos   = canvas.width / 2,
 		topLine     = fontSize * 1.4,
