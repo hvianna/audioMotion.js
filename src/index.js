@@ -1295,7 +1295,7 @@ function keyboardControls( event ) {
 			event.preventDefault();
 			break;
 		case 'Space': 		// play / pause
-			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
+//			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
 			playPause();
 			break;
 		case 'ArrowLeft': 	// previous song
@@ -1474,7 +1474,8 @@ function audioOnPlay() {
 function audioOnEnded() {
 	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
-		setCanvasMsg( 'Queue ended', 600 );
+//		setCanvasMsg( 'Queue ended', 600 );
+		setCanvasMsg();
 	}
 }
 
