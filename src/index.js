@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12-dev.3';
+var _VERSION = '19.12-attract';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -926,7 +926,7 @@ function displayCanvasMsg() {
 
 		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
 		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
-		canvasCtx.font = 'bold ' + ( fontSize + fontSize * ( 15 - timeLeft ) / 7 ) + 'px sans-serif';
+		canvasCtx.font = 'bold ' + ( fontSize + fontSize * ( 15 - timeLeft ) / 7 ) + 'px Orbitron,sans-serif';
 		canvasCtx.textAlign = 'center';
 		outlineText( 'audioMotion.me', canvas.width >> 1, canvas.height >> 1 );
 	}
