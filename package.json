@@ -13,18 +13,18 @@
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
   "devDependencies": {
-    "audiomotion-analyzer": "^1.0.1",
-    "css-loader": "^3.2.0",
+    "audiomotion-analyzer": "^1.1.0",
+    "css-loader": "^3.3.2",
     "express": "^4.16.4",
     "mini-css-extract-plugin": "^0.8.0",
-    "music-metadata-browser": "^1.8.1",
+    "music-metadata-browser": "^1.9.2",
     "notie": "^4.3.1",
     "open": "^7.0.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "readline-sync": "^1.4.10",
     "semver": "^6.3.0",
     "sortablejs": "^1.10.1",
-    "terser-webpack-plugin": "^2.2.1",
+    "terser-webpack-plugin": "^2.3.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
   }
