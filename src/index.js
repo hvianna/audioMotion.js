@@ -1046,12 +1046,14 @@ function setCanvasMsg( msg, timer = 2, fade = 1 ) {
 			canvasMsg.timer = timer * 60;
 			canvasMsg.fade = fade * 60;
 		}
+/*
 		else {
 			canvasMsg.msg = msg;  // set custom message
 			if ( canvasMsg.info == 2 )
 				canvasMsg.info = 1;
 			canvasMsg.msgTimer = timer * 60;
 		}
+*/
 	}
 }
 
@@ -1312,7 +1314,7 @@ function keyboardControls( event ) {
 			event.preventDefault();
 			break;
 		case 'Space': 		// play / pause
-//			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
+			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
 			playPause();
 			break;
 		case 'ArrowLeft': 	// previous song
@@ -1493,8 +1495,7 @@ function audioOnPlay() {
 function audioOnEnded() {
 	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
-//		setCanvasMsg( 'Queue ended', 600 );
-		setCanvasMsg();
+		setCanvasMsg( 'Queue ended', 600 );
 	}
 }
 
