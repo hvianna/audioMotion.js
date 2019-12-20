@@ -44,6 +44,7 @@ You can use the keyboard shortcuts below to control the player and change some s
 **A** | | cycle through auto gradient and random mode options
 **B** | | toggle background
 **D** | | display current song info - press again for settings info
+**E** | | shuffle play queue
 **F** | | toggle fullscreen mode
 **H** | | toggle FPS display
 **I** | | toggle song info display on track change
@@ -52,7 +53,6 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Shift+N** / **N** | | reduce / increase analyzer sensitivity
 **O** | | toggle low-resolution mode
 **P** | | toggle peaks display
-**E** | | shuffle play queue
 **R** | | toggle play queue repeat
 **S** | click on analyzer | toggle frequency scale display
 **T** | | toggle flat text option
