@@ -1350,6 +1350,12 @@ function keyboardControls( event ) {
 			else
 				setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 5 );
 			break;
+		case 'KeyE': 		// shuffle queue
+			if ( playlist.children.length > 0 ) {
+				shufflePlaylist();
+				setCanvasMsg( 'Shuffle' );
+			}
+			break;
 		case 'KeyF': 		// toggle fullscreen
 			fullscreen();
 			break;
@@ -1404,12 +1410,6 @@ function keyboardControls( event ) {
 		case 'KeyP': 		// toggle peaks display
 			elShowPeaks.click();
 			setCanvasMsg( 'Peaks ' + ( elShowPeaks.dataset.active == '1' ? 'ON' : 'OFF' ) );
-			break;
-		case 'KeyQ': 		// shuffle queue
-			if ( playlist.children.length > 0 ) {
-				shufflePlaylist();
-				setCanvasMsg( 'Shuffle' );
-			}
 			break;
 		case 'KeyR': 		// toggle playlist repeat
 			elRepeat.click();
