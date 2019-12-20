@@ -127,7 +127,7 @@ server.listen( port, host, () => {
 		// avoid error on Linux when running from the executable file
 		// related to https://github.com/zeit/pkg/issues/731
 		if ( __dirname.startsWith('/snapshot/') && process.platform == 'linux' )
-			console.log( `Access http://localhost:${port} in your browser to open audioMotion` )
+			console.log( `\n\n\tAccess http://localhost:${port} in your browser to open audioMotion` )
 		else {
 			open( `http://localhost:${port}` )
 			console.log( '\n\tLaunching client in browser...' )
