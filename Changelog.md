@@ -1,6 +1,34 @@
 Changelog
 =========
 
+## version 19.12
+
+:tada: Celebrating audioMotion's first anniversary! :confetti_ball:
+
+### Added:
+
++ New **Area fill** visualization mode, which uses the same full-frequency data of the *discrete frequencies* mode, but displays a bright, colorful filled shape;
++ New luminance bars effect (**LUMI** switch) for octave bands modes, which always display full-height bars and vary their luminance instead, according to each band amplitude;
++ New option to select a random visualization mode on every track change (**RAND** switch); it will also select a random gradient, if the AUTO switch is active - great for parties!
+
+### Changed:
+
++ Improved the look of bars at lower frequencies, especially for 1/12th and 1/24th octave bands modes;
++ Minor tweak to the **Rainbow** gradient to make cyan and blue shades a little more balanced;
++ Auto gradient and the new random mode now trigger on initial playback and previous track skip as well, not only on next track skip;
++ Shortcut keys changes:
+  + Shuffle shortcut changed to **"E"** key;
+  + **"U"** key reassigned to toggle the new luminance bars effect;
+  + **"A"** key now also toggles random visualization mode in combination with auto gradient (three stages);
++ Added shortcut key hints to the player controls;
++ Improved display of feedback messages for keyboard controls;
++ Updated npm packages.
+
+### Fixed:
+
++ Addressed an error on server startup when running the executable file on Linux systems (related to [an issue with pkg](https://github.com/zeit/pkg/issues/731)).
+
+
 ## version 19.10
 
 :sunglasses: audioMotion's graphic spectrum analyzer is now available as a [standalone project](https://github.com/hvianna/audioMotion-analyzer) and a zero-dependency [npm package](https://www.npmjs.com/package/audiomotion-analyzer) you can use in your own JavaScript projects! :tada:

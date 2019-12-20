@@ -4,7 +4,7 @@
  * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '19.10'
+const _VERSION = '19.12'
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
@@ -124,8 +124,14 @@ server.listen( port, host, () => {
 	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only' : 'accepting external connections!' }` )
 	console.log( `\n\t/music mounted to ${musicPath}` )
 	if ( launchClient ) {
-		open( `http://localhost:${port}` )
-		console.log( '\n\tLaunching client in browser...' )
+		// avoid error on Linux when running from the executable file
+		// related to https://github.com/zeit/pkg/issues/731
+		if ( __dirname.startsWith('/snapshot/') && process.platform == 'linux' )
+			console.log( `\n\n\tAccess http://localhost:${port} in your browser to open audioMotion` )
+		else {
+			open( `http://localhost:${port}` )
+			console.log( '\n\tLaunching client in browser...' )
+		}
 	}
 	console.log( '\n\nPress Ctrl+C to exit.' )
 })

@@ -41,9 +41,10 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Left** / **Right** | **J** / **K** | play previous / next song
 **Space** | | play / pause
 **Up** / **Down** | **Shift+G** / **G** | select previous / next gradient
-**A** | | toggle auto gradient change
+**A** | | cycle through auto gradient and random mode options
 **B** | | toggle background
 **D** | | display current song info - press again for settings info
+**E** | | shuffle play queue
 **F** | | toggle fullscreen mode
 **H** | | toggle FPS display
 **I** | | toggle song info display on track change
@@ -52,10 +53,10 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Shift+N** / **N** | | reduce / increase analyzer sensitivity
 **O** | | toggle low-resolution mode
 **P** | | toggle peaks display
-**R** | | toggle playlist repeat
-**S** | click on analyzer | toggle frequency scale display on/off
+**R** | | toggle play queue repeat
+**S** | click on analyzer | toggle frequency scale display
 **T** | | toggle flat text option
-**U** | | shuffle playlist
+**U** | | toggle luminance bars effect
 
 
 ## User Interface Panels
@@ -110,12 +111,19 @@ The underlined character in each switch label indicates its keyboard shortcut, w
 
 ![ui-mode](img/UI_mode.png)
 
-Selects the visualization mode. *Discrete frequencies* mode allows you to visualize individual frequencies, limited only by the resolution of both the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your display.
-The *octave bands* modes will display wider bars, representing ranges of frequencies based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
+Selects the visualization mode.
+*Discrete frequencies* mode allows you to visualize individual frequencies, limited only by the resolution of both the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your display.
+*Area fill* mode displays the same frequency data, but as a filled shape.
+
+The *octave bands* modes will display wider vertical bars, representing the amplitudes of ranges of frequencies based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 
-The **LEDS** switch toggles the LED effect applied to the analyzer bars.
+Switches:
+
++ **LEDS** toggles the vintage LED effect for the analyzer bars *(octave bands modes only)*
++ **LUMI** toggles the luminance bars effect - analyzer bars are displayed always at full-height, varying their luminance instead *(octave bands modes only)*
++ **RAND** selects a random visualization mode, LED and luminance effects on every track change; if the AUTO gradient switch is active, a random gradient will be selected as well.
 
 #### FFT Size
 
@@ -177,4 +185,4 @@ Press the ![trash-button](img/trash-button.png "trashcan") button to permanently
 
 ### Console
 
-The console registers several useful information, like audio and video settings, configuration changes and error messages.
+The console records several useful information, like audio and video settings, configuration changes and error messages.

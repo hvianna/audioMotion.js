@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.10';
+var _VERSION = '19.12';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -46,7 +46,7 @@ var playlist, playlistPos, currAudio, nextAudio;
 // HTML elements from the UI
 var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS;
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -73,7 +73,9 @@ var presets = {
 			gradient    : 'prism',
 			blackBg     : 0,
 			cycleGrad   : 1,
+			randomMode  : 0,
 			ledDisplay  : 0,
+			lumiBars    : 0,
 			maxDb       : -25,
 			minDb       : -85,
 			showScale   : 1,
@@ -270,7 +272,7 @@ function setMode() {
 }
 
 /**
- * Set scale preferences
+ * Set scale display preference
  */
 function setScale() {
 	audioMotion.showScale = ( elShowScale.dataset.active == '1' );
@@ -278,10 +280,18 @@ function setScale() {
 }
 
 /**
- * Set scale preferences
+ * Set LED display mode preference
  */
 function setLedDisplay() {
 	audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
+	updateLastConfig();
+}
+
+/**
+ * Set lumi bars preference
+ */
+function setLumiBars() {
+	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
 	updateLastConfig();
 }
 
@@ -510,7 +520,7 @@ function addSongToPlaylist( uri, content = {} ) {
 				});
 			}
 			stream.cancel(); // release stream
-		});
+		}).catch( e => {} ); // fail silently
 	});
 }
 
@@ -844,15 +854,6 @@ function playNextSong( play ) {
 			loadNextSong();
 			playNextSong( true );
 		});
-		if ( elCycleGrad.dataset.active == '1' ) {
-			let gradIdx = elGradient.selectedIndex;
-			if ( gradIdx < elGradient.options.length - 1 )
-				gradIdx++;
-			else
-				gradIdx = 0;
-			elGradient.selectedIndex = gradIdx;
-			audioMotion.gradient = elGradient.value;
-		}
 	}
 	else
 		loadNextSong();
@@ -907,56 +908,61 @@ function formatHHMMSS( time ) {
 }
 
 /**
- * Display message on canvas
+ * Display messages on canvas
+ *
+ * Uses global object canvasMsg
+ * canvasMsg = {
+ * 		info    : <number>, // 1 = song info; 2 = song + settings info
+ *      timer   : <number>, // countdown timer (in frames) to display info
+ *      fade    : <number>, // fade out time (in frames)
+ *		msg     : <string>, // custom message to be displayed at the top
+ *      msgTimer: <number>  // countdown timer (in frames) to display custom message
+ * 		                    // (fade for custom message is always 60 frames)
+ * }
  */
 function displayCanvasMsg() {
-
-	var canvas = audioMotion.canvas,
-		canvasCtx = audioMotion.canvasCtx;
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
-	if ( canvasMsg.timer < 1 )
+	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
-	else if ( ! --canvasMsg.timer ) {
-		setCanvasMsg(); // clear messages
-		return;
-	}
 
-	var	fontSize    = canvas.height / 17, // base font size - all the following measures are relative to this
-		leftPos     = fontSize,
-		rightPos    = canvas.width - fontSize,
-		centerPos   = canvas.width / 2,
-		topLine     = fontSize * 1.4,
-		bottomLine1 = canvas.height - fontSize * 4,
-		bottomLine2 = canvas.height - fontSize * 2.8,
-		bottomLine3 = canvas.height - fontSize * 1.6,
-		maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
-		maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top of screen
+	var canvas    = audioMotion.canvas,
+		canvasCtx = audioMotion.canvasCtx,
+		fontSize  = canvas.height / 17, // base font size - this will scale all measures
+		centerPos = canvas.width / 2,
+		topLine   = fontSize * 1.4,
+		alpha;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
-
-	if ( canvasMsg.timer > canvasMsg.fade ) {
-		canvasCtx.fillStyle = '#fff';
-		canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
-	}
-	else {
-		canvasCtx.fillStyle = 'rgba( 255, 255, 255, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
-		canvasCtx.strokeStyle = canvasCtx.shadowColor = 'rgba( 0, 0, 0, ' + ( canvasMsg.timer / canvasMsg.fade ) + ')';
-	}
-
 	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
 	// Display custom message if any and info level 2 is not set
-	if ( canvasMsg.msg && canvasMsg.info != 2 )
+	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
+		alpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
+		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
+		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
 		outlineText( canvasMsg.msg, centerPos, topLine );
+		canvasMsg.msgTimer--;
+	}
 
 	// Display song and config info
-	if ( canvasMsg.info ) {
+	if ( canvasMsg.timer > 0 ) {
+		var	leftPos     = fontSize,
+			rightPos    = canvas.width - fontSize,
+			bottomLine1 = canvas.height - fontSize * 4,
+			bottomLine2 = canvas.height - fontSize * 2.8,
+			bottomLine3 = canvas.height - fontSize * 1.6,
+			maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
+			maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
+
+		alpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
+		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
+		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
@@ -965,6 +971,7 @@ function displayCanvasMsg() {
 
 			canvasCtx.textAlign = 'left';
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
+			outlineText( 'Random mode is ' + ( elRandomMode.dataset.active == '1' ? 'ON' : 'OFF' ), leftPos, topLine * 1.8 );
 
 			canvasCtx.textAlign = 'right';
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
@@ -1000,22 +1007,30 @@ function displayCanvasMsg() {
 
 			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
 		}
+
+		if ( --canvasMsg.timer < 1 )
+			canvasMsg.info = 0;
 	}
 }
 
 /**
  * Set message for on-screen display
  */
-function setCanvasMsg( msg, timer = 120, fade = 60 ) {
+function setCanvasMsg( msg, timer = 2, fade = 1 ) {
 	if ( ! msg )
-		canvasMsg = { timer: 0 }; // clear all canvas messages
+		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
 	else {
-		if ( typeof msg == 'number' )
+		if ( typeof msg == 'number' ) {
 			canvasMsg.info = msg; // set info level 1 or 2
-		else
+			canvasMsg.timer = timer * 60;
+			canvasMsg.fade = fade * 60;
+		}
+		else {
 			canvasMsg.msg = msg;  // set custom message
-		canvasMsg.timer = timer;
-		canvasMsg.fade = fade;
+			if ( canvasMsg.info == 2 )
+				canvasMsg.info = 1;
+			canvasMsg.msgTimer = timer * 60;
+		}
 	}
 }
 
@@ -1094,7 +1109,7 @@ function loadLocalFile( obj ) {
 		clearAudioElement();
 		el.src = reader.result;
 		el.play();
-		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) );
+		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) ).catch( e => {} );
 	};
 }
 
@@ -1152,8 +1167,14 @@ function loadPreset( name, alert ) {
 	if ( thisPreset.hasOwnProperty( 'cycleGrad' ) )
 		elCycleGrad.dataset.active = Number( thisPreset.cycleGrad );
 
+	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
+		elRandomMode.dataset.active = Number( thisPreset.randomMode );
+
 	if ( thisPreset.hasOwnProperty( 'ledDisplay' ) )
 		elLedDisplay.dataset.active = Number( thisPreset.ledDisplay );
+
+	if ( thisPreset.hasOwnProperty( 'lumiBars' ) )
+		elLumiBars.dataset.active = Number( thisPreset.lumiBars );
 
 	if ( thisPreset.hasOwnProperty( 'repeat' ) )
 		elRepeat.dataset.active = Number( thisPreset.repeat );
@@ -1185,6 +1206,7 @@ function loadPreset( name, alert ) {
 		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
 		showBgColor: ( elBlackBg.dataset.active == '0' ),
 		showLeds   : ( elLedDisplay.dataset.active == '1' ),
+		lumiBars   : ( elLumiBars.dataset.active == '1' ),
 		loRes      : ( elLoRes.dataset.active == '1' ),
 		showFPS    : ( elFPS.dataset.active == '1' ),
 		gradient   : elGradient.value
@@ -1212,7 +1234,9 @@ function saveConfig( config ) {
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
 		cycleGrad   : elCycleGrad.dataset.active == '1',
+		randomMode  : elRandomMode.dataset.active == '1',
 		ledDisplay  : elLedDisplay.dataset.active == '1',
+		lumiBars    : elLumiBars.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
 		showSong    : elShowSong.dataset.active == '1',
 		noShadow    : elNoShadow.dataset.active == '1',
@@ -1267,11 +1291,12 @@ function keyboardControls( event ) {
 			event.preventDefault();
 			break;
 		case 'Space': 		// play / pause
-			setCanvasMsg( isPlaying() ? 'Pause' : 'Play' );
+			setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
 			playPause();
 			break;
 		case 'ArrowLeft': 	// previous song
 		case 'KeyJ':
+			setCanvasMsg( 'Previous track', 1 );
 			playPreviousSong();
 			break;
 		case 'ArrowUp': 	// gradient
@@ -1294,11 +1319,26 @@ function keyboardControls( event ) {
 			break;
 		case 'ArrowRight': 	// next song
 		case 'KeyK':
+			setCanvasMsg( 'Next track', 1 );
 			playNextSong();
 			break;
-		case 'KeyA': 		// toggle auto gradient change
-			elCycleGrad.click();
-			setCanvasMsg( 'Auto gradient ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ) );
+		case 'KeyA': 		// toggle auto gradient / random mode
+			if ( elCycleGrad.dataset.active == '1' ) {
+				if ( elRandomMode.dataset.active == '1' ) {
+					elCycleGrad.dataset.active = '0';
+					elRandomMode.dataset.active = '0';
+					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
+				}
+				else {
+					elRandomMode.dataset.active = '1';
+					setCanvasMsg( 'Random mode ON' );
+				}
+			}
+			else {
+				elCycleGrad.dataset.active = '1';
+				setCanvasMsg( 'Auto gradient ON' );
+			}
+			updateLastConfig();
 			break;
 		case 'KeyB': 		// toggle black background
 			elBlackBg.click();
@@ -1308,7 +1348,13 @@ function keyboardControls( event ) {
 			if ( canvasMsg.info == 2 )
 				setCanvasMsg();
 			else
-				setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 300 );
+				setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 5 );
+			break;
+		case 'KeyE': 		// shuffle queue
+			if ( playlist.children.length > 0 ) {
+				shufflePlaylist();
+				setCanvasMsg( 'Shuffle' );
+			}
 			break;
 		case 'KeyF': 		// toggle fullscreen
 			fullscreen();
@@ -1377,11 +1423,9 @@ function keyboardControls( event ) {
 			elNoShadow.click();
 			setCanvasMsg( ( elNoShadow.dataset.active == '1' ? 'Flat' : 'Shadowed' ) + ' text mode' );
 			break;
-		case 'KeyU': 		// shuffle playlist
-			if ( playlist.children.length > 0 ) {
-				shufflePlaylist();
-				setCanvasMsg( 'Shuffle' );
-			}
+		case 'KeyU': 		// toggle lumi bars
+			elLumiBars.click();
+			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 	}
 }
@@ -1391,11 +1435,35 @@ function keyboardControls( event ) {
  * Event handler for 'play' on audio elements
  */
 function audioOnPlay() {
-	if ( elShowSong.dataset.active == '1' )
-		setCanvasMsg( 1, 600, 180 );
-
-	if ( ! audioElement[ currAudio ].attributes.src )
+	if ( ! audioElement[ currAudio ].attributes.src ) {
 		playSong( playlistPos );
+		return;
+	}
+
+	if ( audioElement[ currAudio ].currentTime == 0 ) {
+		// select random mode
+		if ( elRandomMode.dataset.active == '1' ) {
+			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
+			elLedDisplay.dataset.active = Math.random() * 2 | 0;
+			elLumiBars.dataset.active   = Math.random() * 2 | 0;
+			audioMotion.mode     = elMode.value;
+			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+		}
+		// cycle (or random) gradient
+		if ( elCycleGrad.dataset.active == '1' ) {
+			let gradIdx = elRandomMode.dataset.active == '1' ? Math.random() * elGradient.options.length | 0 : elGradient.selectedIndex;
+			if ( gradIdx < elGradient.options.length - 1 )
+				gradIdx++;
+			else
+				gradIdx = 0;
+			elGradient.selectedIndex = gradIdx;
+			audioMotion.gradient = elGradient.value;
+		}
+	}
+
+	if ( elShowSong.dataset.active == '1' )
+		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
 }
 
 /**
@@ -1404,7 +1472,7 @@ function audioOnPlay() {
 function audioOnEnded() {
 	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
-		setCanvasMsg( 'Queue ended', 600 );
+		setCanvasMsg( 'Queue ended', 10 );
 	}
 }
 
@@ -1534,7 +1602,9 @@ function setLoRes() {
 	elShowPeaks   = document.getElementById('show_peaks');
 	elBlackBg     = document.getElementById('black_bg');
 	elCycleGrad   = document.getElementById('cycle_grad');
+	elRandomMode  = document.getElementById('random_mode');
 	elLedDisplay  = document.getElementById('led_display');
+	elLumiBars    = document.getElementById('lumi_bars');
 	elRepeat      = document.getElementById('repeat');
 	elShowSong    = document.getElementById('show_song');
 	elNoShadow    = document.getElementById('no_shadow');
@@ -1544,9 +1614,13 @@ function setLoRes() {
 	elPlaylists   = document.getElementById('playlists');
 
 	// Populate combo boxes
-	['Discrete frequencies','Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) =>
-		elMode[ elMode.options.length ] = i ? new Option( `${text} octave bands`, 9 - i ) : new Option( text, 0 )
-	);
+
+	elMode[0] = new Option( 'Discrete frequencies', 0 );
+	elMode[1] = new Option( 'Area fill', 10 );
+
+	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
+		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
+	});
 
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
@@ -1578,7 +1652,9 @@ function setLoRes() {
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
 	elBlackBg.    addEventListener( 'click', setBlackBg );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
+	elRandomMode. addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
+	elLumiBars.   addEventListener( 'click', setLumiBars );
 	elRepeat.     addEventListener( 'click', updateLastConfig );
 	elShowSong.   addEventListener( 'click', updateLastConfig );
 	elNoShadow.   addEventListener( 'click', updateLastConfig );

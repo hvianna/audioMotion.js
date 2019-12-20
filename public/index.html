@@ -33,9 +33,9 @@
 	<link rel="apple-touch-icon" href="img/favicon256.png">
 	<link href="https://fonts.googleapis.com/css?family=Orbitron:900&display=swap" rel="stylesheet">
  	<meta name="msapplication-TileImage" content="img/favicon256.png">
-	<meta property="og:url" content="https://github.com/hvianna/audioMotion.js">
+	<meta property="og:url" content="https://audiomotion.me">
 	<meta property="og:title" content="audioMotion.js">
-	<meta property="og:image" content="https://raw.githubusercontent.com/hvianna/audioMotion.js/master/docs/img/audioMotion-header.png">
+	<meta property="og:image" content="https://audiomotion.me/docs/img/audioMotion-header.png">
 	<meta property="og:site_name" content="audioMotion.js">
 	<meta property="og:description" content="High-resolution real-time spectrum analyzer and music player written in JavaScript">
 	<meta property="og:type" content="website">
@@ -61,15 +61,23 @@
 		</div>
 
 		<div class="player-controls">
-			<button id="btn_prev"><i class="icons8-previous-track-2"></i></button>
-			<button id="btn_play"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i></button>
-			<button id="btn_stop"><i class="icons8-stop-symbol"></i></button>
-			<button id="btn_next"><i class="icons8-skip-this-track-2"></i></button>
+			<span class="help"><button id="btn_prev"><i class="icons8-previous-track-2"></i></button>
+				<span class="tooltip">Previous song | <kbd>&larr;</kbd> or <kbd>J</kbd></span>
+			</span>
+			<span class="help"><button id="btn_play"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i></button>
+				<span class="tooltip">Play / Pause | <kbd>Spacebar</kbd></span>
+			</span>
+			<span class="help"><button id="btn_stop"><i class="icons8-stop-symbol"></i></button>
+				<span class="tooltip">Stop</span>
+			</span>
+			<span class="help"><button id="btn_next"><i class="icons8-skip-this-track-2"></i></button>
+				<span class="tooltip">Next song | <kbd>&rarr;</kbd> or <kbd>K</kbd></span>
+			</span>
 			<span class="help"><button id="btn_shuf"><i class="icons8-shuffle"></i></button>
-				<span class="tooltip">Shuffle playlist</span>
+				<span class="tooltip">Shuffle queue | <kbd>E</kbd></span>
 			</span>
 			<span class="help"><button id="repeat" class="switch"><i class="icons8-repeat"></i></button>
-				<span class="tooltip">Repeat playlist</span>
+				<span class="tooltip">Repeat queue | <kbd>R</kbd></span>
 			</span>
 		</div>
 
@@ -84,13 +92,14 @@
 						<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
 						<tr><td><kbd>&uarr;</kbd> / <kbd>G</kbd></td><td>previous gradient</td></tr>
 						<tr><td><kbd>&darr;</kbd> / <kbd>g</kbd></td><td>next gradient</td></tr>
+						<tr><td><kbd>A</kbd></td><td>auto grad / rand mode</td></tr>
 						<tr><td><kbd>D</kbd></td><td>show current info</td></tr>
+						<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
 						<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
 						<tr><td><kbd>M</kbd> / <kbd>m</kbd></td><td>previous / next mode</td></tr>
-						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>change sensitivity</td></tr>
-						<tr><td><kbd>R</kbd></td><td>toggle playlist repeat</td></tr>
-						<tr><td><kbd>U</kbd></td><td>shuffle playlist</td></tr>
-						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
+						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity presets</td></tr>
+						<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
+						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcut</td></tr>
 					</table>
 				</span>
 			</span>
@@ -209,7 +218,7 @@
 					<li class="switch" id="lo_res">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 					<li class="switch" id="fps">FPS
-						<span class="tooltip">Display current frame rate</span>
+						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
 				</ul>
 			</div> <!-- .config-row -->
 
@@ -224,6 +233,10 @@
 					<ul class="switch-bar">
 						<li class="switch" id="led_display"><u>L</u>EDS
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+						<li class="switch" id="lumi_bars">L<u>U</u>MI
+							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+						<li class="switch" id="random_mode">R<u>A</u>ND
+							<span class="tooltip">Select a random visualization mode on every track change</span>
 					</ul>
 				</div>
 
@@ -264,7 +277,7 @@
 				</div>
 
 				<div class="config-col center">
-					<span class="help"><span class="config-label">Sensitivity:</span>
+					<span class="help"><span class="config-label">Se<u>n</u>sitivity:</span>
 						<span class="tooltip">
 						Adjust analyzer sensitivity to improve visualization of songs too quiet or too loud
 						</span>
