@@ -94,7 +94,7 @@ Alias "/music" "/mnt/HD/HD_a2/MUSIC"
 
 **Nginx:**
 
-*Soon?*
+*To do...*
 
 ## Apache web server with Docker
 

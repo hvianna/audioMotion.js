@@ -10,14 +10,12 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 
 ## Features
 
-* High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer
-* Fullscreen support at up to 60 frames per second
+* High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer with fullscreen support
 * Logarithmic frequency scale with customizable range
-* Visualize discrete frequencies, or octave bands based on the equal tempered scale
-* 10 visualization modes, with optional vintage LED and variable luminance effects
-* 17 beautiful color gradients
-* Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing)
-* HTML5 audio player for MP3, AAC (M4A), OGG and FLAC files (codec support may vary depending on browser and operating system)
+* 10 visualization modes: visualize discrete frequencies, or octave bands based on the equal tempered scale
+* 17 beautiful color gradients, with optional vintage LEDs and variable luminance effects
+* Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing constant)
+* HTML5 audio player supports MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser)
 * Visual file explorer and play queue with drag-and-drop functionality
 * Support for M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
@@ -26,14 +24,16 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 
 ## Online demo
 
-[DEMO SITE ▶ audioMotion.me/public](https://audiomotion.me/public/)
+[**DEMO SITE** ▶ audioMotion.me/public](https://audiomotion.me/public/)
 
 The demo allows you to play audio files from your PC, load songs and streams from remote URLs and use the microphone input.
-The file explorer is not available in the demo, since there are no media files hosted on the demo server.
+The file explorer is not available, since there are no media files hosted on the demo server.
+
+Also check out our [▶ **YouTube channel**](https://channel.audiomotion.io) for videos of some cool songs visualized with audioMotion!
 
 ## Download
 
-Download the latest version from the [releases page](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
+Download the latest version from the [**releases page**](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
 
 Launch audioMotion and you'll be asked for the path to your music folder. Only files under that folder will be accessible to the player.
 
@@ -77,8 +77,8 @@ Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Outrun" gradient, with c
 Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, "Rainbow" gradient.
 ![screenshot4](docs/img/screenshot4.png "Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, 'Rainbow' gradient")
 
-Full screen view: 1/8th-octave bands mode with luminance effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
-![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with luminance effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
+Full screen view: 1/8th-octave bands mode with luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
+![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
 
 
 ## Credits and acknowledgments
@@ -106,7 +106,8 @@ Some of audioMotion's great features are provided by these awesome open-source l
 
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
-* Gradients used in the UI buttons from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
+* The *Apple ][* gradient was created based on [this post](https://creativemarket.com/blog/6-famous-logos-with-great-color-schemes) by Creative Market
+* Gradients used in the UI buttons are from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
 * The audioMotion logo uses the [Orbitron font](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
 * Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 
