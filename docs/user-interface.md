@@ -52,7 +52,7 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Shift+N** / **N** | | reduce / increase analyzer sensitivity
 **O** | | toggle low-resolution mode
 **P** | | toggle peaks display
-**Q** | | shuffle play queue
+**E** | | shuffle play queue
 **R** | | toggle play queue repeat
 **S** | click on analyzer | toggle frequency scale display
 **T** | | toggle flat text option
