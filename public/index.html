@@ -9,7 +9,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * Copyright (c) 2018-2019 Henrique Avila Vianna <hvianna@gmail.com>
+ * Copyright (c) 2018-2020 Henrique Avila Vianna <hvianna@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -176,12 +176,12 @@
 		<div id="config_panel" class="config-panel">
 			<div class="config-row flex">
 				<div class="config-col">
-					<span class="help"><span class="config-label">Preset:</span>
+					<div class="help"><span class="config-label">Preset</span>
 						<span class="tooltip">
 							Load a configuration preset.<br>
 							<strong>"Last session"</strong> restores last used configuration settings.
 						</span>
-					</span>
+					</div>
 					<select id="preset">
 						<option value="" disabled selected>choose a preset</option>
 						<option value="fullres">Full resolution</option>
@@ -192,10 +192,14 @@
 						<option value="default">Restore defaults</option>
 					</select>
 					<button id="load_preset">Load</button>
+					<span class="help">
+						<button id="btn_save">Save current settings</button>
+						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
+					</span>
 				</div>
 
 				<div class="config-col">
-					<span class="config-label"><u>G</u>radient:</span>
+					<div class="config-label"><u>G</u>radient</div>
 					<select id="gradient"></select>
 
 					<ul class="switch-bar">
@@ -222,13 +226,13 @@
 				</ul>
 			</div> <!-- .config-row -->
 
-			<div class="config-row flex">
+			<div class="config-row flex align-top">
 				<div class="config-col">
-					<span class="help"><span class="config-label"><u>M</u>ode:</span>
+					<div class="help"><span class="config-label"><u>M</u>ode</span>
 						<span class="tooltip">
 						Visualization mode. Octave bands are based on the equal tempered scale.
 						</span>
-					</span>
+					</div>
 					<select id="mode"></select>
 					<ul class="switch-bar">
 						<li class="switch" id="led_display"><u>L</u>EDS
@@ -238,53 +242,52 @@
 						<li class="switch" id="random_mode">R<u>A</u>ND
 							<span class="tooltip">Select a random visualization mode on every track change</span>
 					</ul>
+					<div class="config-sub">
+						<label id="line_width_label" class="config-label">Line width:
+							<input id="line_width" type="number" min="1" max="9">
+						</label>
+						<label id="fill_alpha_label" class="config-label config-col">Fill opacity:
+							<input id="fill_alpha" type="number" min=".1" max=".9" step=".05">
+						</label>
+					</div>
 				</div>
 
 				<div class="config-col">
-					<span class="help"><span class="config-label">FFT size:</span>
+					<div class="help"><span class="config-label">FFT size</span>
 						<span class="tooltip">
 						Larger values provide more detail in the frequency domain, but less detail in the time domain.
 						</span>
-					</span>
+					</div>
 					<select id="fft_size"></select>
 				</div>
 
 				<div class="config-col">
-					<span class="help"><span class="config-label">Range:</span>
+					<div class="help"><span class="config-label">Frequency Range</span>
 						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
-					</span>
-					<select id="freq_min"></select> -
+					</div>
+					<select id="freq_min"></select> to
 					<select id="freq_max"></select>	Hz
 				</div>
 
 				<div class="config-col">
-					<span class="help"><span class="config-label">Smoothing:</span>
+					<div class="help"><span class="config-label">Smoothing</span>
 						<span class="tooltip">
 						Lower values make the analyzer respond faster to changes
 						</span>
-					</span>
-					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
-					<span id="smoothingValue"></span>
+					</div>
+					<input type="number" id="smoothing" min="0" max="0.9" step="0.1">
 				</div>
-			</div> <!-- .config-row -->
 
-			<div class="config-row flex">
 				<div class="config-col">
-					<span class="help">
-						<button id="btn_save">Save current settings</button>
-						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-					</span>
-				</div>
-
-				<div class="config-col center">
-					<span class="help"><span class="config-label">Se<u>n</u>sitivity:</span>
+					<div class="help"><span class="config-label">Se<u>n</u>sitivity</span>
 						<span class="tooltip">
 						Adjust analyzer sensitivity to improve visualization of songs too quiet or too loud
 						</span>
-					</span>
+					</div>
 					<select id="min_db"></select> to
 					<select id="max_db"></select> dB
 				</div>
+
 			</div> <!-- .config-row -->
 
 		</div> <!-- #config_panel -->
@@ -292,7 +295,7 @@
 	</div> <!-- .container -->
 
 	<div class="credits">
-		<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Avila Vianna.
+		<strong>audioMotion.js</strong> Copyright &copy; 2018-2020 Henrique Avila Vianna.
 		Source code available on <a href="https://github.com/hvianna/audioMotion.js/">GitHub</a>. Icons by <a href="https://icons8.com/">icons8</a>.
 	</div>
 

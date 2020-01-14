@@ -17,6 +17,10 @@ input[type="range"] {
 	vertical-align: middle;
 	width: 80px;
 }
+input[type="number"] {
+	padding: 4px;
+	width: 60px;
+}
 
 button {
 	background: #e1e1e1;
@@ -107,10 +111,17 @@ ul {
 .justify-left {
 	justify-content: start;
 }
+.align-top {
+	align-items: start;
+}
 
 .config-label {
 	font-size: 11px;
 	text-transform: uppercase;
+}
+.config-label,
+.help {
+	margin-bottom: 4px;
 }
 
 .playlist-bar,
@@ -204,6 +215,9 @@ ul {
 
 .config-col {
 	margin: 0 20px;
+}
+.config-sub {
+	margin-top: 10px;
 }
 
 .fullscreen-button {
