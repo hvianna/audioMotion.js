@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12';
+var _VERSION = '20.1-dev';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -267,7 +267,13 @@ function setGradient() {
  * Set visualization mode
  */
 function setMode() {
-	audioMotion.mode = elMode.value;
+	if ( elMode.value < 10 )
+		audioMotion.mode = elMode.value;
+	else {
+		audioMotion.mode = 10;
+		audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : ( elMode.value == 102 ) ? .3 : 0;
+		audioMotion.lineWidth = ( elMode.value > 100 ) ? 2 : 0;
+	}
 	updateLastConfig();
 }
 
@@ -1195,7 +1201,6 @@ function loadPreset( name, alert ) {
 		elGradient.value = thisPreset.gradient;
 
 	audioMotion.setOptions( {
-		mode       : elMode.value,
 		fftSize    : elFFTsize.value,
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
@@ -1211,6 +1216,8 @@ function loadPreset( name, alert ) {
 		showFPS    : ( elFPS.dataset.active == '1' ),
 		gradient   : elGradient.value
 	} );
+
+	setMode();
 
 	if ( alert )
 		notie.alert({ text: 'Preset loaded!' });
@@ -1617,6 +1624,8 @@ function setLoRes() {
 
 	elMode[0] = new Option( 'Discrete frequencies', 0 );
 	elMode[1] = new Option( 'Area fill', 10 );
+	elMode[2] = new Option( 'Line graph', 101 );
+	elMode[3] = new Option( 'Line + area fill', 102 );
 
 	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
 		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
