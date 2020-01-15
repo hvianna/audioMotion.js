@@ -1,7 +1,7 @@
 audioMotion.js server options
 =============================
 
-You can run audioMotion in **local mode** by directly opening the `index.html` file located inside the `public` folder.
+You can run audioMotion in **file mode** by directly opening the `index.html` file located inside the `public` folder.
 In this mode you can play single music files and use the microphone input, but the file explorer won't be available.
 
 Due to the security policy of web browsers, JavaScript can only read files via HTTP protocol.
@@ -38,7 +38,7 @@ By default, audioMotion's server will only accept connections from localhost. If
 audioMotion -e -m /path/to/music
 ```
 
-Please note that this will expose the contents of the mounted folder to anyone in your network, so only do this if you're in a trusted network and behind a firewall!
+<p class="warning">⚠ Please be aware that the <code>-e</code> flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!), so only do this if you're in a trusted network and behind a firewall!</p>
 
 audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
 

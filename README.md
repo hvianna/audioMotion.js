@@ -12,7 +12,7 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 
 * High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer with fullscreen support
 * Logarithmic frequency scale with customizable range
-* 10 visualization modes: visualize discrete frequencies, or octave bands based on the equal tempered scale
+* 12 visualization modes: visualize discrete frequencies, or octave bands based on the equal tempered scale
 * 17 beautiful color gradients, with optional vintage LEDs and variable luminance effects
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing constant)
 * HTML5 audio player supports MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser)
@@ -128,5 +128,5 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2019 Henrique Avila Vianna<br>
+audioMotion.js copyright (c) 2018-2020 Henrique Avila Vianna<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
