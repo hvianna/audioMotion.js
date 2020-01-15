@@ -38,7 +38,7 @@ By default, audioMotion's server will only accept connections from localhost. If
 audioMotion -e -m /path/to/music
 ```
 
-<aside class="warning">⚠ Please be aware that the <code>-e</code> flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!), so only do this if you're in a trusted network and behind a firewall!</aside>
+<div class="warning">⚠ Please be aware that the <code>-e</code> flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!), so only do this if you're in a trusted network and behind a firewall!</div>
 
 audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
 
