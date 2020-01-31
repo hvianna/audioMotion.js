@@ -174,7 +174,7 @@
 		</div> <!-- #files_panel -->
 
 		<div id="config_panel" class="config-panel">
-			<div class="config-row flex">
+			<div class="config-row flex align-end">
 				<div class="config-col">
 					<div class="help"><span class="config-label">Preset</span>
 						<span class="tooltip">
@@ -200,33 +200,33 @@
 
 				<div class="config-col">
 					<div class="config-label"><u>G</u>radient</div>
-					<select id="gradient"></select>
+					<select id="gradient" data-prop="gradient"></select>
 
 					<ul class="switch-bar">
-						<li class="switch" id="cycle_grad"><u>A</u>uto
+						<li class="switch" id="cycle_grad" data-prop="cycleGrad"><u>A</u>uto
 							<span class="tooltip">Select next gradient automatically on each track change</span>
-						<li class="switch" id="black_bg">NO <u>B</u>G
+						<li class="switch" id="black_bg" data-prop="blackBg">NO <u>B</u>G
 							<span class="tooltip">Use black background instead of background color defined by gradient</span>
 					</ul>
 				</div>
 
 				<ul class="config-col switch-bar">
-					<li class="switch" id="show_song"><u>I</u>NFO
+					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
 						<span class="tooltip">Display song info in the visualization area on every track change
-					<li class="switch" id="show_scale"><u>S</u>CALE
+					<li class="switch" id="show_scale" data-prop="showScale"><u>S</u>CALE
 						<span class="tooltip">Show / hide the frequency scale</span>
-					<li class="switch" id="show_peaks"><u>P</u>EAKS
+					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 						<span class="tooltip">Hold volume peaks on screen for a short time</span>
-					<li class="switch" id="no_shadow">FLA<u>T</u>
+					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
 						<span class="tooltip">Disable shadows on canvas messages</span>
-					<li class="switch" id="lo_res">L<u>O</u>-RES
+					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-					<li class="switch" id="fps">FPS
+					<li class="switch" id="fps" data-prop="showFPS">FPS
 						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
 				</ul>
 			</div> <!-- .config-row -->
 
-			<div class="config-row flex align-top">
+			<div class="config-row flex align-start">
 				<div class="config-col">
 					<div class="help"><span class="config-label"><u>M</u>ode</span>
 						<span class="tooltip">
@@ -235,19 +235,36 @@
 					</div>
 					<select id="mode"></select>
 					<ul class="switch-bar">
-						<li class="switch" id="led_display"><u>L</u>EDS
+						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
-						<li class="switch" id="lumi_bars">L<u>U</u>MI
+						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-						<li class="switch" id="random_mode">R<u>A</u>ND
+						<li class="switch" id="random_mode" data-prop="randomMode">R<u>A</u>ND
 							<span class="tooltip">Select a random visualization mode on every track change</span>
 					</ul>
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
-							<input id="line_width" type="number" min="1" max="9">
+							<input id="line_width" data-prop="lineWidth" type="range" min="1" max="9">
+							<span class="value"></span>
 						</label>
 						<label id="fill_alpha_label" class="config-label config-col">Fill opacity:
-							<input id="fill_alpha" type="number" min=".1" max=".9" step=".05">
+							<input id="fill_alpha" data-prop="fillAlpha" type="range" min=".1" max=".9" step=".05">
+							<span class="value"></span>
+						</label>
+						<label id="bar_space_label" class="config-label">Bar spacing:
+							<select id="bar_space" data-prop="barSpace">
+								<option value="0">None</option>
+								<option value="1">1px</option>
+								<option value="2">2px</option>
+								<option value="0.25">25%</option>
+								<option value="0.5">50%</option>
+								<option value="0.75">75%</option>
+								<option value="0.999">100%</option>
+								<option value="1.25">125%</option>
+								<option value="1.5">150%</option>
+								<option value="1.75">175%</option>
+								<option value="1.9">190%</option>
+							</select>
 						</label>
 					</div>
 				</div>
@@ -258,15 +275,15 @@
 						Larger values provide more detail in the frequency domain, but less detail in the time domain.
 						</span>
 					</div>
-					<select id="fft_size"></select>
+					<select id="fft_size" data-prop="fftSize"></select>
 				</div>
 
 				<div class="config-col">
 					<div class="help"><span class="config-label">Frequency Range</span>
 						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
 					</div>
-					<select id="freq_min"></select> to
-					<select id="freq_max"></select>	Hz
+					<select id="freq_min" data-prop="freqMin"></select> to
+					<select id="freq_max" data-prop="freqMax"></select>	Hz
 				</div>
 
 				<div class="config-col">
@@ -275,7 +292,8 @@
 						Lower values make the analyzer respond faster to changes
 						</span>
 					</div>
-					<input type="number" id="smoothing" min="0" max="0.9" step="0.1">
+					<input type="range" id="smoothing" data-prop="smoothing" min="0" max="0.9" step="0.1">
+					<span class="value"></span>
 				</div>
 
 				<div class="config-col">
@@ -284,8 +302,8 @@
 						Adjust analyzer sensitivity to improve visualization of songs too quiet or too loud
 						</span>
 					</div>
-					<select id="min_db"></select> to
-					<select id="max_db"></select> dB
+					<select id="min_db" data-prop="minDb"></select> to
+					<select id="max_db" data-prop="maxDb"></select> dB
 				</div>
 
 			</div> <!-- .config-row -->

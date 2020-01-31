@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '20.1-dev.1';
+var _VERSION = '20.1-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -47,7 +47,7 @@ var playlist, playlistPos, currAudio, nextAudio;
 var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode,
-	elLineWidth, elFillAlpha;
+	elLineWidth, elFillAlpha, elBarSpace;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -87,7 +87,8 @@ var presets = {
 			loRes       : 0,
 			showFPS     : 0,
 			lineWidth   : 2,
-			fillAlpha   : 0.2
+			fillAlpha   : 0.2,
+			barSpace    : 0.5
 		},
 
 		fullres: {
@@ -207,6 +208,14 @@ function fullscreen() {
 }
 
 /**
+ * Set bar spacing
+ */
+function setBarSpace() {
+	audioMotion.barSpace = elBarSpace.value;
+	updateLastConfig();
+}
+
+/**
  * Adjust the analyzer's sensitivity
  */
 function setSensitivity( value ) {
@@ -286,10 +295,12 @@ function setLineWidth() {
  */
 function setMode() {
 	var lineWidthLabel = document.getElementById('line_width_label'),
-		fillAlphaLabel = document.getElementById('fill_alpha_label');
+		fillAlphaLabel = document.getElementById('fill_alpha_label'),
+		barSpaceLabel  = document.getElementById('bar_space_label');
 
 	lineWidthLabel.style.display = 'none';
 	fillAlphaLabel.style.display = 'none';
+	barSpaceLabel.style.display  = ( elMode.value > 0 && elMode.value < 10 ) ? '' : 'none';
 
 	if ( elMode.value < 10 )
 		audioMotion.mode = elMode.value;
@@ -1171,32 +1182,7 @@ function loadPreset( name, alert, init ) {
 		return;
 
 	var thisPreset = presets[ name ],
-		defaults   = presets['default'],
-		fields = [
-			{ el: elFFTsize,   prop: 'fftSize'   },
-			{ el: elRangeMin,  prop: 'freqMin'   },
-			{ el: elRangeMax,  prop: 'freqMax'   },
-			{ el: elSmoothing, prop: 'smoothing' },
-			{ el: elMinDb,     prop: 'minDb'     },
-			{ el: elMaxDb,     prop: 'maxDb'     },
-			{ el: elGradient,  prop: 'gradient'  },
-			{ el: elLineWidth, prop: 'lineWidth' },
-			{ el: elFillAlpha, prop: 'fillAlpha' }
-		],
-		switches = [
-			{ el: elShowScale, prop: 'showScale' },
-			{ el: elShowPeaks, prop: 'showPeaks' },
-			{ el: elBlackBg,   prop: 'blackBg'   },
-			{ el: elCycleGrad, prop: 'cycleGrad' },
-			{ el: elRandomMode,prop: 'randomMode'},
-			{ el: elLedDisplay,prop: 'ledDisplay'},
-			{ el: elLumiBars,  prop: 'lumiBars'  },
-			{ el: elRepeat,    prop: 'repeat'    },
-			{ el: elShowSong,  prop: 'showSong'  },
-			{ el: elNoShadow,  prop: 'noShadow'  },
-			{ el: elLoRes,     prop: 'loRes'     },
-			{ el: elFPS,       prop: 'showFPS'   }
-		];
+		defaults   = presets['default'];
 
 	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
 		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
@@ -1209,18 +1195,21 @@ function loadPreset( name, alert, init ) {
 	else if ( init )
 		elMode.value = defaults.mode;
 
-	fields.forEach( f => {
-		if ( thisPreset.hasOwnProperty( f.prop ) )
-			f.el.value = thisPreset[ f.prop ];
-		else if ( init )
-			f.el.value = defaults[ f.prop ];
-	});
+	document.querySelectorAll('[data-prop]').forEach( el => {
+		if ( el.classList.contains('switch') ) {
+			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
+				el.dataset.active = Number( thisPreset[ el.dataset.prop ] );
+			else if ( init )
+				el.dataset.active = defaults[ el.dataset.prop ];
+		}
+		else {
+			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
+				el.value = thisPreset[ el.dataset.prop ];
+			else if ( init )
+				el.value = defaults[ el.dataset.prop ];
 
-	switches.forEach( s => {
-		if ( thisPreset.hasOwnProperty( s.prop ) )
-			s.el.dataset.active = Number( thisPreset[ s.prop ] );
-		else if ( init )
-			s.el.dataset.active = defaults[ s.prop ];
+			updateRangeValue( el );
+		}
 	});
 
 	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option (version =< 19.5)
@@ -1242,7 +1231,8 @@ function loadPreset( name, alert, init ) {
 		lumiBars   : ( elLumiBars.dataset.active == '1' ),
 		loRes      : ( elLoRes.dataset.active == '1' ),
 		showFPS    : ( elFPS.dataset.active == '1' ),
-		gradient   : elGradient.value
+		gradient   : elGradient.value,
+		barSpace   : elBarSpace.value
 	} );
 
 	setMode();
@@ -1278,7 +1268,8 @@ function saveConfig( config ) {
 		loRes       : elLoRes.dataset.active == '1',
 		showFPS     : elFPS.dataset.active == '1',
 		lineWidth   : elLineWidth.value,
-		fillAlpha   : elFillAlpha.value
+		fillAlpha   : elFillAlpha.value,
+		barSpace    : elBarSpace.value
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1529,6 +1520,14 @@ function setLoRes() {
 	updateLastConfig();
 }
 
+/**
+ * Update range elements value div
+ */
+function updateRangeValue( el ) {
+	let s = el.nextElementSibling;
+	if ( s && s.className == 'value' )
+		s.innerText = el.value;
+}
 
 /**
  * Initialization function
@@ -1651,6 +1650,7 @@ function setLoRes() {
 	elPlaylists   = document.getElementById('playlists');
 	elLineWidth   = document.getElementById('line_width');
 	elFillAlpha   = document.getElementById('fill_alpha');
+	elBarSpace    = document.getElementById('bar_space');
 
 	// Populate combo boxes
 
@@ -1715,7 +1715,12 @@ function setLoRes() {
 	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
 	elLineWidth.  addEventListener( 'change', setLineWidth );
 	elFillAlpha.  addEventListener( 'change', setFillAlpha );
+	elBarSpace.   addEventListener( 'change', setBarSpace );
 
+	// update range elements' value
+	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
+
+	// action buttons
 	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
 	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );

@@ -111,8 +111,11 @@ ul {
 .justify-left {
 	justify-content: start;
 }
-.align-top {
+.align-start {
 	align-items: start;
+}
+.align-end {
+	align-items: end;
 }
 
 .config-label {
