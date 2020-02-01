@@ -1,5 +1,5 @@
-audioMotion.js User Interface
-=============================
+User Interface
+==============
 
 ![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 
@@ -117,7 +117,7 @@ Selects the visualization mode.
 + **Area fill** displays the same frequency data as above, but as a filled shape;
 + **Line graph** connects all discrete frequency points in one continuous line;
 + **Line + area fill** combines both previous modes;
-+ **Octave bands** modes will display wider vertical bars, each one representing the *n*th part of an octave, based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
++ **Octave bands** modes display wider vertical bars, each one representing the *n*th part of an octave, based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 

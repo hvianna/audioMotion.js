@@ -54,6 +54,9 @@ The complete command line options are:
 -e        : allow external connections (by default, only localhost)
 ```
 
+⚠ **WARNING:**<br>
+Please be aware that the `-e` flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
+
 ## Documentation
 
 + [User interface](docs/user-interface.md)

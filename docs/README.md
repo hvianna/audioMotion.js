@@ -1,5 +1,5 @@
-audioMotion.js Documentation
-============================
+Documentation
+=============
 
 ## Summary
 
