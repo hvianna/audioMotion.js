@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '20.1-dev.2';
+var _VERSION = '20.2-dev';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -291,35 +291,37 @@ function setLineWidth() {
 }
 
 /**
- * Set visualization mode
+ * Set visualization mode and related options
  */
 function setMode() {
-	var lineWidthLabel = document.getElementById('line_width_label'),
+
+	let lineWidthLabel = document.getElementById('line_width_label'),
 		fillAlphaLabel = document.getElementById('fill_alpha_label'),
-		barSpaceLabel  = document.getElementById('bar_space_label');
+		barSpaceLabel  = document.getElementById('bar_space_label'),
+		mode = elMode.value;
 
 	lineWidthLabel.style.display = 'none';
 	fillAlphaLabel.style.display = 'none';
-	barSpaceLabel.style.display  = ( elMode.value > 0 && elMode.value < 10 ) ? '' : 'none';
+	barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
 
-	if ( elMode.value < 10 )
-		audioMotion.mode = elMode.value;
+	if ( mode < 10 )
+		audioMotion.mode = mode;
 	else {
 		audioMotion.mode = 10;
 
-		if ( elMode.value == 10 ) {
+		if ( mode == 10 ) { // default "area fill" mode
 			audioMotion.lineWidth = 0;
 			audioMotion.fillAlpha = 1;
 		}
-		else {
+		else { // customized line width and/or fill opacity
 			lineWidthLabel.style.display = '';
 			audioMotion.lineWidth = elLineWidth.value;
 
-			if ( elMode.value == 102 ) {
+			if ( mode == 102 ) {
 				fillAlphaLabel.style.display = '';
 				audioMotion.fillAlpha = elFillAlpha.value;
 			}
-			else
+			else // mode 101 - line graph only
 				audioMotion.fillAlpha = 0;
 		}
 	}
@@ -1474,9 +1476,9 @@ function audioOnPlay() {
 			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
 			elLedDisplay.dataset.active = Math.random() * 2 | 0;
 			elLumiBars.dataset.active   = Math.random() * 2 | 0;
-			audioMotion.mode     = elMode.value;
 			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
 			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+			setMode();
 		}
 		// cycle (or random) gradient
 		if ( elCycleGrad.dataset.active == '1' ) {
