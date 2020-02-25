@@ -65,6 +65,7 @@ ul {
 	background: #000;
 	height: calc( 100vh - 570px );
 	min-height: 270px;
+	overflow: hidden;
 }
 .analyzer canvas {
 	display: block;

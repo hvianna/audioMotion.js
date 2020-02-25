@@ -1536,6 +1536,9 @@ function updateRangeValue( el ) {
  */
 (function() {
 
+	// Log all JS errors to our UI console
+	window.addEventListener( 'error', event => consoleLog( `Fatal error: ${event.error}`, true ) );
+
 	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
@@ -1585,19 +1588,13 @@ function updateRangeValue( el ) {
 
 	// Create audioMotion analyzer
 
-	try {
-		audioMotion = new AudioMotionAnalyzer(
-			document.getElementById('analyzer'),
-			{
-				onCanvasDraw: displayCanvasMsg,
-				onCanvasResize: showCanvasInfo
-			}
-		);
-	}
-	catch( err ) {
-		consoleLog( `Fatal error: ${err}`, true );
-		return false;
-	}
+	audioMotion = new AudioMotionAnalyzer(
+		document.getElementById('analyzer'),
+		{
+			onCanvasDraw: displayCanvasMsg,
+			onCanvasResize: showCanvasInfo
+		}
+	);
 
 	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
