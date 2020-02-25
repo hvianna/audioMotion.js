@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '20.2-dev.1';
+var _VERSION = '20.2-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -88,7 +88,7 @@ var presets = {
 			showFPS     : 0,
 			lineWidth   : 2,
 			fillAlpha   : 0.2,
-			barSpace    : 0.5
+			barSpace    : 0.1
 		},
 
 		fullres: {
@@ -211,7 +211,7 @@ function fullscreen() {
  * Set bar spacing
  */
 function setBarSpace() {
-	audioMotion.barSpace = elBarSpace.value;
+	audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
 	updateLastConfig();
 }
 
@@ -347,6 +347,7 @@ function setLedDisplay() {
  */
 function setLumiBars() {
 	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
+	audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
 	updateLastConfig();
 }
 
@@ -1223,15 +1224,15 @@ function loadPreset( name, alert, init ) {
 		smoothing  : elSmoothing.value,
 		minDecibels: elMinDb.value,
 		maxDecibels: elMaxDb.value,
-		showScale  : ( elShowScale.dataset.active == '1' ),
-		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
-		showBgColor: ( elBlackBg.dataset.active == '0' ),
-		showLeds   : ( elLedDisplay.dataset.active == '1' ),
-		lumiBars   : ( elLumiBars.dataset.active == '1' ),
-		loRes      : ( elLoRes.dataset.active == '1' ),
-		showFPS    : ( elFPS.dataset.active == '1' ),
+		showScale  : elShowScale.dataset.active == '1',
+		showPeaks  : elShowPeaks.dataset.active == '1',
+		showBgColor: elBlackBg.dataset.active == '0',
+		showLeds   : elLedDisplay.dataset.active == '1',
+		lumiBars   : elLumiBars.dataset.active == '1',
+		loRes      : elLoRes.dataset.active == '1',
+		showFPS    : elFPS.dataset.active == '1',
 		gradient   : elGradient.value,
-		barSpace   : elBarSpace.value
+		barSpace   : elLumiBars.dataset.active == '1' ? 1 : elBarSpace.value
 	} );
 
 	setMode();
@@ -1475,6 +1476,7 @@ function audioOnPlay() {
 			elLumiBars.dataset.active   = Math.random() * 2 | 0;
 			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
 			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+			audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
 			setMode();
 		}
 		// cycle (or random) gradient
