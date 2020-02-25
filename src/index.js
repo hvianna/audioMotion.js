@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '20.2-dev';
+var _VERSION = '20.2-dev.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -309,20 +309,17 @@ function setMode() {
 	else {
 		audioMotion.mode = 10;
 
-		if ( mode == 10 ) { // default "area fill" mode
+		if ( mode == 10 ) {
+			// "Area graph" mode
 			audioMotion.lineWidth = 0;
 			audioMotion.fillAlpha = 1;
 		}
-		else { // customized line width and/or fill opacity
+		else {
+			// "Line graph" mode with customizable line width and fill opacity
 			lineWidthLabel.style.display = '';
+			fillAlphaLabel.style.display = '';
 			audioMotion.lineWidth = elLineWidth.value;
-
-			if ( mode == 102 ) {
-				fillAlphaLabel.style.display = '';
-				audioMotion.fillAlpha = elFillAlpha.value;
-			}
-			else // mode 101 - line graph only
-				audioMotion.fillAlpha = 0;
+			audioMotion.fillAlpha = elFillAlpha.value;
 		}
 	}
 
@@ -1654,9 +1651,8 @@ function updateRangeValue( el ) {
 	// Populate combo boxes
 
 	elMode[0] = new Option( 'Discrete frequencies', 0 );
-	elMode[1] = new Option( 'Area fill', 10 );
+	elMode[1] = new Option( 'Area graph', 10 );
 	elMode[2] = new Option( 'Line graph', 101 );
-	elMode[3] = new Option( 'Line + area fill', 102 );
 
 	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
 		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
