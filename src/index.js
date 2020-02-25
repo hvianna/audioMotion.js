@@ -5,7 +5,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2019 Henrique Avila Vianna
+ * @copyright (c) 2018-2020 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12';
+var _VERSION = '20.2-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -46,7 +46,8 @@ var playlist, playlistPos, currAudio, nextAudio;
 // HTML elements from the UI
 var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode;
+	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode,
+	elLineWidth, elFillAlpha, elBarSpace;
 
 // audio sources
 var	audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -84,7 +85,10 @@ var presets = {
 			repeat      : 0,
 			noShadow    : 1,
 			loRes       : 0,
-			showFPS     : 0
+			showFPS     : 0,
+			lineWidth   : 2,
+			fillAlpha   : 0.2,
+			barSpace    : 0.1
 		},
 
 		fullres: {
@@ -204,6 +208,14 @@ function fullscreen() {
 }
 
 /**
+ * Set bar spacing
+ */
+function setBarSpace() {
+	audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
+	updateLastConfig();
+}
+
+/**
  * Adjust the analyzer's sensitivity
  */
 function setSensitivity( value ) {
@@ -231,7 +243,6 @@ function setSensitivity( value ) {
  */
 function setSmoothing() {
 	audioMotion.smoothing = elSmoothing.value;
-	document.getElementById('smoothingValue').innerText = elSmoothing.value;
 	consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 	updateLastConfig();
 }
@@ -242,6 +253,14 @@ function setSmoothing() {
 function setFFTsize() {
 	audioMotion.fftSize = elFFTsize.value;
 	consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+	updateLastConfig();
+}
+
+/**
+ * Set fill alpha
+ */
+function setFillAlpha() {
+	audioMotion.fillAlpha = elFillAlpha.value;
 	updateLastConfig();
 }
 
@@ -264,10 +283,46 @@ function setGradient() {
 }
 
 /**
- * Set visualization mode
+ * Set line width
+ */
+function setLineWidth() {
+	audioMotion.lineWidth = elLineWidth.value;
+	updateLastConfig();
+}
+
+/**
+ * Set visualization mode and related options
  */
 function setMode() {
-	audioMotion.mode = elMode.value;
+
+	let lineWidthLabel = document.getElementById('line_width_label'),
+		fillAlphaLabel = document.getElementById('fill_alpha_label'),
+		barSpaceLabel  = document.getElementById('bar_space_label'),
+		mode = elMode.value;
+
+	lineWidthLabel.style.display = 'none';
+	fillAlphaLabel.style.display = 'none';
+	barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
+
+	if ( mode < 10 )
+		audioMotion.mode = mode;
+	else {
+		audioMotion.mode = 10;
+
+		if ( mode == 10 ) {
+			// "Area graph" mode
+			audioMotion.lineWidth = 0;
+			audioMotion.fillAlpha = 1;
+		}
+		else {
+			// "Line graph" mode with customizable line width and fill opacity
+			lineWidthLabel.style.display = '';
+			fillAlphaLabel.style.display = '';
+			audioMotion.lineWidth = elLineWidth.value;
+			audioMotion.fillAlpha = elFillAlpha.value;
+		}
+	}
+
 	updateLastConfig();
 }
 
@@ -292,6 +347,7 @@ function setLedDisplay() {
  */
 function setLumiBars() {
 	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
+	audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
 	updateLastConfig();
 }
 
@@ -1115,13 +1171,18 @@ function loadLocalFile( obj ) {
 
 /**
  * Load a configuration preset
+ *
+ * @param name {string} desired preset name
+ * @param [alert] {boolean} true to display on-screen alert after loading
+ * @param [init] {boolean} true to use default values for missing properties
  */
-function loadPreset( name, alert ) {
+function loadPreset( name, alert, init ) {
 
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	var thisPreset = presets[ name ];
+	var thisPreset = presets[ name ],
+		defaults   = presets['default'];
 
 	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
 		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
@@ -1131,86 +1192,50 @@ function loadPreset( name, alert ) {
 		else
 			elMode.value = thisPreset.mode;
 	}
+	else if ( init )
+		elMode.value = defaults.mode;
 
-	if ( thisPreset.hasOwnProperty( 'fftSize' ) )
-		elFFTsize.value = thisPreset.fftSize;
+	document.querySelectorAll('[data-prop]').forEach( el => {
+		if ( el.classList.contains('switch') ) {
+			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
+				el.dataset.active = Number( thisPreset[ el.dataset.prop ] );
+			else if ( init )
+				el.dataset.active = defaults[ el.dataset.prop ];
+		}
+		else {
+			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
+				el.value = thisPreset[ el.dataset.prop ];
+			else if ( init )
+				el.value = defaults[ el.dataset.prop ];
 
-	if ( thisPreset.hasOwnProperty( 'freqMin' ) )
-		elRangeMin.value = thisPreset.freqMin;
-
-	if ( thisPreset.hasOwnProperty( 'freqMax' ) )
-		elRangeMax.value = thisPreset.freqMax;
-
-	if ( thisPreset.hasOwnProperty( 'smoothing' ) )
-		document.getElementById('smoothingValue').innerText = elSmoothing.value = thisPreset.smoothing;
-
-	if ( thisPreset.hasOwnProperty( 'showScale' ) )
-		elShowScale.dataset.active = Number( thisPreset.showScale );
+			updateRangeValue( el );
+		}
+	});
 
 	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option (version =< 19.5)
 		sensitivity = thisPreset.highSens ? 2 : 1;
 		setSensitivity( sensitivity );
 	}
 
-	if ( thisPreset.hasOwnProperty( 'minDb' ) )
-		elMinDb.value = thisPreset.minDb;
-
-	if ( thisPreset.hasOwnProperty( 'maxDb' ) )
-		elMaxDb.value = thisPreset.maxDb;
-
-	if ( thisPreset.hasOwnProperty( 'showPeaks' ) )
-		elShowPeaks.dataset.active = Number( thisPreset.showPeaks );
-
-	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
-		elBlackBg.dataset.active = Number( thisPreset.blackBg );
-
-	if ( thisPreset.hasOwnProperty( 'cycleGrad' ) )
-		elCycleGrad.dataset.active = Number( thisPreset.cycleGrad );
-
-	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
-		elRandomMode.dataset.active = Number( thisPreset.randomMode );
-
-	if ( thisPreset.hasOwnProperty( 'ledDisplay' ) )
-		elLedDisplay.dataset.active = Number( thisPreset.ledDisplay );
-
-	if ( thisPreset.hasOwnProperty( 'lumiBars' ) )
-		elLumiBars.dataset.active = Number( thisPreset.lumiBars );
-
-	if ( thisPreset.hasOwnProperty( 'repeat' ) )
-		elRepeat.dataset.active = Number( thisPreset.repeat );
-
-	if ( thisPreset.hasOwnProperty( 'showSong' ) )
-		elShowSong.dataset.active = Number( thisPreset.showSong );
-
-	if ( thisPreset.hasOwnProperty( 'noShadow' ) )
-		elNoShadow.dataset.active = Number( thisPreset.noShadow );
-
-	if ( thisPreset.hasOwnProperty( 'loRes' ) )
-		elLoRes.dataset.active = Number( thisPreset.loRes );
-
-	if ( thisPreset.hasOwnProperty( 'showFPS' ) )
-		elFPS.dataset.active = Number( thisPreset.showFPS );
-
-	if ( thisPreset.hasOwnProperty( 'gradient' ) && gradients[ thisPreset.gradient ] )
-		elGradient.value = thisPreset.gradient;
-
 	audioMotion.setOptions( {
-		mode       : elMode.value,
 		fftSize    : elFFTsize.value,
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
 		minDecibels: elMinDb.value,
 		maxDecibels: elMaxDb.value,
-		showScale  : ( elShowScale.dataset.active == '1' ),
-		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
-		showBgColor: ( elBlackBg.dataset.active == '0' ),
-		showLeds   : ( elLedDisplay.dataset.active == '1' ),
-		lumiBars   : ( elLumiBars.dataset.active == '1' ),
-		loRes      : ( elLoRes.dataset.active == '1' ),
-		showFPS    : ( elFPS.dataset.active == '1' ),
-		gradient   : elGradient.value
+		showScale  : elShowScale.dataset.active == '1',
+		showPeaks  : elShowPeaks.dataset.active == '1',
+		showBgColor: elBlackBg.dataset.active == '0',
+		showLeds   : elLedDisplay.dataset.active == '1',
+		lumiBars   : elLumiBars.dataset.active == '1',
+		loRes      : elLoRes.dataset.active == '1',
+		showFPS    : elFPS.dataset.active == '1',
+		gradient   : elGradient.value,
+		barSpace   : elLumiBars.dataset.active == '1' ? 1 : elBarSpace.value
 	} );
+
+	setMode();
 
 	if ( alert )
 		notie.alert({ text: 'Preset loaded!' });
@@ -1225,7 +1250,7 @@ function saveConfig( config ) {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
-		smoothing	: audioMotion.smoothing,
+		smoothing	: elSmoothing.value,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
 		minDb       : elMinDb.value,
@@ -1241,7 +1266,10 @@ function saveConfig( config ) {
 		showSong    : elShowSong.dataset.active == '1',
 		noShadow    : elNoShadow.dataset.active == '1',
 		loRes       : elLoRes.dataset.active == '1',
-		showFPS     : elFPS.dataset.active == '1'
+		showFPS     : elFPS.dataset.active == '1',
+		lineWidth   : elLineWidth.value,
+		fillAlpha   : elFillAlpha.value,
+		barSpace    : elBarSpace.value
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1446,9 +1474,10 @@ function audioOnPlay() {
 			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
 			elLedDisplay.dataset.active = Math.random() * 2 | 0;
 			elLumiBars.dataset.active   = Math.random() * 2 | 0;
-			audioMotion.mode     = elMode.value;
 			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
 			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+			audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
+			setMode();
 		}
 		// cycle (or random) gradient
 		if ( elCycleGrad.dataset.active == '1' ) {
@@ -1492,11 +1521,22 @@ function setLoRes() {
 	updateLastConfig();
 }
 
+/**
+ * Update range elements value div
+ */
+function updateRangeValue( el ) {
+	let s = el.nextElementSibling;
+	if ( s && s.className == 'value' )
+		s.innerText = el.value;
+}
 
 /**
  * Initialization function
  */
 (function() {
+
+	// Log all JS errors to our UI console
+	window.addEventListener( 'error', event => consoleLog( `Fatal error: ${event.error}`, true ) );
 
 	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
@@ -1547,19 +1587,13 @@ function setLoRes() {
 
 	// Create audioMotion analyzer
 
-	try {
-		audioMotion = new AudioMotionAnalyzer(
-			document.getElementById('analyzer'),
-			{
-				onCanvasDraw: displayCanvasMsg,
-				onCanvasResize: showCanvasInfo
-			}
-		);
-	}
-	catch( err ) {
-		consoleLog( `Fatal error: ${err}`, true );
-		return false;
-	}
+	audioMotion = new AudioMotionAnalyzer(
+		document.getElementById('analyzer'),
+		{
+			onCanvasDraw: displayCanvasMsg,
+			onCanvasResize: showCanvasInfo
+		}
+	);
 
 	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
@@ -1612,11 +1646,15 @@ function setLoRes() {
 	elFPS         = document.getElementById('fps');
 	elSource      = document.getElementById('source');
 	elPlaylists   = document.getElementById('playlists');
+	elLineWidth   = document.getElementById('line_width');
+	elFillAlpha   = document.getElementById('fill_alpha');
+	elBarSpace    = document.getElementById('bar_space');
 
 	// Populate combo boxes
 
 	elMode[0] = new Option( 'Discrete frequencies', 0 );
-	elMode[1] = new Option( 'Area fill', 10 );
+	elMode[1] = new Option( 'Area graph', 10 );
+	elMode[2] = new Option( 'Line graph', 101 );
 
 	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
 		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
@@ -1672,7 +1710,14 @@ function setLoRes() {
 	elSmoothing.  addEventListener( 'change', setSmoothing );
 	elMinDb.      addEventListener( 'change', () => setSensitivity() );
 	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
+	elLineWidth.  addEventListener( 'change', setLineWidth );
+	elFillAlpha.  addEventListener( 'change', setFillAlpha );
+	elBarSpace.   addEventListener( 'change', setBarSpace );
 
+	// update range elements' value
+	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
+
+	// action buttons
 	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
 	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
 	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
@@ -1722,7 +1767,7 @@ function setLoRes() {
 	consoleLog( `Display resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
 
-	loadPreset('last');
+	loadPreset( 'last', false, true );
 
 	// Set audio source to built-in player
 	setSource();

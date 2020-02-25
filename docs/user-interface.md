@@ -1,5 +1,5 @@
-audioMotion.js User Interface
-=============================
+User Interface
+==============
 
 ![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 
@@ -112,10 +112,12 @@ The underlined character in each switch label indicates its keyboard shortcut, w
 ![ui-mode](img/UI_mode.png)
 
 Selects the visualization mode.
-*Discrete frequencies* mode allows you to visualize individual frequencies, limited only by the resolution of both the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) and your display.
-*Area fill* mode displays the same frequency data, but as a filled shape.
 
-The *octave bands* modes will display wider vertical bars, representing the amplitudes of ranges of frequencies based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
++ **Discrete frequencies** mode allows you to visualize individual frequencies provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform);
++ **Area fill** displays the same frequency data as above, but as a filled shape;
++ **Line graph** connects all discrete frequency points in one continuous line;
++ **Line + area fill** combines both previous modes;
++ **Octave bands** modes display wider vertical bars, each one representing the *n*th part of an octave, based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 

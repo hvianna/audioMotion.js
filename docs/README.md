@@ -1,5 +1,5 @@
-audioMotion.js Documentation
-============================
+Documentation
+=============
 
 ## Summary
 
@@ -18,7 +18,7 @@ audioMotion.js Documentation
 
 ### Server modes
 
-- [Local mode](server.md)
+- [File mode](server.md)
 - [Custom file server](server.md#custom-file-server)
 - [Using a standard web server](server.md#using-a-standard-web-server)
 - [Apache web server with Docker](server.md#apache-web-server-with-docker)

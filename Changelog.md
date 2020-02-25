@@ -1,6 +1,17 @@
 Changelog
 =========
 
+## version NEXT
+
+### Added:
+
++ New **Line graph** and **Line + area fill** visualization modes, with customizable line width and fill opacity;
+
+### Changed:
+
++ UI improvements.
+
+
 ## version 19.12
 
 :tada: Celebrating audioMotion's first anniversary! :confetti_ball:
