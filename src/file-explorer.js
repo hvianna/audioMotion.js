@@ -1,7 +1,7 @@
 /**
  * audioMotion.js file explorer module
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
  */
 
 var mounts = [],
@@ -118,11 +118,12 @@ function enterDir( target, scrollTop ) {
  */
 function parseWebDirectory( content ) {
 
-	var files = [],
-		dirs = [],
-		cover;
+	let files = [];
+	let dirs = [];
+	let cover;
 
-	var entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+	let entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+
 	for ( let e of entries ) {
 		let info = e.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
 		if ( info[1].substring( info[1].length - 1 ) == '/' ) {
@@ -141,7 +142,8 @@ function parseWebDirectory( content ) {
 		}
 	}
 
-	return { cover: cover, dirs: dirs, files: files }
+	let collator = new Intl.Collator(); // for case-insensitive string sorting
+	return { cover, dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
 /**
