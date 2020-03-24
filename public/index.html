@@ -244,21 +244,15 @@
 					</ul>
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
-							<input id="line_width" data-prop="lineWidth" type="range" min="1" max="9">
+							<input id="line_width" data-prop="lineWidth" type="range">
 							<span class="value"></span>
 						</label>
 						<label id="fill_alpha_label" class="config-label config-col">Fill opacity:
-							<input id="fill_alpha" data-prop="fillAlpha" type="range" min=".1" max=".9" step=".05">
+							<input id="fill_alpha" data-prop="fillAlpha" type="range">
 							<span class="value"></span>
 						</label>
 						<label id="bar_space_label" class="config-label">Bar spacing:
-							<select id="bar_space" data-prop="barSpace">
-								<option value="1">Legacy</option>
-								<option value="0.1">Narrow</option>
-								<option value="0.25">Regular</option>
-								<option value="0.5">Wide</option>
-								<option value="0.75">Extra wide</option>
-							</select>
+							<select id="bar_space" data-prop="barSpace"></select>
 						</label>
 					</div>
 				</div>
@@ -286,7 +280,7 @@
 						Lower values make the analyzer respond faster to changes
 						</span>
 					</div>
-					<input type="range" id="smoothing" data-prop="smoothing" min="0" max="0.9" step="0.1">
+					<input type="range" id="smoothing" data-prop="smoothing">
 					<span class="value"></span>
 				</div>
 

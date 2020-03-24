@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '20.2-dev.2';
+const _VERSION = '20.3-dev';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1648,13 +1648,21 @@ function updateRangeValue( el ) {
 
 	// Populate combo boxes
 
-	elMode[0] = new Option( 'Discrete frequencies', 0 );
-	elMode[1] = new Option( 'Area graph', 10 );
-	elMode[2] = new Option( 'Line graph', 101 );
-
-	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
-		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
-	});
+	const modeOptions = [
+		{ value: '0',   text: 'Discrete frequencies' },
+		{ value: '10',  text: 'Area graph' },
+		{ value: '101', text: 'Line graph' },
+		{ value: '8',   text: 'Full octave bands' },
+		{ value: '7',   text: 'Half octave bands' },
+		{ value: '6',   text: '1/3rd octave bands' },
+		{ value: '5',   text: '1/4th octave bands' },
+		{ value: '4',   text: '1/6th octave bands' },
+		{ value: '3',   text: '1/8th octave bands' },
+		{ value: '2',   text: '1/12th octave bands' },
+		{ value: '1',   text: '1/24th octave bands' }
+	];
+	for ( const item of modeOptions )
+		elMode[ elMode.options.length ] = new Option( item.text, item.value );
 
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
@@ -1671,6 +1679,26 @@ function updateRangeValue( el ) {
 	for ( let i = 0; i >= -40; i -= 5 )
 		elMaxDb[ elMaxDb.options.length ] = new Option( i );
 
+	const barSpaceOptions = [
+		{ value: '1',    text: 'Legacy' },
+		{ value: '0.1',  text: 'Narrow' },
+		{ value: '0.25', text: 'Regular' },
+		{ value: '0.5',  text: 'Wide' },
+		{ value: '0.75', text: 'Extra wide' }
+	];
+	for ( const item of barSpaceOptions )
+		elBarSpace[ elBarSpace.options.length ] = new Option( item.text, item.value );
+
+	elLineWidth.min = '1';
+	elLineWidth.max = '9';
+
+	elFillAlpha.min = '0';
+	elFillAlpha.max = '0.6';
+	elFillAlpha.step= '0.1';
+
+	elSmoothing.min = '0';
+	elSmoothing.max = '0.9';
+	elSmoothing.step= '0.1';
 
 	// Add event listeners to the custom checkboxes
 	document.querySelectorAll('.switch').forEach( el => {
