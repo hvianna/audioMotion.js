@@ -207,7 +207,7 @@ function fullscreen() {
  * Set bar spacing
  */
 function setBarSpace() {
-	audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
+	audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
 	updateLastConfig();
 }
 
@@ -343,8 +343,7 @@ function setLedDisplay() {
  */
 function setLumiBars() {
 	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
-	audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
-	updateLastConfig();
+	setBarSpace();
 }
 
 /**
@@ -1227,10 +1226,10 @@ function loadPreset( name, alert, init ) {
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
 		showFPS    : elFPS.dataset.active == '1',
-		gradient   : elGradient.value,
-		barSpace   : elLumiBars.dataset.active == '1' ? 1 : elBarSpace.value
+		gradient   : elGradient.value
 	} );
 
+	setBarSpace();
 	setMode();
 
 	if ( alert )
@@ -1680,7 +1679,7 @@ function updateRangeValue( el ) {
 		elMaxDb[ elMaxDb.options.length ] = new Option( i );
 
 	const barSpaceOptions = [
-		{ value: '1',    text: 'Legacy' },
+		{ value: '1.5',  text: 'Legacy' },
 		{ value: '0.1',  text: 'Narrow' },
 		{ value: '0.25', text: 'Regular' },
 		{ value: '0.5',  text: 'Wide' },
