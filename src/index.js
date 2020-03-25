@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.3-dev';
+const _VERSION = '20.3-dev.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -38,33 +38,33 @@ import './notie.css';
 import './styles.css';
 
 // AudioMotionAnalyzer object
-var audioMotion;
+let audioMotion;
 
 // playlist, index to the current song, indexes to current and next audio elements
-var playlist, playlistPos, currAudio, nextAudio;
+let playlist, playlistPos, currAudio, nextAudio;
 
 // HTML elements from the UI
-var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
+let elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode,
 	elLineWidth, elFillAlpha, elBarSpace;
 
 // audio sources
-var	audioElement, sourcePlayer, sourceMic, cfgSource;
+let audioElement, sourcePlayer, sourceMic, cfgSource;
 
 // on-screen messages
-var	canvasMsg;
+let canvasMsg;
 
 // flag for skip track in progress
-var skipping = false;
+let skipping = false;
 
 // for sensitivity presets (keyboard shortcut)
-var sensitivity = 1;
+let sensitivity = 1;
 
 /**
  * Configuration presets
  */
-var presets = {
+const presets = {
 		default: {
 			mode        : 0,	    // discrete frequencies mode
 			fftSize     : 8192,		// FFT size
@@ -116,7 +116,7 @@ var presets = {
 	};
 
 // additional gradient definitions
-var	gradients = {
+const gradients = {
 		apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
 					{ pos: .1667, color: '#61bb46' },
 					{ pos: .3333, color: '#fdb827' },
@@ -291,10 +291,10 @@ function setLineWidth() {
  */
 function setMode() {
 
-	let lineWidthLabel = document.getElementById('line_width_label'),
-		fillAlphaLabel = document.getElementById('fill_alpha_label'),
-		barSpaceLabel  = document.getElementById('bar_space_label'),
-		mode = elMode.value;
+	const lineWidthLabel = document.getElementById('line_width_label'),
+		  fillAlphaLabel = document.getElementById('fill_alpha_label'),
+		  barSpaceLabel  = document.getElementById('bar_space_label'),
+		  mode = elMode.value;
 
 	lineWidthLabel.style.display = 'none';
 	fillAlphaLabel.style.display = 'none';
@@ -410,12 +410,12 @@ function clearPlaylist() {
  */
 function loadSavedPlaylists( keyName ) {
 
-	var playlists = localStorage.getItem('playlists');
+	let playlists = localStorage.getItem('playlists');
 
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	var item = new Option( 'Select a playlist and click action to the right', '' );
+	const item = new Option( 'Select a playlist and click action to the right', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -424,7 +424,7 @@ function loadSavedPlaylists( keyName ) {
 		playlists = JSON.parse( playlists );
 
 		Object.keys( playlists ).forEach( key => {
-			let item = new Option( playlists[ key ], key );
+			const item = new Option( playlists[ key ], key );
 			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
@@ -443,7 +443,7 @@ function loadSavedPlaylists( keyName ) {
 		})
 		.then( content => {
 			if ( content !== false ) {
-				var n = 0;
+				let n = 0;
 				content.split(/[\r\n]+/).forEach( line => {
 					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
 						let info = line.split(/\|/);
@@ -481,8 +481,8 @@ function addBatchToQueue( files, autoplay = false ) {
  */
 function addToPlaylist( file, autoplay = false ) {
 
-	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase(),
-		ret;
+	const ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+	let ret;
 
 	if ( ['m3u','m3u8'].includes( ext ) )
 		ret = loadPlaylist( file );
@@ -538,7 +538,7 @@ function addMetadata( metadata, target ) {
  */
 function addSongToPlaylist( uri, content = {} ) {
 
-	var newEl = document.createElement('li');
+	const newEl = document.createElement('li');
 
 	newEl.dataset.artist = content.artist || '';
 
@@ -553,7 +553,7 @@ function addSongToPlaylist( uri, content = {} ) {
 
 	playlist.appendChild( newEl );
 
-	var len = playlist.children.length;
+	const len = playlist.children.length;
 	if ( len == 1 && ! isPlaying() )
 		loadSong(0);
 	if ( playlistPos > len - 3 )
@@ -583,8 +583,9 @@ function loadPlaylist( path ) {
 	if ( ! path )
 		return;
 
-	var ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase(),
-		n = 0,
+	const ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
+
+	let	n = 0,
 		songInfo;
 
 	return new Promise( resolve => {
@@ -625,7 +626,7 @@ function loadPlaylist( path ) {
 				});
 		}
 		else { // try to load playlist from localStorage
-			var list = localStorage.getItem( 'pl_' + path );
+			let list = localStorage.getItem( 'pl_' + path );
 			if ( list ) {
 				list = JSON.parse( list );
 				list.forEach( item => {
@@ -690,13 +691,13 @@ function storePlaylist( name, update = true ) {
 	}
 
 	if ( name ) {
-		var safename = name;
+		let safename = name;
 
 		if ( ! update ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-			var playlists = localStorage.getItem('playlists');
+			let playlists = localStorage.getItem('playlists');
 
 			if ( playlists )
 				playlists = JSON.parse( playlists );
@@ -712,7 +713,7 @@ function storePlaylist( name, update = true ) {
 			loadSavedPlaylists( safename );
 		}
 
-		var songs = [];
+		let songs = [];
 		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
 		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
@@ -729,8 +730,8 @@ function deletePlaylist( index ) {
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
 			submitCallback: () => {
-				var keyName = elPlaylists[ index ].value;
-				var playlists = localStorage.getItem('playlists');
+				const keyName = elPlaylists[ index ].value;
+				let playlists = localStorage.getItem('playlists');
 
 				if ( playlists ) {
 					playlists = JSON.parse( playlists );
@@ -756,7 +757,8 @@ function deletePlaylist( index ) {
  */
 function updatePlaylistUI() {
 
-	var current = playlist.querySelector('.current');
+	const current = playlist.querySelector('.current');
+
 	if ( current )
 		current.classList.remove('current');
 
@@ -771,9 +773,9 @@ function updatePlaylistUI() {
  */
 function shufflePlaylist() {
 
-	var temp, r;
+	let temp, r;
 
-	for ( var i = playlist.children.length - 1; i > 0; i-- ) {
+	for ( let i = playlist.children.length - 1; i > 0; i-- ) {
 		r = Math.floor( Math.random() * ( i + 1 ) );
 		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
 		playlist.insertBefore( temp, playlist.children[ r ] );
@@ -788,7 +790,7 @@ function shufflePlaylist() {
 function getIndex( node ) {
 	if ( ! node )
 		return;
-	var i = 0;
+	let i = 0;
 	while ( node = node.previousElementSibling )
 		i++;
 	return i;
@@ -816,7 +818,7 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
-	var n;
+	let n;
 	if ( playlistPos < playlist.children.length - 1 )
 		n = playlistPos + 1;
 	else
@@ -928,7 +930,7 @@ function isPlaying() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
-	var canvasCtx = audioMotion.canvasCtx;
+	const canvasCtx = audioMotion.canvasCtx;
 	if ( elNoShadow.dataset.active == '1') {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
@@ -944,7 +946,7 @@ function outlineText( text, x, y, maxWidth ) {
  * Format time in seconds to hh:mm:ss
  */
 function formatHHMMSS( time ) {
-	var str = '',
+	let str = '',
 		lead = '';
 
 	if ( time >= 3600 ) {
@@ -980,12 +982,13 @@ function displayCanvasMsg() {
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	var canvas    = audioMotion.canvas,
-		canvasCtx = audioMotion.canvasCtx,
-		fontSize  = canvas.height / 17, // base font size - this will scale all measures
-		centerPos = canvas.width / 2,
-		topLine   = fontSize * 1.4,
-		alpha;
+	const canvas    = audioMotion.canvas,
+		  canvasCtx = audioMotion.canvasCtx,
+		  fontSize  = canvas.height / 17, // base font size - this will scale all measures
+		  centerPos = canvas.width / 2,
+		  topLine   = fontSize * 1.4;
+
+	let alpha;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
@@ -1003,13 +1006,13 @@ function displayCanvasMsg() {
 
 	// Display song and config info
 	if ( canvasMsg.timer > 0 ) {
-		var	leftPos     = fontSize,
-			rightPos    = canvas.width - fontSize,
-			bottomLine1 = canvas.height - fontSize * 4,
-			bottomLine2 = canvas.height - fontSize * 2.8,
-			bottomLine3 = canvas.height - fontSize * 1.6,
-			maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
-			maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
+		const leftPos     = fontSize,
+			  rightPos    = canvas.width - fontSize,
+			  bottomLine1 = canvas.height - fontSize * 4,
+			  bottomLine2 = canvas.height - fontSize * 2.8,
+			  bottomLine3 = canvas.height - fontSize * 1.6,
+			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
+			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
 
 		alpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
 		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
@@ -1102,7 +1105,7 @@ function showCanvasInfo( reason ) {
  * Output messages to the UI "console"
  */
 function consoleLog( msg, error ) {
-	var elConsole = document.getElementById( 'console' );
+	const elConsole = document.getElementById( 'console' );
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
 		document.getElementById( 'show_console' ).className = 'warning';
@@ -1151,8 +1154,8 @@ function setSource() {
  */
 function loadLocalFile( obj ) {
 
-	var el = audioElement[ currAudio ];
-	var reader = new FileReader();
+	const el = audioElement[ currAudio ],
+		  reader = new FileReader();
 
 	reader.readAsDataURL( obj.files[0] );
 
@@ -1176,8 +1179,8 @@ function loadPreset( name, alert, init ) {
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	var thisPreset = presets[ name ],
-		defaults   = presets['default'];
+	const thisPreset = presets[ name ],
+		  defaults   = presets['default'];
 
 	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
 		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
@@ -1241,7 +1244,7 @@ function loadPreset( name, alert, init ) {
  */
 function saveConfig( config ) {
 
-	var settings = {
+	const settings = {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
@@ -1294,8 +1297,8 @@ function keyboardControls( event ) {
 	if ( event.target.tagName != 'BODY' )
 		return;
 
-	var gradIdx = elGradient.selectedIndex,
-		modeIdx = elMode.selectedIndex;
+	const gradIdx = elGradient.selectedIndex,
+		  modeIdx = elMode.selectedIndex;
 
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
@@ -1303,7 +1306,7 @@ function keyboardControls( event ) {
 			playlist.querySelectorAll('.selected').forEach( e => {
 				e.remove();
 			});
-			var current = getIndex( playlist.querySelector('.current') );
+			const current = getIndex( playlist.querySelector('.current') );
 			if ( current !== undefined )
 				playlistPos = current;	// update playlistPos if current song hasn't been deleted
 			else if ( playlistPos > playlist.children.length - 1 )
@@ -1520,9 +1523,9 @@ function setLoRes() {
  * Update range elements value div
  */
 function updateRangeValue( el ) {
-	let s = el.nextElementSibling;
-	if ( s && s.className == 'value' )
-		s.innerText = el.value;
+	const elVal = el.nextElementSibling;
+	if ( elVal && elVal.className == 'value' )
+		elVal.innerText = el.value;
 }
 
 /**
@@ -1571,7 +1574,7 @@ function updateRangeValue( el ) {
 			e.className = '';
 			document.getElementById( e.dataset.panel ).style.display = 'none';
 		});
-		let el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
+		const el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
 		el.style.display = 'block';
 		if ( event.target.nodeName == 'LI' )
 			event.target.className = 'active';
@@ -1607,7 +1610,7 @@ function updateRangeValue( el ) {
 
 	sourcePlayer = [];
 
-	for ( let i of [0,1] ) {
+	for ( const i of [0,1] ) {
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
@@ -1666,10 +1669,10 @@ function updateRangeValue( el ) {
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
-	for ( let i of [20,30,40,50,60,100,250,500,1000,2000] )
+	for ( const i of [20,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( i >= 1000 ? ( i / 1000 ) + 'k' : i, i );
 
-	for ( let i of [1000,2000,4000,8000,12000,16000,22000] )
+	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
 
 	for ( let i = -60; i >= -110; i -= 5 )
@@ -1773,9 +1776,8 @@ function updateRangeValue( el ) {
 	});
 
 	// Load / initialize configuration options
-	var settings;
+	let settings = localStorage.getItem( 'last-config' );
 
-	settings = localStorage.getItem( 'last-config' );
 	if ( settings !== null )
 		presets['last'] = JSON.parse( settings );
 	else // if no data found from last session, use the defaults
