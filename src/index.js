@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.3-dev.1';
+const _VERSION = '20.3-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -60,6 +60,9 @@ let skipping = false;
 
 // for sensitivity presets (keyboard shortcut)
 let sensitivity = 1;
+
+// interval for timed random mode
+let randomModeTimer;
 
 /**
  * Configuration presets
@@ -318,6 +321,21 @@ function setMode() {
 			audioMotion.fillAlpha = elFillAlpha.value;
 		}
 	}
+
+	updateLastConfig();
+}
+
+/**
+ * Set random visualization mode
+ */
+function setRandomMode() {
+	const option = elRandomMode.value;
+
+	if ( randomModeTimer )
+		randomModeTimer = window.clearInterval( randomModeTimer );
+
+	if ( option > 1 )
+		randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
 
 	updateLastConfig();
 }
@@ -1025,7 +1043,7 @@ function displayCanvasMsg() {
 
 			canvasCtx.textAlign = 'left';
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
-			outlineText( 'Random mode is ' + ( elRandomMode.dataset.active == '1' ? 'ON' : 'OFF' ), leftPos, topLine * 1.8 );
+			outlineText( 'Random mode is ' + ( elRandomMode.value != '0' ? 'ON' : 'OFF' ), leftPos, topLine * 1.8 );
 
 			canvasCtx.textAlign = 'right';
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
@@ -1193,6 +1211,9 @@ function loadPreset( name, alert, init ) {
 	else if ( init )
 		elMode.value = defaults.mode;
 
+	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
+		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
+
 	document.querySelectorAll('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
 			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
@@ -1232,6 +1253,7 @@ function loadPreset( name, alert, init ) {
 		gradient   : elGradient.value
 	} );
 
+	setRandomMode();
 	setBarSpace();
 	setMode();
 
@@ -1251,13 +1273,13 @@ function saveConfig( config ) {
 		smoothing	: elSmoothing.value,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
+		randomMode  : elRandomMode.value,
 		minDb       : elMinDb.value,
 		maxDb       : elMaxDb.value,
 		showScale 	: elShowScale.dataset.active == '1',
 		showPeaks 	: elShowPeaks.dataset.active == '1',
 		blackBg     : elBlackBg.dataset.active == '1',
 		cycleGrad   : elCycleGrad.dataset.active == '1',
-		randomMode  : elRandomMode.dataset.active == '1',
 		ledDisplay  : elLedDisplay.dataset.active == '1',
 		lumiBars    : elLumiBars.dataset.active == '1',
 		repeat      : elRepeat.dataset.active == '1',
@@ -1297,9 +1319,6 @@ function keyboardControls( event ) {
 	if ( event.target.tagName != 'BODY' )
 		return;
 
-	const gradIdx = elGradient.selectedIndex,
-		  modeIdx = elMode.selectedIndex;
-
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
 		case 'Backspace':	// for Mac
@@ -1328,19 +1347,10 @@ function keyboardControls( event ) {
 		case 'ArrowUp': 	// gradient
 		case 'ArrowDown':
 		case 'KeyG':
-			if ( event.code == 'ArrowUp' || ( event.code == 'KeyG' && event.shiftKey ) ) {
-				if ( gradIdx == 0 )
-					elGradient.selectedIndex = elGradient.options.length - 1;
-				else
-					elGradient.selectedIndex = gradIdx - 1;
-			}
-			else {
-				if ( gradIdx == elGradient.options.length - 1 )
-					elGradient.selectedIndex = 0;
-				else
-					elGradient.selectedIndex = gradIdx + 1;
-			}
-			setGradient();
+			if ( event.code == 'ArrowUp' || ( event.code == 'KeyG' && event.shiftKey ) )
+				cycleGradient( -1 );
+			else
+				cycleGradient();
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 'ArrowRight': 	// next song
@@ -1350,13 +1360,13 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyA': 		// toggle auto gradient / random mode
 			if ( elCycleGrad.dataset.active == '1' ) {
-				if ( elRandomMode.dataset.active == '1' ) {
+				if ( elRandomMode.value != '0' ) {
 					elCycleGrad.dataset.active = '0';
-					elRandomMode.dataset.active = '0';
+					elRandomMode.value = '0';
 					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
 				}
 				else {
-					elRandomMode.dataset.active = '1';
+					elRandomMode.value = '1';
 					setCanvasMsg( 'Random mode ON' );
 				}
 			}
@@ -1364,7 +1374,7 @@ function keyboardControls( event ) {
 				elCycleGrad.dataset.active = '1';
 				setCanvasMsg( 'Auto gradient ON' );
 			}
-			updateLastConfig();
+			setRandomMode();
 			break;
 		case 'KeyB': 		// toggle black background
 			elBlackBg.click();
@@ -1398,6 +1408,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyM': 		// visualization mode
 		case 'KeyV':
+			const modeIdx = elMode.selectedIndex;
 			if ( event.shiftKey ) {
 				if ( modeIdx == 0 )
 					elMode.selectedIndex = elMode.options.length - 1;
@@ -1467,26 +1478,10 @@ function audioOnPlay() {
 	}
 
 	if ( audioElement[ currAudio ].currentTime == 0 ) {
-		// select random mode
-		if ( elRandomMode.dataset.active == '1' ) {
-			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
-			elLedDisplay.dataset.active = Math.random() * 2 | 0;
-			elLumiBars.dataset.active   = Math.random() * 2 | 0;
-			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
-			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
-			audioMotion.barSpace = audioMotion.lumiBars ? 1 : elBarSpace.value;
-			setMode();
-		}
-		// cycle (or random) gradient
-		if ( elCycleGrad.dataset.active == '1' ) {
-			let gradIdx = elRandomMode.dataset.active == '1' ? Math.random() * elGradient.options.length | 0 : elGradient.selectedIndex;
-			if ( gradIdx < elGradient.options.length - 1 )
-				gradIdx++;
-			else
-				gradIdx = 0;
-			elGradient.selectedIndex = gradIdx;
-			audioMotion.gradient = elGradient.value;
-		}
+		if ( elRandomMode.value == '1' )
+			selectRandomMode( true );
+		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' )
+			cycleGradient();
 	}
 
 	if ( elShowSong.dataset.active == '1' )
@@ -1526,6 +1521,47 @@ function updateRangeValue( el ) {
 	const elVal = el.nextElementSibling;
 	if ( elVal && elVal.className == 'value' )
 		elVal.innerText = el.value;
+}
+
+/**
+ * Choose a random visualization mode
+ *
+ * @param [force] {boolean} force change even when not playing (default false)
+ */
+function selectRandomMode( force = false ) {
+	if ( ! isPlaying() && ! force )
+		return;
+
+	elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
+	elLedDisplay.dataset.active = Math.random() * 2 | 0;
+	elLumiBars.dataset.active   = Math.random() * 2 | 0;
+	audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+	audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+	setBarSpace();
+	setMode();
+
+	if ( elCycleGrad.dataset.active == '1' ) {
+		elGradient.selectedIndex = Math.random() * elGradient.options.length | 0;
+		audioMotion.gradient = elGradient.value;
+	}
+}
+
+/**
+ * Select next or previous gradient
+ *
+ * @param [incr] {number} 1 (default) for next gradient; -1 for previous gradient
+ */
+function cycleGradient( incr = 1 ) {
+	let gradIdx = elGradient.selectedIndex + incr;
+
+	if ( gradIdx < 0 )
+		elGradient.selectedIndex = elGradient.options.length - 1;
+	else if ( gradIdx >= elGradient.options.length )
+		elGradient.selectedIndex = 0;
+	else
+		elGradient.selectedIndex = gradIdx;
+
+	setGradient();
 }
 
 /**
@@ -1691,6 +1727,19 @@ function updateRangeValue( el ) {
 	for ( const item of barSpaceOptions )
 		elBarSpace[ elBarSpace.options.length ] = new Option( item.text, item.value );
 
+	const randomModeOptions = [
+		{ value: '0',   text: 'Off' },
+		{ value: '1',   text: 'On track change' },
+		{ value: '2',   text: 'Every 5 seconds' },
+		{ value: '6',   text: 'Every 15 seconds' },
+		{ value: '12',  text: 'Every 30 seconds' },
+		{ value: '24',  text: 'Every minute' },
+		{ value: '48',  text: 'Every 2 minutes' },
+		{ value: '120', text: 'Every 5 minutes' }
+	];
+	for ( const item of randomModeOptions )
+		elRandomMode[ elRandomMode.options.length ] = new Option( item.text, item.value );
+
 	elLineWidth.min = '1';
 	elLineWidth.max = '9';
 
@@ -1716,7 +1765,6 @@ function updateRangeValue( el ) {
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
 	elBlackBg.    addEventListener( 'click', setBlackBg );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
-	elRandomMode. addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
 	elLumiBars.   addEventListener( 'click', setLumiBars );
 	elRepeat.     addEventListener( 'click', updateLastConfig );
@@ -1728,6 +1776,7 @@ function updateRangeValue( el ) {
 	// Add event listeners to UI config elements
 
 	elMode.       addEventListener( 'change', setMode );
+	elRandomMode. addEventListener( 'change', setRandomMode );
 	elFFTsize.    addEventListener( 'change', setFFTsize );
 	elRangeMin.   addEventListener( 'change', setFreqRange );
 	elRangeMax.   addEventListener( 'change', setFreqRange );

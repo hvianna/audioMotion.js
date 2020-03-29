@@ -239,8 +239,6 @@
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-						<li class="switch" id="random_mode" data-prop="randomMode">R<u>A</u>ND
-							<span class="tooltip">Select a random visualization mode on every track change</span>
 					</ul>
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
@@ -255,6 +253,15 @@
 							<select id="bar_space" data-prop="barSpace"></select>
 						</label>
 					</div>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">R<u>a</u>ndom mode</span>
+						<span class="tooltip">
+						Randomize visualization mode on track change or time interval
+						</span>
+					</div>
+					<select id="random_mode" data-prop="randomMode"></select>
 				</div>
 
 				<div class="config-col">
