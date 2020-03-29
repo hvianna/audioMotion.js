@@ -1217,7 +1217,7 @@ function loadPreset( name, alert, init ) {
 	document.querySelectorAll('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
 			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
-				el.dataset.active = Number( thisPreset[ el.dataset.prop ] );
+				el.dataset.active = thisPreset[ el.dataset.prop ] | 0;
 			else if ( init )
 				el.dataset.active = defaults[ el.dataset.prop ];
 		}
@@ -1276,20 +1276,20 @@ function saveConfig( config ) {
 		randomMode  : elRandomMode.value,
 		minDb       : elMinDb.value,
 		maxDb       : elMaxDb.value,
-		showScale 	: elShowScale.dataset.active == '1',
-		showPeaks 	: elShowPeaks.dataset.active == '1',
-		blackBg     : elBlackBg.dataset.active == '1',
-		cycleGrad   : elCycleGrad.dataset.active == '1',
-		ledDisplay  : elLedDisplay.dataset.active == '1',
-		lumiBars    : elLumiBars.dataset.active == '1',
-		repeat      : elRepeat.dataset.active == '1',
-		showSong    : elShowSong.dataset.active == '1',
-		noShadow    : elNoShadow.dataset.active == '1',
-		loRes       : elLoRes.dataset.active == '1',
-		showFPS     : elFPS.dataset.active == '1',
 		lineWidth   : elLineWidth.value,
 		fillAlpha   : elFillAlpha.value,
-		barSpace    : elBarSpace.value
+		barSpace    : elBarSpace.value,
+		showScale 	: elShowScale.dataset.active,
+		showPeaks 	: elShowPeaks.dataset.active,
+		blackBg     : elBlackBg.dataset.active,
+		cycleGrad   : elCycleGrad.dataset.active,
+		ledDisplay  : elLedDisplay.dataset.active,
+		lumiBars    : elLumiBars.dataset.active,
+		repeat      : elRepeat.dataset.active,
+		showSong    : elShowSong.dataset.active,
+		noShadow    : elNoShadow.dataset.active,
+		loRes       : elLoRes.dataset.active,
+		showFPS     : elFPS.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
