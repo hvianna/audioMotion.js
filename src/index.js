@@ -1627,6 +1627,144 @@ function populateGradients() {
 }
 
 /**
+ * Set event listeners for UI elements
+ */
+function setUIEventListeners() {
+
+	// Add event listeners for config panel selectors
+	document.getElementById('panel_selector').addEventListener( 'click', event => {
+		document.querySelectorAll('#panel_selector li').forEach( e => {
+			e.className = '';
+			document.getElementById( e.dataset.panel ).style.display = 'none';
+		});
+		const el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
+		el.style.display = 'block';
+		if ( event.target.nodeName == 'LI' )
+			event.target.className = 'active';
+		else
+			event.target.parentElement.className = 'active';
+	});
+	document.getElementById('show_filelist').click();
+
+	// Add event listeners to the custom checkboxes
+	document.querySelectorAll('.switch').forEach( el => {
+		el.addEventListener( 'click', e => {
+			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
+				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
+			else
+				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
+		});
+	});
+
+	elShowScale.  addEventListener( 'click', setScale );
+	elShowPeaks.  addEventListener( 'click', setShowPeaks );
+	elBlackBg.    addEventListener( 'click', setBlackBg );
+	elCycleGrad.  addEventListener( 'click', updateLastConfig );
+	elLedDisplay. addEventListener( 'click', setLedDisplay );
+	elLumiBars.   addEventListener( 'click', setLumiBars );
+	elRepeat.     addEventListener( 'click', updateLastConfig );
+	elShowSong.   addEventListener( 'click', updateLastConfig );
+	elNoShadow.   addEventListener( 'click', updateLastConfig );
+	elLoRes.      addEventListener( 'click', setLoRes );
+	elFPS.        addEventListener( 'click', setFPS );
+
+	// Add event listeners to UI config elements
+
+	elMode.       addEventListener( 'change', setMode );
+	elRandomMode. addEventListener( 'change', setRandomMode );
+	elFFTsize.    addEventListener( 'change', setFFTsize );
+	elRangeMin.   addEventListener( 'change', setFreqRange );
+	elRangeMax.   addEventListener( 'change', setFreqRange );
+	elGradient.   addEventListener( 'change', setGradient );
+	elSource.     addEventListener( 'change', setSource );
+	elSmoothing.  addEventListener( 'change', setSmoothing );
+	elMinDb.      addEventListener( 'change', () => setSensitivity() );
+	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
+	elLineWidth.  addEventListener( 'change', setLineWidth );
+	elFillAlpha.  addEventListener( 'change', setFillAlpha );
+	elBarSpace.   addEventListener( 'change', setBarSpace );
+
+	// update range elements' value
+	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
+
+	// action buttons
+	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
+	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
+	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
+	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
+	document.getElementById('btn_stop').addEventListener( 'click', stop );
+	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
+	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
+	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
+	document.getElementById('load_playlist').addEventListener( 'click', () => {
+		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
+	});
+	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
+	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
+	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
+	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
+
+	// clicks on canvas also toggle scale on/off
+	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
+}
+
+/**
+ * Populate Config Panel options
+ */
+function doConfigPanel() {
+	// Enabled visualization modes
+	const elEnabledModes = document.getElementById('enabled_modes');
+
+	modeOptions.forEach( mode => {
+		elEnabledModes.innerHTML += `<div><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</div>`;
+	});
+
+	document.querySelectorAll('.enabledMode').forEach( el => {
+		el.addEventListener( 'click', event => {
+			modeOptions.find( item => item.value == el.dataset.mode ).disabled = ! el.checked;
+			populateVisualizationModes();
+			savePreferences();
+		});
+	})
+}
+
+/**
+ * Load preferences from localStorage
+ */
+function loadPreferences() {
+	// Load last used settings
+	const lastConfig = localStorage.getItem( 'last-config' );
+
+	if ( lastConfig !== null )
+		presets['last'] = JSON.parse( lastConfig );
+	else // if no data found from last session, use the defaults
+		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
+
+	// Load custom preset
+	const customPreset = localStorage.getItem( 'custom-preset' );
+	if ( customPreset !== null )
+		presets['custom'] = JSON.parse( customPreset );
+	else
+		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
+
+	// Load disabled modes preference and update modeOptions
+	const disabledModes = localStorage.getItem( 'disabled-modes' );
+	if ( disabledModes !== null ) {
+		JSON.parse( disabledModes ).forEach( mode => {
+			modeOptions.find( item => item.value == mode ).disabled = true;
+		});
+	}
+}
+
+/**
+ * Save Config Panel preferences to localStorage
+ */
+function savePreferences() {
+	const disabledModes = modeOptions.filter( item => item.disabled ).map( item => item.value );
+	localStorage.setItem( 'disabled-modes', JSON.stringify( disabledModes ) );
+}
+
+/**
  * Initialization function
  */
 (function() {
@@ -1636,6 +1774,9 @@ function populateGradients() {
 
 	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
+
+	// Load preferences from localStorage
+	loadPreferences();
 
 	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
@@ -1665,21 +1806,6 @@ function populateGradients() {
 			loadNextSong();
 		}
 	});
-
-	// Add event listeners for config panel selectors
-	document.getElementById('panel_selector').addEventListener( 'click', event => {
-		document.querySelectorAll('#panel_selector li').forEach( e => {
-			e.className = '';
-			document.getElementById( e.dataset.panel ).style.display = 'none';
-		});
-		const el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
-		el.style.display = 'block';
-		if ( event.target.nodeName == 'LI' )
-			event.target.className = 'active';
-		else
-			event.target.parentElement.className = 'active';
-	});
-	document.getElementById('show_filelist').click();
 
 	// Create audioMotion analyzer
 
@@ -1746,6 +1872,9 @@ function populateGradients() {
 	elFillAlpha   = document.getElementById('fill_alpha');
 	elBarSpace    = document.getElementById('bar_space');
 
+	// Setup configuration panel
+	doConfigPanel();
+
 	// Populate combo boxes
 
 	populateVisualizationModes();
@@ -1799,67 +1928,10 @@ function populateGradients() {
 	elSmoothing.max = '0.9';
 	elSmoothing.step= '0.1';
 
-	// Add event listeners to the custom checkboxes
-	document.querySelectorAll('.switch').forEach( el => {
-		el.addEventListener( 'click', e => {
-			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
-				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
-			else
-				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
-		});
-	});
+	// Set UI event listeners
+	setUIEventListeners();
 
-	elShowScale.  addEventListener( 'click', setScale );
-	elShowPeaks.  addEventListener( 'click', setShowPeaks );
-	elBlackBg.    addEventListener( 'click', setBlackBg );
-	elCycleGrad.  addEventListener( 'click', updateLastConfig );
-	elLedDisplay. addEventListener( 'click', setLedDisplay );
-	elLumiBars.   addEventListener( 'click', setLumiBars );
-	elRepeat.     addEventListener( 'click', updateLastConfig );
-	elShowSong.   addEventListener( 'click', updateLastConfig );
-	elNoShadow.   addEventListener( 'click', updateLastConfig );
-	elLoRes.      addEventListener( 'click', setLoRes );
-	elFPS.        addEventListener( 'click', setFPS );
-
-	// Add event listeners to UI config elements
-
-	elMode.       addEventListener( 'change', setMode );
-	elRandomMode. addEventListener( 'change', setRandomMode );
-	elFFTsize.    addEventListener( 'change', setFFTsize );
-	elRangeMin.   addEventListener( 'change', setFreqRange );
-	elRangeMax.   addEventListener( 'change', setFreqRange );
-	elGradient.   addEventListener( 'change', setGradient );
-	elSource.     addEventListener( 'change', setSource );
-	elSmoothing.  addEventListener( 'change', setSmoothing );
-	elMinDb.      addEventListener( 'change', () => setSensitivity() );
-	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
-	elLineWidth.  addEventListener( 'change', setLineWidth );
-	elFillAlpha.  addEventListener( 'change', setFillAlpha );
-	elBarSpace.   addEventListener( 'change', setBarSpace );
-
-	// update range elements' value
-	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
-
-	// action buttons
-	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
-	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
-	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
-	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
-	document.getElementById('btn_stop').addEventListener( 'click', stop );
-	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
-	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
-	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
-	document.getElementById('load_playlist').addEventListener( 'click', () => {
-		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
-	});
-	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
-	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
-
-	// clicks on canvas also toggle scale on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
-
+	// Clear canvas messages
 	setCanvasMsg();
 
 	// Register custom gradients
@@ -1869,23 +1941,10 @@ function populateGradients() {
 	});
 	populateGradients();
 
-	// Load / initialize configuration options
-	let settings = localStorage.getItem( 'last-config' );
-
-	if ( settings !== null )
-		presets['last'] = JSON.parse( settings );
-	else // if no data found from last session, use the defaults
-		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
-
-	settings = localStorage.getItem( 'custom-preset' );
-	if ( settings !== null )
-		presets['custom'] = JSON.parse( settings );
-	else
-		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
-
 	consoleLog( `Display resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
 
+	// Load last used settings
 	loadPreset( 'last', false, true );
 
 	// Set audio source to built-in player
