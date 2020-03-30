@@ -64,138 +64,151 @@ let sensitivity = 1;
 // interval for timed random mode
 let randomModeTimer;
 
-/**
- * Configuration presets
- */
+// Configuration presets
 const presets = {
-		default: {
-			mode        : 0,	    // discrete frequencies mode
-			fftSize     : 8192,		// FFT size
-			freqMin     : 20,		// lowest frequency
-			freqMax     : 22000,	// highest frequency
-			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-			gradient    : 'prism',
-			blackBg     : 0,
-			cycleGrad   : 1,
-			randomMode  : 0,
-			ledDisplay  : 0,
-			lumiBars    : 0,
-			maxDb       : -25,
-			minDb       : -85,
-			showScale   : 1,
-			showPeaks   : 1,
-			showSong    : 1,
-			repeat      : 0,
-			noShadow    : 1,
-			loRes       : 0,
-			showFPS     : 0,
-			lineWidth   : 2,
-			fillAlpha   : 0.1,
-			barSpace    : 0.1
-		},
+	default: {
+		mode        : 0,	    // discrete frequencies mode
+		fftSize     : 8192,		// FFT size
+		freqMin     : 20,		// lowest frequency
+		freqMax     : 22000,	// highest frequency
+		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+		gradient    : 'prism',
+		blackBg     : 0,
+		cycleGrad   : 1,
+		randomMode  : 0,
+		ledDisplay  : 0,
+		lumiBars    : 0,
+		maxDb       : -25,
+		minDb       : -85,
+		showScale   : 1,
+		showPeaks   : 1,
+		showSong    : 1,
+		repeat      : 0,
+		noShadow    : 1,
+		loRes       : 0,
+		showFPS     : 0,
+		lineWidth   : 2,
+		fillAlpha   : 0.1,
+		barSpace    : 0.1
+	},
 
-		fullres: {
-			mode        : 0,
-			fftSize     : 8192,
-			freqMin     : 20,
-			freqMax     : 22000,
-			smoothing   : 0.5
-		},
+	fullres: {
+		mode        : 0,
+		fftSize     : 8192,
+		freqMin     : 20,
+		freqMax     : 22000,
+		smoothing   : 0.5
+	},
 
-		octave: {
-			mode        : 4,		// 1/6th octave bands mode
-			fftSize     : 8192,
-			smoothing   : 0.5
-		},
+	octave: {
+		mode        : 4,		// 1/6th octave bands mode
+		fftSize     : 8192,
+		smoothing   : 0.5
+	},
 
-		ledbars: {
-			mode        : 2,		// 1/12th octave bands mode
-			fftSize     : 8192,
-			smoothing   : 0.5,
-			blackBg     : 0,
-			ledDisplay  : 1,
-			showScale   : 0
-		}
-	};
+	ledbars: {
+		mode        : 2,		// 1/12th octave bands mode
+		fftSize     : 8192,
+		smoothing   : 0.5,
+		blackBg     : 0,
+		ledDisplay  : 1,
+		showScale   : 0
+	}
+};
 
-// additional gradient definitions
+// Gradient definitions
 const gradients = {
-		apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
-					{ pos: .1667, color: '#61bb46' },
-					{ pos: .3333, color: '#fdb827' },
-					{ pos: .5, color: '#f5821f' },
-					{ pos: .6667, color: '#e03a3e' },
-					{ pos: .8333, color: '#963d97' },
-					{ pos: 1, color: '#009ddc' }
-				  ] },
-		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
-					{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ pos:  1, color: 'hsl( 216, 100%, 50% )' }
-				  ] },
-		borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
-					{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ pos: .5, color: 'hsl( 189, 100%, 40% )' },
-					{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
-				  ] },
-		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
-					{ pos: .1, color: '#ffaf7b' },
-					{ pos: .5, color: '#d76d77' },
-					{ pos: 1, color: '#3a1c71' }
-				  ] },
-		classic:  { name: 'Classic' },
-		cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
-					'hsl( 208, 0%, 100% )',
-					'hsl( 208, 100%, 35% )'
-				  ] },
-		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
-					{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
-					{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
-				  ] },
-		miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
-					{ pos: .024, color: 'rgb( 251, 198, 6 )' },
-					{ pos: .283, color: 'rgb( 224, 82, 95 )' },
-					{ pos: .462, color: 'rgb( 194, 78, 154 )' },
-					{ pos: .794, color: 'rgb( 32, 173, 190 )' },
-					{ pos: 1, color: 'rgb( 22, 158, 95 )' }
-				  ] },
-		orient:   { name: 'Orient', bgColor: '#100', colorStops: [
-					{ pos: .1, color: '#f00' },
-					{ pos: 1, color: '#600' }
-				  ] },
-		outrun:   { name: 'Outrun', bgColor: '#101', colorStops: [
-					{ pos: 0, color: 'rgb( 255, 223, 67 )' },
-					{ pos: .182, color: 'rgb( 250, 84, 118 )' },
-					{ pos: .364, color: 'rgb( 198, 59, 243 )' },
-					{ pos: .525, color: 'rgb( 133, 80, 255 )' },
-					{ pos: .688, color: 'rgb( 74, 104, 247 )' },
-					{ pos: 1, color: 'rgb( 35, 210, 255 )' }
-				  ] },
-		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
-					{ pos: .1, color: '#34e89e' },
-					{ pos: 1, color: '#0f3443' }
-				  ] },
-		prism:    { name: 'Prism' },
-		rainbow:  { name: 'Rainbow' },
-		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
-					{ pos: .1, color: '#66ff00' },
-					{ pos: 1, color: '#a80077' }
-				  ] },
-		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
-					{ pos: .1, color: '#fdbb2d' },
-					{ pos: 1, color: '#22c1c3' }
-				  ] },
-		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
-					{ pos: .1, color: '#f56217' },
-					{ pos: 1, color: '#0b486b' }
-				  ] },
-		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
-					{ pos: .038, color: 'rgb( 15, 209, 165 )' },
-					{ pos: .208, color: 'rgb( 15, 157, 209 )' },
-					{ pos: .519, color: 'rgb( 133, 13, 230 )' },
-					{ pos: .731, color: 'rgb( 230, 13, 202 )' },
-					{ pos: .941, color: 'rgb( 242, 180, 107 )' }
-				  ] },
-	};
+	apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
+				{ pos: .1667, color: '#61bb46' },
+				{ pos: .3333, color: '#fdb827' },
+				{ pos: .5, color: '#f5821f' },
+				{ pos: .6667, color: '#e03a3e' },
+				{ pos: .8333, color: '#963d97' },
+				{ pos: 1, color: '#009ddc' }
+			  ], disabled: false },
+	aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
+				{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ pos:  1, color: 'hsl( 216, 100%, 50% )' }
+			  ], disabled: false },
+	borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
+				{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ pos: .5, color: 'hsl( 189, 100%, 40% )' },
+				{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
+			  ], disabled: false },
+	candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
+				{ pos: .1, color: '#ffaf7b' },
+				{ pos: .5, color: '#d76d77' },
+				{ pos: 1, color: '#3a1c71' }
+			  ], disabled: false },
+	classic:  { name: 'Classic', disabled: false },
+	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
+				'hsl( 208, 0%, 100% )',
+				'hsl( 208, 100%, 35% )'
+			  ], disabled: false },
+	dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
+				{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
+				{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
+			  ], disabled: false },
+	miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
+				{ pos: .024, color: 'rgb( 251, 198, 6 )' },
+				{ pos: .283, color: 'rgb( 224, 82, 95 )' },
+				{ pos: .462, color: 'rgb( 194, 78, 154 )' },
+				{ pos: .794, color: 'rgb( 32, 173, 190 )' },
+				{ pos: 1, color: 'rgb( 22, 158, 95 )' }
+			  ], disabled: false },
+	orient:   { name: 'Orient', bgColor: '#100', colorStops: [
+				{ pos: .1, color: '#f00' },
+				{ pos: 1, color: '#600' }
+			  ], disabled: false },
+	outrun:   { name: 'Outrun', bgColor: '#101', colorStops: [
+				{ pos: 0, color: 'rgb( 255, 223, 67 )' },
+				{ pos: .182, color: 'rgb( 250, 84, 118 )' },
+				{ pos: .364, color: 'rgb( 198, 59, 243 )' },
+				{ pos: .525, color: 'rgb( 133, 80, 255 )' },
+				{ pos: .688, color: 'rgb( 74, 104, 247 )' },
+				{ pos: 1, color: 'rgb( 35, 210, 255 )' }
+			  ], disabled: false },
+	pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
+				{ pos: .1, color: '#34e89e' },
+				{ pos: 1, color: '#0f3443' }
+			  ], disabled: false },
+	prism:    { name: 'Prism', disabled: false },
+	rainbow:  { name: 'Rainbow', disabled: false },
+	shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
+				{ pos: .1, color: '#66ff00' },
+				{ pos: 1, color: '#a80077' }
+			  ], disabled: false },
+	summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
+				{ pos: .1, color: '#fdbb2d' },
+				{ pos: 1, color: '#22c1c3' }
+			  ], disabled: false },
+	sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
+				{ pos: .1, color: '#f56217' },
+				{ pos: 1, color: '#0b486b' }
+			  ], disabled: false },
+	tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
+				{ pos: .038, color: 'rgb( 15, 209, 165 )' },
+				{ pos: .208, color: 'rgb( 15, 157, 209 )' },
+				{ pos: .519, color: 'rgb( 133, 13, 230 )' },
+				{ pos: .731, color: 'rgb( 230, 13, 202 )' },
+				{ pos: .941, color: 'rgb( 242, 180, 107 )' }
+			  ], disabled: false }
+};
+
+// Visualization modes
+const modeOptions = [
+	{ value: '0',   text: 'Discrete frequencies', disabled: false },
+	{ value: '10',  text: 'Area graph',           disabled: false },
+	{ value: '101', text: 'Line graph',           disabled: false },
+	{ value: '8',   text: 'Full octave bands',    disabled: false },
+	{ value: '7',   text: 'Half octave bands',    disabled: false },
+	{ value: '6',   text: '1/3rd octave bands',   disabled: false },
+	{ value: '5',   text: '1/4th octave bands',   disabled: false },
+	{ value: '4',   text: '1/6th octave bands',   disabled: false },
+	{ value: '3',   text: '1/8th octave bands',   disabled: false },
+	{ value: '2',   text: '1/12th octave bands',  disabled: false },
+	{ value: '1',   text: '1/24th octave bands',  disabled: false }
+];
 
 
 /**
@@ -277,6 +290,10 @@ function setFreqRange() {
  * Set Gradient
  */
 function setGradient() {
+	// handle invalid selection
+	if ( elGradient.value === '' )
+		elGradient.selectedIndex = 0;
+
 	audioMotion.gradient = elGradient.value;
 	updateLastConfig();
 }
@@ -293,6 +310,9 @@ function setLineWidth() {
  * Set visualization mode and related options
  */
 function setMode() {
+	// handle invalid selection
+	if ( elMode.value === '' )
+		elMode.selectedIndex = 0;
 
 	const lineWidthLabel = document.getElementById('line_width_label'),
 		  fillAlphaLabel = document.getElementById('fill_alpha_label'),
@@ -1249,10 +1269,10 @@ function loadPreset( name, alert, init ) {
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
-		showFPS    : elFPS.dataset.active == '1',
-		gradient   : elGradient.value
+		showFPS    : elFPS.dataset.active == '1'
 	} );
 
+	setGradient();
 	setRandomMode();
 	setBarSpace();
 	setMode();
@@ -1565,6 +1585,48 @@ function cycleGradient( incr = 1 ) {
 }
 
 /**
+ * Populate UI visualization modes combo box
+ */
+function populateVisualizationModes() {
+	let mode = elMode.value;
+
+	while ( elMode.firstChild )
+		elMode.removeChild( elMode.firstChild );
+
+	for ( const item of modeOptions ) {
+		if ( ! item.disabled )
+			elMode[ elMode.options.length ] = new Option( item.text, item.value );
+	}
+
+	// restore previously selected mode
+	if ( mode !== '' ) {
+		elMode.value = mode;
+		setMode();
+	}
+}
+
+/**
+ * Populate UI gradient selection combo box
+ */
+function populateGradients() {
+	let grad = elGradient.value;
+
+	while ( elGradient.firstChild )
+		elGradient.removeChild( elGradient.firstChild );
+
+	// add the option to the html select element for the user interface
+	for ( const key of Object.keys( gradients ) ) {
+		if ( ! gradients[ key ].disabled )
+			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+	}
+
+	if ( grad !== '' ) {
+		elGradient.value = grad;
+		setGradient();
+	}
+}
+
+/**
  * Initialization function
  */
 (function() {
@@ -1686,21 +1748,7 @@ function cycleGradient( incr = 1 ) {
 
 	// Populate combo boxes
 
-	const modeOptions = [
-		{ value: '0',   text: 'Discrete frequencies' },
-		{ value: '10',  text: 'Area graph' },
-		{ value: '101', text: 'Line graph' },
-		{ value: '8',   text: 'Full octave bands' },
-		{ value: '7',   text: 'Half octave bands' },
-		{ value: '6',   text: '1/3rd octave bands' },
-		{ value: '5',   text: '1/4th octave bands' },
-		{ value: '4',   text: '1/6th octave bands' },
-		{ value: '3',   text: '1/8th octave bands' },
-		{ value: '2',   text: '1/12th octave bands' },
-		{ value: '1',   text: '1/24th octave bands' }
-	];
-	for ( const item of modeOptions )
-		elMode[ elMode.options.length ] = new Option( item.text, item.value );
+	populateVisualizationModes();
 
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
@@ -1818,11 +1866,8 @@ function cycleGradient( incr = 1 ) {
 	Object.keys( gradients ).forEach( key => {
 		if ( gradients[ key ].bgColor && gradients[ key ].colorStops )
 			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
-
-		// add the option to the html select element for the user interface
-		if ( elGradient.options.length < Object.keys( gradients ).length )
-			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
 	});
+	populateGradients();
 
 	// Load / initialize configuration options
 	let settings = localStorage.getItem( 'last-config' );

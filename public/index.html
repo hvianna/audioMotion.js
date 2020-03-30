@@ -110,9 +110,10 @@
 	<div class="container">
 
 		<ul id="panel_selector" class="panel-selector">
-			<li id="show_config" data-panel="config_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer configuration"></i><span>Settings</span></li>
+			<li id="show_settings" data-panel="settings_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer settings"></i><span>Settings</span></li>
 			<li id="show_filelist" data-panel="files_panel"><i class="icons8-opened-folder-2" title="File explorer and playlist"></i><span>Files</span></li>
 			<li id="show_console" data-panel="console"><i class="icons8-console" title="Message console"></i><span>Console</span></li>
+			<li id="show_config" data-panel="config_panel"><i class="icons8-gear-outline" title="General configuration"></i><span>Config</span></li>
 		</ul>
 
 		<div id="console" class="config-panel"></div>
@@ -173,7 +174,7 @@
 			</div>
 		</div> <!-- #files_panel -->
 
-		<div id="config_panel" class="config-panel">
+		<div id="settings_panel" class="config-panel">
 			<div class="config-row flex align-end">
 				<div class="config-col">
 					<div class="help"><span class="config-label">Preset</span>
@@ -303,6 +304,52 @@
 
 			</div> <!-- .config-row -->
 
+		</div> <!-- #settings_panel -->
+
+		<div id="config_panel" class="config-panel">
+			<div class="config-row flex align-start">
+				<div class="config-col">
+					<h3>Enabled Visualization Modes:</h3>
+					<p><em>Check modes you want available for visualization</em></p>
+					<div id="enabled_modes">
+					</div>
+				</div>
+				<div class="config-col">
+					<h3>Enabled Gradients:</h3>
+					<p><em>Check gradients you want available for visualization</em></p>
+					<div id="enabled_gradients">
+					</div>
+				</div>
+				<div class="config-col">
+					<h3>Random Mode options:</h3>
+					<p><em>Choose options that may be changed by Random Mode</em></p>
+					<div id="random_options">
+					</div>
+
+					<hr>
+
+					<h3>Sensitivity presets:</h3>
+					<p><em>Customize low, medium and high sensitivity</em></p>
+					<table>
+						<tr><th>Preset</th><th>Min dB</th><th>Max dB</th></tr>
+						<tr>
+							<td>Low</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>Medium</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>High</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+				</div>
+			</div>
 		</div> <!-- #config_panel -->
 
 	</div> <!-- .container -->
