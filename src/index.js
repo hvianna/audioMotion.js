@@ -1712,7 +1712,9 @@ function setUIEventListeners() {
  * Populate Config Panel options
  */
 function doConfigPanel() {
+
 	// Enabled visualization modes
+
 	const elEnabledModes = document.getElementById('enabled_modes');
 
 	modeOptions.forEach( mode => {
@@ -1723,9 +1725,25 @@ function doConfigPanel() {
 		el.addEventListener( 'click', event => {
 			modeOptions.find( item => item.value == el.dataset.mode ).disabled = ! el.checked;
 			populateVisualizationModes();
-			savePreferences();
+			savePreferences('mode');
 		});
-	})
+	});
+
+	// Enabled gradients
+
+	const elEnabledGradients = document.getElementById('enabled_gradients');
+
+	Object.keys( gradients ).forEach( key => {
+		elEnabledGradients.innerHTML += `<div><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</div>`;
+	});
+
+	document.querySelectorAll('.enabledGradient').forEach( el => {
+		el.addEventListener( 'click', event => {
+			gradients[ el.dataset.grad ].disabled = ! el.checked;
+			populateGradients();
+			savePreferences('grad');
+		});
+	});
 }
 
 /**
@@ -1754,14 +1772,31 @@ function loadPreferences() {
 			modeOptions.find( item => item.value == mode ).disabled = true;
 		});
 	}
+
+	// Load disabled gradients preference and update gradients
+	const disabledGradients = localStorage.getItem( 'disabled-gradients' );
+	if ( disabledGradients !== null ) {
+		JSON.parse( disabledGradients ).forEach( key => {
+			gradients[ key ].disabled = true;
+		});
+	}
 }
 
 /**
  * Save Config Panel preferences to localStorage
+ *
+ * @param [pref] {string} preference to save; if undefined save all preferences (default)
  */
-function savePreferences() {
-	const disabledModes = modeOptions.filter( item => item.disabled ).map( item => item.value );
-	localStorage.setItem( 'disabled-modes', JSON.stringify( disabledModes ) );
+function savePreferences( pref ) {
+	if ( ! pref || pref == 'mode' ) {
+		const disabledModes = modeOptions.filter( item => item.disabled ).map( item => item.value );
+		localStorage.setItem( 'disabled-modes', JSON.stringify( disabledModes ) );
+	}
+
+	if ( ! pref || pref == 'grad' ) {
+		const disabledGradients = Object.keys( gradients ).filter( key => gradients[ key ].disabled );
+		localStorage.setItem( 'disabled-gradients', JSON.stringify( disabledGradients ) );
+	}
 }
 
 /**
