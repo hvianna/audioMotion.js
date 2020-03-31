@@ -15,7 +15,7 @@ input[type="text"] {
 }
 input[type="range"] {
 	vertical-align: middle;
-	width: 80px;
+	width: 60px;
 }
 input[type="number"] {
 	padding: 4px;

@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.3-dev.2';
+const _VERSION = '20.4-dev';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -47,7 +47,7 @@ let playlist, playlistPos, currAudio, nextAudio;
 let elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
 	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode,
-	elLineWidth, elFillAlpha, elBarSpace;
+	elLineWidth, elFillAlpha, elBarSpace, elReflex;
 
 // audio sources
 let audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -89,7 +89,8 @@ const presets = {
 		showFPS     : 0,
 		lineWidth   : 2,
 		fillAlpha   : 0.1,
-		barSpace    : 0.1
+		barSpace    : 0.1,
+		reflex      : 'off'
 	},
 
 	fullres: {
@@ -361,6 +362,34 @@ function setRandomMode() {
 }
 
 /**
+ * Set Reflex mode
+ */
+function setReflex() {
+	const isLumiBars = ( audioMotion.lumiBars && audioMotion.mode % 10 != 0 );
+	const option = elReflex.value;
+
+	if ( isLumiBars || option == 'off' ) {
+		audioMotion.reflexRatio = 0;
+	}
+	else if ( option == 'on' ) {
+		audioMotion.setOptions({
+			reflexRatio: .4,
+			reflexFit: false,
+			reflexAlpha: .15,
+		});
+	}
+	else if ( option == 'mirror' ) {
+		audioMotion.setOptions({
+			reflexRatio: .5,
+			reflexFit: true,
+			reflexAlpha: 1,
+		});
+	}
+
+	updateLastConfig();
+}
+
+/**
  * Set scale display preference
  */
 function setScale() {
@@ -382,6 +411,7 @@ function setLedDisplay() {
 function setLumiBars() {
 	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
 	setBarSpace();
+	setReflex();
 }
 
 /**
@@ -1272,6 +1302,7 @@ function loadPreset( name, alert, init ) {
 		showFPS    : elFPS.dataset.active == '1'
 	} );
 
+	setReflex();
 	setGradient();
 	setRandomMode();
 	setBarSpace();
@@ -1299,6 +1330,7 @@ function saveConfig( config ) {
 		lineWidth   : elLineWidth.value,
 		fillAlpha   : elFillAlpha.value,
 		barSpace    : elBarSpace.value,
+		reflex      : elReflex.value,
 		showScale 	: elShowScale.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
 		blackBg     : elBlackBg.dataset.active,
@@ -1484,6 +1516,15 @@ function keyboardControls( event ) {
 			elLumiBars.click();
 			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
+		case 'KeyX':
+			const index = elReflex.selectedIndex;
+			if ( index == elReflex.options.length - 1 )
+				elReflex.selectedIndex = 0;
+			else
+				elReflex.selectedIndex = index + 1;
+			setReflex();
+			setCanvasMsg( 'Reflex: ' + elReflex[ elReflex.selectedIndex ].text );
+			break;
 	}
 }
 
@@ -1559,6 +1600,11 @@ function selectRandomMode( force = false ) {
 	audioMotion.lumiBars = elLumiBars.dataset.active == '1';
 	setBarSpace();
 	setMode();
+
+	// exclude 'mirrored' reflex option for octave bands modes
+	const options = elReflex.options.length - ( audioMotion.mode % 10 != 0 );
+	elReflex.selectedIndex = Math.random() * options | 0;
+	setReflex();
 
 	if ( elCycleGrad.dataset.active == '1' ) {
 		elGradient.selectedIndex = Math.random() * elGradient.options.length | 0;
@@ -1683,6 +1729,7 @@ function setUIEventListeners() {
 	elLineWidth.  addEventListener( 'change', setLineWidth );
 	elFillAlpha.  addEventListener( 'change', setFillAlpha );
 	elBarSpace.   addEventListener( 'change', setBarSpace );
+	elReflex.     addEventListener( 'change', setReflex );
 
 	// update range elements' value
 	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -1906,6 +1953,7 @@ function savePreferences( pref ) {
 	elLineWidth   = document.getElementById('line_width');
 	elFillAlpha   = document.getElementById('fill_alpha');
 	elBarSpace    = document.getElementById('bar_space');
+	elReflex      = document.getElementById('reflex');
 
 	// Setup configuration panel
 	doConfigPanel();
@@ -1951,6 +1999,14 @@ function savePreferences( pref ) {
 	];
 	for ( const item of randomModeOptions )
 		elRandomMode[ elRandomMode.options.length ] = new Option( item.text, item.value );
+
+	const reflexOptions = [
+		{ value: 'off',    text: 'Off' },
+		{ value: 'on',     text: 'On' },
+		{ value: 'mirror', text: 'Mirrored' }
+	];
+	for ( const item of reflexOptions )
+		elReflex[ elReflex.options.length ] = new Option( item.text, item.value );
 
 	elLineWidth.min = '1';
 	elLineWidth.max = '9';

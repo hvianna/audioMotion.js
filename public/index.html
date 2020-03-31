@@ -175,7 +175,7 @@
 		</div> <!-- #files_panel -->
 
 		<div id="settings_panel" class="config-panel">
-			<div class="config-row flex align-end">
+			<div class="config-row flex">
 				<div class="config-col">
 					<div class="help"><span class="config-label">Preset</span>
 						<span class="tooltip">
@@ -194,7 +194,7 @@
 					</select>
 					<button id="load_preset">Load</button>
 					<span class="help">
-						<button id="btn_save">Save current settings</button>
+						<button id="btn_save">Save</button>
 						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
 					</span>
 				</div>
@@ -209,6 +209,11 @@
 						<li class="switch" id="black_bg" data-prop="blackBg">NO <u>B</u>G
 							<span class="tooltip">Use black background instead of background color defined by gradient</span>
 					</ul>
+				</div>
+
+				<div class="config-col">
+					<div class="config-label">Refle<u>x</u></div>
+					<select id="reflex" data-prop="reflex"></select>
 				</div>
 
 				<ul class="config-col switch-bar">
@@ -245,8 +250,9 @@
 						<label id="line_width_label" class="config-label">Line width:
 							<input id="line_width" data-prop="lineWidth" type="range">
 							<span class="value"></span>
+							<br>
 						</label>
-						<label id="fill_alpha_label" class="config-label config-col">Fill opacity:
+						<label id="fill_alpha_label" class="config-label">Fill opacity:
 							<input id="fill_alpha" data-prop="fillAlpha" type="range">
 							<span class="value"></span>
 						</label>
