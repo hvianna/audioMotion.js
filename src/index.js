@@ -1618,7 +1618,7 @@ function selectRandomMode( force = false ) {
  * @param [incr] {number} 1 (default) for next gradient; -1 for previous gradient
  */
 function cycleGradient( incr = 1 ) {
-	let gradIdx = elGradient.selectedIndex + incr;
+	const gradIdx = elGradient.selectedIndex + incr;
 
 	if ( gradIdx < 0 )
 		elGradient.selectedIndex = elGradient.options.length - 1;
@@ -1634,7 +1634,7 @@ function cycleGradient( incr = 1 ) {
  * Populate UI visualization modes combo box
  */
 function populateVisualizationModes() {
-	let mode = elMode.value;
+	const mode = elMode.value;
 
 	while ( elMode.firstChild )
 		elMode.removeChild( elMode.firstChild );
@@ -1765,11 +1765,19 @@ function doConfigPanel() {
 	const elEnabledModes = document.getElementById('enabled_modes');
 
 	modeOptions.forEach( mode => {
-		elEnabledModes.innerHTML += `<div><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</div>`;
+		elEnabledModes.innerHTML += `<label><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</label>`;
 	});
 
 	document.querySelectorAll('.enabledMode').forEach( el => {
 		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = modeOptions.filter( item => ! item.disabled ).length;
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Mode must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
 			modeOptions.find( item => item.value == el.dataset.mode ).disabled = ! el.checked;
 			populateVisualizationModes();
 			savePreferences('mode');
@@ -1781,11 +1789,19 @@ function doConfigPanel() {
 	const elEnabledGradients = document.getElementById('enabled_gradients');
 
 	Object.keys( gradients ).forEach( key => {
-		elEnabledGradients.innerHTML += `<div><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</div>`;
+		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
 	});
 
 	document.querySelectorAll('.enabledGradient').forEach( el => {
 		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
 			gradients[ el.dataset.grad ].disabled = ! el.checked;
 			populateGradients();
 			savePreferences('grad');

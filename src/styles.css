@@ -111,6 +111,10 @@ table td {
 	margin: 20px 0 40px;
 }
 
+#config_panel label {
+	display: block;
+}
+
 .container {
 	margin: 0 auto;
 	max-width: 1400px;
