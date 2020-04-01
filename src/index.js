@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.4-dev';
+const _VERSION = '20.4-dev.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -211,6 +211,17 @@ const modeOptions = [
 	{ value: '1',   text: '1/24th octave bands',  disabled: false }
 ];
 
+// Properties that may be changed by Random Mode
+const randomProperties = [
+	{ value: 'nobg',   text: 'NO BG',        disabled: false },
+	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
+	{ value: 'leds',   text: 'LEDS',         disabled: false },
+	{ value: 'lumi',   text: 'LUMI',         disabled: false },
+	{ value: 'reflex', text: 'Reflex',       disabled: false },
+	{ value: 'barSp',  text: 'Bar spacing',  disabled: false },
+	{ value: 'line',   text: 'Line Width',   disabled: false },
+	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
+];
 
 /**
  * Display the canvas in full-screen mode
@@ -343,7 +354,7 @@ function setMode() {
 		}
 	}
 
-	updateLastConfig();
+	setReflex(); // makes sure reflex is not activated with lumi bars
 }
 
 /**
@@ -1302,7 +1313,6 @@ function loadPreset( name, alert, init ) {
 		showFPS    : elFPS.dataset.active == '1'
 	} );
 
-	setReflex();
 	setGradient();
 	setRandomMode();
 	setBarSpace();
@@ -1593,18 +1603,50 @@ function selectRandomMode( force = false ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
-	elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
-	elLedDisplay.dataset.active = Math.random() * 2 | 0;
-	elLumiBars.dataset.active   = Math.random() * 2 | 0;
-	audioMotion.showLeds = elLedDisplay.dataset.active == '1';
-	audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+	elMode.selectedIndex = Math.random() * elMode.options.length | 0;
+
+	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled ) {
+		elBlackBg.dataset.active = Math.random() * 2 | 0;
+		audioMotion.showBgColor = elBlackBg.dataset.active == '0';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'peaks' ).disabled ) {
+		elShowPeaks.dataset.active = Math.random() * 2 | 0;
+		audioMotion.showPeaks = elShowPeaks.dataset.active == '1';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'leds' ).disabled ) {
+		elLedDisplay.dataset.active = Math.random() * 2 | 0;
+		audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'lumi' ).disabled ) {
+		elLumiBars.dataset.active = Math.random() * 2 | 0;
+		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'line' ).disabled ) {
+		elLineWidth.value = ( Math.random() * 5 | 0 ) + 1;
+		updateRangeValue( elLineWidth );
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'fill' ).disabled ) {
+		elFillAlpha.value = ( Math.random() * 6 | 0 ) / 10;
+		updateRangeValue( elFillAlpha );
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'barSp' ).disabled )
+		elBarSpace.selectedIndex = Math.random() * elBarSpace.options.length | 0;
+
+	if ( ! randomProperties.find( item => item.value == 'reflex' ).disabled ) {
+		// exclude 'mirrored' reflex option for octave bands modes
+		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
+		elReflex.selectedIndex = Math.random() * options | 0;
+	}
+
+	// lineWidth, fillAlpha, barSpace and reflex are effectively set in the calls below
 	setBarSpace();
 	setMode();
-
-	// exclude 'mirrored' reflex option for octave bands modes
-	const options = elReflex.options.length - ( audioMotion.mode % 10 != 0 );
-	elReflex.selectedIndex = Math.random() * options | 0;
-	setReflex();
 
 	if ( elCycleGrad.dataset.active == '1' ) {
 		elGradient.selectedIndex = Math.random() * elGradient.options.length | 0;
@@ -1807,6 +1849,21 @@ function doConfigPanel() {
 			savePreferences('grad');
 		});
 	});
+
+	// Random Mode properties
+
+	const elProperties = document.getElementById('random_properties');
+
+	randomProperties.forEach( prop => {
+		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
+	});
+
+	document.querySelectorAll('.randomProperty').forEach( el => {
+		el.addEventListener( 'click', event => {
+			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
+			savePreferences('prop');
+		});
+	});
 }
 
 /**
@@ -1828,7 +1885,7 @@ function loadPreferences() {
 	else
 		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
 
-	// Load disabled modes preference and update modeOptions
+	// Load disabled modes preference
 	const disabledModes = localStorage.getItem( 'disabled-modes' );
 	if ( disabledModes !== null ) {
 		JSON.parse( disabledModes ).forEach( mode => {
@@ -1836,11 +1893,19 @@ function loadPreferences() {
 		});
 	}
 
-	// Load disabled gradients preference and update gradients
+	// Load disabled gradients preference
 	const disabledGradients = localStorage.getItem( 'disabled-gradients' );
 	if ( disabledGradients !== null ) {
 		JSON.parse( disabledGradients ).forEach( key => {
 			gradients[ key ].disabled = true;
+		});
+	}
+
+	// Load disabled random properties preference
+	const disabledProperties = localStorage.getItem( 'disabled-properties' );
+	if ( disabledProperties !== null ) {
+		JSON.parse( disabledProperties ).forEach( prop => {
+			randomProperties.find( item => item.value == prop ).disabled = true;
 		});
 	}
 }
@@ -1859,6 +1924,11 @@ function savePreferences( pref ) {
 	if ( ! pref || pref == 'grad' ) {
 		const disabledGradients = Object.keys( gradients ).filter( key => gradients[ key ].disabled );
 		localStorage.setItem( 'disabled-gradients', JSON.stringify( disabledGradients ) );
+	}
+
+	if ( ! pref || pref == 'prop' ) {
+		const disabledProperties = randomProperties.filter( item => item.disabled ).map( item => item.value );
+		localStorage.setItem( 'disabled-properties', JSON.stringify( disabledProperties ) );
 	}
 }
 

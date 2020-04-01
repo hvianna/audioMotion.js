@@ -111,8 +111,15 @@ table td {
 	margin: 20px 0 40px;
 }
 
+#config_panel > .config-row > .config-col {
+    width: 33%;
+}
 #config_panel label {
 	display: block;
+}
+#config_panel #random_properties label {
+    display: inline-block;
+    width: 33%;
 }
 
 .container {
