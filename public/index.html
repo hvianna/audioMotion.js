@@ -97,7 +97,7 @@
 						<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
 						<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
 						<tr><td><kbd>M</kbd> / <kbd>m</kbd></td><td>previous / next mode</td></tr>
-						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity presets</td></tr>
+						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity</td></tr>
 						<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
 						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcut</td></tr>
 					</table>
@@ -184,7 +184,7 @@
 						</span>
 					</div>
 					<select id="preset">
-						<option value="" disabled selected>choose a preset</option>
+						<option value="" disabled selected>Select preset</option>
 						<option value="fullres">Full resolution</option>
 						<option value="octave">Octave bands</option>
 						<option value="ledbars">LED bars</option>
@@ -212,7 +212,11 @@
 				</div>
 
 				<div class="config-col">
-					<div class="config-label">Refle<u>x</u></div>
+					<div class="help"><span class="config-label">Refle<u>x</u></span>
+						<span class="tooltip">
+						Select reflection style<br><em>(has no effect when LUMI is active)</em>
+						</span>
+					</div>
 					<select id="reflex" data-prop="reflex"></select>
 				</div>
 
@@ -236,7 +240,7 @@
 				<div class="config-col">
 					<div class="help"><span class="config-label"><u>M</u>ode</span>
 						<span class="tooltip">
-						Visualization mode. Octave bands are based on the equal tempered scale.
+						Visualization mode. Disable undesired modes in the Config panel.
 						</span>
 					</div>
 					<select id="mode"></select>
@@ -301,11 +305,10 @@
 				<div class="config-col">
 					<div class="help"><span class="config-label">Se<u>n</u>sitivity</span>
 						<span class="tooltip">
-						Adjust analyzer sensitivity to improve visualization of songs too quiet or too loud
+						Improve visualization of songs too quiet or too loud. Customize presets in the Config panel.
 						</span>
 					</div>
-					<select id="min_db" data-prop="minDb"></select> to
-					<select id="max_db" data-prop="maxDb"></select> dB
+					<select id="sensitivity" data-prop="sensitivity"></select>
 				</div>
 
 			</div> <!-- .config-row -->
@@ -313,7 +316,7 @@
 		</div> <!-- #settings_panel -->
 
 		<div id="config_panel" class="config-panel">
-			<div class="config-row flex align-start">
+			<div class="flex align-start">
 				<div class="config-col">
 					<h3>Enabled Visualization Modes:</h3>
 					<p><em>Check modes you want available for visualization</em></p>
@@ -328,30 +331,30 @@
 				</div>
 				<div class="config-col">
 					<h3>Random Mode options:</h3>
-					<p><em>Choose options that may be changed by Random Mode</em></p>
+					<p><em>Check options that may be changed on Random Mode</em></p>
 					<div id="random_properties">
 					</div>
 
-					<hr>
-
 					<h3>Sensitivity presets:</h3>
-					<p><em>Customize low, medium and high sensitivity</em></p>
 					<table>
-						<tr><th>Preset</th><th>Min dB</th><th>Max dB</th></tr>
+						<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Reset</th></tr>
 						<tr>
 							<td>Low</td>
-							<td></td>
-							<td></td>
+							<td><select class="min-db" data-preset="0"></select></td>
+							<td><select class="max-db" data-preset="0"></select></td>
+							<td><button class="reset-sens" data-preset="0">Default</button></td>
 						</tr>
 						<tr>
-							<td>Medium</td>
-							<td></td>
-							<td></td>
+							<td>Normal</td>
+							<td><select class="min-db" data-preset="1"></select></td>
+							<td><select class="max-db" data-preset="1"></select></td>
+							<td><button class="reset-sens" data-preset="1">Default</button></td>
 						</tr>
 						<tr>
 							<td>High</td>
-							<td></td>
-							<td></td>
+							<td><select class="min-db" data-preset="2"></select></td>
+							<td><select class="max-db" data-preset="2"></select></td>
+							<td><button class="reset-sens" data-preset="2">Default</button></td>
 						</tr>
 					</table>
 				</div>

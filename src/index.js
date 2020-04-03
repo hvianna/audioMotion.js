@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.4-dev.1';
+const _VERSION = '20.4-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -45,7 +45,7 @@ let playlist, playlistPos, currAudio, nextAudio;
 
 // HTML elements from the UI
 let elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
-	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
+	elSensitivity, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
 	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode,
 	elLineWidth, elFillAlpha, elBarSpace, elReflex;
 
@@ -57,9 +57,6 @@ let canvasMsg;
 
 // flag for skip track in progress
 let skipping = false;
-
-// for sensitivity presets (keyboard shortcut)
-let sensitivity = 1;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -78,8 +75,7 @@ const presets = {
 		randomMode  : 0,
 		ledDisplay  : 0,
 		lumiBars    : 0,
-		maxDb       : -25,
-		minDb       : -85,
+		sensitivity : 1,
 		showScale   : 1,
 		showPeaks   : 1,
 		showSong    : 1,
@@ -223,6 +219,13 @@ const randomProperties = [
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
 ];
 
+// Sensitivity presets
+const sensitivityDefaults = [
+	{ min: -70,  max: -20 }, // low
+	{ min: -85,  max: -25 }, // normal
+	{ min: -100, max: -30 }  // high
+];
+
 /**
  * Display the canvas in full-screen mode
  */
@@ -242,23 +245,12 @@ function setBarSpace() {
 /**
  * Adjust the analyzer's sensitivity
  */
-function setSensitivity( value ) {
-	if ( value !== undefined ) {
-		switch ( value ) {
-			case 0:
-				elMinDb.value = -70;
-				elMaxDb.value = -20;
-				break;
-			case 1:
-				elMinDb.value = -85;
-				elMaxDb.value = -25;
-				break;
-			case 2:
-				elMinDb.value = -100;
-				elMaxDb.value = -30;
-		}
-	}
-	audioMotion.setSensitivity( elMinDb.value, elMaxDb.value );
+function setSensitivity() {
+	const sensitivity = elSensitivity.value;
+	audioMotion.setSensitivity(
+		document.querySelector(`.min-db[data-preset="${sensitivity}"`).value,
+		document.querySelector(`.max-db[data-preset="${sensitivity}"`).value
+	);
 	updateLastConfig();
 }
 
@@ -1292,9 +1284,13 @@ function loadPreset( name, alert, init ) {
 		}
 	});
 
-	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option (version =< 19.5)
-		sensitivity = thisPreset.highSens ? 2 : 1;
-		setSensitivity( sensitivity );
+	if ( thisPreset.hasOwnProperty( 'highSens' ) ) // legacy option (version =< 19.5)
+		elSensitivity.value = thisPreset.highSens ? 2 : 1;
+
+	if ( thisPreset.hasOwnProperty( 'minDb' ) && thisPreset.hasOwnProperty( 'maxDb' ) ) { // legacy options (version =< 19.12)
+		document.querySelector('.min-db[data-preset="1"]').value = thisPreset.minDb;
+		document.querySelector('.max-db[data-preset="1"]').value = thisPreset.maxDb;
+		savePreferences('sens');
 	}
 
 	audioMotion.setOptions( {
@@ -1302,8 +1298,6 @@ function loadPreset( name, alert, init ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		minDecibels: elMinDb.value,
-		maxDecibels: elMaxDb.value,
 		showScale  : elShowScale.dataset.active == '1',
 		showPeaks  : elShowPeaks.dataset.active == '1',
 		showBgColor: elBlackBg.dataset.active == '0',
@@ -1313,6 +1307,7 @@ function loadPreset( name, alert, init ) {
 		showFPS    : elFPS.dataset.active == '1'
 	} );
 
+	setSensitivity();
 	setGradient();
 	setRandomMode();
 	setBarSpace();
@@ -1335,8 +1330,7 @@ function saveConfig( config ) {
 		gradient	: elGradient.value,
 		mode        : elMode.value,
 		randomMode  : elRandomMode.value,
-		minDb       : elMinDb.value,
-		maxDb       : elMaxDb.value,
+		sensitivity : elSensitivity.value,
 		lineWidth   : elLineWidth.value,
 		fillAlpha   : elFillAlpha.value,
 		barSpace    : elBarSpace.value,
@@ -1487,20 +1481,21 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
 			break;
 		case 'KeyN': 		// increase or reduce sensitivity
+			const sensIdx = elSensitivity.selectedIndex;
 			if ( event.shiftKey ) {
-				if ( sensitivity > 0 )
-					sensitivity--;
+				if ( sensIdx == 0 )
+					elSensitivity.selectedIndex = elSensitivity.options.length - 1;
 				else
-					sensitivity = 2;
+					elSensitivity.selectedIndex = sensIdx - 1;
 			}
 			else {
-				if ( sensitivity < 2 )
-					sensitivity++;
+				if ( sensIdx == elSensitivity.options.length - 1 )
+					elSensitivity.selectedIndex = 0;
 				else
-					sensitivity = 0;
+					elSensitivity.selectedIndex = sensIdx + 1;
 			}
-			setSensitivity( sensitivity );
-			setCanvasMsg( `${ ['LOW','NORMAL','HIGH'][ sensitivity ] } sensitivity` );
+			setSensitivity();
+			setCanvasMsg( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity' );
 			break;
 		case 'KeyO': 		// toggle resolution
 			elLoRes.click();
@@ -1766,8 +1761,7 @@ function setUIEventListeners() {
 	elGradient.   addEventListener( 'change', setGradient );
 	elSource.     addEventListener( 'change', setSource );
 	elSmoothing.  addEventListener( 'change', setSmoothing );
-	elMinDb.      addEventListener( 'change', () => setSensitivity() );
-	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
+	elSensitivity.addEventListener( 'change', setSensitivity );
 	elLineWidth.  addEventListener( 'change', setLineWidth );
 	elFillAlpha.  addEventListener( 'change', setFillAlpha );
 	elBarSpace.   addEventListener( 'change', setBarSpace );
@@ -1864,6 +1858,26 @@ function doConfigPanel() {
 			savePreferences('prop');
 		});
 	});
+
+	// Sensitivity presets (already populated by loadPreferences())
+	document.querySelectorAll( '[data-preset]' ).forEach( el => {
+		if ( el.className == 'reset-sens' ) {
+			el.addEventListener( 'click', () => {
+				document.querySelector(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
+				document.querySelector(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
+				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					setSensitivity();
+				savePreferences('sens');
+			});
+		}
+		else {
+			el.addEventListener( 'change', () => {
+				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					setSensitivity();
+				savePreferences('sens');
+			});
+		}
+	});
 }
 
 /**
@@ -1908,6 +1922,25 @@ function loadPreferences() {
 			randomProperties.find( item => item.value == prop ).disabled = true;
 		});
 	}
+
+	// Sensitivity presets
+	const elMinSens = document.querySelectorAll('.min-db');
+	for ( let i = -60; i >= -110; i -= 5 )
+		elMinSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+
+	const elMaxSens = document.querySelectorAll('.max-db');
+	for ( let i = 0; i >= -40; i -= 5 )
+		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+
+	let sensitivityPresets = localStorage.getItem( 'sensitivity-presets' );
+	if ( sensitivityPresets == null )
+		sensitivityPresets = sensitivityDefaults;
+	else
+		sensitivityPresets = JSON.parse( sensitivityPresets );
+	sensitivityPresets.forEach( ( preset, index ) => {
+		elMinSens[ index ].value = preset.min;
+		elMaxSens[ index ].value = preset.max;
+	});
 }
 
 /**
@@ -1929,6 +1962,17 @@ function savePreferences( pref ) {
 	if ( ! pref || pref == 'prop' ) {
 		const disabledProperties = randomProperties.filter( item => item.disabled ).map( item => item.value );
 		localStorage.setItem( 'disabled-properties', JSON.stringify( disabledProperties ) );
+	}
+
+	if ( ! pref || pref == 'sens' ) {
+		let sensitivityPresets = [];
+		for ( const i of [0,1,2] ) {
+			sensitivityPresets.push( {
+				min: document.querySelector(`.min-db[data-preset="${i}"`).value,
+				max: document.querySelector(`.max-db[data-preset="${i}"`).value
+			});
+		}
+		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
 	}
 }
 
@@ -2021,8 +2065,7 @@ function savePreferences( pref ) {
 	elMode        = document.getElementById('mode');
 	elGradient    = document.getElementById('gradient');
 	elShowScale   = document.getElementById('show_scale');
-	elMinDb       = document.getElementById('min_db');
-	elMaxDb       = document.getElementById('max_db');
+	elSensitivity = document.getElementById('sensitivity');
 	elShowPeaks   = document.getElementById('show_peaks');
 	elBlackBg     = document.getElementById('black_bg');
 	elCycleGrad   = document.getElementById('cycle_grad');
@@ -2057,11 +2100,13 @@ function savePreferences( pref ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
 
-	for ( let i = -60; i >= -110; i -= 5 )
-		elMinDb[ elMinDb.options.length ] = new Option( i );
-
-	for ( let i = 0; i >= -40; i -= 5 )
-		elMaxDb[ elMaxDb.options.length ] = new Option( i );
+	const sensitivityOptions = [
+		{ value: '0', text: 'Low' },
+		{ value: '1', text: 'Normal' },
+		{ value: '2', text: 'High' }
+	];
+	for ( const item of sensitivityOptions )
+		elSensitivity[ elSensitivity.options.length ] = new Option( item.text, item.value );
 
 	const barSpaceOptions = [
 		{ value: '1.5',  text: 'Legacy' },
