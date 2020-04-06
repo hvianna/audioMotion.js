@@ -99,6 +99,7 @@
 						<tr><td><kbd>M</kbd> / <kbd>m</kbd></td><td>previous / next mode</td></tr>
 						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity</td></tr>
 						<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
+						<tr><td><kbd>X</kbd> / <kbd>x</kbd></td><td>reflex style</td></tr>
 						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcut</td></tr>
 					</table>
 				</span>
@@ -200,7 +201,11 @@
 				</div>
 
 				<div class="config-col">
-					<div class="config-label"><u>G</u>radient</div>
+					<div class="help"><span class="config-label"><u>G</u>radient</span>
+						<span class="tooltip">
+							Color gradient for the analyzer bars. Disable undesired gradients in the Config panel.
+						</span>
+					</div>
 					<select id="gradient" data-prop="gradient"></select>
 
 					<ul class="switch-bar">
@@ -214,7 +219,7 @@
 				<div class="config-col">
 					<div class="help"><span class="config-label">Refle<u>x</u></span>
 						<span class="tooltip">
-						Select reflection style<br><em>(has no effect when LUMI is active)</em>
+						Select reflection style<br><em>(no effect when LUMI is active)</em>
 						</span>
 					</div>
 					<select id="reflex" data-prop="reflex"></select>
