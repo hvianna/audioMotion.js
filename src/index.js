@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.4-dev.2';
+const _VERSION = '20.4-dev.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -37,17 +37,38 @@ import './notie.css';
 
 import './styles.css';
 
+// UI HTML elements
+const elFFTsize     = document.getElementById('fft_size'),
+	  elRangeMin    = document.getElementById('freq_min'),
+	  elRangeMax    = document.getElementById('freq_max'),
+	  elSmoothing   = document.getElementById('smoothing'),
+	  elMode        = document.getElementById('mode'),
+	  elGradient    = document.getElementById('gradient'),
+	  elShowScale   = document.getElementById('show_scale'),
+	  elSensitivity = document.getElementById('sensitivity'),
+	  elShowPeaks   = document.getElementById('show_peaks'),
+	  elBlackBg     = document.getElementById('black_bg'),
+	  elCycleGrad   = document.getElementById('cycle_grad'),
+	  elRandomMode  = document.getElementById('random_mode'),
+	  elLedDisplay  = document.getElementById('led_display'),
+	  elLumiBars    = document.getElementById('lumi_bars'),
+	  elRepeat      = document.getElementById('repeat'),
+	  elShowSong    = document.getElementById('show_song'),
+	  elNoShadow    = document.getElementById('no_shadow'),
+	  elLoRes       = document.getElementById('lo_res'),
+	  elFPS         = document.getElementById('fps'),
+	  elSource      = document.getElementById('source'),
+	  elPlaylists   = document.getElementById('playlists'),
+	  elLineWidth   = document.getElementById('line_width'),
+	  elFillAlpha   = document.getElementById('fill_alpha'),
+	  elBarSpace    = document.getElementById('bar_space'),
+	  elReflex      = document.getElementById('reflex');
+
 // AudioMotionAnalyzer object
 let audioMotion;
 
 // playlist, index to the current song, indexes to current and next audio elements
 let playlist, playlistPos, currAudio, nextAudio;
-
-// HTML elements from the UI
-let elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
-	elSensitivity, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode,
-	elLineWidth, elFillAlpha, elBarSpace, elReflex;
 
 // audio sources
 let audioElement, sourcePlayer, sourceMic, cfgSource;
@@ -346,7 +367,7 @@ function setMode() {
 		}
 	}
 
-	setReflex(); // makes sure reflex is not activated with lumi bars
+	updateLastConfig();
 }
 
 /**
@@ -368,27 +389,20 @@ function setRandomMode() {
  * Set Reflex mode
  */
 function setReflex() {
-	const isLumiBars = ( audioMotion.lumiBars && audioMotion.mode % 10 != 0 );
-	const option = elReflex.value;
+	switch ( elReflex.value ) {
+		case 'on':
+			audioMotion.reflexRatio = .4;
+			audioMotion.reflexAlpha = .15;
+			break;
 
-	if ( isLumiBars || option == 'off' ) {
-		audioMotion.reflexRatio = 0;
-	}
-	else if ( option == 'on' ) {
-		audioMotion.setOptions({
-			reflexRatio: .4,
-			reflexFit: false,
-			reflexAlpha: .15,
-		});
-	}
-	else if ( option == 'mirror' ) {
-		audioMotion.setOptions({
-			reflexRatio: .5,
-			reflexFit: true,
-			reflexAlpha: 1,
-		});
-	}
+		case 'mirror':
+			audioMotion.reflexRatio = .5;
+			audioMotion.reflexAlpha = 1;
+			break;
 
+		default:
+			audioMotion.reflexRatio = 0;
+	}
 	updateLastConfig();
 }
 
@@ -1308,6 +1322,7 @@ function loadPreset( name, alert, init ) {
 	} );
 
 	setSensitivity();
+	setReflex();
 	setGradient();
 	setRandomMode();
 	setBarSpace();
@@ -1621,12 +1636,12 @@ function selectRandomMode( force = false ) {
 	}
 
 	if ( ! randomProperties.find( item => item.value == 'line' ).disabled ) {
-		elLineWidth.value = ( Math.random() * 5 | 0 ) + 1;
+		elLineWidth.value = ( Math.random() * 5 | 0 ) + 1; // 1 to 5
 		updateRangeValue( elLineWidth );
 	}
 
 	if ( ! randomProperties.find( item => item.value == 'fill' ).disabled ) {
-		elFillAlpha.value = ( Math.random() * 6 | 0 ) / 10;
+		elFillAlpha.value = ( Math.random() * 6 | 0 ) / 10; // 0 to 0.5
 		updateRangeValue( elFillAlpha );
 	}
 
@@ -1639,8 +1654,9 @@ function selectRandomMode( force = false ) {
 		elReflex.selectedIndex = Math.random() * options | 0;
 	}
 
-	// lineWidth, fillAlpha, barSpace and reflex are effectively set in the calls below
+	// lineWidth, fillAlpha and barSpace are effectively set below
 	setBarSpace();
+	setReflex();
 	setMode();
 
 	if ( elCycleGrad.dataset.active == '1' ) {
@@ -2055,34 +2071,6 @@ function savePreferences( pref ) {
 		sourcePlayer.push( audioMotion.audioCtx.createMediaElementSource( audioElement[ i ] ) );
 		sourcePlayer[ i ].connect( audioMotion.analyzer );
 	}
-
-	// Set UI elements
-
-	elFFTsize     = document.getElementById('fft_size');
-	elRangeMin    = document.getElementById('freq_min');
-	elRangeMax    = document.getElementById('freq_max');
-	elSmoothing   = document.getElementById('smoothing');
-	elMode        = document.getElementById('mode');
-	elGradient    = document.getElementById('gradient');
-	elShowScale   = document.getElementById('show_scale');
-	elSensitivity = document.getElementById('sensitivity');
-	elShowPeaks   = document.getElementById('show_peaks');
-	elBlackBg     = document.getElementById('black_bg');
-	elCycleGrad   = document.getElementById('cycle_grad');
-	elRandomMode  = document.getElementById('random_mode');
-	elLedDisplay  = document.getElementById('led_display');
-	elLumiBars    = document.getElementById('lumi_bars');
-	elRepeat      = document.getElementById('repeat');
-	elShowSong    = document.getElementById('show_song');
-	elNoShadow    = document.getElementById('no_shadow');
-	elLoRes       = document.getElementById('lo_res');
-	elFPS         = document.getElementById('fps');
-	elSource      = document.getElementById('source');
-	elPlaylists   = document.getElementById('playlists');
-	elLineWidth   = document.getElementById('line_width');
-	elFillAlpha   = document.getElementById('fill_alpha');
-	elBarSpace    = document.getElementById('bar_space');
-	elReflex      = document.getElementById('reflex');
 
 	// Setup configuration panel
 	doConfigPanel();
