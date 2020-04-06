@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.4-dev.3';
+const _VERSION = '20.4-RC';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1105,15 +1105,18 @@ function displayCanvasMsg() {
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
+			const secondLine = topLine * 1.8;
+
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.8 );
+			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, secondLine );
 
 			canvasCtx.textAlign = 'left';
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
-			outlineText( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text, leftPos, topLine * 1.8 );
+			outlineText( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text, leftPos, secondLine, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
+			outlineText( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
+			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, secondLine, maxWidthTop );
 		}
 
 		// codec and quality
