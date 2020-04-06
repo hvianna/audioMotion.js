@@ -1110,7 +1110,7 @@ function displayCanvasMsg() {
 
 			canvasCtx.textAlign = 'left';
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
-			outlineText( 'Random mode is ' + ( elRandomMode.value != '0' ? 'ON' : 'OFF' ), leftPos, topLine * 1.8 );
+			outlineText( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text, leftPos, topLine * 1.8 );
 
 			canvasCtx.textAlign = 'right';
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
@@ -1427,16 +1427,17 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Next track', 1 );
 			playNextSong();
 			break;
-		case 'KeyA': 		// toggle auto gradient / random mode
-			if ( elCycleGrad.dataset.active == '1' ) {
-				if ( elRandomMode.value != '0' ) {
+		case 'KeyA': 		// cycle thru auto gradient / random mode options
+			if ( elCycleGrad.dataset.active == '1' || event.shiftKey ) {
+				if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! event.shiftKey ) ||
+				     ( elRandomMode.selectedIndex == 0 && elCycleGrad.dataset.active == '1' && event.shiftKey ) ) {
 					elCycleGrad.dataset.active = '0';
 					elRandomMode.value = '0';
 					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
 				}
 				else {
-					elRandomMode.value = '1';
-					setCanvasMsg( 'Random mode ON' );
+					cycleElement( elRandomMode, event.shiftKey );
+					setCanvasMsg( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text );
 				}
 			}
 			else {
@@ -2078,12 +2079,12 @@ function savePreferences( pref ) {
 	const randomModeOptions = [
 		{ value: '0',   text: 'Off' },
 		{ value: '1',   text: 'On track change' },
-		{ value: '2',   text: 'Every 5 seconds' },
-		{ value: '6',   text: 'Every 15 seconds' },
-		{ value: '12',  text: 'Every 30 seconds' },
-		{ value: '24',  text: 'Every minute' },
-		{ value: '48',  text: 'Every 2 minutes' },
-		{ value: '120', text: 'Every 5 minutes' }
+		{ value: '2',   text: '5 seconds' },
+		{ value: '6',   text: '15 seconds' },
+		{ value: '12',  text: '30 seconds' },
+		{ value: '24',  text: '1 minute' },
+		{ value: '48',  text: '2 minutes' },
+		{ value: '120', text: '5 minutes' }
 	];
 	for ( const item of randomModeOptions )
 		elRandomMode[ elRandomMode.options.length ] = new Option( item.text, item.value );
