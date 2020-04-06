@@ -74,14 +74,14 @@ Discrete frequencies mode. User interface showing the file explorer and play que
 1/12th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.
 ![screenshot2](docs/img/screenshot2.png "1/12th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.")
 
-Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Outrun" gradient, with complete on-screen information.
-![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Outrun' gradient, with complete on-screen information")
+Full screen view: 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, "Outrun" gradient, Reflex effect and complete on-screen information.
+![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, 'Outrun' gradient, Reflex effect and complete on-screen information")
 
 Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, "Rainbow" gradient.
 ![screenshot4](docs/img/screenshot4.png "Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, 'Rainbow' gradient")
 
-Full screen view: 1/8th-octave bands mode with luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
-![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
+Full screen view: 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
+![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
 
 
 ## Credits and acknowledgments

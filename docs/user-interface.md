@@ -57,11 +57,12 @@ You can use the keyboard shortcuts below to control the player and change some s
 **S** | click on analyzer | toggle frequency scale display
 **T** | | toggle flat text option
 **U** | | toggle luminance bars effect
+**Shift+X** / **X** | | select previous / next reflex style
 
 
 ## User Interface Panels
 
-Panels are accessed by clicking the **Settings**, **Files** and **Console** tabs.
+Panels are accessed by clicking the **Settings**, **Files**, **Console** and **Config** tabs.
 
 ### Settings Panel
 
@@ -73,7 +74,7 @@ Panels are accessed by clicking the **Settings**, **Files** and **Console** tabs
 
 The **Full resolution**, **Octave bands** and **LED bars** presets adjust the settings to recommended values for the discrete frequencies and octave bands visualization modes, with optional LED effect mode.
 
-You can tweak any options and save a favorite configuration by clicking the **Save current settings** button. You can later revert to this configuration by loading the **Custom** preset.
+You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by loading the **Custom** preset.
 
 Additionally, your last used configuration will be automatically saved, and restored every time you open audioMotion.
 You can manually load the **Last session** preset to undo any changes made during the current session.
@@ -88,8 +89,14 @@ Several options of color gradients for the analyzer bars. You can change gradien
 
 Switches:
 
-+ **AUTO** makes every track change select the next gradient, cycling through the available options
++ **AUTO** selects the next gradient on track change, cycling through the available gradients
 + **NO BG** ignores the background color defined by each gradient, using a black background instead (may improve contrast)
+
+#### Reflex
+
+![ui-reflex](img/UI_reflex.png)
+
+Select a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode) switch is active.
 
 #### Analyzer switches
 
@@ -114,9 +121,8 @@ The underlined character in each switch label indicates its keyboard shortcut, w
 Selects the visualization mode.
 
 + **Discrete frequencies** mode allows you to visualize individual frequencies provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform);
-+ **Area fill** displays the same frequency data as above, but as a filled shape;
-+ **Line graph** connects all discrete frequency points in one continuous line;
-+ **Line + area fill** combines both previous modes;
++ **Area graph** displays the same frequency data as above, but as a filled area graph;
++ **Line graph** connects all the discrete frequency points in a continuous line and allows you to customize the line width and fill opacity;
 + **Octave bands** modes display wider vertical bars, each one representing the *n*th part of an octave, based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
@@ -125,7 +131,14 @@ Switches:
 
 + **LEDS** toggles the vintage LED effect for the analyzer bars *(octave bands modes only)*
 + **LUMI** toggles the luminance bars effect - analyzer bars are displayed always at full-height, varying their luminance instead *(octave bands modes only)*
-+ **RAND** selects a random visualization mode, LED and luminance effects on every track change; if the AUTO gradient switch is active, a random gradient will be selected as well.
+
+#### Random Mode
+
+![ui-random-mode](img/UI_random_mode.png)
+
+The visualization mode and some options may be randomized on track change or time interval. If the [AUTO](#gradient) switch is active, the gradient will be randomized as well.
+
+You can choose which options may be changed by random mode in the Config panel.
 
 #### FFT Size
 
@@ -134,7 +147,7 @@ Switches:
 The number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
 Larger values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
 
-#### Range
+#### Frequency Range
 
 ![ui-range](img/UI_range.png)
 
@@ -188,3 +201,23 @@ Press the ![trash-button](img/trash-button.png "trashcan") button to permanently
 ### Console
 
 The console records several useful information, like audio and video settings, configuration changes and error messages.
+
+### Config Panel
+
+![config-panel](img/config-panel.png)
+
+#### Enabled Visualization Modes
+
+Allows you to disable undesired visualization modes. Unchecked modes won't be available for manual selection or random mode.
+
+#### Enabled Gradients
+
+Allows you to disable undesired color gradients. Unchecked gradients won't be available for manual selection or random mode.
+
+#### Random Mode options
+
+Allows you to customize which options may be changed when the visualization mode is randomized.
+
+#### Sensitivity presets
+
+Allows you to customize the low, normal and high sensitivity presets.
