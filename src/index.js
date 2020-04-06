@@ -1418,10 +1418,8 @@ function keyboardControls( event ) {
 		case 'ArrowUp': 	// gradient
 		case 'ArrowDown':
 		case 'KeyG':
-			if ( event.code == 'ArrowUp' || ( event.code == 'KeyG' && event.shiftKey ) )
-				cycleGradient( -1 );
-			else
-				cycleGradient();
+			cycleElement( elGradient, event.shiftKey || event.code == 'ArrowUp' );
+			setGradient();
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 'ArrowRight': 	// next song
@@ -1479,36 +1477,12 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyM': 		// visualization mode
 		case 'KeyV':
-			const modeIdx = elMode.selectedIndex;
-			if ( event.shiftKey ) {
-				if ( modeIdx == 0 )
-					elMode.selectedIndex = elMode.options.length - 1;
-				else
-					elMode.selectedIndex = modeIdx - 1;
-			}
-			else {
-				if ( modeIdx == elMode.options.length - 1 )
-					elMode.selectedIndex = 0;
-				else
-					elMode.selectedIndex = modeIdx + 1;
-			}
+			cycleElement( elMode, event.shiftKey );
 			setMode();
 			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
 			break;
 		case 'KeyN': 		// increase or reduce sensitivity
-			const sensIdx = elSensitivity.selectedIndex;
-			if ( event.shiftKey ) {
-				if ( sensIdx == 0 )
-					elSensitivity.selectedIndex = elSensitivity.options.length - 1;
-				else
-					elSensitivity.selectedIndex = sensIdx - 1;
-			}
-			else {
-				if ( sensIdx == elSensitivity.options.length - 1 )
-					elSensitivity.selectedIndex = 0;
-				else
-					elSensitivity.selectedIndex = sensIdx + 1;
-			}
+			cycleElement( elSensitivity, event.shiftKey );
 			setSensitivity();
 			setCanvasMsg( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity' );
 			break;
@@ -1537,11 +1511,7 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 'KeyX':
-			const index = elReflex.selectedIndex;
-			if ( index == elReflex.options.length - 1 )
-				elReflex.selectedIndex = 0;
-			else
-				elReflex.selectedIndex = index + 1;
+			cycleElement( elReflex, event.shiftKey );
 			setReflex();
 			setCanvasMsg( 'Reflex: ' + elReflex[ elReflex.selectedIndex ].text );
 			break;
@@ -1666,21 +1636,20 @@ function selectRandomMode( force = false ) {
 }
 
 /**
- * Select next or previous gradient
+ * Select next or previous option in a `select` HTML element, cycling around when necessary
  *
- * @param [incr] {number} 1 (default) for next gradient; -1 for previous gradient
+ * @param el {object} HTML object
+ * @param [prev] {boolean} true to select previous option
  */
-function cycleGradient( incr = 1 ) {
-	const gradIdx = elGradient.selectedIndex + incr;
+function cycleElement( el, prev ) {
+	const idx = el.selectedIndex + ( prev ? -1 : 1 );
 
-	if ( gradIdx < 0 )
-		elGradient.selectedIndex = elGradient.options.length - 1;
-	else if ( gradIdx >= elGradient.options.length )
-		elGradient.selectedIndex = 0;
+	if ( idx < 0 )
+		el.selectedIndex = el.options.length - 1;
+	else if ( idx >= el.options.length )
+		el.selectedIndex = 0;
 	else
-		elGradient.selectedIndex = gradIdx;
-
-	setGradient();
+		el.selectedIndex = idx;
 }
 
 /**
