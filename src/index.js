@@ -2140,10 +2140,10 @@ function savePreferences( pref ) {
 		elReflex[ elReflex.options.length ] = new Option( item.text, item.value );
 
 	elLineWidth.min = '1';
-	elLineWidth.max = '9';
+	elLineWidth.max = '5';
 
 	elFillAlpha.min = '0';
-	elFillAlpha.max = '0.6';
+	elFillAlpha.max = '0.5';
 	elFillAlpha.step= '0.1';
 
 	elSmoothing.min = '0';
