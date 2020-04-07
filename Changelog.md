@@ -1,15 +1,28 @@
 Changelog
 =========
 
-## version NEXT
+## version 20.4 :mask:
 
 ### Added:
 
-+ New **Line graph** and **Line + area fill** visualization modes, with customizable line width and fill opacity;
++ New **Line graph** visualization mode, with customizable line width and fill opacity;
++ Customizable spacing between bars in octave bands modes;
++ Visualization mode can now be randomized on a time interval;
++ New **Config panel** where you can:
+  + Enable/disable visualization modes and gradients;
+  + Select options affected by random mode;
+  + Customize low, normal and high sensitivity presets.
 
 ### Changed:
 
++ The **Area fill** mode has been renamed to **Area graph**;
++ The default spacing between bars in octave bands modes has been increased a bit - set the **Bar spacing** option to **Legacy** for the old look;
++ Slightly improved vertical usage of canvas when the LED effect is active (removed the black line at the bottom of the screen);
 + UI improvements.
+
+### Fixed:
+
++ Case-insensitive sorting of directory listing when using a standard web server.
 
 
 ## version 19.12
