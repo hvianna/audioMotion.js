@@ -1,5 +1,10 @@
-Changelog
-=========
+---
+layout: default
+title: Changelog
+nav_order: 3
+---
+
+# Changelog
 
 ## version 20.4 :mask:
 

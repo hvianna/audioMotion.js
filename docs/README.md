@@ -1,9 +1,14 @@
-Documentation
-=============
+---
+layout: default
+title: Documentation
+nav_order: 2
+has_children: true
+has_toc: false
+---
 
-## Summary
+# Documentation
 
-### User interface
+## User interface
 
 - [Main controls](user-interface.md)
   - [Audio source](user-interface.md#audio-source)
@@ -17,18 +22,18 @@ Documentation
   - [Console](user-interface.md#console)
   - [Config Panel](user-interface.md#config-panel)
 
-### Server modes
+## Server modes
 
 - [File mode](server.md)
 - [Custom file server](server.md#custom-file-server)
 - [Using a standard web server](server.md#using-a-standard-web-server)
 - [Apache web server with Docker](server.md#apache-web-server-with-docker)
 
-### Building audioMotion
+## Building audioMotion
 
 - [Building the web app](building.md#building-the-web-app)
 - [Building binaries](building.md#building-binaries)
 
-### Legacy features
+## Legacy features
 
 - [Legacy playlists file](legacy.md)

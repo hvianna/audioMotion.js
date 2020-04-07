@@ -1,5 +1,11 @@
-User Interface
-==============
+---
+layout: default
+title: User Interface
+parent: Documentation
+nav_order: 1
+---
+
+# User Interface
 
 ![screenshot1](img/screenshot1.png "audioMotion.js user interface")
 

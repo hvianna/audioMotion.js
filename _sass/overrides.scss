@@ -3,46 +3,46 @@
 /* Just the Docs theme */
 
 :root {
-/* light mode - accent colors: blue, blue, orange */
-/*
-	--accent-color-1: #027db7;
-	--accent-color-2: #027db7;
-	--accent-color-3: #db3a24;
-*/
-/* dark mode - accent colors: yellow, blue, cyan */
-	--accent-color-1: #fddf6a;
-	--accent-color-2: #6ab8fd;
-	--accent-color-3: #29bcff;
+	--accent-color-1: #fddf6a; /* yellow */
+	--accent-color-2: #6ab8fd; /* blue */
+	--accent-color-3: #29bcff; /* cyan */
 }
 
 a {
-/*	color: var(--accent-color-1); */
+	color: var(--accent-color-3);
 }
 
 a:not([class]):hover {
 	background-image: linear-gradient( 90deg, #23d2ff, #4a68f7, #8550ff, #c63bf3, #fa5476, #ffdf43 );
 	background-size: 100% 1px;
+	color: var(--accent-color-1);
 }
 
-h1,
+h1, h2, h3,
 .site-title {
-    background: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
-    background-clip: text;
-    display: inline;
-    font-family: Orbitron, sans-serif;
-    font-weight: bold;
-    margin: 0;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+	background: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+	background-clip: text;
+	font-family: Orbitron, sans-serif;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
 }
 
-.page-content h2 {
-	color: var(--accent-color-2);
-}
-.page-content h3 {
-	color: var(--accent-color-3);
+h1, h2 {
+	display: table;
 }
 
-.site-logo {
-	filter: drop-shadow( 1px 1px 0 rgba(0,0,0,.25) );
+.site-title {
+	font-size: 32px !important;
+	justify-content: center;
+}
+
+@media (min-width: 31.25rem) {
+	.site-title {
+		margin: .5em;
+		padding: 0;
+	}
+}
+
+.page-content a {
+	white-space: normal;
 }

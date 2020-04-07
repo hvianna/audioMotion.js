@@ -1,5 +1,11 @@
-Server modes
-============
+---
+layout: default
+title: Server modes
+parent: Documentation
+nav_order: 2
+---
+
+# Server modes
 
 You can run audioMotion in **file mode** by directly opening the `index.html` file located inside the `public` folder.
 In this mode you can play single music files and use the microphone input, but the file explorer won't be available.
