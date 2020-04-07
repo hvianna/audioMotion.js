@@ -18,7 +18,7 @@ a:not([class]):hover {
 	color: var(--accent-color-1);
 }
 
-h1, h2, h3,
+h1, h2, h3, h4,
 .site-title {
 	background: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
 	background-clip: text;
@@ -27,7 +27,7 @@ h1, h2, h3,
 	-webkit-text-fill-color: transparent;
 }
 
-h1, h2 {
+h1, h2, h4 {
 	display: table;
 }
 
@@ -40,6 +40,10 @@ h1, h2 {
 	.site-title {
 		margin: .5em;
 		padding: 0;
+	}
+
+	h4, .text-delta {
+		font-size: 13px !important;
 	}
 }
 
