@@ -1532,7 +1532,7 @@ function audioOnPlay() {
 		return;
 	}
 
-	if ( audioElement[ currAudio ].currentTime == 0 ) {
+	if ( audioElement[ currAudio ].currentTime < .1 ) {
 		if ( elRandomMode.value == '1' )
 			selectRandomMode( true );
 		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' ) {
