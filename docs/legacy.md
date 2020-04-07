@@ -1,5 +1,5 @@
-audioMotion.js legacy features
-==============================
+legacy features
+===============
 
 ## Legacy playlists
 

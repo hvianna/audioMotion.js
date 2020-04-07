@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
+
+/* Just the Docs theme */
+
+:root {
+/* light mode - accent colors: blue, blue, orange */
+/*
+	--accent-color-1: #027db7;
+	--accent-color-2: #027db7;
+	--accent-color-3: #db3a24;
+*/
+/* dark mode - accent colors: yellow, blue, cyan */
+	--accent-color-1: #fddf6a;
+	--accent-color-2: #6ab8fd;
+	--accent-color-3: #29bcff;
+}
+
+a {
+/*	color: var(--accent-color-1); */
+}
+
+a:not([class]):hover {
+	background-image: linear-gradient( 90deg, #23d2ff, #4a68f7, #8550ff, #c63bf3, #fa5476, #ffdf43 );
+	background-size: 100% 1px;
+}
+
+h1,
+.site-title {
+    background: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+    background-clip: text;
+    display: inline;
+    font-family: Orbitron, sans-serif;
+    font-weight: bold;
+    margin: 0;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.page-content h2 {
+	color: var(--accent-color-2);
+}
+.page-content h3 {
+	color: var(--accent-color-3);
+}
+
+.site-logo {
+	filter: drop-shadow( 1px 1px 0 rgba(0,0,0,.25) );
+}

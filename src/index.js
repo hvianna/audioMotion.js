@@ -5,7 +5,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2019 Henrique Avila Vianna
+ * @copyright (c) 2018-2020 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-var _VERSION = '19.12';
+const _VERSION = '20.4';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -37,163 +37,215 @@ import './notie.css';
 
 import './styles.css';
 
+// UI HTML elements
+const elFFTsize     = document.getElementById('fft_size'),
+	  elRangeMin    = document.getElementById('freq_min'),
+	  elRangeMax    = document.getElementById('freq_max'),
+	  elSmoothing   = document.getElementById('smoothing'),
+	  elMode        = document.getElementById('mode'),
+	  elGradient    = document.getElementById('gradient'),
+	  elShowScale   = document.getElementById('show_scale'),
+	  elSensitivity = document.getElementById('sensitivity'),
+	  elShowPeaks   = document.getElementById('show_peaks'),
+	  elBlackBg     = document.getElementById('black_bg'),
+	  elCycleGrad   = document.getElementById('cycle_grad'),
+	  elRandomMode  = document.getElementById('random_mode'),
+	  elLedDisplay  = document.getElementById('led_display'),
+	  elLumiBars    = document.getElementById('lumi_bars'),
+	  elRepeat      = document.getElementById('repeat'),
+	  elShowSong    = document.getElementById('show_song'),
+	  elNoShadow    = document.getElementById('no_shadow'),
+	  elLoRes       = document.getElementById('lo_res'),
+	  elFPS         = document.getElementById('fps'),
+	  elSource      = document.getElementById('source'),
+	  elPlaylists   = document.getElementById('playlists'),
+	  elLineWidth   = document.getElementById('line_width'),
+	  elFillAlpha   = document.getElementById('fill_alpha'),
+	  elBarSpace    = document.getElementById('bar_space'),
+	  elReflex      = document.getElementById('reflex');
+
 // AudioMotionAnalyzer object
-var audioMotion;
+let audioMotion;
 
 // playlist, index to the current song, indexes to current and next audio elements
-var playlist, playlistPos, currAudio, nextAudio;
-
-// HTML elements from the UI
-var elMode, elFFTsize, elRangeMin, elRangeMax, elSmoothing, elGradient, elShowScale,
-	elMinDb, elMaxDb, elShowPeaks, elPlaylists, elBlackBg, elCycleGrad, elLedDisplay,
-	elRepeat, elShowSong, elSource, elNoShadow, elLoRes, elFPS, elLumiBars, elRandomMode;
+let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-var	audioElement, sourcePlayer, sourceMic, cfgSource;
+let audioElement, sourcePlayer, sourceMic, cfgSource;
 
 // on-screen messages
-var	canvasMsg;
+let canvasMsg;
 
 // flag for skip track in progress
-var skipping = false;
+let skipping = false;
 
-// for sensitivity presets (keyboard shortcut)
-var sensitivity = 1;
+// interval for timed random mode
+let randomModeTimer;
 
-/**
- * Configuration presets
- */
-var presets = {
-		default: {
-			mode        : 0,	    // discrete frequencies mode
-			fftSize     : 8192,		// FFT size
-			freqMin     : 20,		// lowest frequency
-			freqMax     : 22000,	// highest frequency
-			smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
-			gradient    : 'prism',
-			blackBg     : 0,
-			cycleGrad   : 1,
-			randomMode  : 0,
-			ledDisplay  : 0,
-			lumiBars    : 0,
-			maxDb       : -25,
-			minDb       : -85,
-			showScale   : 1,
-			showPeaks   : 1,
-			showSong    : 1,
-			repeat      : 0,
-			noShadow    : 1,
-			loRes       : 0,
-			showFPS     : 0
-		},
+// Configuration presets
+const presets = {
+	default: {
+		mode        : 0,	    // discrete frequencies mode
+		fftSize     : 8192,		// FFT size
+		freqMin     : 20,		// lowest frequency
+		freqMax     : 22000,	// highest frequency
+		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+		gradient    : 'prism',
+		blackBg     : 0,
+		cycleGrad   : 1,
+		randomMode  : 0,
+		ledDisplay  : 0,
+		lumiBars    : 0,
+		sensitivity : 1,
+		showScale   : 1,
+		showPeaks   : 1,
+		showSong    : 1,
+		repeat      : 0,
+		noShadow    : 1,
+		loRes       : 0,
+		showFPS     : 0,
+		lineWidth   : 2,
+		fillAlpha   : 0.1,
+		barSpace    : 0.1,
+		reflex      : 'off'
+	},
 
-		fullres: {
-			mode        : 0,
-			fftSize     : 8192,
-			freqMin     : 20,
-			freqMax     : 22000,
-			smoothing   : 0.5
-		},
+	fullres: {
+		mode        : 0,
+		fftSize     : 8192,
+		freqMin     : 20,
+		freqMax     : 22000,
+		smoothing   : 0.5
+	},
 
-		octave: {
-			mode        : 4,		// 1/6th octave bands mode
-			fftSize     : 8192,
-			freqMin     : 30,
-			freqMax     : 16000,
-			smoothing   : 0.5
-		},
+	octave: {
+		mode        : 4,		// 1/6th octave bands mode
+		fftSize     : 8192,
+		smoothing   : 0.5
+	},
 
-		ledbars: {
-			mode        : 2,		// 1/12th octave bands mode
-			fftSize     : 8192,
-			freqMin     : 30,
-			freqMax     : 16000,
-			smoothing   : 0.5,
-			blackBg     : 0,
-			ledDisplay  : 1,
-			showScale   : 0
-		}
-	};
+	ledbars: {
+		mode        : 2,		// 1/12th octave bands mode
+		fftSize     : 8192,
+		smoothing   : 0.5,
+		blackBg     : 0,
+		ledDisplay  : 1,
+		showScale   : 0
+	}
+};
 
-// additional gradient definitions
-var	gradients = {
-		apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
-					{ pos: .1667, color: '#61bb46' },
-					{ pos: .3333, color: '#fdb827' },
-					{ pos: .5, color: '#f5821f' },
-					{ pos: .6667, color: '#e03a3e' },
-					{ pos: .8333, color: '#963d97' },
-					{ pos: 1, color: '#009ddc' }
-				  ] },
-		aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
-					{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ pos:  1, color: 'hsl( 216, 100%, 50% )' }
-				  ] },
-		borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
-					{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
-					{ pos: .5, color: 'hsl( 189, 100%, 40% )' },
-					{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
-				  ] },
-		candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
-					{ pos: .1, color: '#ffaf7b' },
-					{ pos: .5, color: '#d76d77' },
-					{ pos: 1, color: '#3a1c71' }
-				  ] },
-		classic:  { name: 'Classic' },
-		cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
-					'hsl( 208, 0%, 100% )',
-					'hsl( 208, 100%, 35% )'
-				  ] },
-		dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
-					{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
-					{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
-				  ] },
-		miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
-					{ pos: .024, color: 'rgb( 251, 198, 6 )' },
-					{ pos: .283, color: 'rgb( 224, 82, 95 )' },
-					{ pos: .462, color: 'rgb( 194, 78, 154 )' },
-					{ pos: .794, color: 'rgb( 32, 173, 190 )' },
-					{ pos: 1, color: 'rgb( 22, 158, 95 )' }
-				  ] },
-		orient:   { name: 'Orient', bgColor: '#100', colorStops: [
-					{ pos: .1, color: '#f00' },
-					{ pos: 1, color: '#600' }
-				  ] },
-		outrun:   { name: 'Outrun', bgColor: '#101', colorStops: [
-					{ pos: 0, color: 'rgb( 255, 223, 67 )' },
-					{ pos: .182, color: 'rgb( 250, 84, 118 )' },
-					{ pos: .364, color: 'rgb( 198, 59, 243 )' },
-					{ pos: .525, color: 'rgb( 133, 80, 255 )' },
-					{ pos: .688, color: 'rgb( 74, 104, 247 )' },
-					{ pos: 1, color: 'rgb( 35, 210, 255 )' }
-				  ] },
-		pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
-					{ pos: .1, color: '#34e89e' },
-					{ pos: 1, color: '#0f3443' }
-				  ] },
-		prism:    { name: 'Prism' },
-		rainbow:  { name: 'Rainbow' },
-		shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
-					{ pos: .1, color: '#66ff00' },
-					{ pos: 1, color: '#a80077' }
-				  ] },
-		summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
-					{ pos: .1, color: '#fdbb2d' },
-					{ pos: 1, color: '#22c1c3' }
-				  ] },
-		sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
-					{ pos: .1, color: '#f56217' },
-					{ pos: 1, color: '#0b486b' }
-				  ] },
-		tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
-					{ pos: .038, color: 'rgb( 15, 209, 165 )' },
-					{ pos: .208, color: 'rgb( 15, 157, 209 )' },
-					{ pos: .519, color: 'rgb( 133, 13, 230 )' },
-					{ pos: .731, color: 'rgb( 230, 13, 202 )' },
-					{ pos: .941, color: 'rgb( 242, 180, 107 )' }
-				  ] },
-	};
+// Gradient definitions
+const gradients = {
+	apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
+				{ pos: .1667, color: '#61bb46' },
+				{ pos: .3333, color: '#fdb827' },
+				{ pos: .5, color: '#f5821f' },
+				{ pos: .6667, color: '#e03a3e' },
+				{ pos: .8333, color: '#963d97' },
+				{ pos: 1, color: '#009ddc' }
+			  ], disabled: false },
+	aurora:   { name: 'Aurora', bgColor: '#0e172a', colorStops: [
+				{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ pos:  1, color: 'hsl( 216, 100%, 50% )' }
+			  ], disabled: false },
+	borealis:  { name: 'Borealis', bgColor: '#0d1526', colorStops: [
+				{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
+				{ pos: .5, color: 'hsl( 189, 100%, 40% )' },
+				{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
+			  ], disabled: false },
+	candy:    { name: 'Candy', bgColor: '#0d0619', colorStops: [
+				{ pos: .1, color: '#ffaf7b' },
+				{ pos: .5, color: '#d76d77' },
+				{ pos: 1, color: '#3a1c71' }
+			  ], disabled: false },
+	classic:  { name: 'Classic', disabled: false },
+	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
+				'hsl( 208, 0%, 100% )',
+				'hsl( 208, 100%, 35% )'
+			  ], disabled: false },
+	dusk:     { name: 'Dusk', bgColor: '#0e172a', colorStops: [
+				{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
+				{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
+			  ], disabled: false },
+	miami:    { name: 'Miami', bgColor: '#110a11', colorStops: [
+				{ pos: .024, color: 'rgb( 251, 198, 6 )' },
+				{ pos: .283, color: 'rgb( 224, 82, 95 )' },
+				{ pos: .462, color: 'rgb( 194, 78, 154 )' },
+				{ pos: .794, color: 'rgb( 32, 173, 190 )' },
+				{ pos: 1, color: 'rgb( 22, 158, 95 )' }
+			  ], disabled: false },
+	orient:   { name: 'Orient', bgColor: '#100', colorStops: [
+				{ pos: .1, color: '#f00' },
+				{ pos: 1, color: '#600' }
+			  ], disabled: false },
+	outrun:   { name: 'Outrun', bgColor: '#101', colorStops: [
+				{ pos: 0, color: 'rgb( 255, 223, 67 )' },
+				{ pos: .182, color: 'rgb( 250, 84, 118 )' },
+				{ pos: .364, color: 'rgb( 198, 59, 243 )' },
+				{ pos: .525, color: 'rgb( 133, 80, 255 )' },
+				{ pos: .688, color: 'rgb( 74, 104, 247 )' },
+				{ pos: 1, color: 'rgb( 35, 210, 255 )' }
+			  ], disabled: false },
+	pacific:  { name: 'Pacific Dream', bgColor: '#051319', colorStops: [
+				{ pos: .1, color: '#34e89e' },
+				{ pos: 1, color: '#0f3443' }
+			  ], disabled: false },
+	prism:    { name: 'Prism', disabled: false },
+	rainbow:  { name: 'Rainbow', disabled: false },
+	shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
+				{ pos: .1, color: '#66ff00' },
+				{ pos: 1, color: '#a80077' }
+			  ], disabled: false },
+	summer:   { name: 'Summer', bgColor: '#041919', colorStops: [
+				{ pos: .1, color: '#fdbb2d' },
+				{ pos: 1, color: '#22c1c3' }
+			  ], disabled: false },
+	sunset:   { name: 'Sunset', bgColor: '#021119', colorStops: [
+				{ pos: .1, color: '#f56217' },
+				{ pos: 1, color: '#0b486b' }
+			  ], disabled: false },
+	tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
+				{ pos: .038, color: 'rgb( 15, 209, 165 )' },
+				{ pos: .208, color: 'rgb( 15, 157, 209 )' },
+				{ pos: .519, color: 'rgb( 133, 13, 230 )' },
+				{ pos: .731, color: 'rgb( 230, 13, 202 )' },
+				{ pos: .941, color: 'rgb( 242, 180, 107 )' }
+			  ], disabled: false }
+};
 
+// Visualization modes
+const modeOptions = [
+	{ value: '0',   text: 'Discrete frequencies', disabled: false },
+	{ value: '10',  text: 'Area graph',           disabled: false },
+	{ value: '101', text: 'Line graph',           disabled: false },
+	{ value: '8',   text: 'Full octave bands',    disabled: false },
+	{ value: '7',   text: 'Half octave bands',    disabled: false },
+	{ value: '6',   text: '1/3rd octave bands',   disabled: false },
+	{ value: '5',   text: '1/4th octave bands',   disabled: false },
+	{ value: '4',   text: '1/6th octave bands',   disabled: false },
+	{ value: '3',   text: '1/8th octave bands',   disabled: false },
+	{ value: '2',   text: '1/12th octave bands',  disabled: false },
+	{ value: '1',   text: '1/24th octave bands',  disabled: false }
+];
+
+// Properties that may be changed by Random Mode
+const randomProperties = [
+	{ value: 'nobg',   text: 'NO BG',        disabled: false },
+	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
+	{ value: 'leds',   text: 'LEDS',         disabled: false },
+	{ value: 'lumi',   text: 'LUMI',         disabled: false },
+	{ value: 'reflex', text: 'Reflex',       disabled: false },
+	{ value: 'barSp',  text: 'Bar spacing',  disabled: false },
+	{ value: 'line',   text: 'Line Width',   disabled: false },
+	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
+];
+
+// Sensitivity presets
+const sensitivityDefaults = [
+	{ min: -70,  max: -20 }, // low
+	{ min: -85,  max: -25 }, // normal
+	{ min: -100, max: -30 }  // high
+];
 
 /**
  * Display the canvas in full-screen mode
@@ -204,25 +256,22 @@ function fullscreen() {
 }
 
 /**
+ * Set bar spacing
+ */
+function setBarSpace() {
+	audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
+	updateLastConfig();
+}
+
+/**
  * Adjust the analyzer's sensitivity
  */
-function setSensitivity( value ) {
-	if ( value !== undefined ) {
-		switch ( value ) {
-			case 0:
-				elMinDb.value = -70;
-				elMaxDb.value = -20;
-				break;
-			case 1:
-				elMinDb.value = -85;
-				elMaxDb.value = -25;
-				break;
-			case 2:
-				elMinDb.value = -100;
-				elMaxDb.value = -30;
-		}
-	}
-	audioMotion.setSensitivity( elMinDb.value, elMaxDb.value );
+function setSensitivity() {
+	const sensitivity = elSensitivity.value;
+	audioMotion.setSensitivity(
+		document.querySelector(`.min-db[data-preset="${sensitivity}"`).value,
+		document.querySelector(`.max-db[data-preset="${sensitivity}"`).value
+	);
 	updateLastConfig();
 }
 
@@ -231,7 +280,6 @@ function setSensitivity( value ) {
  */
 function setSmoothing() {
 	audioMotion.smoothing = elSmoothing.value;
-	document.getElementById('smoothingValue').innerText = elSmoothing.value;
 	consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 	updateLastConfig();
 }
@@ -242,6 +290,14 @@ function setSmoothing() {
 function setFFTsize() {
 	audioMotion.fftSize = elFFTsize.value;
 	consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+	updateLastConfig();
+}
+
+/**
+ * Set fill alpha
+ */
+function setFillAlpha() {
+	audioMotion.fillAlpha = elFillAlpha.value;
 	updateLastConfig();
 }
 
@@ -259,15 +315,94 @@ function setFreqRange() {
  * Set Gradient
  */
 function setGradient() {
+	// handle invalid selection
+	if ( elGradient.value === '' )
+		elGradient.selectedIndex = 0;
+
 	audioMotion.gradient = elGradient.value;
 	updateLastConfig();
 }
 
 /**
- * Set visualization mode
+ * Set line width
+ */
+function setLineWidth() {
+	audioMotion.lineWidth = elLineWidth.value;
+	updateLastConfig();
+}
+
+/**
+ * Set visualization mode and related options
  */
 function setMode() {
-	audioMotion.mode = elMode.value;
+	// handle invalid selection
+	if ( elMode.value === '' )
+		elMode.selectedIndex = 0;
+
+	const lineWidthLabel = document.getElementById('line_width_label'),
+		  fillAlphaLabel = document.getElementById('fill_alpha_label'),
+		  barSpaceLabel  = document.getElementById('bar_space_label'),
+		  mode = elMode.value;
+
+	lineWidthLabel.style.display = 'none';
+	fillAlphaLabel.style.display = 'none';
+	barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
+
+	if ( mode < 10 )
+		audioMotion.mode = mode;
+	else {
+		audioMotion.mode = 10;
+
+		if ( mode == 10 ) {
+			// "Area graph" mode
+			audioMotion.lineWidth = 0;
+			audioMotion.fillAlpha = 1;
+		}
+		else {
+			// "Line graph" mode with customizable line width and fill opacity
+			lineWidthLabel.style.display = '';
+			fillAlphaLabel.style.display = '';
+			audioMotion.lineWidth = elLineWidth.value;
+			audioMotion.fillAlpha = elFillAlpha.value;
+		}
+	}
+
+	updateLastConfig();
+}
+
+/**
+ * Set random visualization mode
+ */
+function setRandomMode() {
+	const option = elRandomMode.value;
+
+	if ( randomModeTimer )
+		randomModeTimer = window.clearInterval( randomModeTimer );
+
+	if ( option > 1 )
+		randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+
+	updateLastConfig();
+}
+
+/**
+ * Set Reflex mode
+ */
+function setReflex() {
+	switch ( elReflex.value ) {
+		case 'on':
+			audioMotion.reflexRatio = .4;
+			audioMotion.reflexAlpha = .15;
+			break;
+
+		case 'mirror':
+			audioMotion.reflexRatio = .5;
+			audioMotion.reflexAlpha = 1;
+			break;
+
+		default:
+			audioMotion.reflexRatio = 0;
+	}
 	updateLastConfig();
 }
 
@@ -292,7 +427,8 @@ function setLedDisplay() {
  */
 function setLumiBars() {
 	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
-	updateLastConfig();
+	setBarSpace();
+	setReflex();
 }
 
 /**
@@ -359,12 +495,12 @@ function clearPlaylist() {
  */
 function loadSavedPlaylists( keyName ) {
 
-	var playlists = localStorage.getItem('playlists');
+	let playlists = localStorage.getItem('playlists');
 
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	var item = new Option( 'Select a playlist and click action to the right', '' );
+	const item = new Option( 'Select a playlist and click action to the right', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -373,7 +509,7 @@ function loadSavedPlaylists( keyName ) {
 		playlists = JSON.parse( playlists );
 
 		Object.keys( playlists ).forEach( key => {
-			let item = new Option( playlists[ key ], key );
+			const item = new Option( playlists[ key ], key );
 			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
@@ -392,7 +528,7 @@ function loadSavedPlaylists( keyName ) {
 		})
 		.then( content => {
 			if ( content !== false ) {
-				var n = 0;
+				let n = 0;
 				content.split(/[\r\n]+/).forEach( line => {
 					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
 						let info = line.split(/\|/);
@@ -430,8 +566,8 @@ function addBatchToQueue( files, autoplay = false ) {
  */
 function addToPlaylist( file, autoplay = false ) {
 
-	var ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase(),
-		ret;
+	const ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+	let ret;
 
 	if ( ['m3u','m3u8'].includes( ext ) )
 		ret = loadPlaylist( file );
@@ -487,7 +623,7 @@ function addMetadata( metadata, target ) {
  */
 function addSongToPlaylist( uri, content = {} ) {
 
-	var newEl = document.createElement('li');
+	const newEl = document.createElement('li');
 
 	newEl.dataset.artist = content.artist || '';
 
@@ -502,7 +638,7 @@ function addSongToPlaylist( uri, content = {} ) {
 
 	playlist.appendChild( newEl );
 
-	var len = playlist.children.length;
+	const len = playlist.children.length;
 	if ( len == 1 && ! isPlaying() )
 		loadSong(0);
 	if ( playlistPos > len - 3 )
@@ -532,8 +668,9 @@ function loadPlaylist( path ) {
 	if ( ! path )
 		return;
 
-	var ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase(),
-		n = 0,
+	const ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
+
+	let	n = 0,
 		songInfo;
 
 	return new Promise( resolve => {
@@ -574,7 +711,7 @@ function loadPlaylist( path ) {
 				});
 		}
 		else { // try to load playlist from localStorage
-			var list = localStorage.getItem( 'pl_' + path );
+			let list = localStorage.getItem( 'pl_' + path );
 			if ( list ) {
 				list = JSON.parse( list );
 				list.forEach( item => {
@@ -639,13 +776,13 @@ function storePlaylist( name, update = true ) {
 	}
 
 	if ( name ) {
-		var safename = name;
+		let safename = name;
 
 		if ( ! update ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-			var playlists = localStorage.getItem('playlists');
+			let playlists = localStorage.getItem('playlists');
 
 			if ( playlists )
 				playlists = JSON.parse( playlists );
@@ -661,7 +798,7 @@ function storePlaylist( name, update = true ) {
 			loadSavedPlaylists( safename );
 		}
 
-		var songs = [];
+		let songs = [];
 		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
 		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
@@ -678,8 +815,8 @@ function deletePlaylist( index ) {
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
 			submitCallback: () => {
-				var keyName = elPlaylists[ index ].value;
-				var playlists = localStorage.getItem('playlists');
+				const keyName = elPlaylists[ index ].value;
+				let playlists = localStorage.getItem('playlists');
 
 				if ( playlists ) {
 					playlists = JSON.parse( playlists );
@@ -705,7 +842,8 @@ function deletePlaylist( index ) {
  */
 function updatePlaylistUI() {
 
-	var current = playlist.querySelector('.current');
+	const current = playlist.querySelector('.current');
+
 	if ( current )
 		current.classList.remove('current');
 
@@ -720,9 +858,9 @@ function updatePlaylistUI() {
  */
 function shufflePlaylist() {
 
-	var temp, r;
+	let temp, r;
 
-	for ( var i = playlist.children.length - 1; i > 0; i-- ) {
+	for ( let i = playlist.children.length - 1; i > 0; i-- ) {
 		r = Math.floor( Math.random() * ( i + 1 ) );
 		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
 		playlist.insertBefore( temp, playlist.children[ r ] );
@@ -737,7 +875,7 @@ function shufflePlaylist() {
 function getIndex( node ) {
 	if ( ! node )
 		return;
-	var i = 0;
+	let i = 0;
 	while ( node = node.previousElementSibling )
 		i++;
 	return i;
@@ -765,7 +903,7 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
-	var n;
+	let n;
 	if ( playlistPos < playlist.children.length - 1 )
 		n = playlistPos + 1;
 	else
@@ -877,7 +1015,7 @@ function isPlaying() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
-	var canvasCtx = audioMotion.canvasCtx;
+	const canvasCtx = audioMotion.canvasCtx;
 	if ( elNoShadow.dataset.active == '1') {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
@@ -893,7 +1031,7 @@ function outlineText( text, x, y, maxWidth ) {
  * Format time in seconds to hh:mm:ss
  */
 function formatHHMMSS( time ) {
-	var str = '',
+	let str = '',
 		lead = '';
 
 	if ( time >= 3600 ) {
@@ -929,12 +1067,13 @@ function displayCanvasMsg() {
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	var canvas    = audioMotion.canvas,
-		canvasCtx = audioMotion.canvasCtx,
-		fontSize  = canvas.height / 17, // base font size - this will scale all measures
-		centerPos = canvas.width / 2,
-		topLine   = fontSize * 1.4,
-		alpha;
+	const canvas    = audioMotion.canvas,
+		  canvasCtx = audioMotion.canvasCtx,
+		  fontSize  = canvas.height / 17, // base font size - this will scale all measures
+		  centerPos = canvas.width / 2,
+		  topLine   = fontSize * 1.4;
+
+	let alpha;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
@@ -952,13 +1091,13 @@ function displayCanvasMsg() {
 
 	// Display song and config info
 	if ( canvasMsg.timer > 0 ) {
-		var	leftPos     = fontSize,
-			rightPos    = canvas.width - fontSize,
-			bottomLine1 = canvas.height - fontSize * 4,
-			bottomLine2 = canvas.height - fontSize * 2.8,
-			bottomLine3 = canvas.height - fontSize * 1.6,
-			maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
-			maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
+		const leftPos     = fontSize,
+			  rightPos    = canvas.width - fontSize,
+			  bottomLine1 = canvas.height - fontSize * 4,
+			  bottomLine2 = canvas.height - fontSize * 2.8,
+			  bottomLine3 = canvas.height - fontSize * 1.6,
+			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
+			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
 
 		alpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
 		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
@@ -966,15 +1105,18 @@ function displayCanvasMsg() {
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
+			const secondLine = topLine * 1.8;
+
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, topLine * 1.8 );
+			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, secondLine );
 
 			canvasCtx.textAlign = 'left';
 			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
-			outlineText( 'Random mode is ' + ( elRandomMode.dataset.active == '1' ? 'ON' : 'OFF' ), leftPos, topLine * 1.8 );
+			outlineText( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text, leftPos, secondLine, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, topLine, maxWidthTop );
+			outlineText( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
+			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, secondLine, maxWidthTop );
 		}
 
 		// codec and quality
@@ -1051,7 +1193,7 @@ function showCanvasInfo( reason ) {
  * Output messages to the UI "console"
  */
 function consoleLog( msg, error ) {
-	var elConsole = document.getElementById( 'console' );
+	const elConsole = document.getElementById( 'console' );
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
 		document.getElementById( 'show_console' ).className = 'warning';
@@ -1100,8 +1242,8 @@ function setSource() {
  */
 function loadLocalFile( obj ) {
 
-	var el = audioElement[ currAudio ];
-	var reader = new FileReader();
+	const el = audioElement[ currAudio ],
+		  reader = new FileReader();
 
 	reader.readAsDataURL( obj.files[0] );
 
@@ -1115,13 +1257,18 @@ function loadLocalFile( obj ) {
 
 /**
  * Load a configuration preset
+ *
+ * @param name {string} desired preset name
+ * @param [alert] {boolean} true to display on-screen alert after loading
+ * @param [init] {boolean} true to use default values for missing properties
  */
-function loadPreset( name, alert ) {
+function loadPreset( name, alert, init ) {
 
 	if ( ! presets[ name ] ) // check invalid preset name
 		return;
 
-	var thisPreset = presets[ name ];
+	const thisPreset = presets[ name ],
+		  defaults   = presets['default'];
 
 	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
 		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
@@ -1131,86 +1278,58 @@ function loadPreset( name, alert ) {
 		else
 			elMode.value = thisPreset.mode;
 	}
-
-	if ( thisPreset.hasOwnProperty( 'fftSize' ) )
-		elFFTsize.value = thisPreset.fftSize;
-
-	if ( thisPreset.hasOwnProperty( 'freqMin' ) )
-		elRangeMin.value = thisPreset.freqMin;
-
-	if ( thisPreset.hasOwnProperty( 'freqMax' ) )
-		elRangeMax.value = thisPreset.freqMax;
-
-	if ( thisPreset.hasOwnProperty( 'smoothing' ) )
-		document.getElementById('smoothingValue').innerText = elSmoothing.value = thisPreset.smoothing;
-
-	if ( thisPreset.hasOwnProperty( 'showScale' ) )
-		elShowScale.dataset.active = Number( thisPreset.showScale );
-
-	if ( thisPreset.hasOwnProperty( 'highSens' ) ) { // legacy option (version =< 19.5)
-		sensitivity = thisPreset.highSens ? 2 : 1;
-		setSensitivity( sensitivity );
-	}
-
-	if ( thisPreset.hasOwnProperty( 'minDb' ) )
-		elMinDb.value = thisPreset.minDb;
-
-	if ( thisPreset.hasOwnProperty( 'maxDb' ) )
-		elMaxDb.value = thisPreset.maxDb;
-
-	if ( thisPreset.hasOwnProperty( 'showPeaks' ) )
-		elShowPeaks.dataset.active = Number( thisPreset.showPeaks );
-
-	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
-		elBlackBg.dataset.active = Number( thisPreset.blackBg );
-
-	if ( thisPreset.hasOwnProperty( 'cycleGrad' ) )
-		elCycleGrad.dataset.active = Number( thisPreset.cycleGrad );
+	else if ( init )
+		elMode.value = defaults.mode;
 
 	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
-		elRandomMode.dataset.active = Number( thisPreset.randomMode );
+		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
 
-	if ( thisPreset.hasOwnProperty( 'ledDisplay' ) )
-		elLedDisplay.dataset.active = Number( thisPreset.ledDisplay );
+	document.querySelectorAll('[data-prop]').forEach( el => {
+		if ( el.classList.contains('switch') ) {
+			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
+				el.dataset.active = thisPreset[ el.dataset.prop ] | 0;
+			else if ( init )
+				el.dataset.active = defaults[ el.dataset.prop ];
+		}
+		else {
+			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
+				el.value = thisPreset[ el.dataset.prop ];
+			else if ( init )
+				el.value = defaults[ el.dataset.prop ];
 
-	if ( thisPreset.hasOwnProperty( 'lumiBars' ) )
-		elLumiBars.dataset.active = Number( thisPreset.lumiBars );
+			updateRangeValue( el );
+		}
+	});
 
-	if ( thisPreset.hasOwnProperty( 'repeat' ) )
-		elRepeat.dataset.active = Number( thisPreset.repeat );
+	if ( thisPreset.hasOwnProperty( 'highSens' ) ) // legacy option (version =< 19.5)
+		elSensitivity.value = thisPreset.highSens ? 2 : 1;
 
-	if ( thisPreset.hasOwnProperty( 'showSong' ) )
-		elShowSong.dataset.active = Number( thisPreset.showSong );
-
-	if ( thisPreset.hasOwnProperty( 'noShadow' ) )
-		elNoShadow.dataset.active = Number( thisPreset.noShadow );
-
-	if ( thisPreset.hasOwnProperty( 'loRes' ) )
-		elLoRes.dataset.active = Number( thisPreset.loRes );
-
-	if ( thisPreset.hasOwnProperty( 'showFPS' ) )
-		elFPS.dataset.active = Number( thisPreset.showFPS );
-
-	if ( thisPreset.hasOwnProperty( 'gradient' ) && gradients[ thisPreset.gradient ] )
-		elGradient.value = thisPreset.gradient;
+	if ( thisPreset.hasOwnProperty( 'minDb' ) && thisPreset.hasOwnProperty( 'maxDb' ) ) { // legacy options (version =< 19.12)
+		document.querySelector('.min-db[data-preset="1"]').value = thisPreset.minDb;
+		document.querySelector('.max-db[data-preset="1"]').value = thisPreset.maxDb;
+		savePreferences('sens');
+	}
 
 	audioMotion.setOptions( {
-		mode       : elMode.value,
 		fftSize    : elFFTsize.value,
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		minDecibels: elMinDb.value,
-		maxDecibels: elMaxDb.value,
-		showScale  : ( elShowScale.dataset.active == '1' ),
-		showPeaks  : ( elShowPeaks.dataset.active == '1' ),
-		showBgColor: ( elBlackBg.dataset.active == '0' ),
-		showLeds   : ( elLedDisplay.dataset.active == '1' ),
-		lumiBars   : ( elLumiBars.dataset.active == '1' ),
-		loRes      : ( elLoRes.dataset.active == '1' ),
-		showFPS    : ( elFPS.dataset.active == '1' ),
-		gradient   : elGradient.value
+		showScale  : elShowScale.dataset.active == '1',
+		showPeaks  : elShowPeaks.dataset.active == '1',
+		showBgColor: elBlackBg.dataset.active == '0',
+		showLeds   : elLedDisplay.dataset.active == '1',
+		lumiBars   : elLumiBars.dataset.active == '1',
+		loRes      : elLoRes.dataset.active == '1',
+		showFPS    : elFPS.dataset.active == '1'
 	} );
+
+	setSensitivity();
+	setReflex();
+	setGradient();
+	setRandomMode();
+	setBarSpace();
+	setMode();
 
 	if ( alert )
 		notie.alert({ text: 'Preset loaded!' });
@@ -1221,27 +1340,30 @@ function loadPreset( name, alert ) {
  */
 function saveConfig( config ) {
 
-	var settings = {
+	const settings = {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
-		smoothing	: audioMotion.smoothing,
+		smoothing	: elSmoothing.value,
 		gradient	: elGradient.value,
 		mode        : elMode.value,
-		minDb       : elMinDb.value,
-		maxDb       : elMaxDb.value,
-		showScale 	: elShowScale.dataset.active == '1',
-		showPeaks 	: elShowPeaks.dataset.active == '1',
-		blackBg     : elBlackBg.dataset.active == '1',
-		cycleGrad   : elCycleGrad.dataset.active == '1',
-		randomMode  : elRandomMode.dataset.active == '1',
-		ledDisplay  : elLedDisplay.dataset.active == '1',
-		lumiBars    : elLumiBars.dataset.active == '1',
-		repeat      : elRepeat.dataset.active == '1',
-		showSong    : elShowSong.dataset.active == '1',
-		noShadow    : elNoShadow.dataset.active == '1',
-		loRes       : elLoRes.dataset.active == '1',
-		showFPS     : elFPS.dataset.active == '1'
+		randomMode  : elRandomMode.value,
+		sensitivity : elSensitivity.value,
+		lineWidth   : elLineWidth.value,
+		fillAlpha   : elFillAlpha.value,
+		barSpace    : elBarSpace.value,
+		reflex      : elReflex.value,
+		showScale 	: elShowScale.dataset.active,
+		showPeaks 	: elShowPeaks.dataset.active,
+		blackBg     : elBlackBg.dataset.active,
+		cycleGrad   : elCycleGrad.dataset.active,
+		ledDisplay  : elLedDisplay.dataset.active,
+		lumiBars    : elLumiBars.dataset.active,
+		repeat      : elRepeat.dataset.active,
+		showSong    : elShowSong.dataset.active,
+		noShadow    : elNoShadow.dataset.active,
+		loRes       : elLoRes.dataset.active,
+		showFPS     : elFPS.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1271,16 +1393,13 @@ function keyboardControls( event ) {
 	if ( event.target.tagName != 'BODY' )
 		return;
 
-	var gradIdx = elGradient.selectedIndex,
-		modeIdx = elMode.selectedIndex;
-
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
 		case 'Backspace':	// for Mac
 			playlist.querySelectorAll('.selected').forEach( e => {
 				e.remove();
 			});
-			var current = getIndex( playlist.querySelector('.current') );
+			const current = getIndex( playlist.querySelector('.current') );
 			if ( current !== undefined )
 				playlistPos = current;	// update playlistPos if current song hasn't been deleted
 			else if ( playlistPos > playlist.children.length - 1 )
@@ -1302,18 +1421,7 @@ function keyboardControls( event ) {
 		case 'ArrowUp': 	// gradient
 		case 'ArrowDown':
 		case 'KeyG':
-			if ( event.code == 'ArrowUp' || ( event.code == 'KeyG' && event.shiftKey ) ) {
-				if ( gradIdx == 0 )
-					elGradient.selectedIndex = elGradient.options.length - 1;
-				else
-					elGradient.selectedIndex = gradIdx - 1;
-			}
-			else {
-				if ( gradIdx == elGradient.options.length - 1 )
-					elGradient.selectedIndex = 0;
-				else
-					elGradient.selectedIndex = gradIdx + 1;
-			}
+			cycleElement( elGradient, event.shiftKey || event.code == 'ArrowUp' );
 			setGradient();
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
@@ -1322,23 +1430,24 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Next track', 1 );
 			playNextSong();
 			break;
-		case 'KeyA': 		// toggle auto gradient / random mode
-			if ( elCycleGrad.dataset.active == '1' ) {
-				if ( elRandomMode.dataset.active == '1' ) {
+		case 'KeyA': 		// cycle thru auto gradient / random mode options
+			if ( elCycleGrad.dataset.active == '1' || event.shiftKey ) {
+				if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! event.shiftKey ) ||
+				     ( elRandomMode.selectedIndex == 0 && elCycleGrad.dataset.active == '1' && event.shiftKey ) ) {
 					elCycleGrad.dataset.active = '0';
-					elRandomMode.dataset.active = '0';
+					elRandomMode.value = '0';
 					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
 				}
 				else {
-					elRandomMode.dataset.active = '1';
-					setCanvasMsg( 'Random mode ON' );
+					cycleElement( elRandomMode, event.shiftKey );
+					setCanvasMsg( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text );
 				}
 			}
 			else {
 				elCycleGrad.dataset.active = '1';
 				setCanvasMsg( 'Auto gradient ON' );
 			}
-			updateLastConfig();
+			setRandomMode();
 			break;
 		case 'KeyB': 		// toggle black background
 			elBlackBg.click();
@@ -1372,36 +1481,14 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyM': 		// visualization mode
 		case 'KeyV':
-			if ( event.shiftKey ) {
-				if ( modeIdx == 0 )
-					elMode.selectedIndex = elMode.options.length - 1;
-				else
-					elMode.selectedIndex = modeIdx - 1;
-			}
-			else {
-				if ( modeIdx == elMode.options.length - 1 )
-					elMode.selectedIndex = 0;
-				else
-					elMode.selectedIndex = modeIdx + 1;
-			}
+			cycleElement( elMode, event.shiftKey );
 			setMode();
 			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
 			break;
 		case 'KeyN': 		// increase or reduce sensitivity
-			if ( event.shiftKey ) {
-				if ( sensitivity > 0 )
-					sensitivity--;
-				else
-					sensitivity = 2;
-			}
-			else {
-				if ( sensitivity < 2 )
-					sensitivity++;
-				else
-					sensitivity = 0;
-			}
-			setSensitivity( sensitivity );
-			setCanvasMsg( `${ ['LOW','NORMAL','HIGH'][ sensitivity ] } sensitivity` );
+			cycleElement( elSensitivity, event.shiftKey );
+			setSensitivity();
+			setCanvasMsg( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity' );
 			break;
 		case 'KeyO': 		// toggle resolution
 			elLoRes.click();
@@ -1427,6 +1514,11 @@ function keyboardControls( event ) {
 			elLumiBars.click();
 			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
+		case 'KeyX':
+			cycleElement( elReflex, event.shiftKey );
+			setReflex();
+			setCanvasMsg( 'Reflex: ' + elReflex[ elReflex.selectedIndex ].text );
+			break;
 	}
 }
 
@@ -1440,25 +1532,12 @@ function audioOnPlay() {
 		return;
 	}
 
-	if ( audioElement[ currAudio ].currentTime == 0 ) {
-		// select random mode
-		if ( elRandomMode.dataset.active == '1' ) {
-			elMode.selectedIndex        = Math.random() * elMode.options.length | 0;
-			elLedDisplay.dataset.active = Math.random() * 2 | 0;
-			elLumiBars.dataset.active   = Math.random() * 2 | 0;
-			audioMotion.mode     = elMode.value;
-			audioMotion.showLeds = elLedDisplay.dataset.active == '1';
-			audioMotion.lumiBars = elLumiBars.dataset.active == '1';
-		}
-		// cycle (or random) gradient
-		if ( elCycleGrad.dataset.active == '1' ) {
-			let gradIdx = elRandomMode.dataset.active == '1' ? Math.random() * elGradient.options.length | 0 : elGradient.selectedIndex;
-			if ( gradIdx < elGradient.options.length - 1 )
-				gradIdx++;
-			else
-				gradIdx = 0;
-			elGradient.selectedIndex = gradIdx;
-			audioMotion.gradient = elGradient.value;
+	if ( audioElement[ currAudio ].currentTime < .1 ) {
+		if ( elRandomMode.value == '1' )
+			selectRandomMode( true );
+		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' ) {
+			cycleElement( elGradient );
+			setGradient();
 		}
 	}
 
@@ -1492,14 +1571,415 @@ function setLoRes() {
 	updateLastConfig();
 }
 
+/**
+ * Update range elements value div
+ */
+function updateRangeValue( el ) {
+	const elVal = el.nextElementSibling;
+	if ( elVal && elVal.className == 'value' )
+		elVal.innerText = el.value;
+}
+
+/**
+ * Choose a random visualization mode
+ *
+ * @param [force] {boolean} force change even when not playing (default false)
+ */
+function selectRandomMode( force = false ) {
+	if ( ! isPlaying() && ! force )
+		return;
+
+	elMode.selectedIndex = Math.random() * elMode.options.length | 0;
+
+	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled ) {
+		elBlackBg.dataset.active = Math.random() * 2 | 0;
+		audioMotion.showBgColor = elBlackBg.dataset.active == '0';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'peaks' ).disabled ) {
+		elShowPeaks.dataset.active = Math.random() * 2 | 0;
+		audioMotion.showPeaks = elShowPeaks.dataset.active == '1';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'leds' ).disabled ) {
+		elLedDisplay.dataset.active = Math.random() * 2 | 0;
+		audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'lumi' ).disabled ) {
+		elLumiBars.dataset.active = Math.random() * 2 | 0;
+		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'line' ).disabled ) {
+		elLineWidth.value = ( Math.random() * 5 | 0 ) + 1; // 1 to 5
+		updateRangeValue( elLineWidth );
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'fill' ).disabled ) {
+		elFillAlpha.value = ( Math.random() * 6 | 0 ) / 10; // 0 to 0.5
+		updateRangeValue( elFillAlpha );
+	}
+
+	if ( ! randomProperties.find( item => item.value == 'barSp' ).disabled )
+		elBarSpace.selectedIndex = Math.random() * elBarSpace.options.length | 0;
+
+	if ( ! randomProperties.find( item => item.value == 'reflex' ).disabled ) {
+		// exclude 'mirrored' reflex option for octave bands modes
+		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
+		elReflex.selectedIndex = Math.random() * options | 0;
+	}
+
+	// lineWidth, fillAlpha and barSpace are effectively set below
+	setBarSpace();
+	setReflex();
+	setMode();
+
+	if ( elCycleGrad.dataset.active == '1' ) {
+		elGradient.selectedIndex = Math.random() * elGradient.options.length | 0;
+		audioMotion.gradient = elGradient.value;
+	}
+}
+
+/**
+ * Select next or previous option in a `select` HTML element, cycling around when necessary
+ *
+ * @param el {object} HTML object
+ * @param [prev] {boolean} true to select previous option
+ */
+function cycleElement( el, prev ) {
+	const idx = el.selectedIndex + ( prev ? -1 : 1 );
+
+	if ( idx < 0 )
+		el.selectedIndex = el.options.length - 1;
+	else if ( idx >= el.options.length )
+		el.selectedIndex = 0;
+	else
+		el.selectedIndex = idx;
+}
+
+/**
+ * Populate UI visualization modes combo box
+ */
+function populateVisualizationModes() {
+	const mode = elMode.value;
+
+	while ( elMode.firstChild )
+		elMode.removeChild( elMode.firstChild );
+
+	for ( const item of modeOptions ) {
+		if ( ! item.disabled )
+			elMode[ elMode.options.length ] = new Option( item.text, item.value );
+	}
+
+	// restore previously selected mode
+	if ( mode !== '' ) {
+		elMode.value = mode;
+		setMode();
+	}
+}
+
+/**
+ * Populate UI gradient selection combo box
+ */
+function populateGradients() {
+	let grad = elGradient.value;
+
+	while ( elGradient.firstChild )
+		elGradient.removeChild( elGradient.firstChild );
+
+	// add the option to the html select element for the user interface
+	for ( const key of Object.keys( gradients ) ) {
+		if ( ! gradients[ key ].disabled )
+			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+	}
+
+	if ( grad !== '' ) {
+		elGradient.value = grad;
+		setGradient();
+	}
+}
+
+/**
+ * Set event listeners for UI elements
+ */
+function setUIEventListeners() {
+
+	// Add event listeners for config panel selectors
+	document.getElementById('panel_selector').addEventListener( 'click', event => {
+		document.querySelectorAll('#panel_selector li').forEach( e => {
+			e.className = '';
+			document.getElementById( e.dataset.panel ).style.display = 'none';
+		});
+		const el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
+		el.style.display = 'block';
+		if ( event.target.nodeName == 'LI' )
+			event.target.className = 'active';
+		else
+			event.target.parentElement.className = 'active';
+	});
+	document.getElementById('show_filelist').click();
+
+	// Add event listeners to the custom checkboxes
+	document.querySelectorAll('.switch').forEach( el => {
+		el.addEventListener( 'click', e => {
+			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
+				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
+			else
+				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
+		});
+	});
+
+	elShowScale.  addEventListener( 'click', setScale );
+	elShowPeaks.  addEventListener( 'click', setShowPeaks );
+	elBlackBg.    addEventListener( 'click', setBlackBg );
+	elCycleGrad.  addEventListener( 'click', updateLastConfig );
+	elLedDisplay. addEventListener( 'click', setLedDisplay );
+	elLumiBars.   addEventListener( 'click', setLumiBars );
+	elRepeat.     addEventListener( 'click', updateLastConfig );
+	elShowSong.   addEventListener( 'click', updateLastConfig );
+	elNoShadow.   addEventListener( 'click', updateLastConfig );
+	elLoRes.      addEventListener( 'click', setLoRes );
+	elFPS.        addEventListener( 'click', setFPS );
+
+	// Add event listeners to UI config elements
+
+	elMode.       addEventListener( 'change', setMode );
+	elRandomMode. addEventListener( 'change', setRandomMode );
+	elFFTsize.    addEventListener( 'change', setFFTsize );
+	elRangeMin.   addEventListener( 'change', setFreqRange );
+	elRangeMax.   addEventListener( 'change', setFreqRange );
+	elGradient.   addEventListener( 'change', setGradient );
+	elSource.     addEventListener( 'change', setSource );
+	elSmoothing.  addEventListener( 'change', setSmoothing );
+	elSensitivity.addEventListener( 'change', setSensitivity );
+	elLineWidth.  addEventListener( 'change', setLineWidth );
+	elFillAlpha.  addEventListener( 'change', setFillAlpha );
+	elBarSpace.   addEventListener( 'change', setBarSpace );
+	elReflex.     addEventListener( 'change', setReflex );
+
+	// update range elements' value
+	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
+
+	// action buttons
+	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
+	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
+	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
+	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
+	document.getElementById('btn_stop').addEventListener( 'click', stop );
+	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
+	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
+	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
+	document.getElementById('load_playlist').addEventListener( 'click', () => {
+		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
+	});
+	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
+	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
+	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
+	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
+
+	// clicks on canvas also toggle scale on/off
+	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
+}
+
+/**
+ * Populate Config Panel options
+ */
+function doConfigPanel() {
+
+	// Enabled visualization modes
+
+	const elEnabledModes = document.getElementById('enabled_modes');
+
+	modeOptions.forEach( mode => {
+		elEnabledModes.innerHTML += `<label><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</label>`;
+	});
+
+	document.querySelectorAll('.enabledMode').forEach( el => {
+		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = modeOptions.filter( item => ! item.disabled ).length;
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Mode must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
+			modeOptions.find( item => item.value == el.dataset.mode ).disabled = ! el.checked;
+			populateVisualizationModes();
+			savePreferences('mode');
+		});
+	});
+
+	// Enabled gradients
+
+	const elEnabledGradients = document.getElementById('enabled_gradients');
+
+	Object.keys( gradients ).forEach( key => {
+		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
+	});
+
+	document.querySelectorAll('.enabledGradient').forEach( el => {
+		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
+			gradients[ el.dataset.grad ].disabled = ! el.checked;
+			populateGradients();
+			savePreferences('grad');
+		});
+	});
+
+	// Random Mode properties
+
+	const elProperties = document.getElementById('random_properties');
+
+	randomProperties.forEach( prop => {
+		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
+	});
+
+	document.querySelectorAll('.randomProperty').forEach( el => {
+		el.addEventListener( 'click', event => {
+			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
+			savePreferences('prop');
+		});
+	});
+
+	// Sensitivity presets (already populated by loadPreferences())
+	document.querySelectorAll( '[data-preset]' ).forEach( el => {
+		if ( el.className == 'reset-sens' ) {
+			el.addEventListener( 'click', () => {
+				document.querySelector(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
+				document.querySelector(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
+				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					setSensitivity();
+				savePreferences('sens');
+			});
+		}
+		else {
+			el.addEventListener( 'change', () => {
+				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					setSensitivity();
+				savePreferences('sens');
+			});
+		}
+	});
+}
+
+/**
+ * Load preferences from localStorage
+ */
+function loadPreferences() {
+	// Load last used settings
+	const lastConfig = localStorage.getItem( 'last-config' );
+
+	if ( lastConfig !== null )
+		presets['last'] = JSON.parse( lastConfig );
+	else // if no data found from last session, use the defaults
+		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
+
+	// Load custom preset
+	const customPreset = localStorage.getItem( 'custom-preset' );
+	if ( customPreset !== null )
+		presets['custom'] = JSON.parse( customPreset );
+	else
+		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
+
+	// Load disabled modes preference
+	const disabledModes = localStorage.getItem( 'disabled-modes' );
+	if ( disabledModes !== null ) {
+		JSON.parse( disabledModes ).forEach( mode => {
+			modeOptions.find( item => item.value == mode ).disabled = true;
+		});
+	}
+
+	// Load disabled gradients preference
+	const disabledGradients = localStorage.getItem( 'disabled-gradients' );
+	if ( disabledGradients !== null ) {
+		JSON.parse( disabledGradients ).forEach( key => {
+			gradients[ key ].disabled = true;
+		});
+	}
+
+	// Load disabled random properties preference
+	const disabledProperties = localStorage.getItem( 'disabled-properties' );
+	if ( disabledProperties !== null ) {
+		JSON.parse( disabledProperties ).forEach( prop => {
+			randomProperties.find( item => item.value == prop ).disabled = true;
+		});
+	}
+
+	// Sensitivity presets
+	const elMinSens = document.querySelectorAll('.min-db');
+	for ( let i = -60; i >= -110; i -= 5 )
+		elMinSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+
+	const elMaxSens = document.querySelectorAll('.max-db');
+	for ( let i = 0; i >= -40; i -= 5 )
+		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+
+	let sensitivityPresets = localStorage.getItem( 'sensitivity-presets' );
+	if ( sensitivityPresets == null )
+		sensitivityPresets = sensitivityDefaults;
+	else
+		sensitivityPresets = JSON.parse( sensitivityPresets );
+	sensitivityPresets.forEach( ( preset, index ) => {
+		elMinSens[ index ].value = preset.min;
+		elMaxSens[ index ].value = preset.max;
+	});
+}
+
+/**
+ * Save Config Panel preferences to localStorage
+ *
+ * @param [pref] {string} preference to save; if undefined save all preferences (default)
+ */
+function savePreferences( pref ) {
+	if ( ! pref || pref == 'mode' ) {
+		const disabledModes = modeOptions.filter( item => item.disabled ).map( item => item.value );
+		localStorage.setItem( 'disabled-modes', JSON.stringify( disabledModes ) );
+	}
+
+	if ( ! pref || pref == 'grad' ) {
+		const disabledGradients = Object.keys( gradients ).filter( key => gradients[ key ].disabled );
+		localStorage.setItem( 'disabled-gradients', JSON.stringify( disabledGradients ) );
+	}
+
+	if ( ! pref || pref == 'prop' ) {
+		const disabledProperties = randomProperties.filter( item => item.disabled ).map( item => item.value );
+		localStorage.setItem( 'disabled-properties', JSON.stringify( disabledProperties ) );
+	}
+
+	if ( ! pref || pref == 'sens' ) {
+		let sensitivityPresets = [];
+		for ( const i of [0,1,2] ) {
+			sensitivityPresets.push( {
+				min: document.querySelector(`.min-db[data-preset="${i}"`).value,
+				max: document.querySelector(`.max-db[data-preset="${i}"`).value
+			});
+		}
+		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
+	}
+}
 
 /**
  * Initialization function
  */
 (function() {
 
+	// Log all JS errors to our UI console
+	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
+
 	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
+
+	// Load preferences from localStorage
+	loadPreferences();
 
 	// Initialize play queue and set event listeners
 	playlist = document.getElementById('playlist');
@@ -1530,36 +2010,15 @@ function setLoRes() {
 		}
 	});
 
-	// Add event listeners for config panel selectors
-	document.getElementById('panel_selector').addEventListener( 'click', event => {
-		document.querySelectorAll('#panel_selector li').forEach( e => {
-			e.className = '';
-			document.getElementById( e.dataset.panel ).style.display = 'none';
-		});
-		let el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
-		el.style.display = 'block';
-		if ( event.target.nodeName == 'LI' )
-			event.target.className = 'active';
-		else
-			event.target.parentElement.className = 'active';
-	});
-	document.getElementById('show_filelist').click();
-
 	// Create audioMotion analyzer
 
-	try {
-		audioMotion = new AudioMotionAnalyzer(
-			document.getElementById('analyzer'),
-			{
-				onCanvasDraw: displayCanvasMsg,
-				onCanvasResize: showCanvasInfo
-			}
-		);
-	}
-	catch( err ) {
-		consoleLog( `Fatal error: ${err}`, true );
-		return false;
-	}
+	audioMotion = new AudioMotionAnalyzer(
+		document.getElementById('analyzer'),
+		{
+			onCanvasDraw: displayCanvasMsg,
+			onCanvasResize: showCanvasInfo
+		}
+	);
 
 	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
@@ -1578,7 +2037,7 @@ function setLoRes() {
 
 	sourcePlayer = [];
 
-	for ( let i of [0,1] ) {
+	for ( const i of [0,1] ) {
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
@@ -1588,141 +2047,90 @@ function setLoRes() {
 		sourcePlayer[ i ].connect( audioMotion.analyzer );
 	}
 
-	// Set UI elements
-
-	elFFTsize     = document.getElementById('fft_size');
-	elRangeMin    = document.getElementById('freq_min');
-	elRangeMax    = document.getElementById('freq_max');
-	elSmoothing   = document.getElementById('smoothing');
-	elMode        = document.getElementById('mode');
-	elGradient    = document.getElementById('gradient');
-	elShowScale   = document.getElementById('show_scale');
-	elMinDb       = document.getElementById('min_db');
-	elMaxDb       = document.getElementById('max_db');
-	elShowPeaks   = document.getElementById('show_peaks');
-	elBlackBg     = document.getElementById('black_bg');
-	elCycleGrad   = document.getElementById('cycle_grad');
-	elRandomMode  = document.getElementById('random_mode');
-	elLedDisplay  = document.getElementById('led_display');
-	elLumiBars    = document.getElementById('lumi_bars');
-	elRepeat      = document.getElementById('repeat');
-	elShowSong    = document.getElementById('show_song');
-	elNoShadow    = document.getElementById('no_shadow');
-	elLoRes       = document.getElementById('lo_res');
-	elFPS         = document.getElementById('fps');
-	elSource      = document.getElementById('source');
-	elPlaylists   = document.getElementById('playlists');
+	// Setup configuration panel
+	doConfigPanel();
 
 	// Populate combo boxes
 
-	elMode[0] = new Option( 'Discrete frequencies', 0 );
-	elMode[1] = new Option( 'Area fill', 10 );
-
-	['Full','Half','1/3rd','1/4th','1/6th','1/8th','1/12th','1/24th'].forEach( ( text, i ) => {
-		elMode[ elMode.options.length ] = new Option( `${text} octave bands`, 8 - i );
-	});
+	populateVisualizationModes();
 
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
-	for ( let i of [20,30,40,50,60,100,250,500,1000,2000] )
+	for ( const i of [20,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( i >= 1000 ? ( i / 1000 ) + 'k' : i, i );
 
-	for ( let i of [1000,2000,4000,8000,12000,16000,22000] )
+	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
 
-	for ( let i = -60; i >= -110; i -= 5 )
-		elMinDb[ elMinDb.options.length ] = new Option( i );
+	const sensitivityOptions = [
+		{ value: '0', text: 'Low' },
+		{ value: '1', text: 'Normal' },
+		{ value: '2', text: 'High' }
+	];
+	for ( const item of sensitivityOptions )
+		elSensitivity[ elSensitivity.options.length ] = new Option( item.text, item.value );
 
-	for ( let i = 0; i >= -40; i -= 5 )
-		elMaxDb[ elMaxDb.options.length ] = new Option( i );
+	const barSpaceOptions = [
+		{ value: '1.5',  text: 'Legacy' },
+		{ value: '0.1',  text: 'Narrow' },
+		{ value: '0.25', text: 'Regular' },
+		{ value: '0.5',  text: 'Wide' },
+		{ value: '0.75', text: 'Extra wide' }
+	];
+	for ( const item of barSpaceOptions )
+		elBarSpace[ elBarSpace.options.length ] = new Option( item.text, item.value );
 
+	const randomModeOptions = [
+		{ value: '0',   text: 'Off' },
+		{ value: '1',   text: 'On track change' },
+		{ value: '2',   text: '5 seconds' },
+		{ value: '6',   text: '15 seconds' },
+		{ value: '12',  text: '30 seconds' },
+		{ value: '24',  text: '1 minute' },
+		{ value: '48',  text: '2 minutes' },
+		{ value: '120', text: '5 minutes' }
+	];
+	for ( const item of randomModeOptions )
+		elRandomMode[ elRandomMode.options.length ] = new Option( item.text, item.value );
 
-	// Add event listeners to the custom checkboxes
-	document.querySelectorAll('.switch').forEach( el => {
-		el.addEventListener( 'click', e => {
-			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
-				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
-			else
-				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
-		});
-	});
+	const reflexOptions = [
+		{ value: 'off',    text: 'Off' },
+		{ value: 'on',     text: 'On' },
+		{ value: 'mirror', text: 'Mirrored' }
+	];
+	for ( const item of reflexOptions )
+		elReflex[ elReflex.options.length ] = new Option( item.text, item.value );
 
-	elShowScale.  addEventListener( 'click', setScale );
-	elShowPeaks.  addEventListener( 'click', setShowPeaks );
-	elBlackBg.    addEventListener( 'click', setBlackBg );
-	elCycleGrad.  addEventListener( 'click', updateLastConfig );
-	elRandomMode. addEventListener( 'click', updateLastConfig );
-	elLedDisplay. addEventListener( 'click', setLedDisplay );
-	elLumiBars.   addEventListener( 'click', setLumiBars );
-	elRepeat.     addEventListener( 'click', updateLastConfig );
-	elShowSong.   addEventListener( 'click', updateLastConfig );
-	elNoShadow.   addEventListener( 'click', updateLastConfig );
-	elLoRes.      addEventListener( 'click', setLoRes );
-	elFPS.        addEventListener( 'click', setFPS );
+	elLineWidth.min = '1';
+	elLineWidth.max = '5';
 
-	// Add event listeners to UI config elements
+	elFillAlpha.min = '0';
+	elFillAlpha.max = '0.5';
+	elFillAlpha.step= '0.1';
 
-	elMode.       addEventListener( 'change', setMode );
-	elFFTsize.    addEventListener( 'change', setFFTsize );
-	elRangeMin.   addEventListener( 'change', setFreqRange );
-	elRangeMax.   addEventListener( 'change', setFreqRange );
-	elGradient.   addEventListener( 'change', setGradient );
-	elSource.     addEventListener( 'change', setSource );
-	elSmoothing.  addEventListener( 'change', setSmoothing );
-	elMinDb.      addEventListener( 'change', () => setSensitivity() );
-	elMaxDb.      addEventListener( 'change', () => setSensitivity() );
+	elSmoothing.min = '0';
+	elSmoothing.max = '0.9';
+	elSmoothing.step= '0.1';
 
-	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
-	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
-	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
-	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
-	document.getElementById('btn_stop').addEventListener( 'click', stop );
-	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
-	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
-	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
-	document.getElementById('load_playlist').addEventListener( 'click', () => {
-		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
-	});
-	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
-	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
+	// Set UI event listeners
+	setUIEventListeners();
 
-	// clicks on canvas also toggle scale on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
-
+	// Clear canvas messages
 	setCanvasMsg();
 
 	// Register custom gradients
 	Object.keys( gradients ).forEach( key => {
 		if ( gradients[ key ].bgColor && gradients[ key ].colorStops )
 			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
-
-		// add the option to the html select element for the user interface
-		if ( elGradient.options.length < Object.keys( gradients ).length )
-			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
 	});
-
-	// Load / initialize configuration options
-	var settings;
-
-	settings = localStorage.getItem( 'last-config' );
-	if ( settings !== null )
-		presets['last'] = JSON.parse( settings );
-	else // if no data found from last session, use the defaults
-		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
-
-	settings = localStorage.getItem( 'custom-preset' );
-	if ( settings !== null )
-		presets['custom'] = JSON.parse( settings );
-	else
-		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
+	populateGradients();
 
 	consoleLog( `Display resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
 	consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
 
-	loadPreset('last');
+	// Load last used settings
+	loadPreset( 'last', false, true );
 
 	// Set audio source to built-in player
 	setSource();

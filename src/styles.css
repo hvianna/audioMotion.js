@@ -15,7 +15,11 @@ input[type="text"] {
 }
 input[type="range"] {
 	vertical-align: middle;
-	width: 80px;
+	width: 60px;
+}
+input[type="number"] {
+	padding: 4px;
+	width: 60px;
 }
 
 button {
@@ -50,6 +54,10 @@ h1 {
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
+h3 {
+	font-size: 1.2em;
+	margin: 1em 0;
+}
 
 ul {
 	list-style: none;
@@ -57,10 +65,16 @@ ul {
 	padding: 0;
 }
 
+table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
 .analyzer {
 	background: #000;
 	height: calc( 100vh - 570px );
 	min-height: 270px;
+	overflow: hidden;
 }
 .analyzer canvas {
 	display: block;
@@ -91,6 +105,24 @@ ul {
 	margin: 20px 0 40px;
 }
 
+#config_panel > .config-row > .config-col {
+    width: 33%;
+}
+#config_panel label {
+	display: block;
+}
+#config_panel #random_properties label {
+    display: inline-block;
+    width: 25%;
+}
+#config_panel table th,
+#config_panel table td {
+	border-bottom: 1px solid #ccc;
+	border-top: 1px solid #ccc;
+	padding: 6px;
+	text-align: center;
+}
+
 .container {
 	margin: 0 auto;
 	max-width: 1400px;
@@ -107,10 +139,20 @@ ul {
 .justify-left {
 	justify-content: start;
 }
+.align-start {
+	align-items: start;
+}
+.align-end {
+	align-items: end;
+}
 
 .config-label {
 	font-size: 11px;
 	text-transform: uppercase;
+}
+.config-label,
+.help {
+	margin-bottom: 4px;
 }
 
 .playlist-bar,
@@ -204,6 +246,9 @@ ul {
 
 .config-col {
 	margin: 0 20px;
+}
+.config-sub {
+	margin-top: 10px;
 }
 
 .fullscreen-button {
@@ -466,6 +511,12 @@ kbd.wide {
 }
 #console::-webkit-scrollbar-thumb {
 	background-color: #080;
+}
+
+#enabled_modes,
+#enabled_gradients {
+	height: 260px;
+	overflow-y: auto;
 }
 
 .credits {

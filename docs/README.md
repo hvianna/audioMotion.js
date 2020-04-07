@@ -1,5 +1,5 @@
-audioMotion.js Documentation
-============================
+Documentation
+=============
 
 ## Summary
 
@@ -15,10 +15,11 @@ audioMotion.js Documentation
     - [File explorer](user-interface.md#file-explorer)
     - [Play queue and playlists](user-interface.md#play-queue-and-playlists)
   - [Console](user-interface.md#console)
+  - [Config Panel](user-interface.md#config-panel)
 
 ### Server modes
 
-- [Local mode](server.md)
+- [File mode](server.md)
 - [Custom file server](server.md#custom-file-server)
 - [Using a standard web server](server.md#using-a-standard-web-server)
 - [Apache web server with Docker](server.md#apache-web-server-with-docker)
