@@ -1,10 +1,10 @@
 /**
  * audioMotion.js custom file server
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '19.12'
+const _VERSION = '20.4';
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
