@@ -1535,8 +1535,10 @@ function audioOnPlay() {
 	if ( audioElement[ currAudio ].currentTime == 0 ) {
 		if ( elRandomMode.value == '1' )
 			selectRandomMode( true );
-		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' )
-			cycleGradient();
+		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' ) {
+			cycleElement( elGradient );
+			setGradient();
+		}
 	}
 
 	if ( elShowSong.dataset.active == '1' )
@@ -1971,7 +1973,7 @@ function savePreferences( pref ) {
 (function() {
 
 	// Log all JS errors to our UI console
-	window.addEventListener( 'error', event => consoleLog( `Fatal error: ${event.error}`, true ) );
+	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
 	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
