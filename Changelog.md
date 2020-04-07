@@ -22,6 +22,7 @@ Changelog
 
 ### Fixed:
 
++ Track change sometimes not triggering random mode / auto gradient;
 + Case-insensitive sorting of directory listing when using a standard web server.
 
 
