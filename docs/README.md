@@ -15,6 +15,7 @@ Documentation
     - [File explorer](user-interface.md#file-explorer)
     - [Play queue and playlists](user-interface.md#play-queue-and-playlists)
   - [Console](user-interface.md#console)
+  - [Config Panel](user-interface.md#config-panel)
 
 ### Server modes
 
