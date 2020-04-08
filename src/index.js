@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.4';
+const _VERSION = '20.4-attract';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1060,15 +1060,22 @@ function formatHHMMSS( time ) {
  */
 function displayCanvasMsg() {
 
-	var canvas = audioMotion.canvas,
-		canvasCtx = audioMotion.canvasCtx,
-		timeLeft = audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime,
-		fontSize = canvas.height / 17, // base font size
-		alpha = 1;
+	const canvas    = audioMotion.canvas,
+		  canvasCtx = audioMotion.canvasCtx,
+		  fontSize  = canvas.height / 17, // base font size - this will scale all measures
+		  centerPos = canvas.width / 2,
+		  topLine   = fontSize * 1.4;
+
+	const timeLeft = audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime;
+
+	let alpha = 1;
 
 	if ( playlistPos == playlist.children.length - 1 && timeLeft <= 15 ) {
-		if ( timeLeft > 12 ) // fade-in
+		if ( timeLeft > 12 ) { // fade-in
 			alpha = ( 15 - timeLeft ) / 3;
+			if ( canvasMsg.info == 0 && elShowSong.dataset.active == '1' ) // show song info at the end
+				setCanvasMsg( 1, 10, 3 );
+		}
 		else if ( timeLeft < 3 ) // fade-out
 			alpha = timeLeft / 3;
 
@@ -1084,14 +1091,6 @@ function displayCanvasMsg() {
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
-
-	const canvas    = audioMotion.canvas,
-		  canvasCtx = audioMotion.canvasCtx,
-		  fontSize  = canvas.height / 17, // base font size - this will scale all measures
-		  centerPos = canvas.width / 2,
-		  topLine   = fontSize * 1.4;
-
-	let alpha;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
@@ -1571,7 +1570,7 @@ function audioOnPlay() {
 function audioOnEnded() {
 	if ( ! playNextSong( true ) ) {
 		loadSong( 0 );
-		setCanvasMsg( 'Queue ended', 600 );
+		setCanvasMsg( 'Queue ended', 10 );
 	}
 }
 
