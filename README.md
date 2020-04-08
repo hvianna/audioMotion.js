@@ -1,3 +1,10 @@
+---
+layout: default
+title: Home
+nav_order: 1
+permalink: /
+---
+
 ![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time spectrum analyzer and music player")
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
@@ -12,7 +19,7 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 
 * High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer with fullscreen support
 * Logarithmic frequency scale with customizable range
-* 10 visualization modes: visualize discrete frequencies, or octave bands based on the equal tempered scale
+* 12 visualization modes: visualize discrete frequencies, or octave bands based on the equal tempered scale
 * 17 beautiful color gradients, with optional vintage LEDs and variable luminance effects
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing constant)
 * HTML5 audio player supports MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser)
@@ -54,6 +61,9 @@ The complete command line options are:
 -e        : allow external connections (by default, only localhost)
 ```
 
+⚠ **WARNING:**<br>
+Please be aware that the `-e` flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
+
 ## Documentation
 
 + [User interface](docs/user-interface.md)
@@ -71,14 +81,14 @@ Discrete frequencies mode. User interface showing the file explorer and play que
 1/12th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.
 ![screenshot2](docs/img/screenshot2.png "1/12th-octave bands mode with LED effect and on-screen song information. User interface showing the settings panel.")
 
-Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, "Outrun" gradient, with complete on-screen information.
-![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands mode, 30Hz-16KHz, 'Outrun' gradient, with complete on-screen information")
+Full screen view: 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, "Outrun" gradient, Reflex effect and complete on-screen information.
+![screenshot3](docs/img/screenshot3.png "Full screen view: 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, 'Outrun' gradient, Reflex effect and complete on-screen information")
 
 Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, "Rainbow" gradient.
 ![screenshot4](docs/img/screenshot4.png "Full screen view: Area fill mode, 20Hz-22KHz, frequency scale on, 'Rainbow' gradient")
 
-Full screen view: 1/8th-octave bands mode with luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
-![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
+Full screen view: 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
+![screenshot5](docs/img/screenshot5.png "Full screen view: 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
 
 
 ## Credits and acknowledgments
@@ -128,5 +138,5 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2019 Henrique Avila Vianna<br>
+audioMotion.js copyright (c) 2018-2020 Henrique Avila Vianna<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).

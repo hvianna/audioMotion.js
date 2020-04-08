@@ -1,7 +1,37 @@
-Changelog
-=========
+---
+layout: default
+title: Changelog
+nav_order: 3
+---
 
-## version 19.??
+# Changelog
+
+## version 20.4 :mask:
+
+### Added:
+
++ New **Line graph** visualization mode, with customizable line width and fill opacity;
++ Customizable spacing between bars in octave bands modes;
++ Visualization mode can now be randomized on a time interval;
++ New **Config panel** where you can:
+  + Enable/disable visualization modes and gradients;
+  + Select options affected by random mode;
+  + Customize low, normal and high sensitivity presets.
+
+### Changed:
+
++ The **Area fill** mode has been renamed to **Area graph**;
++ The default spacing between bars in octave bands modes has been increased a bit - set the **Bar spacing** option to **Legacy** for the old look;
++ Slightly improved vertical usage of canvas when the LED effect is active (removed the black line at the bottom of the screen);
++ UI improvements.
+
+### Fixed:
+
++ Track change sometimes not triggering random mode / auto gradient;
++ Case-insensitive sorting of directory listing when using a standard web server.
+
+
+## version 19.12
 
 :tada: Celebrating audioMotion's first anniversary! :confetti_ball:
 
@@ -13,13 +43,20 @@ Changelog
 
 ### Changed:
 
++ Improved the look of bars at lower frequencies, especially for 1/12th and 1/24th octave bands modes;
++ Minor tweak to the **Rainbow** gradient to make cyan and blue shades a little more balanced;
 + Auto gradient and the new random mode now trigger on initial playback and previous track skip as well, not only on next track skip;
 + Shortcut keys changes:
-  + Shuffle shortcut changed to **"Q"** key;
+  + Shuffle shortcut changed to **"E"** key;
   + **"U"** key reassigned to toggle the new luminance bars effect;
-  + **"A"** key now also toggles random visualization mode in combination with auto gradient;
+  + **"A"** key now also toggles random visualization mode in combination with auto gradient (three stages);
 + Added shortcut key hints to the player controls;
++ Improved display of feedback messages for keyboard controls;
 + Updated npm packages.
+
+### Fixed:
+
++ Addressed an error on server startup when running the executable file on Linux systems (related to [an issue with pkg](https://github.com/zeit/pkg/issues/731)).
 
 
 ## version 19.10

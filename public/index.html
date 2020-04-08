@@ -9,7 +9,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * Copyright (c) 2018-2019 Henrique Avila Vianna <hvianna@gmail.com>
+ * Copyright (c) 2018-2020 Henrique Avila Vianna <hvianna@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -94,12 +94,13 @@
 						<tr><td><kbd>&darr;</kbd> / <kbd>g</kbd></td><td>next gradient</td></tr>
 						<tr><td><kbd>A</kbd></td><td>auto grad / rand mode</td></tr>
 						<tr><td><kbd>D</kbd></td><td>show current info</td></tr>
+						<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
 						<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
 						<tr><td><kbd>M</kbd> / <kbd>m</kbd></td><td>previous / next mode</td></tr>
-						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity presets</td></tr>
-						<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
+						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity</td></tr>
 						<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
-						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcode</td></tr>
+						<tr><td><kbd>X</kbd> / <kbd>x</kbd></td><td>reflex style</td></tr>
+						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcut</td></tr>
 					</table>
 				</span>
 			</span>
@@ -110,9 +111,10 @@
 	<div class="container">
 
 		<ul id="panel_selector" class="panel-selector">
-			<li id="show_config" data-panel="config_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer configuration"></i><span>Settings</span></li>
+			<li id="show_settings" data-panel="settings_panel"><i class="icons8-vertical-settings-mixer" title="Analyzer settings"></i><span>Settings</span></li>
 			<li id="show_filelist" data-panel="files_panel"><i class="icons8-opened-folder-2" title="File explorer and playlist"></i><span>Files</span></li>
 			<li id="show_console" data-panel="console"><i class="icons8-console" title="Message console"></i><span>Console</span></li>
+			<li id="show_config" data-panel="config_panel"><i class="icons8-gear-outline" title="General configuration"></i><span>Config</span></li>
 		</ul>
 
 		<div id="console" class="config-panel"></div>
@@ -173,17 +175,17 @@
 			</div>
 		</div> <!-- #files_panel -->
 
-		<div id="config_panel" class="config-panel">
+		<div id="settings_panel" class="config-panel">
 			<div class="config-row flex">
 				<div class="config-col">
-					<span class="help"><span class="config-label">Preset:</span>
+					<div class="help"><span class="config-label">Preset</span>
 						<span class="tooltip">
 							Load a configuration preset.<br>
 							<strong>"Last session"</strong> restores last used configuration settings.
 						</span>
-					</span>
+					</div>
 					<select id="preset">
-						<option value="" disabled selected>choose a preset</option>
+						<option value="" disabled selected>Select preset</option>
 						<option value="fullres">Full resolution</option>
 						<option value="octave">Octave bands</option>
 						<option value="ledbars">LED bars</option>
@@ -192,107 +194,182 @@
 						<option value="default">Restore defaults</option>
 					</select>
 					<button id="load_preset">Load</button>
-				</div>
-
-				<div class="config-col">
-					<span class="config-label"><u>G</u>radient:</span>
-					<select id="gradient"></select>
-
-					<ul class="switch-bar">
-						<li class="switch" id="cycle_grad"><u>A</u>uto
-							<span class="tooltip">Select next gradient automatically on each track change</span>
-						<li class="switch" id="black_bg">NO <u>B</u>G
-							<span class="tooltip">Use black background instead of background color defined by gradient</span>
-					</ul>
-				</div>
-
-				<ul class="config-col switch-bar">
-					<li class="switch" id="show_song"><u>I</u>NFO
-						<span class="tooltip">Display song info in the visualization area on every track change
-					<li class="switch" id="show_scale"><u>S</u>CALE
-						<span class="tooltip">Show / hide the frequency scale</span>
-					<li class="switch" id="show_peaks"><u>P</u>EAKS
-						<span class="tooltip">Hold volume peaks on screen for a short time</span>
-					<li class="switch" id="no_shadow">FLA<u>T</u>
-						<span class="tooltip">Disable shadows on canvas messages</span>
-					<li class="switch" id="lo_res">L<u>O</u>-RES
-						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-					<li class="switch" id="fps">FPS
-						<span class="tooltip">Display current frame rate</span>
-				</ul>
-			</div> <!-- .config-row -->
-
-			<div class="config-row flex">
-				<div class="config-col">
-					<span class="help"><span class="config-label"><u>M</u>ode:</span>
-						<span class="tooltip">
-						Visualization mode. Octave bands are based on the equal tempered scale.
-						</span>
-					</span>
-					<select id="mode"></select>
-					<ul class="switch-bar">
-						<li class="switch" id="led_display"><u>L</u>EDS
-							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
-						<li class="switch" id="lumi_bars">L<u>U</u>MI
-							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-						<li class="switch" id="random_mode">R<u>A</u>ND
-							<span class="tooltip">Select a random visualization mode on every track change</span>
-					</ul>
-				</div>
-
-				<div class="config-col">
-					<span class="help"><span class="config-label">FFT size:</span>
-						<span class="tooltip">
-						Larger values provide more detail in the frequency domain, but less detail in the time domain.
-						</span>
-					</span>
-					<select id="fft_size"></select>
-				</div>
-
-				<div class="config-col">
-					<span class="help"><span class="config-label">Range:</span>
-						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
-					</span>
-					<select id="freq_min"></select> -
-					<select id="freq_max"></select>	Hz
-				</div>
-
-				<div class="config-col">
-					<span class="help"><span class="config-label">Smoothing:</span>
-						<span class="tooltip">
-						Lower values make the analyzer respond faster to changes
-						</span>
-					</span>
-					<input type="range" id="smoothing" min="0" max="0.9" step="0.1">
-					<span id="smoothingValue"></span>
-				</div>
-			</div> <!-- .config-row -->
-
-			<div class="config-row flex">
-				<div class="config-col">
 					<span class="help">
-						<button id="btn_save">Save current settings</button>
+						<button id="btn_save">Save</button>
 						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
 					</span>
 				</div>
 
-				<div class="config-col center">
-					<span class="help"><span class="config-label">Se<u>n</u>sitivity:</span>
+				<div class="config-col">
+					<div class="help"><span class="config-label"><u>G</u>radient</span>
 						<span class="tooltip">
-						Adjust analyzer sensitivity to improve visualization of songs too quiet or too loud
+							Color gradient for the analyzer bars. Disable undesired gradients in the Config panel.
 						</span>
-					</span>
-					<select id="min_db"></select> to
-					<select id="max_db"></select> dB
+					</div>
+					<select id="gradient" data-prop="gradient"></select>
+
+					<ul class="switch-bar">
+						<li class="switch" id="cycle_grad" data-prop="cycleGrad"><u>A</u>uto
+							<span class="tooltip">Select next gradient automatically on each track change</span>
+						<li class="switch" id="black_bg" data-prop="blackBg">NO <u>B</u>G
+							<span class="tooltip">Use black background instead of background color defined by gradient</span>
+					</ul>
 				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Refle<u>x</u></span>
+						<span class="tooltip">
+						Select reflection style<br><em>(no effect when LUMI is active)</em>
+						</span>
+					</div>
+					<select id="reflex" data-prop="reflex"></select>
+				</div>
+
+				<ul class="config-col switch-bar">
+					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
+						<span class="tooltip">Display song info in the visualization area on every track change
+					<li class="switch" id="show_scale" data-prop="showScale"><u>S</u>CALE
+						<span class="tooltip">Show / hide the frequency scale</span>
+					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
+						<span class="tooltip">Hold volume peaks on screen for a short time</span>
+					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
+						<span class="tooltip">Disable shadows on canvas messages</span>
+					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
+						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+					<li class="switch" id="fps" data-prop="showFPS">FPS
+						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
+				</ul>
 			</div> <!-- .config-row -->
 
+			<div class="config-row flex align-start">
+				<div class="config-col">
+					<div class="help"><span class="config-label"><u>M</u>ode</span>
+						<span class="tooltip">
+						Visualization mode. Disable undesired modes in the Config panel.
+						</span>
+					</div>
+					<select id="mode"></select>
+					<ul class="switch-bar">
+						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
+							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
+						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
+							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+					</ul>
+					<div class="config-sub">
+						<label id="line_width_label" class="config-label">Line width:
+							<input id="line_width" data-prop="lineWidth" type="range">
+							<span class="value"></span>
+							<br>
+						</label>
+						<label id="fill_alpha_label" class="config-label">Fill opacity:
+							<input id="fill_alpha" data-prop="fillAlpha" type="range">
+							<span class="value"></span>
+						</label>
+						<label id="bar_space_label" class="config-label">Bar spacing:
+							<select id="bar_space" data-prop="barSpace"></select>
+						</label>
+					</div>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">R<u>a</u>ndom mode</span>
+						<span class="tooltip">
+						Randomize visualization mode on track change or time interval
+						</span>
+					</div>
+					<select id="random_mode" data-prop="randomMode"></select>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">FFT size</span>
+						<span class="tooltip">
+						Larger values provide more detail in the frequency domain, but less detail in the time domain.
+						</span>
+					</div>
+					<select id="fft_size" data-prop="fftSize"></select>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Frequency Range</span>
+						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
+					</div>
+					<select id="freq_min" data-prop="freqMin"></select> to
+					<select id="freq_max" data-prop="freqMax"></select>	Hz
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Smoothing</span>
+						<span class="tooltip">
+						Lower values make the analyzer respond faster to changes
+						</span>
+					</div>
+					<input type="range" id="smoothing" data-prop="smoothing">
+					<span class="value"></span>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Se<u>n</u>sitivity</span>
+						<span class="tooltip">
+						Improve visualization of songs too quiet or too loud. Customize presets in the Config panel.
+						</span>
+					</div>
+					<select id="sensitivity" data-prop="sensitivity"></select>
+				</div>
+
+			</div> <!-- .config-row -->
+
+		</div> <!-- #settings_panel -->
+
+		<div id="config_panel" class="config-panel">
+			<div class="flex align-start">
+				<div class="config-col">
+					<h3>Enabled Visualization Modes:</h3>
+					<p><em>Check modes you want available for visualization</em></p>
+					<div id="enabled_modes">
+					</div>
+				</div>
+				<div class="config-col">
+					<h3>Enabled Gradients:</h3>
+					<p><em>Check gradients you want available for visualization</em></p>
+					<div id="enabled_gradients">
+					</div>
+				</div>
+				<div class="config-col">
+					<h3>Random Mode options:</h3>
+					<p><em>Check options that may be changed on Random Mode</em></p>
+					<div id="random_properties">
+					</div>
+
+					<h3>Sensitivity presets:</h3>
+					<table>
+						<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Reset</th></tr>
+						<tr>
+							<td>Low</td>
+							<td><select class="min-db" data-preset="0"></select></td>
+							<td><select class="max-db" data-preset="0"></select></td>
+							<td><button class="reset-sens" data-preset="0">Default</button></td>
+						</tr>
+						<tr>
+							<td>Normal</td>
+							<td><select class="min-db" data-preset="1"></select></td>
+							<td><select class="max-db" data-preset="1"></select></td>
+							<td><button class="reset-sens" data-preset="1">Default</button></td>
+						</tr>
+						<tr>
+							<td>High</td>
+							<td><select class="min-db" data-preset="2"></select></td>
+							<td><select class="max-db" data-preset="2"></select></td>
+							<td><button class="reset-sens" data-preset="2">Default</button></td>
+						</tr>
+					</table>
+				</div>
+			</div>
 		</div> <!-- #config_panel -->
 
 	</div> <!-- .container -->
 
 	<div class="credits">
-		<strong>audioMotion.js</strong> Copyright &copy; 2018-2019 Henrique Avila Vianna.
+		<strong>audioMotion.js</strong> Copyright &copy; 2018-2020 Henrique Avila Vianna.
 		Source code available on <a href="https://github.com/hvianna/audioMotion.js/">GitHub</a>. Icons by <a href="https://icons8.com/">icons8</a>.
 	</div>
 

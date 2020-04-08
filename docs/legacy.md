@@ -1,7 +1,13 @@
-audioMotion.js legacy features
-==============================
+---
+layout: default
+title: Legacy features
+parent: Documentation
+nav_order: 4
+---
 
-## Legacy playlists
+# Legacy features
+
+## playlists.cfg file
 
 Up to version 19.5 audioMotion required a `playlists.cfg` file where you should register several playlists to load music files from.
 The file explorer introduced in version 19.7 made this file obsolete, but its functionality is still supported for legacy users. Below is the original documentation.
@@ -39,5 +45,3 @@ Example of an m3u playlist file:
 ```
 
 Note that you can use either Windows-style backslashes `\` or Linux-style forward slashes `/` in your pathnames.
-
-

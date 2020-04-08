@@ -1,5 +1,11 @@
-building audioMotion
-====================
+---
+layout: default
+title: Building audioMotion
+parent: Documentation
+nav_order: 3
+---
+
+# Building audioMotion
 
 These steps require [node.js](https://nodejs.org) installed in your computer.
 

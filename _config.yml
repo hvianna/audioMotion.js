@@ -1,0 +1,17 @@
+title: audioMotion
+description: High-resolution real-time spectrum analyzer and music player
+plugins:
+  - jemoji
+remote_theme: pmarsceill/just-the-docs
+
+# Just the Docs theme options
+color_scheme: "dark"
+footer_content: "Copyright &copy; 2018-2020 Henrique Avila Vianna."
+#logo: "/img/audioMotion-logo.png"
+aux_links:
+  "Demo":
+    - "https://audiomotion.me/public/"
+  "Download":
+    - "https://github.com/hvianna/audioMotion.js/releases"
+  "View on GitHub":
+    - "https://github.com/hvianna/audioMotion.js"
