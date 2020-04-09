@@ -1780,6 +1780,23 @@ function setUIEventListeners() {
 
 	// clicks on canvas also toggle scale on/off
 	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
+
+	document.getElementById('dump_settings').addEventListener( 'click', () => {
+		console.log(
+			`time: ${ audioElement[ currAudio ].currentTime }, ` +
+			`mode: ${ elMode.value }, ` +
+			`gradient: '${ elGradient.value }', ` +
+			`blackBg: ${ elBlackBg.dataset.active }, ` +
+			`showPeaks: ${ elShowPeaks.dataset.active }, ` +
+			`ledDisplay: ${ elLedDisplay.dataset.active }, ` +
+			`lumiBars: ${ elLumiBars.dataset.active }, ` +
+			`lineWidth: ${ elLineWidth.value }, ` +
+			`fillAlpha: ${ elFillAlpha.value }, ` +
+			`barSpace: ${ elBarSpace.value }, ` +
+			`reflex: '${ elReflex.value }', ` +
+			`sensitivity: ${elSensitivity.value}`
+		);
+	});
 }
 
 /**
