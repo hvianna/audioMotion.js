@@ -82,6 +82,10 @@ let skipping = false;
 // interval for timed random mode
 let randomModeTimer;
 
+// current visualization script and index
+let songScript = [];
+let songScriptIdx = 0;
+
 // Configuration presets
 const presets = {
 	default: {
@@ -597,6 +601,7 @@ function addMetadata( metadata, target ) {
 		target.dataset.codec    = metadata.dataset.codec || '';
 		target.dataset.quality  = metadata.dataset.quality || '';
 		target.dataset.duration = metadata.dataset.duration || '';
+		target.dataset.script   = metadata.dataset.script || '';
 	}
 	else {						// parse metadata read from file
 		target.dataset.artist   = metadata.common.artist || target.dataset.artist;
@@ -621,7 +626,7 @@ function addMetadata( metadata, target ) {
 /**
  * Add a song to the playlist
  */
-function addSongToPlaylist( uri, content = {} ) {
+async function addSongToPlaylist( uri, content = {} ) {
 
 	const newEl = document.createElement('li');
 
@@ -635,6 +640,22 @@ function addSongToPlaylist( uri, content = {} ) {
 
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	newEl.dataset.file = uri;
+
+	// try to load script file for this song
+	let script = [];
+	const scriptFile = await fetch( uri.slice( 0, uri.lastIndexOf('.') ) + '.ams' );
+//	const scriptData = scriptFile.ok ? await scriptFile.text() : 'Song has no script';
+//	console.log( "script: ", scriptData );
+	if ( scriptFile.ok ) {
+		const scriptData = await scriptFile.text();
+		scriptData.split( /[\r\n]+/ ).forEach( line => {
+			if ( line.charAt(0) != '#' && line.trim() != '' )
+				script.push( Function( `return ( { ${ line } } )`)() ); // convert text to settings object
+		});
+	}
+
+	if ( script.length )
+		newEl.dataset.script = JSON.stringify( script );
 
 	playlist.appendChild( newEl );
 
@@ -1064,6 +1085,14 @@ function displayCanvasMsg() {
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
+	// process visualization script
+	if ( songScriptIdx < songScript.length ) {
+		if ( audioElement[ currAudio ].currentTime >= songScript[ songScriptIdx ].time ) {
+			loadPreset( songScript[ songScriptIdx ] );
+			songScriptIdx++;
+		}
+	}
+
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
@@ -1258,16 +1287,16 @@ function loadLocalFile( obj ) {
 /**
  * Load a configuration preset
  *
- * @param name {string} desired preset name
+ * @param name {string|object} desired preset name or settings object
  * @param [alert] {boolean} true to display on-screen alert after loading
  * @param [init] {boolean} true to use default values for missing properties
  */
 function loadPreset( name, alert, init ) {
 
-	if ( ! presets[ name ] ) // check invalid preset name
+	if ( ! presets[ name ] && typeof name !== 'object' ) // check invalid preset name
 		return;
 
-	const thisPreset = presets[ name ],
+	const thisPreset = ( typeof name == 'object' ) ? name : presets[ name ],
 		  defaults   = presets['default'];
 
 	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
@@ -1533,6 +1562,18 @@ function audioOnPlay() {
 	}
 
 	if ( audioElement[ currAudio ].currentTime < .1 ) {
+		// load visualization script from audio element's dataset, if available
+		if ( audioElement[ currAudio ].dataset.script ) {
+			songScript = JSON.parse( audioElement[ currAudio ].dataset.script );
+			if ( randomModeTimer ) {
+				elRandomMode.value = 0;
+				randomModeTimer = window.clearInterval( randomModeTimer );
+			}
+		}
+		else
+			songScript = [];
+		songScriptIdx = 0;
+
 		if ( elRandomMode.value == '1' )
 			selectRandomMode( true );
 		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' ) {
