@@ -6,6 +6,13 @@ nav_order: 3
 
 # Changelog
 
+## version NEXT :mask:
+
+### Fixed:
+
++ Linux binary built with [latest pkg version](https://github.com/zeit/pkg/pull/751#issuecomment-626363292) can now launch the client in browser.
+
+
 ## version 20.4 :mask:
 
 ### Added:
