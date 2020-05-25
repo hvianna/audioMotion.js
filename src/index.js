@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.5-dev';
+const _VERSION = '20.5-dev.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -72,6 +72,9 @@ let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
 let audioElement, sourcePlayer, sourceMic, cfgSource;
+
+// cover images for current and next song
+let coverImage;
 
 // on-screen messages
 let canvasMsg;
@@ -469,6 +472,7 @@ function clearAudioElement( n = currAudio ) {
 	audioElement[ n ].dataset.quality = '';
 	audioElement[ n ].dataset.duration = '';
 	audioElement[ n ].load();
+	coverImage[ n ] = new Image();
 }
 
 /**
@@ -882,14 +886,37 @@ function getIndex( node ) {
 }
 
 /**
+ * Get album cover from file metadata
+ */
+function loadCover( uri ) {
+	return new Promise( resolve => {
+		mm.fetchFromUrl( uri )
+			.then( metadata => {
+				if ( metadata.common.picture && metadata.common.picture.length ) {
+					let imageStr = '';
+					for ( const i of metadata.common.picture[0].data )
+						imageStr += String.fromCharCode( i );
+					resolve( 'data:' + metadata.common.picture[0].format + ';base64,' + btoa( imageStr ) );
+				}
+				else
+					resolve('');
+			})
+			.catch( e => resolve('') ); // fail silently
+	});
+}
+
+/**
  * Load a song into the currently active audio element
  */
 function loadSong( n ) {
 	if ( playlist.children[ n ] ) {
 		playlistPos = n;
-		audioElement[ currAudio ].src = playlist.children[ playlistPos ].dataset.file;
-		audioElement[ currAudio ].dataset.file = playlist.children[ playlistPos ].dataset.file;
-		addMetadata( playlist.children[ playlistPos ], audioElement[ currAudio ] );
+		const song = playlist.children[ playlistPos ];
+		audioElement[ currAudio ].src = song.dataset.file;
+		audioElement[ currAudio ].dataset.file = song.dataset.file;
+		coverImage[ currAudio ] = new Image();
+		addMetadata( song, audioElement[ currAudio ] );
+		loadCover( song.dataset.file ).then( cover => coverImage[ currAudio ].src = cover );
 
 		updatePlaylistUI();
 		loadNextSong();
@@ -908,10 +935,15 @@ function loadNextSong() {
 		n = playlistPos + 1;
 	else
 		n = 0;
-	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
+	const song = playlist.children[ n ];
+	audioElement[ nextAudio ].src = song.dataset.file;
 	audioElement[ nextAudio ].load();
-	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
-	addMetadata( playlist.children[ n ], audioElement[ nextAudio ] );
+	audioElement[ nextAudio ].dataset.file = song.dataset.file;
+	coverImage[ nextAudio ] = new Image();
+
+	addMetadata( song, audioElement[ nextAudio ] );
+	loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
+
 	skipping = false; // finished skipping track
 }
 
@@ -1069,22 +1101,21 @@ function displayCanvasMsg() {
 
 	const canvas    = audioMotion.canvas,
 		  canvasCtx = audioMotion.canvasCtx,
-		  fontSize  = canvas.height / 17, // base font size - this will scale all measures
+		  fontSize  = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
 		  centerPos = canvas.width / 2,
 		  topLine   = fontSize * 1.4;
-
-	let alpha;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
 	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
+	canvasCtx.fillStyle = '#fff';
+	canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
+
 	// Display custom message if any and info level 2 is not set
 	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
-		alpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
-		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
-		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
+		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
 		outlineText( canvasMsg.msg, centerPos, topLine );
 		canvasMsg.msgTimer--;
 	}
@@ -1099,9 +1130,7 @@ function displayCanvasMsg() {
 			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
 
-		alpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
-		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
-		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
+		canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
@@ -1148,6 +1177,12 @@ function displayCanvasMsg() {
 			canvasCtx.textAlign = 'right';
 
 			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+		}
+
+		// cover image
+		if ( coverImage[ currAudio ].src ) {
+			const coverSize = fontSize * 3;
+			canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 		}
 
 		if ( --canvasMsg.timer < 1 )
@@ -1251,7 +1286,17 @@ function loadLocalFile( obj ) {
 		clearAudioElement();
 		el.src = reader.result;
 		el.play();
-		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) ).catch( e => {} );
+		mm.parseBlob( obj.files[0] )
+			.then( metadata => {
+				addMetadata( metadata, el );
+				if ( metadata.common.picture && metadata.common.picture.length ) {
+					let imageStr = '';
+					for ( const i of metadata.common.picture[0].data )
+						imageStr += String.fromCharCode( i );
+					coverImage[ currAudio ].src = 'data:' + metadata.common.picture[0].format + ';base64,' + btoa( imageStr );
+				}
+			})
+			.catch( e => {} );
 	};
 }
 
@@ -2036,6 +2081,7 @@ function savePreferences( pref ) {
 	audioElement[1].style.display = 'none';
 
 	sourcePlayer = [];
+	coverImage = [];
 
 	for ( const i of [0,1] ) {
 		clearAudioElement( i );
