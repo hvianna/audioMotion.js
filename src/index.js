@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.5-dev.1';
+const _VERSION = '20.5-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -73,9 +73,6 @@ let playlist, playlistPos, currAudio, nextAudio;
 // audio sources
 let audioElement, sourcePlayer, sourceMic, cfgSource;
 
-// cover images for current and next song
-let coverImage;
-
 // on-screen messages
 let canvasMsg;
 
@@ -84,6 +81,15 @@ let skipping = false;
 
 // interval for timed random mode
 let randomModeTimer;
+
+// cover images for current and next song
+let coverImage = [];
+
+// cover images for each visited folder
+let folderImages = {};
+
+// server mode: 1 = custom server; 0 = standard web server; -1 = local (file://) mode
+let serverMode;
 
 // Configuration presets
 const presets = {
@@ -907,8 +913,38 @@ function loadCover( uri ) {
 						imageStr += String.fromCharCode( i );
 					resolve( 'data:' + metadata.common.picture[0].format + ';base64,' + btoa( imageStr ) );
 				}
-				else
+				else if ( serverMode == -1 ) { // in file mode there's nothing else we can do
 					resolve('');
+				}
+				else {
+					// no picture in the metadata - try to get a cover image from the song's folder
+					const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
+
+					if ( folderImages[ path ] !== undefined )
+						resolve( path + folderImages[ path ] );
+					else {
+						const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
+
+						fetch( urlToFetch )
+							.then( response => {
+								return ( response.status == 200 ) ? response.text() : null;
+							})
+							.then( content => {
+								let imageUrl = '';
+								if ( content ) {
+									if ( serverMode == 1 )
+										imageUrl = content;
+									else {
+										const dirContents = fileExplorer.parseWebDirectory( content );
+										if ( dirContents.cover )
+											imageUrl = dirContents.cover;
+									}
+								}
+								folderImages[ path ] = imageUrl;
+								resolve( path + imageUrl );
+							});
+					}
+				}
 			})
 			.catch( e => resolve('') ); // fail silently
 	});
@@ -1189,7 +1225,7 @@ function displayCanvasMsg() {
 		}
 
 		// cover image
-		if ( coverImage[ currAudio ].src ) {
+		if ( coverImage[ currAudio ].width ) {
 			const coverSize = fontSize * 3;
 			canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 		}
@@ -2090,7 +2126,6 @@ function savePreferences( pref ) {
 	audioElement[1].style.display = 'none';
 
 	sourcePlayer = [];
-	coverImage = [];
 
 	for ( const i of [0,1] ) {
 		clearAudioElement( i );
@@ -2200,9 +2235,14 @@ function savePreferences( pref ) {
 			dblClick: ( file, event ) => {
 				addBatchToQueue( [ { file } ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
+			},
+			onEnterDir: ( path, contents ) => {
+				if ( contents.cover && folderImages[ path ] == undefined )
+					folderImages[ path ] = contents.cover;
 			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {
+		serverMode = status;
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
 			document.getElementById('local_file_panel').style.display = 'block';
