@@ -570,7 +570,7 @@ function addBatchToQueue( files, autoplay = false ) {
  */
 function addToPlaylist( file, autoplay = false ) {
 
-	const ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+	const ext = file.slice( file.lastIndexOf('.') + 1 ).toLowerCase();
 	let ret;
 
 	if ( ['m3u','m3u8'].includes( ext ) )
@@ -629,13 +629,16 @@ function addSongToPlaylist( uri, content = {} ) {
 
 	const newEl = document.createElement('li');
 
+	// normalize slashes in path
+	uri = uri.replace( /\\/g, '/' );
+
 	newEl.dataset.artist = content.artist || '';
 
 	newEl.dataset.title = content.title ||
-		uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' ) ||
-		uri.substring( uri.lastIndexOf('//') + 2 );
+		uri.slice( uri.lastIndexOf('/') + 1 ).replace( /%23/g, '#' ) ||
+		uri.slice( uri.lastIndexOf('//') + 2 );
 
-	newEl.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+	newEl.dataset.codec = uri.slice( uri.lastIndexOf('.') + 1 ).toUpperCase();
 
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	newEl.dataset.file = uri;
@@ -672,7 +675,11 @@ function loadPlaylist( path ) {
 	if ( ! path )
 		return;
 
-	const ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
+	// normalize slashes
+	path = path.replace( /\\/g, '/' );
+
+	// get file extension
+	const ext = path.slice( path.lastIndexOf('.') + 1 ).toLowerCase();
 
 	let	n = 0,
 		songInfo;
@@ -687,25 +694,26 @@ function loadPlaylist( path ) {
 						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 				})
 				.then( content => {
-					path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
+					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
 					content.split(/[\r\n]+/).forEach( line => {
 						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+							line = line.replace( /\\/g, '/' );
 							n++;
 							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-								songInfo = line.substring( Math.max( line.lastIndexOf('/'), line.lastIndexOf('\\') ) + 1 );
-								songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+								songInfo = line.slice( line.lastIndexOf('/') + 1 );
+								songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 							}
-							if ( line.substring( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
+							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
 								line = path + line;
 							let t = songInfo.indexOf(' - ');
 							if ( t == -1 )
 								addSongToPlaylist( line, { title: songInfo } );
 							else
-								addSongToPlaylist( line, { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
+								addSongToPlaylist( line, { artist: songInfo.slice( 0, t ), title: songInfo.slice( t + 3 ) } );
 							songInfo = '';
 						}
-						else if ( line.substring( 0, 7 ) == '#EXTINF' )
-							songInfo = line.substring( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+						else if ( line.slice( 0, 7 ) == '#EXTINF' )
+							songInfo = line.slice( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 					});
 					resolve( n );
 				})
@@ -720,8 +728,9 @@ function loadPlaylist( path ) {
 				list = JSON.parse( list );
 				list.forEach( item => {
 					n++;
-					songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
-					songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+					item = item.replace( /\\/g, '/' );
+					songInfo = item.slice( item.lastIndexOf('/') + 1 );
+					songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 					addSongToPlaylist( item, { title: songInfo } )
 				});
 			}
