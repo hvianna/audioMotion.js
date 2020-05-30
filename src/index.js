@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.5-dev.2';
+const _VERSION = '20.5-dev.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -85,7 +85,7 @@ let randomModeTimer;
 // cover images for current and next song
 let coverImage = [];
 
-// cover images for each visited folder
+// folder cover images for songs with no picture in the metadata
 let folderImages = {};
 
 // server mode: 1 = custom server; 0 = standard web server; -1 = local (file://) mode
@@ -2236,10 +2236,6 @@ function savePreferences( pref ) {
 			dblClick: ( file, event ) => {
 				addBatchToQueue( [ { file } ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
-			},
-			onEnterDir: ( path, contents ) => {
-				if ( contents.cover && folderImages[ path ] == undefined )
-					folderImages[ path ] = contents.cover;
 			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {

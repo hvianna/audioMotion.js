@@ -10,8 +10,8 @@ var mounts = [],
 	defaultRoot = '/music',
 	ui_path,
 	ui_files,
-	dblClickCallback,
-	enterDirCallback;
+//	enterDirCallback,
+	dblClickCallback;
 
 /**
  * Updates the file explorer user interface
@@ -100,8 +100,8 @@ function enterDir( target, scrollTop ) {
 				if ( ! nodeServer )
 					content = parseWebDirectory( content );
 				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
-				if ( enterDirCallback )
-					enterDirCallback( url, content );
+//				if ( enterDirCallback )
+//					enterDirCallback( url, content );
 				resolve( true );
 			})
 			.catch( err => {
@@ -250,8 +250,8 @@ export function create( container, options = {} ) {
 	if ( typeof options.dblClick == 'function' )
 		dblClickCallback = options.dblClick;
 
-	if ( typeof options.onEnterDir == 'function' )
-		enterDirCallback = options.onEnterDir;
+//	if ( typeof options.onEnterDir == 'function' )
+//		enterDirCallback = options.onEnterDir;
 
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
