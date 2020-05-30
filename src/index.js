@@ -711,11 +711,12 @@ function loadPlaylist( path ) {
 							}
 							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
 								line = path + line;
-							let t = songInfo.indexOf(' - ');
-							if ( t == -1 )
+							// extract artist name and song title off the info tag (format: ARTIST - SONG)
+							const sep = songInfo.indexOf(' - ');
+							if ( sep == -1 )
 								addSongToPlaylist( line, { title: songInfo } );
 							else
-								addSongToPlaylist( line, { artist: songInfo.slice( 0, t ), title: songInfo.slice( t + 3 ) } );
+								addSongToPlaylist( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
 							songInfo = '';
 						}
 						else if ( line.slice( 0, 7 ) == '#EXTINF' )
