@@ -188,8 +188,6 @@
 					<ul class="switch-bar">
 						<li class="switch" id="cycle_grad" data-prop="cycleGrad"><u>A</u>uto
 							<span class="tooltip">Select next gradient automatically on each track change</span>
-						<li class="switch" id="black_bg" data-prop="blackBg">NO <u>B</u>G
-							<span class="tooltip">Use black background instead of background color defined by gradient</span>
 					</ul>
 				</div>
 
@@ -199,12 +197,7 @@
 						Select background option
 						</span>
 					</div>
-					<select id="background">
-						<option value="0">Gradient default</option>
-						<option value="1">Black</option>
-						<option value="2">Album cover (center)</option>
-						<option value="3">Album cover (repeat)</option>
-					</select>
+					<select id="background" data-prop="background"></select>
 				</div>
 
 				<div class="config-col">
@@ -213,7 +206,7 @@
 							Adjust the intensity of the background cover image
 						</span>
 					</div>
-					<input id="cover_dim" type="range" min="0" max="1" value="0.5" step="0.1">
+					<input id="cover_dim" type="range" data-prop="coverDim">
 					<span class="value"></span>
 				</div>
 

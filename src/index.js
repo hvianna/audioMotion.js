@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.5-dev.4';
+const _VERSION = '20.6-dev';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -47,7 +47,6 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elShowScale   = document.getElementById('show_scale'),
 	  elSensitivity = document.getElementById('sensitivity'),
 	  elShowPeaks   = document.getElementById('show_peaks'),
-	  elBlackBg     = document.getElementById('black_bg'),
 	  elCycleGrad   = document.getElementById('cycle_grad'),
 	  elRandomMode  = document.getElementById('random_mode'),
 	  elLedDisplay  = document.getElementById('led_display'),
@@ -102,7 +101,7 @@ const presets = {
 		freqMax     : 22000,	// highest frequency
 		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
 		gradient    : 'prism',
-		blackBg     : 0,
+		background  : 0,
 		cycleGrad   : 1,
 		randomMode  : 0,
 		ledDisplay  : 0,
@@ -118,7 +117,8 @@ const presets = {
 		lineWidth   : 2,
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
-		reflex      : 'off'
+		reflex      : 'off',
+		coverDim    : 0.5
 	},
 
 	fullres: {
@@ -139,7 +139,7 @@ const presets = {
 		mode        : 2,		// 1/12th octave bands mode
 		fftSize     : 8192,
 		smoothing   : 0.5,
-		blackBg     : 0,
+		background  : 1,
 		ledDisplay  : 1,
 		showScale   : 0
 	}
@@ -241,7 +241,7 @@ const modeOptions = [
 
 // Properties that may be changed by Random Mode
 const randomProperties = [
-	{ value: 'nobg',   text: 'NO BG',        disabled: false },
+	{ value: 'nobg',   text: 'Background',   disabled: false },
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
@@ -451,14 +451,6 @@ function setShowPeaks() {
 }
 
 /**
- * Set background color preference
- */
-function setBlackBg() {
-	audioMotion.showBgColor = ( elBlackBg.dataset.active == '0' );
-	updateLastConfig();
-}
-
-/**
  * Set background preference
  */
 function setBackground() {
@@ -475,7 +467,7 @@ function setBackground() {
 	else
 		audioMotion.canvas.style.backgroundImage = '';
 
-//	updateLastConfig();
+	updateLastConfig();
 }
 
 /**
@@ -1403,6 +1395,9 @@ function loadPreset( name, alert, init ) {
 	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
 		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
 
+	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
+		thisPreset.background = thisPreset.blackBg; // convert legacy blackBg property (version =< 20.4)
+
 	document.querySelectorAll('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
 			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
@@ -1436,13 +1431,13 @@ function loadPreset( name, alert, init ) {
 		smoothing  : elSmoothing.value,
 		showScale  : elShowScale.dataset.active == '1',
 		showPeaks  : elShowPeaks.dataset.active == '1',
-		showBgColor: elBlackBg.dataset.active == '0',
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
 		showFPS    : elFPS.dataset.active == '1'
 	} );
 
+	setBackground();
 	setSensitivity();
 	setReflex();
 	setGradient();
@@ -1472,9 +1467,10 @@ function saveConfig( config ) {
 		fillAlpha   : elFillAlpha.value,
 		barSpace    : elBarSpace.value,
 		reflex      : elReflex.value,
+		background  : elBackground.value,
+		coverDim    : elCoverDim.value,
 		showScale 	: elShowScale.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
-		blackBg     : elBlackBg.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
 		lumiBars    : elLumiBars.dataset.active,
@@ -1568,9 +1564,10 @@ function keyboardControls( event ) {
 			}
 			setRandomMode();
 			break;
-		case 'KeyB': 		// toggle black background
-			elBlackBg.click();
-			setCanvasMsg( 'Background ' + ( elBlackBg.dataset.active == '1' ? 'OFF' : 'ON' ) );
+		case 'KeyB': 		// background
+			cycleElement( elBackground, event.shiftKey );
+			setBackground();
+			setCanvasMsg( 'Background: ' + elBackground[ elBackground.selectedIndex ].text );
 			break;
 		case 'KeyD': 		// display information
 			if ( canvasMsg.info == 2 )
@@ -1714,8 +1711,8 @@ function selectRandomMode( force = false ) {
 	elMode.selectedIndex = Math.random() * elMode.options.length | 0;
 
 	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled ) {
-		elBlackBg.dataset.active = Math.random() * 2 | 0;
-		audioMotion.showBgColor = elBlackBg.dataset.active == '0';
+		elBackground.selectedIndex = Math.random() * elBackground.options.length | 0;
+		setBackground();
 	}
 
 	if ( ! randomProperties.find( item => item.value == 'peaks' ).disabled ) {
@@ -1854,7 +1851,6 @@ function setUIEventListeners() {
 
 	elShowScale.  addEventListener( 'click', setScale );
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
-	elBlackBg.    addEventListener( 'click', setBlackBg );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
 	elLumiBars.   addEventListener( 'click', setLumiBars );
@@ -2225,6 +2221,19 @@ function savePreferences( pref ) {
 	];
 	for ( const item of reflexOptions )
 		elReflex[ elReflex.options.length ] = new Option( item.text, item.value );
+
+	const backgroundOptions = [
+		{ value: '0', text: 'Gradient default' },
+		{ value: '1', text: 'Black' },
+		{ value: '2', text: 'Album cover (center)' },
+		{ value: '3', text: 'Album cover (repeat)' }
+	];
+	for ( const item of backgroundOptions )
+		elBackground[ elBackground.options.length ] = new Option( item.text, item.value );
+
+	elCoverDim.min  = '0.1';
+	elCoverDim.max  = '1';
+	elCoverDim.step = '0.1';
 
 	elLineWidth.min = '1';
 	elLineWidth.max = '5';
