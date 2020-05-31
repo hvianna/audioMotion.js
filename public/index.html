@@ -178,29 +178,6 @@
 		<div id="settings_panel" class="config-panel">
 			<div class="config-row flex">
 				<div class="config-col">
-					<div class="help"><span class="config-label">Preset</span>
-						<span class="tooltip">
-							Load a configuration preset.<br>
-							<strong>"Last session"</strong> restores last used configuration settings.
-						</span>
-					</div>
-					<select id="preset">
-						<option value="" disabled selected>Select preset</option>
-						<option value="fullres">Full resolution</option>
-						<option value="octave">Octave bands</option>
-						<option value="ledbars">LED bars</option>
-						<option value="custom">Custom</option>
-						<option value="last">Last session</option>
-						<option value="default">Restore defaults</option>
-					</select>
-					<button id="load_preset">Load</button>
-					<span class="help">
-						<button id="btn_save">Save</button>
-						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-					</span>
-				</div>
-
-				<div class="config-col">
 					<div class="help"><span class="config-label"><u>G</u>radient</span>
 						<span class="tooltip">
 							Color gradient for the analyzer bars. Disable undesired gradients in the Config panel.
@@ -214,6 +191,30 @@
 						<li class="switch" id="black_bg" data-prop="blackBg">NO <u>B</u>G
 							<span class="tooltip">Use black background instead of background color defined by gradient</span>
 					</ul>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Background</span>
+						<span class="tooltip">
+						Select background option
+						</span>
+					</div>
+					<select id="background">
+						<option value="0">Gradient default</option>
+						<option value="1">Black</option>
+						<option value="2">Album cover (center)</option>
+						<option value="3">Album cover (repeat)</option>
+					</select>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Cover image dim</span>
+						<span class="tooltip">
+							Adjust the intensity of the background cover image
+						</span>
+					</div>
+					<input id="cover_dim" type="range" min="0" max="1" value="0.5" step="0.1">
+					<span class="value"></span>
 				</div>
 
 				<div class="config-col">
@@ -316,6 +317,31 @@
 					<select id="sensitivity" data-prop="sensitivity"></select>
 				</div>
 
+			</div> <!-- .config-row -->
+
+			<div class="config-row flex align-start">
+				<div class="config-col">
+					<div class="help"><span class="config-label">Preset</span>
+						<span class="tooltip">
+							Load a configuration preset.<br>
+							<strong>"Last session"</strong> restores last used configuration settings.
+						</span>
+					</div>
+					<select id="preset">
+						<option value="" disabled selected>Select preset</option>
+						<option value="fullres">Full resolution</option>
+						<option value="octave">Octave bands</option>
+						<option value="ledbars">LED bars</option>
+						<option value="custom">Custom</option>
+						<option value="last">Last session</option>
+						<option value="default">Restore defaults</option>
+					</select>
+					<button id="load_preset">Load</button>
+					<span class="help">
+						<button id="btn_save">Save</button>
+						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
+					</span>
+				</div>
 			</div> <!-- .config-row -->
 
 		</div> <!-- #settings_panel -->

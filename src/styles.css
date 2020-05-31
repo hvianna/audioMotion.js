@@ -77,11 +77,17 @@ table {
 	overflow: hidden;
 }
 .analyzer canvas {
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
 	display: block;
 	width: 100%;
 }
 .analyzer canvas:-webkit-full-screen {
 	height: auto;
+}
+.analyzer canvas.background-repeat {
+	background-repeat: repeat-x;
 }
 
 #player0,

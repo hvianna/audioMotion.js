@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.5-dev.3';
+const _VERSION = '20.5-dev.4';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -62,7 +62,9 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elLineWidth   = document.getElementById('line_width'),
 	  elFillAlpha   = document.getElementById('fill_alpha'),
 	  elBarSpace    = document.getElementById('bar_space'),
-	  elReflex      = document.getElementById('reflex');
+	  elReflex      = document.getElementById('reflex'),
+	  elBackground  = document.getElementById('background'),
+	  elCoverDim    = document.getElementById('cover_dim');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -457,6 +459,26 @@ function setBlackBg() {
 }
 
 /**
+ * Set background preference
+ */
+function setBackground() {
+	const option = elBackground.value;
+
+	audioMotion.overlay = ( option > 1 );
+	audioMotion.showBgColor = ( option == 0 );
+	audioMotion.canvas.classList.toggle( 'background-repeat', option == 3 );
+
+	if ( coverImage[ currAudio ].src ) {
+		const alpha = 1 - elCoverDim.value;
+		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${coverImage[ currAudio ].src}')`;
+	}
+	else
+		audioMotion.canvas.style.backgroundImage = '';
+
+//	updateLastConfig();
+}
+
+/**
  * Set display of current frame rate
  */
 function setFPS() {
@@ -479,6 +501,8 @@ function clearAudioElement( n = currAudio ) {
 	audioElement[ n ].dataset.duration = '';
 	audioElement[ n ].load();
 	coverImage[ n ] = new Image();
+	if ( n == currAudio )
+		audioMotion.canvas.style.backgroundImage = '';
 }
 
 /**
@@ -962,7 +986,11 @@ function loadSong( n ) {
 		audioElement[ currAudio ].dataset.file = song.dataset.file;
 		coverImage[ currAudio ] = new Image();
 		addMetadata( song, audioElement[ currAudio ] );
-		loadCover( song.dataset.file ).then( cover => coverImage[ currAudio ].src = cover );
+		loadCover( song.dataset.file ).then( cover => {
+			coverImage[ currAudio ].src = cover;
+			if ( elBackground.value > 1 )
+				setBackground();
+		});
 
 		updatePlaylistUI();
 		loadNextSong();
@@ -1632,6 +1660,9 @@ function audioOnPlay() {
 		}
 	}
 
+	if ( elBackground.value > 1 )
+		setBackground();
+
 	if ( elShowSong.dataset.active == '1' )
 		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
 }
@@ -1848,6 +1879,8 @@ function setUIEventListeners() {
 	elFillAlpha.  addEventListener( 'change', setFillAlpha );
 	elBarSpace.   addEventListener( 'change', setBarSpace );
 	elReflex.     addEventListener( 'change', setReflex );
+	elBackground. addEventListener( 'change', setBackground );
+	elCoverDim.   addEventListener( 'change', setBackground );
 
 	// update range elements' value
 	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
