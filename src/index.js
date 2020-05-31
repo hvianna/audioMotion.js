@@ -2088,6 +2088,14 @@ function savePreferences( pref ) {
 }
 
 /**
+ * Populate a select HTML element
+ */
+function populateSelect( element, options ) {
+	for ( const item of options )
+		element[ element.options.length ] = new Option( item.text, item.value );
+}
+
+/**
  * Initialization function
  */
 (function() {
@@ -2183,25 +2191,21 @@ function savePreferences( pref ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
 
-	const sensitivityOptions = [
+	populateSelect(	elSensitivity, [
 		{ value: '0', text: 'Low' },
 		{ value: '1', text: 'Normal' },
 		{ value: '2', text: 'High' }
-	];
-	for ( const item of sensitivityOptions )
-		elSensitivity[ elSensitivity.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const barSpaceOptions = [
+	populateSelect(	elBarSpace, [
 		{ value: '1.5',  text: 'Legacy' },
 		{ value: '0.1',  text: 'Narrow' },
 		{ value: '0.25', text: 'Regular' },
 		{ value: '0.5',  text: 'Wide' },
 		{ value: '0.75', text: 'Extra wide' }
-	];
-	for ( const item of barSpaceOptions )
-		elBarSpace[ elBarSpace.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const randomModeOptions = [
+	populateSelect( elRandomMode, [
 		{ value: '0',   text: 'Off' },
 		{ value: '1',   text: 'On track change' },
 		{ value: '2',   text: '5 seconds' },
@@ -2210,26 +2214,20 @@ function savePreferences( pref ) {
 		{ value: '24',  text: '1 minute' },
 		{ value: '48',  text: '2 minutes' },
 		{ value: '120', text: '5 minutes' }
-	];
-	for ( const item of randomModeOptions )
-		elRandomMode[ elRandomMode.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const reflexOptions = [
+	populateSelect(	elReflex, [
 		{ value: 'off',    text: 'Off' },
 		{ value: 'on',     text: 'On' },
 		{ value: 'mirror', text: 'Mirrored' }
-	];
-	for ( const item of reflexOptions )
-		elReflex[ elReflex.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const backgroundOptions = [
+	populateSelect(	elBackground, [
 		{ value: '0', text: 'Gradient default' },
 		{ value: '1', text: 'Black' },
 		{ value: '2', text: 'Album cover (center)' },
 		{ value: '3', text: 'Album cover (repeat)' }
-	];
-	for ( const item of backgroundOptions )
-		elBackground[ elBackground.options.length ] = new Option( item.text, item.value );
+	]);
 
 	elCoverDim.min  = '0.1';
 	elCoverDim.max  = '1';
