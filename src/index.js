@@ -280,8 +280,8 @@ function setBarSpace() {
 function setSensitivity() {
 	const sensitivity = elSensitivity.value;
 	audioMotion.setSensitivity(
-		document.querySelector(`.min-db[data-preset="${sensitivity}"`).value,
-		document.querySelector(`.max-db[data-preset="${sensitivity}"`).value
+		document.querySelector(`.min-db[data-preset="${sensitivity}"]`).value,
+		document.querySelector(`.max-db[data-preset="${sensitivity}"]`).value
 	);
 	updateLastConfig();
 }
@@ -2080,8 +2080,8 @@ function savePreferences( pref ) {
 		let sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
-				min: document.querySelector(`.min-db[data-preset="${i}"`).value,
-				max: document.querySelector(`.max-db[data-preset="${i}"`).value
+				min: document.querySelector(`.min-db[data-preset="${i}"]`).value,
+				max: document.querySelector(`.max-db[data-preset="${i}"]`).value
 			});
 		}
 		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
