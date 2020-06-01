@@ -275,20 +275,20 @@
 				</div>
 
 				<div class="config-col">
-					<div class="help"><span class="config-label">FFT size</span>
-						<span class="tooltip">
-						Larger values provide more detail in the frequency domain, but less detail in the time domain.
-						</span>
-					</div>
-					<select id="fft_size" data-prop="fftSize"></select>
-				</div>
-
-				<div class="config-col">
 					<div class="help"><span class="config-label">Frequency Range</span>
-						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
+						<span class="tooltip">Lowest and highest frequencies represented in the X-axis</span>
 					</div>
 					<select id="freq_min" data-prop="freqMin"></select> to
 					<select id="freq_max" data-prop="freqMax"></select>	Hz
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">FFT size</span>
+						<span class="tooltip">
+						Higher values provide more detail in the frequency domain, but less detail in the time domain.
+						</span>
+					</div>
+					<select id="fft_size" data-prop="fftSize"></select>
 				</div>
 
 				<div class="config-col">
@@ -361,24 +361,24 @@
 
 					<h3>Sensitivity presets:</h3>
 					<table>
-						<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Reset</th></tr>
+						<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
 						<tr>
 							<td>Low</td>
 							<td><select class="min-db" data-preset="0"></select></td>
 							<td><select class="max-db" data-preset="0"></select></td>
-							<td><button class="reset-sens" data-preset="0">Default</button></td>
+							<td><button class="reset-sens" data-preset="0">Reset</button></td>
 						</tr>
 						<tr>
 							<td>Normal</td>
 							<td><select class="min-db" data-preset="1"></select></td>
 							<td><select class="max-db" data-preset="1"></select></td>
-							<td><button class="reset-sens" data-preset="1">Default</button></td>
+							<td><button class="reset-sens" data-preset="1">Reset</button></td>
 						</tr>
 						<tr>
 							<td>High</td>
 							<td><select class="min-db" data-preset="2"></select></td>
 							<td><select class="max-db" data-preset="2"></select></td>
-							<td><button class="reset-sens" data-preset="2">Default</button></td>
+							<td><button class="reset-sens" data-preset="2">Reset</button></td>
 						</tr>
 					</table>
 				</div>
