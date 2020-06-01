@@ -1397,7 +1397,7 @@ function loadPreset( name, alert, init ) {
 		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
 
 	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
-		thisPreset.background = thisPreset.blackBg; // convert legacy blackBg property (version =< 20.4)
+		thisPreset.background = thisPreset.blackBg | 0; // convert legacy blackBg property (version =< 20.4)
 
 	document.querySelectorAll('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
