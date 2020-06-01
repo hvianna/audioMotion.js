@@ -48,7 +48,7 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Space** | | play / pause
 **Up** / **Down** | **Shift+G** / **G** | select previous / next gradient
 **A** | | cycle through auto gradient and random mode options
-**B** | | toggle background
+**Shift+B** / **B** | | select previous / next background option
 **D** | | display current song info - press again for settings info
 **E** | | shuffle play queue
 **F** | | toggle fullscreen mode
@@ -93,16 +93,29 @@ The **Restore defaults** preset resets all options to their initial values as in
 
 Several options of color gradients for the analyzer bars. You can change gradients with the **Up** and **Down** arrow keys, or alternatively, **G** and **Shift + G** keys.
 
-Switches:
+If the **AUTO** switch is on, the next gradient will be selected on track change, cycling through the available gradients.
+When [Random mode](#random-mode) is active, a random gradient will be selected on every change.
 
-+ **AUTO** selects the next gradient on track change, cycling through the available gradients
-+ **NO BG** ignores the background color defined by each gradient, using a black background instead (may improve contrast)
+#### Background
+
+Selects the analyzer background.
+
+- **Gradient default** uses the background color defined by the currently selected gradient - this option also shows the unlit LEDs when the [LED effect](#mode) is on;
+- **Black** uses a black background;
+- The **Album cover** options display the album cover for the current song, either centered on canvas, repeating or adjusted (zoomed) to fill the canvas.
+
+The album covers are retrieved from the songs' metadata. When a picture is not found in the metadata, **audioMotion** will look for a file named
+*cover* or *folder* (with a jpg, png, gif or bmp extension) in the song's folder.
+
+#### Cover image dim
+
+Adjusts the intensity of the background image, when [Background](#background) is set to one of the *Album cover* options.
 
 #### Reflex
 
 ![ui-reflex](img/UI_reflex.png)
 
-Select a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode) switch is active.
+Selects a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode) switch is active.
 
 #### Analyzer switches
 
@@ -142,16 +155,9 @@ Switches:
 
 ![ui-random-mode](img/UI_random_mode.png)
 
-The visualization mode and some options may be randomized on track change or time interval. If the [AUTO](#gradient) switch is active, the gradient will be randomized as well.
+The visualization mode and some options may be randomized on track change or time interval.
 
-You can choose which options may be changed by random mode in the Config panel.
-
-#### FFT Size
-
-![ui-fftsize](img/UI_fftsize.png)
-
-The number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
-Larger values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
+You can choose which options may be changed by random mode in the Config panel. If the [AUTO](#gradient) switch is active, the gradient will be randomized as well.
 
 #### Frequency Range
 
@@ -159,20 +165,31 @@ Larger values provide greater detail in the frequency domain (especially for low
 
 The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this feature to "zoom in" a specific frequency range.
 
+#### FFT Size
+
+![ui-fftsize](img/UI_fftsize.png)
+
+Number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+
+Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes),
+so you may also want to adjust the [Smoothing](#smoothing) if changing this.
+
 #### Smoothing
 
 ![ui-smoothing](img/UI_smoothing.png)
 
-Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
+Average constant used to smooth values between analysis frames.
+
+Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger [FFT sizes](#fft-size).
 Increase it if the animation looks too "jumpy".
 
 #### Sensitivity
 
 ![ui-sensitivity](img/UI_sensitivity.png)
 
-Adjust the minimum and maximum decibel values to improve the visualization of songs too quiet or too loud. **0** dB represents the loudest possible sound volume.
+Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
 
-You can also choose from three predefined sensitivity settings (low, normal and high) via the **N** and **Shift + N** keyboard shortcuts.
+The presets can be customized in the [Config Panel](#config-panel).
 
 
 ### Files Panel
@@ -204,9 +221,11 @@ Saved playlists appear in the playlist selection box. Select a playlist and clic
 Press the ![disk-button](img/save-button.png "diskette") button to update the selected playlist with the current queue contents.
 Press the ![trash-button](img/trash-button.png "trashcan") button to permanently deleted the selected playlist.
 
+
 ### Console
 
 The console records several useful information, like audio and video settings, configuration changes and error messages.
+
 
 ### Config Panel
 
@@ -226,4 +245,4 @@ Allows you to customize which options may be changed when the visualization mode
 
 #### Sensitivity presets
 
-Allows you to customize the low, normal and high sensitivity presets.
+Allows you to customize the low, normal and high sensitivity presets. **0** dB represents the loudest possible sound volume.
