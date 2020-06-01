@@ -86,8 +86,11 @@ table {
 .analyzer canvas:-webkit-full-screen {
 	height: auto;
 }
-.analyzer canvas.background-repeat {
+.analyzer canvas.repeat {
 	background-repeat: repeat-x;
+}
+.analyzer canvas.cover {
+	background-size: cover;
 }
 
 #player0,

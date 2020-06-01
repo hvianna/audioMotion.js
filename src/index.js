@@ -458,7 +458,8 @@ function setBackground() {
 
 	audioMotion.overlay = ( option > 1 );
 	audioMotion.showBgColor = ( option == 0 );
-	audioMotion.canvas.classList.toggle( 'background-repeat', option == 3 );
+	audioMotion.canvas.classList.toggle( 'repeat', option == 3 );
+	audioMotion.canvas.classList.toggle( 'cover', option == 4 );
 
 	if ( coverImage[ currAudio ].src ) {
 		const alpha = 1 - elCoverDim.value;
@@ -2226,7 +2227,8 @@ function populateSelect( element, options ) {
 		{ value: '0', text: 'Gradient default' },
 		{ value: '1', text: 'Black' },
 		{ value: '2', text: 'Album cover (center)' },
-		{ value: '3', text: 'Album cover (repeat)' }
+		{ value: '3', text: 'Album cover (repeat)' },
+		{ value: '4', text: 'Album cover (adjust)' }
 	]);
 
 	elCoverDim.min  = '0.1';
