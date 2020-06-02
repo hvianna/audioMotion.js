@@ -8,9 +8,18 @@ nav_order: 3
 
 ## version NEXT :mask:
 
+### Added:
+
++ Song information now shows the album cover image, when available (see below);
++ New [Background](docs/user-interface.md#background) setting - replaces the **NO BG** switch and adds options to display the album cover image in the background.
+
+Cover images can be retrieved from the songs' metadata or from a file named *cover* or *folder* (with jpg, png, gif or bmp extension) inside each folder -
+these will also be shown as the folder background in the file explorer.
+
 ### Fixed:
 
-+ Linux binary built with [latest pkg version](https://github.com/zeit/pkg/pull/751#issuecomment-626363292) can now launch the client in browser.
++ Linux binary built with [latest pkg version](https://github.com/zeit/pkg/pull/751#issuecomment-626363292) can now launch the client in browser;
++ A typo that could cause "Unexpected null" errors on some browsers.
 
 
 ## version 20.4 :mask:

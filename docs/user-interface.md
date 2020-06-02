@@ -208,6 +208,8 @@ You can also drag and drop files from the file explorer into the play queue.
 
 Supported extensions are flac, m4a, mp3, ogg and wav for music files, and m3u or m3u8 for playlists. Codec support may vary, depending on your web browser and operating system.
 
+If the current folder contains a file named *cover* or *folder* with jpg, png, gif or bmp extension, the image will be shown in the background of the file explorer.
+
 #### Play queue and playlists
 
 Double-click a queued song to play it.
