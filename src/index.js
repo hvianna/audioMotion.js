@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.6-dev.1';
+const _VERSION = '20.6-dev.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -464,13 +464,7 @@ function setBackground() {
 	audioMotion.canvas.classList.toggle( 'repeat', bgFit == 'repeat' );
 	audioMotion.canvas.classList.toggle( 'cover', bgFit == 'adjust' );
 
-	if ( coverImage[ currAudio ].src ) {
-		const alpha = 1 - elBgImageDim.value;
-		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${coverImage[ currAudio ].src}')`;
-	}
-	else
-		audioMotion.canvas.style.backgroundImage = '';
-
+	setCurrentCover();
 	updateLastConfig();
 }
 
@@ -480,6 +474,24 @@ function setBackground() {
 function setFPS() {
 	audioMotion.showFPS = ( elFPS.dataset.active == '1' );
 	updateLastConfig();
+}
+
+/**
+ * Set the current cover image or just update the canvas background
+ */
+function setCurrentCover( url ) {
+	if ( url )
+		coverImage[ currAudio ].src = url;
+
+	if ( elBackground.value > 1 && coverImage[ currAudio ].src ) {
+		const alpha = 1 - elBgImageDim.value;
+		const imageUrl = coverImage[ currAudio ].src.replace( /'/g, "\\'" ); // escape single quotes
+		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
+	}
+	else
+		audioMotion.canvas.style.backgroundImage = '';
+
+	audioMotion.canvas.style.backgroundSize = '';
 }
 
 
@@ -498,7 +510,7 @@ function clearAudioElement( n = currAudio ) {
 	audioElement[ n ].load();
 	coverImage[ n ] = new Image();
 	if ( n == currAudio )
-		audioMotion.canvas.style.backgroundImage = '';
+		setCurrentCover(); // clear current background image
 }
 
 /**
@@ -980,11 +992,7 @@ function loadSong( n ) {
 		audioElement[ currAudio ].dataset.file = song.dataset.file;
 		coverImage[ currAudio ] = new Image();
 		addMetadata( song, audioElement[ currAudio ] );
-		loadCover( song.dataset.file ).then( cover => {
-			coverImage[ currAudio ].src = cover;
-			if ( elBackground.value > 1 )
-				setBackground();
-		});
+		loadCover( song.dataset.file ).then( cover => setCurrentCover( cover ) );
 
 		updatePlaylistUI();
 		loadNextSong();
@@ -1163,6 +1171,23 @@ function displayCanvasMsg() {
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
+
+	// update background image
+	if ( elBackground.value > 1 ) {
+		let size;
+
+		if ( elBgImageFit.value == 'pulse' ) {
+			const idx = audioMotion.freqToBin( 120 ); // use the 120Hz FFT bin to detect beats
+			size = audioMotion.dataArray[ idx ] / 10 | 0;
+		}
+		else if ( elBgImageFit.value == 'zoom-in' )
+			size = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration * 100;
+		else if ( elBgImageFit.value == 'zoom-out' )
+			size = ( 1 - ( audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration ) ) * 100;
+
+		if ( size !== undefined )
+			audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+	}
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
@@ -1359,9 +1384,7 @@ function loadLocalFile( obj ) {
 				addMetadata( metadata, el );
 				if ( metadata.common.picture && metadata.common.picture.length ) {
 					const imgBlob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
-					coverImage[ currAudio ].src = URL.createObjectURL( imgBlob );
-					if ( elBackground.value > 1 )
-						setBackground();
+					setCurrentCover( URL.createObjectURL( imgBlob ) );
 				}
 			})
 			.catch( e => {} );
@@ -1660,8 +1683,7 @@ function audioOnPlay() {
 		}
 	}
 
-	if ( elBackground.value > 1 )
-		setBackground();
+	setCurrentCover();
 
 	if ( elShowSong.dataset.active == '1' )
 		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
@@ -2233,9 +2255,12 @@ function populateSelect( element, options ) {
 	]);
 
 	populateSelect( elBgImageFit, [
-		{ value: 'adjust', text: 'Adjust' },
-		{ value: 'center', text: 'Center' },
-		{ value: 'repeat', text: 'Repeat' },
+		{ value: 'adjust',   text: 'Adjust' },
+		{ value: 'center',   text: 'Center' },
+		{ value: 'pulse',    text: 'Pulse' },
+		{ value: 'repeat',   text: 'Repeat' },
+		{ value: 'zoom-in',  text: 'Zoom In' },
+		{ value: 'zoom-out', text: 'Zoom Out' }
 	]);
 
 	elBgImageDim.min  = '0.1';
