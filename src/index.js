@@ -929,10 +929,8 @@ function loadCover( uri ) {
 		mm.fetchFromUrl( uri )
 			.then( metadata => {
 				if ( metadata.common.picture && metadata.common.picture.length ) {
-					let imageStr = '';
-					for ( const i of metadata.common.picture[0].data )
-						imageStr += String.fromCharCode( i );
-					resolve( 'data:' + metadata.common.picture[0].format + ';base64,' + btoa( imageStr ) );
+					const blob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
+					resolve( URL.createObjectURL( blob ) );
 				}
 				else if ( serverMode == -1 ) { // in file mode there's nothing else we can do
 					resolve('');
@@ -1347,27 +1345,27 @@ function setSource() {
  */
 function loadLocalFile( obj ) {
 
-	const el = audioElement[ currAudio ],
-		  reader = new FileReader();
+	const fileBlob = obj.files[0];
 
-	reader.readAsDataURL( obj.files[0] );
-
-	reader.onload = () => {
+	if ( fileBlob ) {
 		clearAudioElement();
-		el.src = reader.result;
+
+		const el = audioElement[ currAudio ];
+		el.src = URL.createObjectURL( fileBlob );
 		el.play();
-		mm.parseBlob( obj.files[0] )
+
+		mm.parseBlob( fileBlob )
 			.then( metadata => {
 				addMetadata( metadata, el );
 				if ( metadata.common.picture && metadata.common.picture.length ) {
-					let imageStr = '';
-					for ( const i of metadata.common.picture[0].data )
-						imageStr += String.fromCharCode( i );
-					coverImage[ currAudio ].src = 'data:' + metadata.common.picture[0].format + ';base64,' + btoa( imageStr );
+					const imgBlob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
+					coverImage[ currAudio ].src = URL.createObjectURL( imgBlob );
+					if ( elBackground.value > 1 )
+						setBackground();
 				}
 			})
 			.catch( e => {} );
-	};
+	}
 }
 
 /**
