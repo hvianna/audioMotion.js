@@ -256,6 +256,11 @@ table {
 .config-col {
 	margin: 0 20px;
 }
+.config-col > .config-col {
+	display: inline-block;
+	margin: 0;
+}
+
 .config-sub {
 	margin-top: 10px;
 }

@@ -192,22 +192,33 @@
 				</div>
 
 				<div class="config-col">
-					<div class="help"><span class="config-label">Background</span>
-						<span class="tooltip">
-						Select background option
-						</span>
+					<div class="config-col">
+						<div class="help"><span class="config-label">Background</span>
+							<span class="tooltip">
+							Select background option
+							</span>
+						</div>
+						<select id="background" data-prop="background"></select>
 					</div>
-					<select id="background" data-prop="background"></select>
-				</div>
 
-				<div class="config-col">
-					<div class="help"><span class="config-label">Cover image dim</span>
-						<span class="tooltip">
-							Adjust the intensity of the background cover image
-						</span>
+					<div class="config-col">
+						<div class="help"><span class="config-label">Image fit</span>
+							<span class="tooltip">
+								Adjust the size and position of the background image
+							</span>
+						</div>
+						<select id="bg_img_fit" data-prop="bgImageFit"></select>
 					</div>
-					<input id="cover_dim" type="range" data-prop="coverDim">
-					<span class="value"></span>
+
+					<div class="config-col">
+						<div class="help"><span class="config-label">Image dim</span>
+							<span class="tooltip">
+								Adjust the intensity of the background image
+							</span>
+						</div>
+						<input id="bg_img_dim" type="range" data-prop="bgImageDim">
+						<span class="value"></span>
+					</div>
 				</div>
 
 				<div class="config-col">

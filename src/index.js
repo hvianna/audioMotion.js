@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.6-dev';
+const _VERSION = '20.6-dev.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -63,7 +63,8 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elBarSpace    = document.getElementById('bar_space'),
 	  elReflex      = document.getElementById('reflex'),
 	  elBackground  = document.getElementById('background'),
-	  elCoverDim    = document.getElementById('cover_dim');
+	  elBgImageDim  = document.getElementById('bg_img_dim'),
+	  elBgImageFit  = document.getElementById('bg_img_fit');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -118,7 +119,8 @@ const presets = {
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
 		reflex      : 'off',
-		coverDim    : 0.5
+		bgImageDim  : 0.5,
+		bgImageFit  : 'center'
 	},
 
 	fullres: {
@@ -454,15 +456,16 @@ function setShowPeaks() {
  * Set background preference
  */
 function setBackground() {
-	const option = elBackground.value;
+	const bgOption = elBackground.value;
+	const bgFit = elBgImageFit.value;
 
-	audioMotion.overlay = ( option > 1 );
-	audioMotion.showBgColor = ( option == 0 );
-	audioMotion.canvas.classList.toggle( 'repeat', option == 3 );
-	audioMotion.canvas.classList.toggle( 'cover', option == 4 );
+	audioMotion.overlay = ( bgOption > 1 );
+	audioMotion.showBgColor = ( bgOption == 0 );
+	audioMotion.canvas.classList.toggle( 'repeat', bgFit == 'repeat' );
+	audioMotion.canvas.classList.toggle( 'cover', bgFit == 'adjust' );
 
 	if ( coverImage[ currAudio ].src ) {
-		const alpha = 1 - elCoverDim.value;
+		const alpha = 1 - elBgImageDim.value;
 		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${coverImage[ currAudio ].src}')`;
 	}
 	else
@@ -1469,7 +1472,8 @@ function saveConfig( config ) {
 		barSpace    : elBarSpace.value,
 		reflex      : elReflex.value,
 		background  : elBackground.value,
-		coverDim    : elCoverDim.value,
+		bgImageDim  : elBgImageDim.value,
+		bgImageFit  : elBgImageFit.value,
 		showScale 	: elShowScale.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
@@ -1877,7 +1881,8 @@ function setUIEventListeners() {
 	elBarSpace.   addEventListener( 'change', setBarSpace );
 	elReflex.     addEventListener( 'change', setReflex );
 	elBackground. addEventListener( 'change', setBackground );
-	elCoverDim.   addEventListener( 'change', setBackground );
+	elBgImageDim. addEventListener( 'change', setBackground );
+	elBgImageFit. addEventListener( 'change', setBackground );
 
 	// update range elements' value
 	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -2226,14 +2231,18 @@ function populateSelect( element, options ) {
 	populateSelect(	elBackground, [
 		{ value: '0', text: 'Gradient default' },
 		{ value: '1', text: 'Black' },
-		{ value: '2', text: 'Album cover (center)' },
-		{ value: '3', text: 'Album cover (repeat)' },
-		{ value: '4', text: 'Album cover (adjust)' }
+		{ value: '2', text: 'Album cover' }
 	]);
 
-	elCoverDim.min  = '0.1';
-	elCoverDim.max  = '1';
-	elCoverDim.step = '0.1';
+	populateSelect( elBgImageFit, [
+		{ value: 'adjust', text: 'Adjust' },
+		{ value: 'center', text: 'Center' },
+		{ value: 'repeat', text: 'Repeat' },
+	]);
+
+	elBgImageDim.min  = '0.1';
+	elBgImageDim.max  = '1';
+	elBgImageDim.step = '0.1';
 
 	elLineWidth.min = '1';
 	elLineWidth.max = '5';
