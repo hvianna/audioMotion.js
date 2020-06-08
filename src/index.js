@@ -244,6 +244,7 @@ const modeOptions = [
 // Properties that may be changed by Random Mode
 const randomProperties = [
 	{ value: 'nobg',   text: 'Background',   disabled: false },
+	{ value: 'imgfit', text: 'Image Fit',    disabled: false },
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
@@ -1735,10 +1736,11 @@ function selectRandomMode( force = false ) {
 
 	elMode.selectedIndex = Math.random() * elMode.options.length | 0;
 
-	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled ) {
+	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled )
 		elBackground.selectedIndex = Math.random() * elBackground.options.length | 0;
-		setBackground();
-	}
+
+	if ( ! randomProperties.find( item => item.value == 'imgfit' ).disabled )
+		elBgImageFit.selectedIndex = Math.random() * elBgImageFit.options.length | 0;
 
 	if ( ! randomProperties.find( item => item.value == 'peaks' ).disabled ) {
 		elShowPeaks.dataset.active = Math.random() * 2 | 0;
@@ -1774,7 +1776,8 @@ function selectRandomMode( force = false ) {
 		elReflex.selectedIndex = Math.random() * options | 0;
 	}
 
-	// lineWidth, fillAlpha and barSpace are effectively set below
+	// effectively set the affected properties
+	setBackground();
 	setBarSpace();
 	setReflex();
 	setMode();
