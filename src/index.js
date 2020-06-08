@@ -1757,7 +1757,8 @@ function selectRandomMode( force = false ) {
 	}
 
 	if ( isEnabled('lumi') ) {
-		elLumiBars.dataset.active = randomInt();
+		// always disable lumi when leds are active and background is set to image
+		elLumiBars.dataset.active = elBackground.value > 1 && audioMotion.showLeds ? 0 : randomInt();
 		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
 	}
 
