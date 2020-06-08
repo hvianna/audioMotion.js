@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.6-dev.2';
+const _VERSION = '20.6-dev.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1734,46 +1734,50 @@ function selectRandomMode( force = false ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
-	elMode.selectedIndex = Math.random() * elMode.options.length | 0;
+	// helper functions
+	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
+	const randomInt = ( n=2 ) => Math.random() * n | 0;
 
-	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled )
-		elBackground.selectedIndex = Math.random() * elBackground.options.length | 0;
+	elMode.selectedIndex = randomInt( elMode.options.length );
 
-	if ( ! randomProperties.find( item => item.value == 'imgfit' ).disabled )
-		elBgImageFit.selectedIndex = Math.random() * elBgImageFit.options.length | 0;
+	if ( isEnabled('nobg') )
+		elBackground.selectedIndex = randomInt( elBackground.options.length );
 
-	if ( ! randomProperties.find( item => item.value == 'peaks' ).disabled ) {
-		elShowPeaks.dataset.active = Math.random() * 2 | 0;
+	if ( isEnabled('imgfit') )
+		elBgImageFit.selectedIndex = randomInt( elBgImageFit.options.length );
+
+	if ( isEnabled('peaks') ) {
+		elShowPeaks.dataset.active = randomInt(); // 0 or 1
 		audioMotion.showPeaks = elShowPeaks.dataset.active == '1';
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'leds' ).disabled ) {
-		elLedDisplay.dataset.active = Math.random() * 2 | 0;
+	if ( isEnabled('leds') ) {
+		elLedDisplay.dataset.active = randomInt();
 		audioMotion.showLeds = elLedDisplay.dataset.active == '1';
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'lumi' ).disabled ) {
-		elLumiBars.dataset.active = Math.random() * 2 | 0;
+	if ( isEnabled('lumi') ) {
+		elLumiBars.dataset.active = randomInt();
 		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'line' ).disabled ) {
-		elLineWidth.value = ( Math.random() * 5 | 0 ) + 1; // 1 to 5
+	if ( isEnabled('line') ) {
+		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
 		updateRangeValue( elLineWidth );
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'fill' ).disabled ) {
-		elFillAlpha.value = ( Math.random() * 6 | 0 ) / 10; // 0 to 0.5
+	if ( isEnabled('fill') ) {
+		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
 		updateRangeValue( elFillAlpha );
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'barSp' ).disabled )
-		elBarSpace.selectedIndex = Math.random() * elBarSpace.options.length | 0;
+	if ( isEnabled('barSp') )
+		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
 
-	if ( ! randomProperties.find( item => item.value == 'reflex' ).disabled ) {
+	if ( isEnabled('reflex') ) {
 		// exclude 'mirrored' reflex option for octave bands modes
 		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
-		elReflex.selectedIndex = Math.random() * options | 0;
+		elReflex.selectedIndex = randomInt( options );
 	}
 
 	// effectively set the affected properties
@@ -1783,7 +1787,7 @@ function selectRandomMode( force = false ) {
 	setMode();
 
 	if ( elCycleGrad.dataset.active == '1' ) {
-		elGradient.selectedIndex = Math.random() * elGradient.options.length | 0;
+		elGradient.selectedIndex = randomInt( elGradient.options.length );
 		audioMotion.gradient = elGradient.value;
 	}
 }
