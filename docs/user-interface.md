@@ -47,8 +47,9 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Left** / **Right** | **J** / **K** | play previous / next song
 **Space** | | play / pause
 **Up** / **Down** | **Shift+G** / **G** | select previous / next gradient
-**A** | | cycle through auto gradient and random mode options
-**Shift+B** / **B** | | select previous / next background option
+**Shift+A** / **A** | | cycle through auto gradient and random mode options
+**B** | | cycle through Background options
+**Shift+B** | | cycle through background Image Fit options
 **D** | | display current song info - press again for settings info
 **E** | | shuffle play queue
 **F** | | toggle fullscreen mode
@@ -81,7 +82,7 @@ Panels are accessed by clicking the **Settings**, **Files**, **Console** and **C
 Several options of color gradients for the analyzer bars. You can change gradients with the **Up** and **Down** arrow keys, or alternatively, **G** and **Shift + G** keys.
 
 If the **AUTO** switch is on, the next gradient will be selected on track change, cycling through the available gradients.
-When [Random mode](#random-mode) is active, a random gradient will be selected on every change.
+When [Random mode](#random-mode) is active, a random gradient will be selected on every mode change.
 
 #### Background
 
@@ -89,23 +90,27 @@ When [Random mode](#random-mode) is active, a random gradient will be selected o
 
 Selects the analyzer background.
 
-- **Gradient default** uses the background color defined by the currently selected gradient - this option also shows the unlit LEDs when the [LED effect](#mode) is on;
+- **Gradient default** uses the background color defined by the currently selected gradient - when the [LED effect](#mode) is on, this shows the "unlit" LEDs instead;
 - **Black** uses a black background;
-- The **Album cover** options display the album cover for the current song. See also [Image Fit](#image-fit) and [Image Dim](#image-dim) settings.
+- **Album cover** displays the album cover for the current song. See also [Image Fit](#image-fit) and [Image Dim](#image-dim) settings.
 
-The album covers are retrieved from the songs' metadata. When a picture is not found in the metadata, **audioMotion** will look for a file named
+You can cycle through the available options using the **B** keyboard shortcut.
+
+Album covers are retrieved from the songs' metadata. When a picture is not found in the metadata, **audioMotion** will look for a file named
 *cover* or *folder* (with a jpg, png, gif or bmp extension) in the song's folder.
 
 #### Image Fit
 
 When [Background](#background) is set to **Album cover**, this option selects the size and positioning of the image.
 
-- **Adjust** - adjusts the image to fill the entire canvas;
+- **Adjust** - resizes the image so it fills the entire canvas;
 - **Center** - displays the image horizontally centered on the canvas;
-- **Pulse** - image pulsates to the beat of the song;
+- **Pulse** - makes the image pulsate to the beat of the song;
 - **Repeat** - repeats the image horizontally to fill the canvas;
 - **Zoom In** - image is initially centered on the canvas and slowly zooms in as the song plays;
 - **Zoom Out** - image is initially enlarged at 200% and slowly zooms out as the song plays.
+
+You can cycle through the available options using the **Shift + B** keyboard shortcut.
 
 #### Image Dim
 
@@ -155,9 +160,11 @@ Switches:
 
 ![ui-random-mode](img/UI_random_mode.png)
 
-The visualization mode and some options may be randomized on track change or time interval.
+The visualization mode and some other settings may be randomized on track change or time interval.
 
-You can choose which options may be changed by random mode in the Config panel. If the [AUTO](#gradient) switch is active, the gradient will be randomized as well.
+If the [AUTO](#gradient) Gradient switch is active, a random gradient will be selected on every mode change.
+You can choose which other settings may be changed by random mode in the [Config panel](#config-panel).
+
 
 #### Frequency Range
 
@@ -256,7 +263,7 @@ Allows you to disable undesired color gradients. Unchecked gradients won't be av
 
 #### Random Mode options
 
-Allows you to customize which options may be changed when the visualization mode is randomized.
+Allows you to customize which configuration settings may be changed when the visualization mode is randomized.
 
 #### Sensitivity presets
 
