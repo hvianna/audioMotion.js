@@ -10,15 +10,22 @@ nav_order: 3
 
 ### Added:
 
-+ Song information now shows the album cover image, when available (see below);
-+ New [Background](docs/user-interface.md#background) setting - replaces the **NO BG** switch and adds options to display the album cover image in the background.
++ Album cover images retrieved from the song metadata or from a file named *cover* or *folder* (.jpg|png|gif|bmp) inside each folder
+are now shown in the file explorer background, the on-screen song information and as an option for the analyzer background;
 
-Cover images can be retrieved from the songs' metadata or from a file named *cover* or *folder* (with jpg, png, gif or bmp extension) inside each folder -
-these will also be shown as the folder background in the file explorer.
++ New [Background](docs/user-interface.md#background), [Image Fit](docs/user-interface.md#image-fit) and [Image Dim](docs/user-interface.md#image-dim)settings.
+
+### Changed:
+
++ Slightly increased the opacity of the image reflection when Reflex is On.
+
+### Removed:
+
++ The **NO BG** switch has been replaced by the new Background setting and uses the same keyboard shortcut (**B**).
 
 ### Fixed:
 
-+ Linux binary built with [latest pkg version](https://github.com/zeit/pkg/pull/751#issuecomment-626363292) can now launch the client in browser;
++ Linux binary built with [latest pkg version](https://github.com/zeit/pkg/pull/751#issuecomment-626363292) can now open the browser automatically;
 + A typo that could cause "Unexpected null" errors on some browsers.
 
 
