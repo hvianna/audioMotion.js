@@ -119,7 +119,7 @@ const presets = {
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
 		reflex      : 'off',
-		bgImageDim  : 0.5,
+		bgImageDim  : 0.3,
 		bgImageFit  : 'center'
 	},
 
@@ -406,7 +406,7 @@ function setReflex() {
 	switch ( elReflex.value ) {
 		case 'on':
 			audioMotion.reflexRatio = .4;
-			audioMotion.reflexAlpha = .15;
+			audioMotion.reflexAlpha = .2;
 			break;
 
 		case 'mirror':
