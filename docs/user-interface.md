@@ -74,19 +74,6 @@ Panels are accessed by clicking the **Settings**, **Files**, **Console** and **C
 
 ![settings-panel](img/settings-panel.png)
 
-#### Preset
-
-![ui-preset](img/UI_preset.png)
-
-The **Full resolution**, **Octave bands** and **LED bars** presets adjust the settings to recommended values for the discrete frequencies and octave bands visualization modes, with optional LED effect mode.
-
-You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by loading the **Custom** preset.
-
-Additionally, your last used configuration will be automatically saved, and restored every time you open audioMotion.
-You can manually load the **Last session** preset to undo any changes made during the current session.
-
-The **Restore defaults** preset resets all options to their initial values as in the first time you run audioMotion.
-
 #### Gradient
 
 ![ui-gradient](img/UI_gradient.png)
@@ -98,18 +85,31 @@ When [Random mode](#random-mode) is active, a random gradient will be selected o
 
 #### Background
 
+![ui-background](img/UI_background.png)
+
 Selects the analyzer background.
 
 - **Gradient default** uses the background color defined by the currently selected gradient - this option also shows the unlit LEDs when the [LED effect](#mode) is on;
 - **Black** uses a black background;
-- The **Album cover** options display the album cover for the current song, either centered on canvas, repeating or adjusted (zoomed) to fill the canvas.
+- The **Album cover** options display the album cover for the current song. See also [Image Fit](#image-fit) and [Image Dim](#image-dim) settings.
 
 The album covers are retrieved from the songs' metadata. When a picture is not found in the metadata, **audioMotion** will look for a file named
 *cover* or *folder* (with a jpg, png, gif or bmp extension) in the song's folder.
 
-#### Cover image dim
+#### Image Fit
 
-Adjusts the intensity of the background image, when [Background](#background) is set to one of the *Album cover* options.
+When [Background](#background) is set to **Album cover**, this option selects the size and positioning of the image.
+
+- **Adjust** - adjusts the image to fill the entire canvas;
+- **Center** - displays the image horizontally centered on the canvas;
+- **Pulse** - image pulsates to the beat of the song;
+- **Repeat** - repeats the image horizontally to fill the canvas;
+- **Zoom In** - image is initially centered on the canvas and slowly zooms in as the song plays;
+- **Zoom Out** - image is initially enlarged at 200% and slowly zooms out as the song plays.
+
+#### Image Dim
+
+When [Background](#background) is set to **Album cover**, this option adjusts the brightness of the background image.
 
 #### Reflex
 
@@ -190,6 +190,19 @@ Increase it if the animation looks too "jumpy".
 Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
 
 The presets can be customized in the [Config Panel](#config-panel).
+
+#### Preset
+
+![ui-preset](img/UI_preset.png)
+
+**Full resolution**, **Octave bands** and **LED bars** presets provide quick configuration recommendations.
+
+Any changes to the settings will be automatically saved to the browser's [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+and restored the next time you open audioMotion. You can manually load the **Last session** preset to undo any changes made during the current session.
+
+The **Restore defaults** preset resets all options to their initial values, as in the first time you run audioMotion.
+
+Save a favorite configuration in the **Custom** preset, by clicking the **Save** button.
 
 
 ### Files Panel
