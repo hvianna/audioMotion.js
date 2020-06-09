@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.6-dev.3';
+const _VERSION = '20.6-RC';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1535,6 +1535,9 @@ function keyboardControls( event ) {
 	if ( event.target.tagName != 'BODY' )
 		return;
 
+	// helper function
+	const getText = ( el ) => el[ el.selectedIndex ].text;
+
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
 		case 'Backspace':	// for Mac
@@ -1582,7 +1585,7 @@ function keyboardControls( event ) {
 				}
 				else {
 					cycleElement( elRandomMode, event.shiftKey );
-					setCanvasMsg( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text );
+					setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
 				}
 			}
 			else {
@@ -1591,10 +1594,10 @@ function keyboardControls( event ) {
 			}
 			setRandomMode();
 			break;
-		case 'KeyB': 		// background
-			cycleElement( elBackground, event.shiftKey );
+		case 'KeyB': 		// background or image fit (shift)
+			cycleElement( event.shiftKey ? elBgImageFit : elBackground );
 			setBackground();
-			setCanvasMsg( 'Background: ' + elBackground[ elBackground.selectedIndex ].text );
+			setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
 			break;
 		case 'KeyD': 		// display information
 			if ( canvasMsg.info == 2 )
@@ -1626,12 +1629,12 @@ function keyboardControls( event ) {
 		case 'KeyV':
 			cycleElement( elMode, event.shiftKey );
 			setMode();
-			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
+			setCanvasMsg( 'Mode: ' + getText( elMode ) );
 			break;
 		case 'KeyN': 		// increase or reduce sensitivity
 			cycleElement( elSensitivity, event.shiftKey );
 			setSensitivity();
-			setCanvasMsg( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity' );
+			setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
 			break;
 		case 'KeyO': 		// toggle resolution
 			elLoRes.click();
@@ -1660,7 +1663,7 @@ function keyboardControls( event ) {
 		case 'KeyX':
 			cycleElement( elReflex, event.shiftKey );
 			setReflex();
-			setCanvasMsg( 'Reflex: ' + elReflex[ elReflex.selectedIndex ].text );
+			setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
 			break;
 	}
 }
