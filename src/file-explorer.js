@@ -52,7 +52,7 @@ function updateUI( content, scrollTop ) {
 				ui_files.innerHTML += `<li data-type="${ file.match(/\.(m3u|m3u8)$/) !== null ? 'list' : 'file' }" data-path="${file}">${file}</li>`;
 			});
 		}
-		ui_files.style.backgroundImage = 'linear-gradient( to right, #fff 0%, #fffd 50%, #fff8 100% )' + ( content.cover ? `, url('${makePath( content.cover )}')` : '' );
+		ui_files.style.backgroundImage = 'linear-gradient( to right, #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${makePath( content.cover )}')` : '' );
 	}
 
 	// restore scroll position when returning from subdirectory

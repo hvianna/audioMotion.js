@@ -114,15 +114,19 @@ table {
 	margin: 20px 0 40px;
 }
 
-#config_panel > .config-row > .config-col {
+#config_panel .config-col {
     width: 33%;
 }
 #config_panel label {
 	display: block;
 }
 #config_panel #random_properties label {
-    display: inline-block;
-    width: 25%;
+	display: inline-block;
+	width: 33.3%;
+}
+#config_panel #enabled_gradients label {
+	display: inline-block;
+	width: 50%;
 }
 #config_panel table th,
 #config_panel table td {

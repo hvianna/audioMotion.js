@@ -245,11 +245,11 @@ const modeOptions = [
 const randomProperties = [
 	{ value: 'nobg',   text: 'Background',   disabled: false },
 	{ value: 'imgfit', text: 'Image Fit',    disabled: false },
+	{ value: 'reflex', text: 'Reflex',       disabled: false },
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
-	{ value: 'reflex', text: 'Reflex',       disabled: false },
-	{ value: 'barSp',  text: 'Bar spacing',  disabled: false },
+	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
 ];
