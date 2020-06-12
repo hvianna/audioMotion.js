@@ -18,6 +18,10 @@ a:not([class]):hover {
 	color: var(--accent-color-1);
 }
 
+body {
+	font-family: -apple-system,BlinkMacSystemFont,"helvetica neue","segoe ui",helvetica,roboto,noto,arial,sans-serif;
+}
+
 h1, h2, h3, h4,
 .site-title {
 	background: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );

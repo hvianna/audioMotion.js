@@ -4,7 +4,7 @@
  * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '20.4';
+const _VERSION = '20.6';
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
@@ -124,14 +124,8 @@ server.listen( port, host, () => {
 	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only' : 'accepting external connections!' }` )
 	console.log( `\n\t/music mounted to ${musicPath}` )
 	if ( launchClient ) {
-		// avoid error on Linux when running from the executable file
-		// related to https://github.com/zeit/pkg/issues/731
-		if ( __dirname.startsWith('/snapshot/') && process.platform == 'linux' )
-			console.log( `\n\n\tAccess http://localhost:${port} in your browser to open audioMotion` )
-		else {
-			open( `http://localhost:${port}` )
-			console.log( '\n\tLaunching client in browser...' )
-		}
+		open( `http://localhost:${port}` )
+		console.log( '\n\tLaunching client in browser...' )
 	}
 	console.log( '\n\nPress Ctrl+C to exit.' )
 })
@@ -140,3 +134,16 @@ server.listen( port, host, () => {
 server.get( '/serverInfo', ( req, res ) => {
 	res.send( serverSignature )
 })
+
+// route for retrieving a directory's cover picture
+server.get( '/getCover/:path', ( req, res ) => {
+	const path = musicPath + decodeURI( req.params.path ).replace( /^\/music/, '' ).replace( /%23/g, '#' );
+	let entries = getDir( path );
+
+	if ( entries === false )
+		res.status(404).send( 'Not found!' );
+	else {
+		entries.files = entries.files.filter( file => file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) !== null );
+		res.send( entries.files[0] );
+	}
+});

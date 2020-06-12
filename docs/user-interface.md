@@ -47,8 +47,9 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Left** / **Right** | **J** / **K** | play previous / next song
 **Space** | | play / pause
 **Up** / **Down** | **Shift+G** / **G** | select previous / next gradient
-**A** | | cycle through auto gradient and random mode options
-**B** | | toggle background
+**Shift+A** / **A** | | cycle through auto gradient and random mode options
+**B** | | cycle through Background options
+**Shift+B** | | cycle through background Image Fit options
 **D** | | display current song info - press again for settings info
 **E** | | shuffle play queue
 **F** | | toggle fullscreen mode
@@ -74,35 +75,52 @@ Panels are accessed by clicking the **Settings**, **Files**, **Console** and **C
 
 ![settings-panel](img/settings-panel.png)
 
-#### Preset
-
-![ui-preset](img/UI_preset.png)
-
-The **Full resolution**, **Octave bands** and **LED bars** presets adjust the settings to recommended values for the discrete frequencies and octave bands visualization modes, with optional LED effect mode.
-
-You can tweak any options and save a favorite configuration by clicking the **Save** button. You can later revert to this configuration by loading the **Custom** preset.
-
-Additionally, your last used configuration will be automatically saved, and restored every time you open audioMotion.
-You can manually load the **Last session** preset to undo any changes made during the current session.
-
-The **Restore defaults** preset resets all options to their initial values as in the first time you run audioMotion.
-
 #### Gradient
 
 ![ui-gradient](img/UI_gradient.png)
 
 Several options of color gradients for the analyzer bars. You can change gradients with the **Up** and **Down** arrow keys, or alternatively, **G** and **Shift + G** keys.
 
-Switches:
+If the **AUTO** switch is on, the next gradient will be selected on track change, cycling through the available gradients.
+When [Random mode](#random-mode) is active, a random gradient will be selected on every mode change.
 
-+ **AUTO** selects the next gradient on track change, cycling through the available gradients
-+ **NO BG** ignores the background color defined by each gradient, using a black background instead (may improve contrast)
+#### Background
+
+![ui-background](img/UI_background.png)
+
+Selects the analyzer background.
+
+- **Gradient default** uses the background color defined by the currently selected gradient - when the [LED effect](#mode) is on, this shows the "unlit" LEDs instead;
+- **Black** uses a black background;
+- **Album cover** displays the album cover for the current song. See also [Image Fit](#image-fit) and [Image Dim](#image-dim) settings.
+
+You can cycle through the available options using the **B** keyboard shortcut.
+
+Album covers are retrieved from the songs' metadata. When a picture is not found in the metadata, **audioMotion** will look for a file named
+*cover* or *folder* (with a jpg, png, gif or bmp extension) in the song's folder.
+
+#### Image Fit
+
+When [Background](#background) is set to **Album cover**, this option selects the size and positioning of the image.
+
+- **Adjust** - resizes the image so it fills the entire canvas;
+- **Center** - displays the image horizontally centered on the canvas;
+- **Pulse** - makes the image pulsate to the beat of the song;
+- **Repeat** - repeats the image horizontally to fill the canvas;
+- **Zoom In** - image is initially centered on the canvas and slowly zooms in as the song plays;
+- **Zoom Out** - image is initially enlarged at 200% and slowly zooms out as the song plays.
+
+You can cycle through the available options using the **Shift + B** keyboard shortcut.
+
+#### Image Dim
+
+When [Background](#background) is set to **Album cover**, this option adjusts the brightness of the background image.
 
 #### Reflex
 
 ![ui-reflex](img/UI_reflex.png)
 
-Select a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode) switch is active.
+Selects a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode) switch is active.
 
 #### Analyzer switches
 
@@ -142,16 +160,11 @@ Switches:
 
 ![ui-random-mode](img/UI_random_mode.png)
 
-The visualization mode and some options may be randomized on track change or time interval. If the [AUTO](#gradient) switch is active, the gradient will be randomized as well.
+The visualization mode and some other settings may be randomized on track change or time interval.
 
-You can choose which options may be changed by random mode in the Config panel.
+If the [AUTO](#gradient) Gradient switch is active, a random gradient will be selected on every mode change.
+You can choose which other settings may be changed by random mode in the [Config panel](#config-panel).
 
-#### FFT Size
-
-![ui-fftsize](img/UI_fftsize.png)
-
-The number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
-Larger values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
 
 #### Frequency Range
 
@@ -159,20 +172,44 @@ Larger values provide greater detail in the frequency domain (especially for low
 
 The lowest and highest frequencies you want to see in the graphic spectrum analyzer. You can use this feature to "zoom in" a specific frequency range.
 
+#### FFT Size
+
+![ui-fftsize](img/UI_fftsize.png)
+
+Number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+
+Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes),
+so you may also want to adjust the [Smoothing](#smoothing) if changing this.
+
 #### Smoothing
 
 ![ui-smoothing](img/UI_smoothing.png)
 
-Average constant used to smooth values between analysis frames. Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
+Average constant used to smooth values between analysis frames.
+
+Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger [FFT sizes](#fft-size).
 Increase it if the animation looks too "jumpy".
 
 #### Sensitivity
 
 ![ui-sensitivity](img/UI_sensitivity.png)
 
-Adjust the minimum and maximum decibel values to improve the visualization of songs too quiet or too loud. **0** dB represents the loudest possible sound volume.
+Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
 
-You can also choose from three predefined sensitivity settings (low, normal and high) via the **N** and **Shift + N** keyboard shortcuts.
+The presets can be customized in the [Config Panel](#config-panel).
+
+#### Preset
+
+![ui-preset](img/UI_preset.png)
+
+**Full resolution**, **Octave bands** and **LED bars** presets provide quick configuration recommendations.
+
+Any changes to the settings will be automatically saved to the browser's [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+and restored the next time you open audioMotion. You can manually load the **Last session** preset to undo any changes made during the current session.
+
+The **Restore defaults** preset resets all options to their initial values, as in the first time you run audioMotion.
+
+Save a favorite configuration in the **Custom** preset, by clicking the **Save** button.
 
 
 ### Files Panel
@@ -191,6 +228,8 @@ You can also drag and drop files from the file explorer into the play queue.
 
 Supported extensions are flac, m4a, mp3, ogg and wav for music files, and m3u or m3u8 for playlists. Codec support may vary, depending on your web browser and operating system.
 
+If the current folder contains a file named *cover* or *folder* with jpg, png, gif or bmp extension, the image will be shown in the background of the file explorer.
+
 #### Play queue and playlists
 
 Double-click a queued song to play it.
@@ -204,9 +243,11 @@ Saved playlists appear in the playlist selection box. Select a playlist and clic
 Press the ![disk-button](img/save-button.png "diskette") button to update the selected playlist with the current queue contents.
 Press the ![trash-button](img/trash-button.png "trashcan") button to permanently deleted the selected playlist.
 
+
 ### Console
 
 The console records several useful information, like audio and video settings, configuration changes and error messages.
+
 
 ### Config Panel
 
@@ -222,8 +263,8 @@ Allows you to disable undesired color gradients. Unchecked gradients won't be av
 
 #### Random Mode options
 
-Allows you to customize which options may be changed when the visualization mode is randomized.
+Allows you to customize which configuration settings may be changed when the visualization mode is randomized.
 
 #### Sensitivity presets
 
-Allows you to customize the low, normal and high sensitivity presets.
+Allows you to customize the low, normal and high sensitivity presets. **0** dB represents the loudest possible sound volume.

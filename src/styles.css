@@ -77,11 +77,20 @@ table {
 	overflow: hidden;
 }
 .analyzer canvas {
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
 	display: block;
 	width: 100%;
 }
 .analyzer canvas:-webkit-full-screen {
 	height: auto;
+}
+.analyzer canvas.repeat {
+	background-repeat: repeat-x;
+}
+.analyzer canvas.cover {
+	background-size: cover;
 }
 
 #player0,
@@ -105,15 +114,19 @@ table {
 	margin: 20px 0 40px;
 }
 
-#config_panel > .config-row > .config-col {
+#config_panel .config-col {
     width: 33%;
 }
 #config_panel label {
 	display: block;
 }
 #config_panel #random_properties label {
-    display: inline-block;
-    width: 25%;
+	display: inline-block;
+	width: 33.3%;
+}
+#config_panel #enabled_gradients label {
+	display: inline-block;
+	width: 50%;
 }
 #config_panel table th,
 #config_panel table td {
@@ -247,6 +260,11 @@ table {
 .config-col {
 	margin: 0 20px;
 }
+.config-col > .config-col {
+	display: inline-block;
+	margin: 0;
+}
+
 .config-sub {
 	margin-top: 10px;
 }
@@ -388,6 +406,9 @@ kbd.wide {
 /* File explorer */
 
 #file_explorer .filelist {
+	background-position: top right;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
 	height: 295px;
 }
 

@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.4';
+const _VERSION = '20.6';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -47,7 +47,6 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elShowScale   = document.getElementById('show_scale'),
 	  elSensitivity = document.getElementById('sensitivity'),
 	  elShowPeaks   = document.getElementById('show_peaks'),
-	  elBlackBg     = document.getElementById('black_bg'),
 	  elCycleGrad   = document.getElementById('cycle_grad'),
 	  elRandomMode  = document.getElementById('random_mode'),
 	  elLedDisplay  = document.getElementById('led_display'),
@@ -62,7 +61,10 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elLineWidth   = document.getElementById('line_width'),
 	  elFillAlpha   = document.getElementById('fill_alpha'),
 	  elBarSpace    = document.getElementById('bar_space'),
-	  elReflex      = document.getElementById('reflex');
+	  elReflex      = document.getElementById('reflex'),
+	  elBackground  = document.getElementById('background'),
+	  elBgImageDim  = document.getElementById('bg_img_dim'),
+	  elBgImageFit  = document.getElementById('bg_img_fit');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -82,6 +84,15 @@ let skipping = false;
 // interval for timed random mode
 let randomModeTimer;
 
+// cover images for current and next song
+let coverImage = [];
+
+// folder cover images for songs with no picture in the metadata
+let folderImages = {};
+
+// server mode: 1 = custom server; 0 = standard web server; -1 = local (file://) mode
+let serverMode;
+
 // Configuration presets
 const presets = {
 	default: {
@@ -91,7 +102,7 @@ const presets = {
 		freqMax     : 22000,	// highest frequency
 		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
 		gradient    : 'prism',
-		blackBg     : 0,
+		background  : 0,
 		cycleGrad   : 1,
 		randomMode  : 0,
 		ledDisplay  : 0,
@@ -107,7 +118,9 @@ const presets = {
 		lineWidth   : 2,
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
-		reflex      : 'off'
+		reflex      : 'off',
+		bgImageDim  : 0.3,
+		bgImageFit  : 'center'
 	},
 
 	fullres: {
@@ -128,7 +141,7 @@ const presets = {
 		mode        : 2,		// 1/12th octave bands mode
 		fftSize     : 8192,
 		smoothing   : 0.5,
-		blackBg     : 0,
+		background  : 1,
 		ledDisplay  : 1,
 		showScale   : 0
 	}
@@ -230,12 +243,13 @@ const modeOptions = [
 
 // Properties that may be changed by Random Mode
 const randomProperties = [
-	{ value: 'nobg',   text: 'NO BG',        disabled: false },
+	{ value: 'nobg',   text: 'Background',   disabled: false },
+	{ value: 'imgfit', text: 'Image Fit',    disabled: false },
+	{ value: 'reflex', text: 'Reflex',       disabled: false },
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
-	{ value: 'reflex', text: 'Reflex',       disabled: false },
-	{ value: 'barSp',  text: 'Bar spacing',  disabled: false },
+	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
 ];
@@ -269,8 +283,8 @@ function setBarSpace() {
 function setSensitivity() {
 	const sensitivity = elSensitivity.value;
 	audioMotion.setSensitivity(
-		document.querySelector(`.min-db[data-preset="${sensitivity}"`).value,
-		document.querySelector(`.max-db[data-preset="${sensitivity}"`).value
+		document.querySelector(`.min-db[data-preset="${sensitivity}"]`).value,
+		document.querySelector(`.max-db[data-preset="${sensitivity}"]`).value
 	);
 	updateLastConfig();
 }
@@ -392,7 +406,7 @@ function setReflex() {
 	switch ( elReflex.value ) {
 		case 'on':
 			audioMotion.reflexRatio = .4;
-			audioMotion.reflexAlpha = .15;
+			audioMotion.reflexAlpha = .2;
 			break;
 
 		case 'mirror':
@@ -440,10 +454,18 @@ function setShowPeaks() {
 }
 
 /**
- * Set background color preference
+ * Set background preference
  */
-function setBlackBg() {
-	audioMotion.showBgColor = ( elBlackBg.dataset.active == '0' );
+function setBackground() {
+	const bgOption = elBackground.value;
+	const bgFit = elBgImageFit.value;
+
+	audioMotion.overlay = ( bgOption > 1 );
+	audioMotion.showBgColor = ( bgOption == 0 );
+	audioMotion.canvas.classList.toggle( 'repeat', bgFit == 'repeat' );
+	audioMotion.canvas.classList.toggle( 'cover', bgFit == 'adjust' );
+
+	setCurrentCover();
 	updateLastConfig();
 }
 
@@ -453,6 +475,24 @@ function setBlackBg() {
 function setFPS() {
 	audioMotion.showFPS = ( elFPS.dataset.active == '1' );
 	updateLastConfig();
+}
+
+/**
+ * Set the current cover image or just update the canvas background
+ */
+function setCurrentCover( url ) {
+	if ( url )
+		coverImage[ currAudio ].src = url;
+
+	if ( elBackground.value > 1 && coverImage[ currAudio ].src ) {
+		const alpha = 1 - elBgImageDim.value;
+		const imageUrl = coverImage[ currAudio ].src.replace( /'/g, "\\'" ); // escape single quotes
+		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
+	}
+	else
+		audioMotion.canvas.style.backgroundImage = '';
+
+	audioMotion.canvas.style.backgroundSize = '';
 }
 
 
@@ -469,6 +509,9 @@ function clearAudioElement( n = currAudio ) {
 	audioElement[ n ].dataset.quality = '';
 	audioElement[ n ].dataset.duration = '';
 	audioElement[ n ].load();
+	coverImage[ n ] = new Image();
+	if ( n == currAudio )
+		setCurrentCover(); // clear current background image
 }
 
 /**
@@ -566,7 +609,7 @@ function addBatchToQueue( files, autoplay = false ) {
  */
 function addToPlaylist( file, autoplay = false ) {
 
-	const ext = file.substring( file.lastIndexOf('.') + 1 ).toLowerCase();
+	const ext = file.slice( file.lastIndexOf('.') + 1 ).toLowerCase();
 	let ret;
 
 	if ( ['m3u','m3u8'].includes( ext ) )
@@ -625,13 +668,16 @@ function addSongToPlaylist( uri, content = {} ) {
 
 	const newEl = document.createElement('li');
 
+	// normalize slashes in path
+	uri = uri.replace( /\\/g, '/' );
+
 	newEl.dataset.artist = content.artist || '';
 
 	newEl.dataset.title = content.title ||
-		uri.substring( Math.max( uri.lastIndexOf('/'), uri.lastIndexOf('\\') ) + 1 ).replace( /%23/g, '#' ) ||
-		uri.substring( uri.lastIndexOf('//') + 2 );
+		uri.slice( uri.lastIndexOf('/') + 1 ).replace( /%23/g, '#' ) ||
+		uri.slice( uri.lastIndexOf('//') + 2 );
 
-	newEl.dataset.codec = uri.substring( uri.lastIndexOf('.') + 1 ).toUpperCase();
+	newEl.dataset.codec = uri.slice( uri.lastIndexOf('.') + 1 ).toUpperCase();
 
 	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	newEl.dataset.file = uri;
@@ -668,7 +714,11 @@ function loadPlaylist( path ) {
 	if ( ! path )
 		return;
 
-	const ext = path.substring( path.lastIndexOf('.') + 1 ).toLowerCase();
+	// normalize slashes
+	path = path.replace( /\\/g, '/' );
+
+	// get file extension
+	const ext = path.slice( path.lastIndexOf('.') + 1 ).toLowerCase();
 
 	let	n = 0,
 		songInfo;
@@ -683,25 +733,27 @@ function loadPlaylist( path ) {
 						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 				})
 				.then( content => {
-					path = path.substring( 0, Math.max( path.lastIndexOf('/'), path.lastIndexOf('\\') ) + 1 );
+					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
 					content.split(/[\r\n]+/).forEach( line => {
 						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+							line = line.replace( /\\/g, '/' );
 							n++;
 							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-								songInfo = line.substring( Math.max( line.lastIndexOf('/'), line.lastIndexOf('\\') ) + 1 );
-								songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+								songInfo = line.slice( line.lastIndexOf('/') + 1 );
+								songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 							}
-							if ( line.substring( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
+							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
 								line = path + line;
-							let t = songInfo.indexOf(' - ');
-							if ( t == -1 )
+							// extract artist name and song title off the info tag (format: ARTIST - SONG)
+							const sep = songInfo.indexOf(' - ');
+							if ( sep == -1 )
 								addSongToPlaylist( line, { title: songInfo } );
 							else
-								addSongToPlaylist( line, { artist: songInfo.substring( 0, t ), title: songInfo.substring( t + 3 ) } );
+								addSongToPlaylist( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
 							songInfo = '';
 						}
-						else if ( line.substring( 0, 7 ) == '#EXTINF' )
-							songInfo = line.substring( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+						else if ( line.slice( 0, 7 ) == '#EXTINF' )
+							songInfo = line.slice( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 					});
 					resolve( n );
 				})
@@ -716,8 +768,9 @@ function loadPlaylist( path ) {
 				list = JSON.parse( list );
 				list.forEach( item => {
 					n++;
-					songInfo = item.substring( Math.max( item.lastIndexOf('/'), item.lastIndexOf('\\') ) + 1 );
-					songInfo = songInfo.substring( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+					item = item.replace( /\\/g, '/' );
+					songInfo = item.slice( item.lastIndexOf('/') + 1 );
+					songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 					addSongToPlaylist( item, { title: songInfo } )
 				});
 			}
@@ -882,14 +935,65 @@ function getIndex( node ) {
 }
 
 /**
+ * Get album cover from file metadata
+ */
+function loadCover( uri ) {
+	return new Promise( resolve => {
+		mm.fetchFromUrl( uri )
+			.then( metadata => {
+				if ( metadata.common.picture && metadata.common.picture.length ) {
+					const blob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
+					resolve( URL.createObjectURL( blob ) );
+				}
+				else if ( serverMode == -1 ) { // in file mode there's nothing else we can do
+					resolve('');
+				}
+				else {
+					// no picture in the metadata - try to get a cover image from the song's folder
+					const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
+
+					if ( folderImages[ path ] !== undefined )
+						resolve( path + folderImages[ path ] );
+					else {
+						const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
+
+						fetch( urlToFetch )
+							.then( response => {
+								return ( response.status == 200 ) ? response.text() : null;
+							})
+							.then( content => {
+								let imageUrl = '';
+								if ( content ) {
+									if ( serverMode == 1 )
+										imageUrl = content;
+									else {
+										const dirContents = fileExplorer.parseWebDirectory( content );
+										if ( dirContents.cover )
+											imageUrl = dirContents.cover;
+									}
+								}
+								folderImages[ path ] = imageUrl;
+								resolve( path + imageUrl );
+							});
+					}
+				}
+			})
+			.catch( e => resolve('') ); // fail silently
+	});
+}
+
+/**
  * Load a song into the currently active audio element
  */
 function loadSong( n ) {
 	if ( playlist.children[ n ] ) {
 		playlistPos = n;
-		audioElement[ currAudio ].src = playlist.children[ playlistPos ].dataset.file;
-		audioElement[ currAudio ].dataset.file = playlist.children[ playlistPos ].dataset.file;
-		addMetadata( playlist.children[ playlistPos ], audioElement[ currAudio ] );
+		const song = playlist.children[ playlistPos ];
+		audioElement[ currAudio ].src = song.dataset.file;
+		audioElement[ currAudio ].dataset.file = song.dataset.file;
+		coverImage[ currAudio ] = new Image();
+		addMetadata( song, audioElement[ currAudio ] );
+		loadCover( song.dataset.file ).then( cover => setCurrentCover( cover ) );
 
 		updatePlaylistUI();
 		loadNextSong();
@@ -908,10 +1012,15 @@ function loadNextSong() {
 		n = playlistPos + 1;
 	else
 		n = 0;
-	audioElement[ nextAudio ].src = playlist.children[ n ].dataset.file;
+	const song = playlist.children[ n ];
+	audioElement[ nextAudio ].src = song.dataset.file;
 	audioElement[ nextAudio ].load();
-	audioElement[ nextAudio ].dataset.file = playlist.children[ n ].dataset.file;
-	addMetadata( playlist.children[ n ], audioElement[ nextAudio ] );
+	audioElement[ nextAudio ].dataset.file = song.dataset.file;
+	coverImage[ nextAudio ] = new Image();
+
+	addMetadata( song, audioElement[ nextAudio ] );
+	loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
+
 	skipping = false; // finished skipping track
 }
 
@@ -1064,27 +1173,43 @@ function displayCanvasMsg() {
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
+	// update background image
+	if ( elBackground.value > 1 ) {
+		let size;
+
+		if ( elBgImageFit.value == 'pulse' ) {
+			const idx = audioMotion.freqToBin( 120 ); // use the 120Hz FFT bin to detect beats
+			size = audioMotion.dataArray[ idx ] / 10 | 0;
+		}
+		else if ( elBgImageFit.value == 'zoom-in' )
+			size = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration * 100;
+		else if ( elBgImageFit.value == 'zoom-out' )
+			size = ( 1 - ( audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration ) ) * 100;
+
+		if ( size !== undefined )
+			audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+	}
+
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
 	const canvas    = audioMotion.canvas,
 		  canvasCtx = audioMotion.canvasCtx,
-		  fontSize  = canvas.height / 17, // base font size - this will scale all measures
+		  fontSize  = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
 		  centerPos = canvas.width / 2,
 		  topLine   = fontSize * 1.4;
-
-	let alpha;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
 	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
 	canvasCtx.textAlign = 'center';
 
+	canvasCtx.fillStyle = '#fff';
+	canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
+
 	// Display custom message if any and info level 2 is not set
 	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
-		alpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
-		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
-		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
+		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
 		outlineText( canvasMsg.msg, centerPos, topLine );
 		canvasMsg.msgTimer--;
 	}
@@ -1099,9 +1224,7 @@ function displayCanvasMsg() {
 			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
 
-		alpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
-		canvasCtx.fillStyle = `rgba( 255, 255, 255, ${alpha} )`;
-		canvasCtx.strokeStyle = canvasCtx.shadowColor = `rgba( 0, 0, 0, ${alpha} )`;
+		canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
@@ -1148,6 +1271,12 @@ function displayCanvasMsg() {
 			canvasCtx.textAlign = 'right';
 
 			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+		}
+
+		// cover image
+		if ( coverImage[ currAudio ].width ) {
+			const coverSize = fontSize * 3;
+			canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 		}
 
 		if ( --canvasMsg.timer < 1 )
@@ -1242,17 +1371,25 @@ function setSource() {
  */
 function loadLocalFile( obj ) {
 
-	const el = audioElement[ currAudio ],
-		  reader = new FileReader();
+	const fileBlob = obj.files[0];
 
-	reader.readAsDataURL( obj.files[0] );
-
-	reader.onload = () => {
+	if ( fileBlob ) {
 		clearAudioElement();
-		el.src = reader.result;
+
+		const el = audioElement[ currAudio ];
+		el.src = URL.createObjectURL( fileBlob );
 		el.play();
-		mm.parseBlob( obj.files[0], { skipCovers: true } ).then( metadata => addMetadata( metadata, el ) ).catch( e => {} );
-	};
+
+		mm.parseBlob( fileBlob )
+			.then( metadata => {
+				addMetadata( metadata, el );
+				if ( metadata.common.picture && metadata.common.picture.length ) {
+					const imgBlob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
+					setCurrentCover( URL.createObjectURL( imgBlob ) );
+				}
+			})
+			.catch( e => {} );
+	}
 }
 
 /**
@@ -1283,6 +1420,9 @@ function loadPreset( name, alert, init ) {
 
 	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
 		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
+
+	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
+		thisPreset.background = thisPreset.blackBg | 0; // convert legacy blackBg property (version =< 20.4)
 
 	document.querySelectorAll('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
@@ -1317,13 +1457,13 @@ function loadPreset( name, alert, init ) {
 		smoothing  : elSmoothing.value,
 		showScale  : elShowScale.dataset.active == '1',
 		showPeaks  : elShowPeaks.dataset.active == '1',
-		showBgColor: elBlackBg.dataset.active == '0',
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
 		showFPS    : elFPS.dataset.active == '1'
 	} );
 
+	setBackground();
 	setSensitivity();
 	setReflex();
 	setGradient();
@@ -1353,9 +1493,11 @@ function saveConfig( config ) {
 		fillAlpha   : elFillAlpha.value,
 		barSpace    : elBarSpace.value,
 		reflex      : elReflex.value,
+		background  : elBackground.value,
+		bgImageDim  : elBgImageDim.value,
+		bgImageFit  : elBgImageFit.value,
 		showScale 	: elShowScale.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
-		blackBg     : elBlackBg.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
 		lumiBars    : elLumiBars.dataset.active,
@@ -1392,6 +1534,9 @@ function keyboardControls( event ) {
 
 	if ( event.target.tagName != 'BODY' )
 		return;
+
+	// helper function
+	const getText = ( el ) => el[ el.selectedIndex ].text;
 
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
@@ -1440,7 +1585,7 @@ function keyboardControls( event ) {
 				}
 				else {
 					cycleElement( elRandomMode, event.shiftKey );
-					setCanvasMsg( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text );
+					setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
 				}
 			}
 			else {
@@ -1449,9 +1594,10 @@ function keyboardControls( event ) {
 			}
 			setRandomMode();
 			break;
-		case 'KeyB': 		// toggle black background
-			elBlackBg.click();
-			setCanvasMsg( 'Background ' + ( elBlackBg.dataset.active == '1' ? 'OFF' : 'ON' ) );
+		case 'KeyB': 		// background or image fit (shift)
+			cycleElement( event.shiftKey ? elBgImageFit : elBackground );
+			setBackground();
+			setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
 			break;
 		case 'KeyD': 		// display information
 			if ( canvasMsg.info == 2 )
@@ -1483,12 +1629,12 @@ function keyboardControls( event ) {
 		case 'KeyV':
 			cycleElement( elMode, event.shiftKey );
 			setMode();
-			setCanvasMsg( 'Mode: ' + elMode[ elMode.selectedIndex ].text );
+			setCanvasMsg( 'Mode: ' + getText( elMode ) );
 			break;
 		case 'KeyN': 		// increase or reduce sensitivity
 			cycleElement( elSensitivity, event.shiftKey );
 			setSensitivity();
-			setCanvasMsg( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity' );
+			setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
 			break;
 		case 'KeyO': 		// toggle resolution
 			elLoRes.click();
@@ -1517,7 +1663,7 @@ function keyboardControls( event ) {
 		case 'KeyX':
 			cycleElement( elReflex, event.shiftKey );
 			setReflex();
-			setCanvasMsg( 'Reflex: ' + elReflex[ elReflex.selectedIndex ].text );
+			setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
 			break;
 	}
 }
@@ -1540,6 +1686,8 @@ function audioOnPlay() {
 			setGradient();
 		}
 	}
+
+	setCurrentCover();
 
 	if ( elShowSong.dataset.active == '1' )
 		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
@@ -1589,54 +1737,61 @@ function selectRandomMode( force = false ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
-	elMode.selectedIndex = Math.random() * elMode.options.length | 0;
+	// helper functions
+	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
+	const randomInt = ( n=2 ) => Math.random() * n | 0;
 
-	if ( ! randomProperties.find( item => item.value == 'nobg' ).disabled ) {
-		elBlackBg.dataset.active = Math.random() * 2 | 0;
-		audioMotion.showBgColor = elBlackBg.dataset.active == '0';
-	}
+	elMode.selectedIndex = randomInt( elMode.options.length );
 
-	if ( ! randomProperties.find( item => item.value == 'peaks' ).disabled ) {
-		elShowPeaks.dataset.active = Math.random() * 2 | 0;
+	if ( isEnabled('nobg') )
+		elBackground.selectedIndex = randomInt( elBackground.options.length );
+
+	if ( isEnabled('imgfit') )
+		elBgImageFit.selectedIndex = randomInt( elBgImageFit.options.length );
+
+	if ( isEnabled('peaks') ) {
+		elShowPeaks.dataset.active = randomInt(); // 0 or 1
 		audioMotion.showPeaks = elShowPeaks.dataset.active == '1';
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'leds' ).disabled ) {
-		elLedDisplay.dataset.active = Math.random() * 2 | 0;
+	if ( isEnabled('leds') ) {
+		elLedDisplay.dataset.active = randomInt();
 		audioMotion.showLeds = elLedDisplay.dataset.active == '1';
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'lumi' ).disabled ) {
-		elLumiBars.dataset.active = Math.random() * 2 | 0;
+	if ( isEnabled('lumi') ) {
+		// always disable lumi when leds are active and background is set to image
+		elLumiBars.dataset.active = elBackground.value > 1 && audioMotion.showLeds ? 0 : randomInt();
 		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'line' ).disabled ) {
-		elLineWidth.value = ( Math.random() * 5 | 0 ) + 1; // 1 to 5
+	if ( isEnabled('line') ) {
+		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
 		updateRangeValue( elLineWidth );
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'fill' ).disabled ) {
-		elFillAlpha.value = ( Math.random() * 6 | 0 ) / 10; // 0 to 0.5
+	if ( isEnabled('fill') ) {
+		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
 		updateRangeValue( elFillAlpha );
 	}
 
-	if ( ! randomProperties.find( item => item.value == 'barSp' ).disabled )
-		elBarSpace.selectedIndex = Math.random() * elBarSpace.options.length | 0;
+	if ( isEnabled('barSp') )
+		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
 
-	if ( ! randomProperties.find( item => item.value == 'reflex' ).disabled ) {
+	if ( isEnabled('reflex') ) {
 		// exclude 'mirrored' reflex option for octave bands modes
 		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
-		elReflex.selectedIndex = Math.random() * options | 0;
+		elReflex.selectedIndex = randomInt( options );
 	}
 
-	// lineWidth, fillAlpha and barSpace are effectively set below
+	// effectively set the affected properties
+	setBackground();
 	setBarSpace();
 	setReflex();
 	setMode();
 
 	if ( elCycleGrad.dataset.active == '1' ) {
-		elGradient.selectedIndex = Math.random() * elGradient.options.length | 0;
+		elGradient.selectedIndex = randomInt( elGradient.options.length );
 		audioMotion.gradient = elGradient.value;
 	}
 }
@@ -1732,7 +1887,6 @@ function setUIEventListeners() {
 
 	elShowScale.  addEventListener( 'click', setScale );
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
-	elBlackBg.    addEventListener( 'click', setBlackBg );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
 	elLumiBars.   addEventListener( 'click', setLumiBars );
@@ -1757,6 +1911,9 @@ function setUIEventListeners() {
 	elFillAlpha.  addEventListener( 'change', setFillAlpha );
 	elBarSpace.   addEventListener( 'change', setBarSpace );
 	elReflex.     addEventListener( 'change', setReflex );
+	elBackground. addEventListener( 'change', setBackground );
+	elBgImageDim. addEventListener( 'change', setBackground );
+	elBgImageFit. addEventListener( 'change', setBackground );
 
 	// update range elements' value
 	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -1959,12 +2116,20 @@ function savePreferences( pref ) {
 		let sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
-				min: document.querySelector(`.min-db[data-preset="${i}"`).value,
-				max: document.querySelector(`.max-db[data-preset="${i}"`).value
+				min: document.querySelector(`.min-db[data-preset="${i}"]`).value,
+				max: document.querySelector(`.max-db[data-preset="${i}"]`).value
 			});
 		}
 		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
 	}
+}
+
+/**
+ * Populate a select HTML element
+ */
+function populateSelect( element, options ) {
+	for ( const item of options )
+		element[ element.options.length ] = new Option( item.text, item.value );
 }
 
 /**
@@ -2063,25 +2228,21 @@ function savePreferences( pref ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
 
-	const sensitivityOptions = [
+	populateSelect(	elSensitivity, [
 		{ value: '0', text: 'Low' },
 		{ value: '1', text: 'Normal' },
 		{ value: '2', text: 'High' }
-	];
-	for ( const item of sensitivityOptions )
-		elSensitivity[ elSensitivity.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const barSpaceOptions = [
+	populateSelect(	elBarSpace, [
 		{ value: '1.5',  text: 'Legacy' },
 		{ value: '0.1',  text: 'Narrow' },
 		{ value: '0.25', text: 'Regular' },
 		{ value: '0.5',  text: 'Wide' },
 		{ value: '0.75', text: 'Extra wide' }
-	];
-	for ( const item of barSpaceOptions )
-		elBarSpace[ elBarSpace.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const randomModeOptions = [
+	populateSelect( elRandomMode, [
 		{ value: '0',   text: 'Off' },
 		{ value: '1',   text: 'On track change' },
 		{ value: '2',   text: '5 seconds' },
@@ -2090,17 +2251,32 @@ function savePreferences( pref ) {
 		{ value: '24',  text: '1 minute' },
 		{ value: '48',  text: '2 minutes' },
 		{ value: '120', text: '5 minutes' }
-	];
-	for ( const item of randomModeOptions )
-		elRandomMode[ elRandomMode.options.length ] = new Option( item.text, item.value );
+	]);
 
-	const reflexOptions = [
+	populateSelect(	elReflex, [
 		{ value: 'off',    text: 'Off' },
 		{ value: 'on',     text: 'On' },
 		{ value: 'mirror', text: 'Mirrored' }
-	];
-	for ( const item of reflexOptions )
-		elReflex[ elReflex.options.length ] = new Option( item.text, item.value );
+	]);
+
+	populateSelect(	elBackground, [
+		{ value: '0', text: 'Gradient default' },
+		{ value: '1', text: 'Black' },
+		{ value: '2', text: 'Album cover' }
+	]);
+
+	populateSelect( elBgImageFit, [
+		{ value: 'adjust',   text: 'Adjust' },
+		{ value: 'center',   text: 'Center' },
+		{ value: 'pulse',    text: 'Pulse' },
+		{ value: 'repeat',   text: 'Repeat' },
+		{ value: 'zoom-in',  text: 'Zoom In' },
+		{ value: 'zoom-out', text: 'Zoom Out' }
+	]);
+
+	elBgImageDim.min  = '0.1';
+	elBgImageDim.max  = '1';
+	elBgImageDim.step = '0.1';
 
 	elLineWidth.min = '1';
 	elLineWidth.max = '5';
@@ -2148,6 +2324,7 @@ function savePreferences( pref ) {
 			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {
+		serverMode = status;
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
 			document.getElementById('local_file_panel').style.display = 'block';

@@ -10,6 +10,7 @@ var mounts = [],
 	defaultRoot = '/music',
 	ui_path,
 	ui_files,
+//	enterDirCallback,
 	dblClickCallback;
 
 /**
@@ -20,7 +21,6 @@ var mounts = [],
  */
 function updateUI( content, scrollTop ) {
 
-//	ui_cover.src = '';
 	ui_path.innerHTML = '';
 	ui_files.innerHTML = '';
 
@@ -52,8 +52,7 @@ function updateUI( content, scrollTop ) {
 				ui_files.innerHTML += `<li data-type="${ file.match(/\.(m3u|m3u8)$/) !== null ? 'list' : 'file' }" data-path="${file}">${file}</li>`;
 			});
 		}
-//		if ( content.cover )
-//			UI_cover.src = makePath( content.cover );
+		ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${makePath( content.cover )}')` : '' );
 	}
 
 	// restore scroll position when returning from subdirectory
@@ -101,6 +100,8 @@ function enterDir( target, scrollTop ) {
 				if ( ! nodeServer )
 					content = parseWebDirectory( content );
 				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
+//				if ( enterDirCallback )
+//					enterDirCallback( url, content );
 				resolve( true );
 			})
 			.catch( err => {
@@ -116,7 +117,7 @@ function enterDir( target, scrollTop ) {
  * @param {string}   content HTML body of a web server directory listing
  * @returns {object} folder/cover image, list of directories, list of files
  */
-function parseWebDirectory( content ) {
+export function parseWebDirectory( content ) {
 
 	let files = [];
 	let dirs = [];
@@ -217,11 +218,11 @@ export function create( container, options = {} ) {
 
 	ui_path = document.createElement('ul');
 	ui_path.className = 'breadcrumb';
-	container.appendChild( ui_path );
+	container.append( ui_path );
 
 	ui_files = document.createElement('ul');
 	ui_files.className = 'filelist';
-	container.appendChild( ui_files );
+	container.append( ui_files );
 
 	startUpTimer = setTimeout( () => {
 		ui_path.innerHTML = 'Waiting for server...';
@@ -248,6 +249,9 @@ export function create( container, options = {} ) {
 
 	if ( typeof options.dblClick == 'function' )
 		dblClickCallback = options.dblClick;
+
+//	if ( typeof options.onEnterDir == 'function' )
+//		enterDirCallback = options.onEnterDir;
 
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
