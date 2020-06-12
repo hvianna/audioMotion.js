@@ -6,14 +6,14 @@ nav_order: 3
 
 # Changelog
 
-## version NEXT :mask:
+## version 20.6 :mask:
 
 ### Added:
 
-+ Album cover images retrieved from the song metadata or from a file named *cover* or *folder* (.jpg|png|gif|bmp) inside each folder
-are now shown in the file explorer background, the on-screen song information and as an option for the analyzer background;
++ **Album cover image** retrieved from the song metadata or from a file named *cover* or *folder* (.jpg|png|gif|bmp) inside each folder
+is now shown in the file explorer background, the on-screen song information and, optionally, in the analyzer background;
 
-+ New [Background](docs/user-interface.md#background), [Image Fit](docs/user-interface.md#image-fit) and [Image Dim](docs/user-interface.md#image-dim)settings.
++ New [Background](docs/user-interface.md#background), [Image Fit](docs/user-interface.md#image-fit) and [Image Dim](docs/user-interface.md#image-dim) settings.
 
 ### Changed:
 
@@ -21,7 +21,7 @@ are now shown in the file explorer background, the on-screen song information an
 
 ### Removed:
 
-+ The **NO BG** switch has been replaced by the new Background setting and uses the same keyboard shortcut (**B**).
++ The **NO BG** switch has been replaced by the new Background setting.
 
 ### Fixed:
 
