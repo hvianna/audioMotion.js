@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.6';
+const _VERSION = '20.7-beta';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -64,7 +64,8 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elReflex      = document.getElementById('reflex'),
 	  elBackground  = document.getElementById('background'),
 	  elBgImageDim  = document.getElementById('bg_img_dim'),
-	  elBgImageFit  = document.getElementById('bg_img_fit');
+	  elBgImageFit  = document.getElementById('bg_img_fit'),
+	  elRadial      = document.getElementById('radial');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -120,7 +121,8 @@ const presets = {
 		barSpace    : 0.1,
 		reflex      : 'off',
 		bgImageDim  : 0.3,
-		bgImageFit  : 'center'
+		bgImageFit  : 'center',
+		radial      : 0
 	},
 
 	fullres: {
@@ -249,6 +251,7 @@ const randomProperties = [
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
+	{ value: 'radial', text: 'Radial',       disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
@@ -443,6 +446,14 @@ function setLumiBars() {
 	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
 	setBarSpace();
 	setReflex();
+}
+
+/**
+ * Set radial mode preference
+ */
+function setRadial() {
+	audioMotion.radial = ( elRadial.dataset.active == '1' );
+	updateLastConfig();
 }
 
 /**
@@ -1460,7 +1471,8 @@ function loadPreset( name, alert, init ) {
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
-		showFPS    : elFPS.dataset.active == '1'
+		showFPS    : elFPS.dataset.active == '1',
+		radial     : elRadial.dataset.active == '1'
 	} );
 
 	setBackground();
@@ -1505,7 +1517,8 @@ function saveConfig( config ) {
 		showSong    : elShowSong.dataset.active,
 		noShadow    : elNoShadow.dataset.active,
 		loRes       : elLoRes.dataset.active,
-		showFPS     : elFPS.dataset.active
+		showFPS     : elFPS.dataset.active,
+		radial      : elRadial.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1765,6 +1778,11 @@ function selectRandomMode( force = false ) {
 		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
 	}
 
+	if ( isEnabled('radial') ) {
+		elRadial.dataset.active = randomInt();
+		audioMotion.radial = elRadial.dataset.active == '1';
+	}
+
 	if ( isEnabled('line') ) {
 		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
 		updateRangeValue( elLineWidth );
@@ -1890,6 +1908,7 @@ function setUIEventListeners() {
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
 	elLumiBars.   addEventListener( 'click', setLumiBars );
+	elRadial.     addEventListener( 'click', setRadial );
 	elRepeat.     addEventListener( 'click', updateLastConfig );
 	elShowSong.   addEventListener( 'click', updateLastConfig );
 	elNoShadow.   addEventListener( 'click', updateLastConfig );
