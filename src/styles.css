@@ -263,6 +263,11 @@ table {
 .config-col > .config-col {
 	display: inline-block;
 	margin: 0;
+	vertical-align: top;
+}
+
+div.value {
+	text-align: center;
 }
 
 .config-sub {

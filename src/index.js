@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.7-beta';
+const _VERSION = '20.7-beta.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -65,7 +65,8 @@ const elFFTsize     = document.getElementById('fft_size'),
 	  elBackground  = document.getElementById('background'),
 	  elBgImageDim  = document.getElementById('bg_img_dim'),
 	  elBgImageFit  = document.getElementById('bg_img_fit'),
-	  elRadial      = document.getElementById('radial');
+	  elRadial      = document.getElementById('radial'),
+	  elSpin        = document.getElementById('spin');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -122,7 +123,8 @@ const presets = {
 		reflex      : 'off',
 		bgImageDim  : 0.3,
 		bgImageFit  : 'center',
-		radial      : 0
+		radial      : 0,
+		spin        : 0
 	},
 
 	fullres: {
@@ -252,6 +254,7 @@ const randomProperties = [
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
 	{ value: 'radial', text: 'Radial',       disabled: false },
+	{ value: 'spin',   text: 'Spin',         disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
@@ -427,7 +430,8 @@ function setReflex() {
  * Set scale display preference
  */
 function setScale() {
-	audioMotion.showScale = ( elShowScale.dataset.active == '1' );
+	audioMotion.showScale  = !! ( elShowScale.value & 1 );
+	audioMotion.showScaleY = !! ( elShowScale.value & 2 );
 	updateLastConfig();
 }
 
@@ -453,6 +457,14 @@ function setLumiBars() {
  */
 function setRadial() {
 	audioMotion.radial = ( elRadial.dataset.active == '1' );
+	updateLastConfig();
+}
+
+/**
+ * Set radial mode preference
+ */
+function setSpin() {
+	audioMotion.spinSpeed = elSpin.dataset.active;
 	updateLastConfig();
 }
 
@@ -1435,6 +1447,9 @@ function loadPreset( name, alert, init ) {
 	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
 		thisPreset.background = thisPreset.blackBg | 0; // convert legacy blackBg property (version =< 20.4)
 
+	if ( thisPreset.hasOwnProperty( 'showScale' ) )
+		thisPreset.showScale |= 0; // convert legacy boolean value to integer (version =< 20.6)
+
 	document.querySelectorAll('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
 			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
@@ -1466,7 +1481,6 @@ function loadPreset( name, alert, init ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		showScale  : elShowScale.dataset.active == '1',
 		showPeaks  : elShowPeaks.dataset.active == '1',
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
@@ -1475,6 +1489,7 @@ function loadPreset( name, alert, init ) {
 		radial     : elRadial.dataset.active == '1'
 	} );
 
+	setScale();
 	setBackground();
 	setSensitivity();
 	setReflex();
@@ -1508,7 +1523,7 @@ function saveConfig( config ) {
 		background  : elBackground.value,
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
-		showScale 	: elShowScale.dataset.active,
+		showScale 	: elShowScale.value,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
@@ -1661,9 +1676,10 @@ function keyboardControls( event ) {
 			elRepeat.click();
 			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
-		case 'KeyS': 		// toggle scale
-			elShowScale.click();
-			setCanvasMsg( 'Scale ' + ( elShowScale.dataset.active == '1' ? 'ON' : 'OFF' ) );
+		case 'KeyS': 		// toggle X and Y axis scales
+			cycleElement( elShowScale, event.shiftKey );
+			setScale();
+			setCanvasMsg( 'Scale: ' + getText( elShowScale ) );
 			break;
 		case 'KeyT': 		// toggle text shadow
 			elNoShadow.click();
@@ -1781,6 +1797,11 @@ function selectRandomMode( force = false ) {
 	if ( isEnabled('radial') ) {
 		elRadial.dataset.active = randomInt();
 		audioMotion.radial = elRadial.dataset.active == '1';
+	}
+
+	if ( isEnabled('spin') ) {
+		elSpin.dataset.active = randomInt();
+		audioMotion.spinSpeed = elRadial.dataset.active;
 	}
 
 	if ( isEnabled('line') ) {
@@ -1903,7 +1924,6 @@ function setUIEventListeners() {
 		});
 	});
 
-	elShowScale.  addEventListener( 'click', setScale );
 	elShowPeaks.  addEventListener( 'click', setShowPeaks );
 	elCycleGrad.  addEventListener( 'click', updateLastConfig );
 	elLedDisplay. addEventListener( 'click', setLedDisplay );
@@ -1914,6 +1934,7 @@ function setUIEventListeners() {
 	elNoShadow.   addEventListener( 'click', updateLastConfig );
 	elLoRes.      addEventListener( 'click', setLoRes );
 	elFPS.        addEventListener( 'click', setFPS );
+	elSpin.       addEventListener( 'click', setSpin );
 
 	// Add event listeners to UI config elements
 
@@ -1930,6 +1951,7 @@ function setUIEventListeners() {
 	elFillAlpha.  addEventListener( 'change', setFillAlpha );
 	elBarSpace.   addEventListener( 'change', setBarSpace );
 	elReflex.     addEventListener( 'change', setReflex );
+	elShowScale.  addEventListener( 'change', setScale );
 	elBackground. addEventListener( 'change', setBackground );
 	elBgImageDim. addEventListener( 'change', setBackground );
 	elBgImageFit. addEventListener( 'change', setBackground );
@@ -2276,6 +2298,13 @@ function populateSelect( element, options ) {
 		{ value: 'off',    text: 'Off' },
 		{ value: 'on',     text: 'On' },
 		{ value: 'mirror', text: 'Mirrored' }
+	]);
+
+	populateSelect( elShowScale, [
+		{ value: '0', text: 'Off' },
+		{ value: '1', text: 'X-axis (Hz)' },
+		{ value: '2', text: 'Y-axis (dB)' },
+		{ value: '3', text: 'Both axes' }
 	]);
 
 	populateSelect(	elBackground, [

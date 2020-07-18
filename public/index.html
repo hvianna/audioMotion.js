@@ -218,7 +218,7 @@
 							</span>
 						</div>
 						<input id="bg_img_dim" type="range" data-prop="bgImageDim">
-						<span class="value"></span>
+						<div class="value"></div>
 					</div>
 				</div>
 
@@ -231,11 +231,16 @@
 					<select id="reflex" data-prop="reflex"></select>
 				</div>
 
+				<div class="config-col">
+					<div class="help"><span class="config-label"><u>S</u>cale</span>
+						<span class="tooltip">Show / hide frequency and level scales</span>
+					</div>
+					<select id="show_scale" data-prop="showScale"></select>
+				</div>
+
 				<ul class="config-col switch-bar">
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
 						<span class="tooltip">Display song info in the visualization area on every track change
-					<li class="switch" id="show_scale" data-prop="showScale"><u>S</u>CALE
-						<span class="tooltip">Show / hide the frequency scale</span>
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 						<span class="tooltip">Hold volume peaks on screen for a short time</span>
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
@@ -260,9 +265,15 @@
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+					</ul>
+
+					<ul class="switch-bar">
 						<li class="switch" id="radial" data-prop="radial">RADIAL
 							<span class="tooltip">Creates a circular spectrum analyzer with radial frequency bars</span>
+						<li class="switch" id="spin" data-prop="spin">SPIN
+							<span class="tooltip">Toggle rotation for radial mode</span>
 					</ul>
+
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
 							<input id="line_width" data-prop="lineWidth" type="range">
@@ -312,7 +323,7 @@
 						</span>
 					</div>
 					<input type="range" id="smoothing" data-prop="smoothing">
-					<span class="value"></span>
+					<div class="value"></div>
 				</div>
 
 				<div class="config-col">
