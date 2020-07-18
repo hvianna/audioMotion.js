@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.7-beta.2';
+const _VERSION = '20.7-beta.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1196,18 +1196,19 @@ function displayCanvasMsg() {
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
-	// update background image
+	// update background image for pulse and zoom effects
 	if ( elBackground.value > 1 ) {
 		let size;
 
-		if ( elBgImageFit.value == 'pulse' ) {
-			const idx = audioMotion.freqToBin( 120 ); // use the 120Hz FFT bin to detect beats
-			size = audioMotion.dataArray[ idx ] / 10 | 0;
+		switch ( elBgImageFit.value ) {
+			case 'pulse':
+				size = ( audioMotion.energy * 70 | 0 ) - 25;
+				break;
+			case 'zoom-in':
+			case 'zoom-out':
+				const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
+				size = ( elBgImageFit.value == 'zoom-in' ? songProgress : 1 - songProgress ) * 100;
 		}
-		else if ( elBgImageFit.value == 'zoom-in' )
-			size = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration * 100;
-		else if ( elBgImageFit.value == 'zoom-out' )
-			size = ( 1 - ( audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration ) ) * 100;
 
 		if ( size !== undefined )
 			audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
