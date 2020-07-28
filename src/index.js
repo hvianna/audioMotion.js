@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.7-beta.4';
+const _VERSION = '20.7-beta.5';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -2242,10 +2242,10 @@ function populateSelect( element, options ) {
 	]);
 
 	populateSelect( elShowScale, [
-		{ value: '0', text: 'Off' },
-		{ value: '1', text: 'X-axis (Hz)' },
-		{ value: '2', text: 'Y-axis (dB)' },
-		{ value: '3', text: 'Both axes' }
+		{ value: '0', text: 'None' },
+		{ value: '1', text: 'Frequency' },
+		{ value: '2', text: 'Level (dB)' },
+		{ value: '3', text: 'Both' }
 	]);
 
 	populateSelect(	elBackground, [
