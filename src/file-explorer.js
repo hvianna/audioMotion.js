@@ -119,31 +119,39 @@ function enterDir( target, scrollTop ) {
  */
 export function parseWebDirectory( content ) {
 
-	let files = [];
-	let dirs = [];
-	let cover;
+	let files = [],
+		dirs  = [],
+		imgs  = [];
 
-	let entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+	// helper function for string.find()
+	const matchImg = ( str, pattern ) => str.match( new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' ) );
 
-	for ( let e of entries ) {
-		let info = e.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
-		if ( info[1].substring( info[1].length - 1 ) == '/' ) {
-			if ( ! info[2].match( /parent directory/i ) ) {
-				if ( info[2].substring( info[2].length - 1 ) == '/' )
-					dirs.push( info[2].substring( 0, info[2].length - 1 ) );
+	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+
+	for ( const entry of entries ) {
+		const [ all, uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
+		if ( uri.substring( uri.length - 1 ) == '/' ) {
+			if ( ! file.match( /parent directory/i ) ) {
+				if ( file.substring( file.length - 1 ) == '/' )
+					dirs.push( file.substring( 0, file.length - 1 ) );
 				else
-					dirs.push( info[2] );
+					dirs.push( file );
 			}
 		}
 		else {
-			if ( info[2].match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
-				cover = info[2]
-			else if ( info[2].match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/ ) )
-				files.push( info[2] );
+			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+				imgs.push( file );
+			else if ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) )
+				files.push( file );
 		}
 	}
 
-	let collator = new Intl.Collator(); // for case-insensitive string sorting
+	const cover = imgs.find( el => matchImg( el, 'cover' ) )
+				  || imgs.find( el => matchImg( el, 'folder' ) )
+				  || imgs.find( el => matchImg( el, 'front' ) )
+				  || imgs[0];
+
+	const collator = new Intl.Collator(); // for case-insensitive string sorting
 	return { cover, dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
