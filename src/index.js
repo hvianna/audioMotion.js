@@ -1383,17 +1383,6 @@ function loadPreset( name, alert, init ) {
 	const thisPreset = presets[ name ],
 		  defaults   = presets['default'];
 
-	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
-		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
-			elMode.value = 8;
-		else if ( thisPreset.mode == 12 ) // ditto
-			elMode.value = 7;
-		else
-			elMode.value = thisPreset.mode;
-	}
-	else if ( init )
-		elMode.value = defaults.mode;
-
 	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
 		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
 
