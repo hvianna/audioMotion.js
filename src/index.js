@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.7-beta.5';
+const _VERSION = '20.7-beta.6';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -124,33 +124,46 @@ const presets = {
 		lineWidth   : 2,
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
-		reflex      : 'off',
+		reflex      : 0,
 		bgImageDim  : 0.3,
 		bgImageFit  : 'center',
-		radial      : 0
+		radial      : 0,
 	},
 
 	fullres: {
-		mode        : 0,
 		fftSize     : 8192,
 		freqMin     : 20,
 		freqMax     : 22000,
+		mode        : 0,
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0,
 		smoothing   : 0.5
 	},
 
 	octave: {
-		mode        : 4,		// 1/6th octave bands mode
-		fftSize     : 8192,
-		smoothing   : 0.5
+		barSpace    : 0.1,
+		ledDisplay  : 0,
+		lumiBars    : 0,
+		mode        : 3,		// 1/8th octave bands mode
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0
 	},
 
 	ledbars: {
-		mode        : 2,		// 1/12th octave bands mode
-		fftSize     : 8192,
-		smoothing   : 0.5,
-		background  : 1,
+		background  : 0,
+		barSpace    : 0.5,
 		ledDisplay  : 1,
-		showScale   : 0
+		lumiBars    : 0,
+		mode        : 3,
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0
+	},
+
+	demo: {
+		randomMode  : 6    // 15 seconds
 	}
 };
 
@@ -399,12 +412,12 @@ function setProperty ( prop, save ) {
 
 		case elReflex:
 			switch ( elReflex.value ) {
-				case 'on':
+				case '1':
 					audioMotion.reflexRatio = .4;
 					audioMotion.reflexAlpha = .2;
 					break;
 
-				case 'mirror':
+				case '2':
 					audioMotion.reflexRatio = .5;
 					audioMotion.reflexAlpha = 1;
 					break;
@@ -1385,6 +1398,9 @@ function loadPreset( name, alert, init ) {
 	if ( thisPreset.hasOwnProperty( 'showScale' ) )
 		thisPreset.showScale |= 0; // convert legacy boolean value to integer (version =< 20.6)
 
+	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) )
+		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex ); // convert legacy string value to integer (version =< 20.6)
+
 	$$('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
 			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
@@ -1432,6 +1448,9 @@ function loadPreset( name, alert, init ) {
 	setProperty( elRandomMode );
 	setProperty( elBarSpace );
 	setProperty( elMode, true );
+
+	if ( name == 'demo' )
+		selectRandomMode( true );
 
 	if ( alert )
 		notie.alert({ text: 'Preset loaded!' });
@@ -2212,9 +2231,9 @@ function populateSelect( element, options ) {
 	]);
 
 	populateSelect(	elReflex, [
-		{ value: 'off',    text: 'Off' },
-		{ value: 'on',     text: 'On' },
-		{ value: 'mirror', text: 'Mirrored' }
+		{ value: '0', text: 'Off' },
+		{ value: '1', text: 'On' },
+		{ value: '2', text: 'Mirrored' }
 	]);
 
 	populateSelect( elShowScale, [
