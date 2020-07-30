@@ -1912,8 +1912,8 @@ function setUIEventListeners() {
 	$id('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
 	$id('btn_clear').addEventListener( 'click', clearPlaylist );
 
-	// clicks on canvas also toggle scale on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
+	// clicks on canvas cycle scales on/off
+	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
 }
 
 /**
