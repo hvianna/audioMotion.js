@@ -59,8 +59,10 @@ function getDir( directoryPath, showHidden = false ) {
 	return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
-function matchImg( str, pattern ) {
-	return str.match( new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' ) );
+// helper function - find image files with given pattern in an array of filenames
+function findImg( arr, pattern ) {
+	const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+	return arr.find( el => el.match( regexp ) );
 }
 
 /* main */
@@ -124,10 +126,7 @@ server.use( '/music', express.static( musicPath ), ( req, res ) => {
 				imgs.push( file );
 			return ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null );
 		});
-		files.cover = imgs.find( el => matchImg( el, 'cover' ) )
-					  || imgs.find( el => matchImg( el, 'folder' ) )
-					  || imgs.find( el => matchImg( el, 'front' ) )
-					  || imgs[0];
+		files.cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 		res.send( files );
 	}
 })
@@ -156,9 +155,6 @@ server.get( '/getCover/:path', ( req, res ) => {
 		res.status(404).send( 'Not found!' );
 	else {
 		const imgs = entries.files.filter( file => file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) !== null );
-		res.send( imgs.find( el => matchImg( el, 'cover' ) )
-				  || imgs.find( el => matchImg( el, 'folder' ) )
-				  || imgs.find( el => matchImg( el, 'front' ) )
-				  || imgs[0] );
+		res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
 	}
 });

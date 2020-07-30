@@ -123,8 +123,11 @@ export function parseWebDirectory( content ) {
 		dirs  = [],
 		imgs  = [];
 
-	// helper function for string.find()
-	const matchImg = ( str, pattern ) => str.match( new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' ) );
+	// helper function
+	const findImg = ( arr, pattern ) => {
+		const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+		return arr.find( el => el.match( regexp ) );
+	}
 
 	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
 
@@ -146,12 +149,9 @@ export function parseWebDirectory( content ) {
 		}
 	}
 
-	const cover = imgs.find( el => matchImg( el, 'cover' ) )
-				  || imgs.find( el => matchImg( el, 'folder' ) )
-				  || imgs.find( el => matchImg( el, 'front' ) )
-				  || imgs[0];
-
+	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 	const collator = new Intl.Collator(); // for case-insensitive string sorting
+
 	return { cover, dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
