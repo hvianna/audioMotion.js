@@ -240,11 +240,11 @@
 
 				<ul class="config-col switch-bar">
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-						<span class="tooltip">Display song info in the visualization area on every track change
+						<span class="tooltip">Display song info on every track change
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
-						<span class="tooltip">Hold volume peaks on screen for a short time</span>
+						<span class="tooltip">Hold peak levels for a short time</span>
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
-						<span class="tooltip">Disable shadows on canvas messages</span>
+						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 					<li class="switch" id="fps" data-prop="showFPS">FPS
@@ -267,13 +267,6 @@
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
 					</ul>
 
-					<ul class="switch-bar">
-						<li class="switch" id="radial" data-prop="radial">RADIAL
-							<span class="tooltip">Creates a circular spectrum analyzer with radial frequency bars</span>
-						<li class="switch" id="spin" data-prop="spin">SPIN
-							<span class="tooltip">Toggle rotation for radial mode</span>
-					</ul>
-
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
 							<input id="line_width" data-prop="lineWidth" type="range">
@@ -288,6 +281,15 @@
 							<select id="bar_space" data-prop="barSpace"></select>
 						</label>
 					</div>
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">Radial</span>
+						<span class="tooltip">
+						Display the spectrum analyzer as a circle with radial frequencies
+						</span>
+					</div>
+					<select id="radial" data-prop="radial"></select>
 				</div>
 
 				<div class="config-col">

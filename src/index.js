@@ -70,8 +70,7 @@ const elFFTsize     = $id('fft_size'),
 	  elBackground  = $id('background'),
 	  elBgImageDim  = $id('bg_img_dim'),
 	  elBgImageFit  = $id('bg_img_fit'),
-	  elRadial      = $id('radial'),
-	  elSpin        = $id('spin');
+	  elRadial      = $id('radial');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -128,8 +127,7 @@ const presets = {
 		reflex      : 'off',
 		bgImageDim  : 0.3,
 		bgImageFit  : 'center',
-		radial      : 0,
-		spin        : 0
+		radial      : 0
 	},
 
 	fullres: {
@@ -258,11 +256,10 @@ const randomProperties = [
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
-	{ value: 'radial', text: 'Radial',       disabled: false },
-	{ value: 'spin',   text: 'Spin',         disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
-	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
+	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
+	{ value: 'radial', text: 'Radial',       disabled: false }
 ];
 
 // Sensitivity presets
@@ -385,7 +382,8 @@ function setProperty ( prop, save ) {
 			break;
 
 		case elRadial:
-			audioMotion.radial = ( elRadial.dataset.active == '1' );
+			audioMotion.radial = ( elRadial.value > 0 );
+			audioMotion.spinSpeed = ( elRadial.value == 2 ) ? 2 : 0;
 			break;
 
 		case elRandomMode:
@@ -441,11 +439,6 @@ function setProperty ( prop, save ) {
 			audioMotion.smoothing = elSmoothing.value;
 			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 			break;
-
-		case elSpin:
-			audioMotion.spinSpeed = 2 * elSpin.dataset.active;
-			break;
-
 	}
 
 	if ( save )
@@ -1427,10 +1420,10 @@ function loadPreset( name, alert, init ) {
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
-		showFPS    : elFPS.dataset.active == '1',
-		radial     : elRadial.dataset.active == '1'
+		showFPS    : elFPS.dataset.active == '1'
 	} );
 
+	setProperty( elRadial );
 	setProperty( elShowScale );
 	setProperty( elBackground );
 	setProperty( elSensitivity );
@@ -1465,6 +1458,7 @@ function saveConfig( config ) {
 		background  : elBackground.value,
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
+		radial      : elRadial.value,
 		showScale 	: elShowScale.value,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
@@ -1474,8 +1468,7 @@ function saveConfig( config ) {
 		showSong    : elShowSong.dataset.active,
 		noShadow    : elNoShadow.dataset.active,
 		loRes       : elLoRes.dataset.active,
-		showFPS     : elFPS.dataset.active,
-		radial      : elRadial.dataset.active
+		showFPS     : elFPS.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1721,13 +1714,8 @@ function selectRandomMode( force = false ) {
 	}
 
 	if ( isEnabled('radial') ) {
-		elRadial.dataset.active = randomInt();
+		elRadial.selectedIndex = randomInt( elRadial.options.length );
 		setProperty( elRadial );
-	}
-
-	if ( isEnabled('spin') ) {
-		elSpin.dataset.active = randomInt();
-		setProperty( elSpin );
 	}
 
 	if ( isEnabled('line') ) {
@@ -1855,10 +1843,8 @@ function setUIEventListeners() {
 	[ elShowPeaks,
 	  elLedDisplay,
 	  elLumiBars,
-	  elRadial,
 	  elLoRes,
-	  elFPS,
-	  elSpin ].forEach( el => el.addEventListener( 'click', setProperty ) );
+	  elFPS ].forEach( el => el.addEventListener( 'click', setProperty ) );
 
 	[ elCycleGrad,
 	  elRepeat,
@@ -1880,6 +1866,7 @@ function setUIEventListeners() {
 	  elLineWidth,
 	  elFillAlpha,
 	  elBarSpace,
+	  elRadial,
 	  elReflex,
 	  elShowScale,
 	  elBackground,
@@ -2250,6 +2237,12 @@ function populateSelect( element, options ) {
 		{ value: 'repeat',   text: 'Repeat' },
 		{ value: 'zoom-in',  text: 'Zoom In' },
 		{ value: 'zoom-out', text: 'Zoom Out' }
+	]);
+
+	populateSelect( elRadial, [
+		{ value: '0', text: 'Off' },
+		{ value: '1', text: 'On' },
+		{ value: '2', text: 'Spinning' }
 	]);
 
 	elBgImageDim.min  = '0.1';
