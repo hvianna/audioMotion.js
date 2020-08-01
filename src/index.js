@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.7-beta.6';
+const _VERSION = '20.7-beta.7';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -103,13 +103,13 @@ let serverMode;
 // Configuration presets
 const presets = {
 	default: {
-		mode        : 0,	    // discrete frequencies mode
-		fftSize     : 8192,		// FFT size
-		freqMin     : 20,		// lowest frequency
-		freqMax     : 22000,	// highest frequency
-		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+		mode        : 0,	// discrete frequencies
+		fftSize     : 8192,
+		freqMin     : 20,
+		freqMax     : 22000,
+		smoothing   : 0.5,
 		gradient    : 'prism',
-		background  : 0,
+		background  : 0,	// gradient default
 		cycleGrad   : 1,
 		randomMode  : 0,
 		ledDisplay  : 0,
@@ -127,7 +127,7 @@ const presets = {
 		barSpace    : 0.1,
 		reflex      : 0,
 		bgImageDim  : 0.3,
-		bgImageFit  : 'center',
+		bgImageFit  : 1, 	// center
 		radial      : 0,
 		spin        : 1
 	},
@@ -147,7 +147,7 @@ const presets = {
 		barSpace    : 0.1,
 		ledDisplay  : 0,
 		lumiBars    : 0,
-		mode        : 3,		// 1/8th octave bands mode
+		mode        : 3,	// 1/8th octave bands mode
 		radial      : 0,
 		randomMode  : 0,
 		reflex      : 0
@@ -316,8 +316,8 @@ function setProperty ( prop, save ) {
 
 			audioMotion.overlay = ( bgOption > 1 );
 			audioMotion.showBgColor = ( bgOption == 0 );
-			audioMotion.canvas.classList.toggle( 'repeat', bgFit == 'repeat' );
-			audioMotion.canvas.classList.toggle( 'cover', bgFit == 'adjust' );
+			audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
+			audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
 
 			setCurrentCover();
 			break;
@@ -1162,21 +1162,17 @@ function displayCanvasMsg() {
 		playNextSong( true );
 
 	// update background image for pulse and zoom effects
-	if ( elBackground.value > 1 ) {
+	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
 		let size;
 
-		switch ( elBgImageFit.value ) {
-			case 'pulse':
-				size = ( audioMotion.energy * 70 | 0 ) - 25;
-				break;
-			case 'zoom-in':
-			case 'zoom-out':
-				const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
-				size = ( elBgImageFit.value == 'zoom-in' ? songProgress : 1 - songProgress ) * 100;
+		if ( elBgImageFit.value == 3 )	// pulse
+			size = ( audioMotion.energy * 70 | 0 ) - 25;
+		else {
+			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
+			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
 		}
 
-		if ( size !== undefined )
-			audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
@@ -1396,17 +1392,20 @@ function loadPreset( name, alert, init ) {
 	const thisPreset = presets[ name ],
 		  defaults   = presets['default'];
 
-	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
-		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
+	if ( thisPreset.hasOwnProperty( 'randomMode' ) ) // convert legacy boolean value to integer (version =< 19.12)
+		thisPreset.randomMode |= 0;
 
-	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
-		thisPreset.background = thisPreset.blackBg | 0; // convert legacy blackBg property (version =< 20.4)
+	if ( thisPreset.hasOwnProperty( 'blackBg' ) ) // convert legacy blackBg property (version =< 20.4)
+		thisPreset.background = thisPreset.blackBg | 0;
 
-	if ( thisPreset.hasOwnProperty( 'showScale' ) )
-		thisPreset.showScale |= 0; // convert legacy boolean value to integer (version =< 20.6)
+	if ( thisPreset.hasOwnProperty( 'showScale' ) ) // convert legacy boolean value to integer (version =< 20.6)
+		thisPreset.showScale |= 0;
 
-	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) )
-		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex ); // convert legacy string value to integer (version =< 20.6)
+	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
+		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
+
+	if ( thisPreset.hasOwnProperty( 'bgImageFit') && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
+		thisPreset.bgImageFit = ['adjust','center','repeat','pulse','zoom-in','zoom-out'].indexOf( thisPreset.bgImageFit );
 
 	$$('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
@@ -2266,12 +2265,12 @@ function populateSelect( element, options ) {
 	]);
 
 	populateSelect( elBgImageFit, [
-		{ value: 'adjust',   text: 'Adjust' },
-		{ value: 'center',   text: 'Center' },
-		{ value: 'pulse',    text: 'Pulse' },
-		{ value: 'repeat',   text: 'Repeat' },
-		{ value: 'zoom-in',  text: 'Zoom In' },
-		{ value: 'zoom-out', text: 'Zoom Out' }
+		{ value: '0', text: 'Adjust' },
+		{ value: '1', text: 'Center' },
+		{ value: '3', text: 'Pulse' },
+		{ value: '2', text: 'Repeat' },
+		{ value: '4', text: 'Zoom In' },
+		{ value: '5', text: 'Zoom Out' }
 	]);
 
 	elBgImageDim.min  = '0.1';
