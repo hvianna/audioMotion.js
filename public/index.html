@@ -265,6 +265,8 @@
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+						<li class="switch" id="radial" data-prop="radial">RADIAL
+							<span class="tooltip">Circular spectrum analyzer with radial frequencies <em>(disables LEDS and LUMI)</em></span>
 					</ul>
 
 					<div class="config-sub">
@@ -280,16 +282,11 @@
 						<label id="bar_space_label" class="config-label">Bar spacing:
 							<select id="bar_space" data-prop="barSpace"></select>
 						</label>
+						<label id="spin_label" class="config-label">Spin:
+							<input id="spin" data-prop="spin" type="range">
+							<span class="value"></span>
+						</label>
 					</div>
-				</div>
-
-				<div class="config-col">
-					<div class="help"><span class="config-label">Radial</span>
-						<span class="tooltip">
-						Display a circular spectrum analyzer with radial frequencies
-						</span>
-					</div>
-					<select id="radial" data-prop="radial"></select>
 				</div>
 
 				<div class="config-col">

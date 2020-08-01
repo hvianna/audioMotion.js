@@ -70,7 +70,8 @@ const elFFTsize     = $id('fft_size'),
 	  elBackground  = $id('background'),
 	  elBgImageDim  = $id('bg_img_dim'),
 	  elBgImageFit  = $id('bg_img_fit'),
-	  elRadial      = $id('radial');
+	  elRadial      = $id('radial'),
+	  elSpin		= $id('spin');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -128,6 +129,7 @@ const presets = {
 		bgImageDim  : 0.3,
 		bgImageFit  : 'center',
 		radial      : 0,
+		spin        : 1
 	},
 
 	fullres: {
@@ -272,7 +274,8 @@ const randomProperties = [
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
-	{ value: 'radial', text: 'Radial',       disabled: false }
+	{ value: 'radial', text: 'Radial',       disabled: false },
+	{ value: 'spin',   text: 'Spin',         disabled: false }
 ];
 
 // Sensitivity presets
@@ -395,8 +398,8 @@ function setProperty ( prop, save ) {
 			break;
 
 		case elRadial:
-			audioMotion.radial = ( elRadial.value > 0 );
-			audioMotion.spinSpeed = ( elRadial.value == 2 ) ? 2 : 0;
+			audioMotion.radial = ( elRadial.dataset.active == '1' );
+			$id('spin_label').style.display = audioMotion.radial ? '' : 'none';
 			break;
 
 		case elRandomMode:
@@ -451,6 +454,10 @@ function setProperty ( prop, save ) {
 		case elSmoothing:
 			audioMotion.smoothing = elSmoothing.value;
 			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+			break;
+
+		case elSpin:
+			audioMotion.spinSpeed = 2 * elSpin.value;
 			break;
 	}
 
@@ -1440,6 +1447,7 @@ function loadPreset( name, alert, init ) {
 	} );
 
 	setProperty( elRadial );
+	setProperty( elSpin );
 	setProperty( elShowScale );
 	setProperty( elBackground );
 	setProperty( elSensitivity );
@@ -1477,7 +1485,7 @@ function saveConfig( config ) {
 		background  : elBackground.value,
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
-		radial      : elRadial.value,
+		spin        : elSpin.value,
 		showScale 	: elShowScale.value,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
@@ -1487,7 +1495,8 @@ function saveConfig( config ) {
 		showSong    : elShowSong.dataset.active,
 		noShadow    : elNoShadow.dataset.active,
 		loRes       : elLoRes.dataset.active,
-		showFPS     : elFPS.dataset.active
+		showFPS     : elFPS.dataset.active,
+		radial      : elRadial.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1732,11 +1741,6 @@ function selectRandomMode( force = false ) {
 		setProperty( elLumiBars );
 	}
 
-	if ( isEnabled('radial') ) {
-		elRadial.selectedIndex = randomInt( elRadial.options.length );
-		setProperty( elRadial );
-	}
-
 	if ( isEnabled('line') ) {
 		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
 		updateRangeValue( elLineWidth );
@@ -1754,6 +1758,17 @@ function selectRandomMode( force = false ) {
 		// exclude 'mirrored' reflex option for octave bands modes
 		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
 		elReflex.selectedIndex = randomInt( options );
+	}
+
+	if ( isEnabled('radial') ) {
+		elRadial.dataset.active = randomInt();
+		setProperty( elRadial );
+	}
+
+	if ( isEnabled('spin') ) {
+		elSpin.value = randomInt(3);
+		updateRangeValue( elSpin );
+		setProperty( elSpin );
 	}
 
 	// effectively set the affected properties
@@ -1863,7 +1878,8 @@ function setUIEventListeners() {
 	  elLedDisplay,
 	  elLumiBars,
 	  elLoRes,
-	  elFPS ].forEach( el => el.addEventListener( 'click', setProperty ) );
+	  elFPS,
+	  elRadial ].forEach( el => el.addEventListener( 'click', setProperty ) );
 
 	[ elCycleGrad,
 	  elRepeat,
@@ -1885,12 +1901,12 @@ function setUIEventListeners() {
 	  elLineWidth,
 	  elFillAlpha,
 	  elBarSpace,
-	  elRadial,
 	  elReflex,
 	  elShowScale,
 	  elBackground,
 	  elBgImageDim,
-	  elBgImageFit ].forEach( el => el.addEventListener( 'change', setProperty ) );
+	  elBgImageFit,
+  	  elSpin ].forEach( el => el.addEventListener( 'change', setProperty ) );
 
 	// update range elements' value
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -2258,26 +2274,24 @@ function populateSelect( element, options ) {
 		{ value: 'zoom-out', text: 'Zoom Out' }
 	]);
 
-	populateSelect( elRadial, [
-		{ value: '0', text: 'Off' },
-		{ value: '1', text: 'On' },
-		{ value: '2', text: 'Spinning' }
-	]);
-
 	elBgImageDim.min  = '0.1';
 	elBgImageDim.max  = '1';
 	elBgImageDim.step = '0.1';
 
-	elLineWidth.min = '1';
-	elLineWidth.max = '5';
+	elLineWidth.min   = '1';
+	elLineWidth.max   = '5';
 
-	elFillAlpha.min = '0';
-	elFillAlpha.max = '0.5';
-	elFillAlpha.step= '0.1';
+	elFillAlpha.min   = '0';
+	elFillAlpha.max   = '0.5';
+	elFillAlpha.step  = '0.1';
 
-	elSmoothing.min = '0';
-	elSmoothing.max = '0.9';
-	elSmoothing.step= '0.1';
+	elSmoothing.min   = '0';
+	elSmoothing.max   = '0.9';
+	elSmoothing.step  = '0.1';
+
+	elSpin.min        = '0';
+	elSpin.max        = '2';
+	elSpin.step       = '1';
 
 	// Set UI event listeners
 	setUIEventListeners();

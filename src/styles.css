@@ -545,6 +545,11 @@ kbd.wide {
 	overflow-y: auto;
 }
 
+#spin_label {
+	float: right;
+	margin-bottom: 0;
+}
+
 .credits {
 	color: #030;
 	font-size: 12px;
