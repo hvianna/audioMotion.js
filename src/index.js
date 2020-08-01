@@ -1778,7 +1778,7 @@ function selectRandomMode( force = false ) {
 
 	if ( elCycleGrad.dataset.active == '1' ) {
 		elGradient.selectedIndex = randomInt( elGradient.options.length );
-		setProperty( elGradient );
+		setProperty( elGradient, true );
 	}
 }
 
