@@ -129,7 +129,7 @@ const presets = {
 		bgImageDim  : 0.3,
 		bgImageFit  : 1, 	// center
 		radial      : 0,
-		spin        : 1
+		spin        : 2
 	},
 
 	fullres: {
@@ -165,6 +165,7 @@ const presets = {
 	},
 
 	demo: {
+		cycleGrad   : 1,
 		randomMode  : 6    // 15 seconds
 	}
 };
@@ -457,7 +458,7 @@ function setProperty ( prop, save ) {
 			break;
 
 		case elSpin:
-			audioMotion.spinSpeed = 2 * elSpin.value;
+			audioMotion.spinSpeed = elSpin.value;
 			break;
 	}
 
@@ -1765,7 +1766,7 @@ function selectRandomMode( force = false ) {
 	}
 
 	if ( isEnabled('spin') ) {
-		elSpin.value = randomInt(3);
+		elSpin.value = randomInt(4);
 		updateRangeValue( elSpin );
 		setProperty( elSpin );
 	}
@@ -2289,7 +2290,7 @@ function populateSelect( element, options ) {
 	elSmoothing.step  = '0.1';
 
 	elSpin.min        = '0';
-	elSpin.max        = '2';
+	elSpin.max        = '3';
 	elSpin.step       = '1';
 
 	// Set UI event listeners
