@@ -61,7 +61,7 @@ You can use the keyboard shortcuts below to control the player and change some s
 **O** | | toggle low-resolution mode
 **P** | | toggle peaks display
 **R** | | toggle play queue repeat
-**S** | click on analyzer | toggle frequency scale display
+**Shift+S** / **S** | click on analyzer | toggle display of frequency and level scales
 **T** | | toggle flat text option
 **U** | | toggle luminance bars effect
 **Shift+X** / **X** | | select previous / next reflex style
@@ -90,21 +90,21 @@ When [Random mode](#random-mode) is active, a random gradient will be selected o
 
 Selects the analyzer background.
 
-- **Gradient default** uses the background color defined by the currently selected gradient - when the [LED effect](#mode) is on, this shows the "unlit" LEDs instead;
+- **Gradient default** uses the background color defined by the currently selected gradient - when the [LED effect](#mode-switches) is on, this shows the "unlit" LEDs instead;
 - **Black** uses a black background;
 - **Album cover** displays the album cover for the current song. See also [Image Fit](#image-fit) and [Image Dim](#image-dim) settings.
 
 You can cycle through the available options using the **B** keyboard shortcut.
 
-Album covers are retrieved from the songs' metadata. When a picture is not found in the metadata, **audioMotion** will look for a file named
-*cover* or *folder* (with a jpg, png, gif or bmp extension) in the song's folder.
+Album covers are preferably retrieved from song metadata. When a picture is not found in the metadata, **audioMotion** will look for jpg, png, gif or bmp files
+in the song's folder, and will use any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
 
 #### Image Fit
 
 When [Background](#background) is set to **Album cover**, this option selects the size and positioning of the image.
 
 - **Adjust** - resizes the image so it fills the entire canvas;
-- **Center** - displays the image horizontally centered on the canvas;
+- **Center** - displays the image horizontally centered on the canvas (default);
 - **Pulse** - makes the image pulsate to the beat of the song;
 - **Repeat** - repeats the image horizontally to fill the canvas;
 - **Zoom In** - image is initially centered on the canvas and slowly zooms in as the song plays;
@@ -120,14 +120,26 @@ When [Background](#background) is set to **Album cover**, this option adjusts th
 
 ![ui-reflex](img/UI_reflex.png)
 
-Selects a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode) switch is active.
+Selects a reflection style for the analyzer. This setting has no effect when the [LUMI](#mode-switches) switch is active.
+
+#### Scale
+
+![ui-scale](img/UI_scale.png)
+
+Selects which scale(s) should be displayed in the analyzer axes:
+
++ None;
++ Frequency (Hz) scale, displayed on the horizontal axis (default);
++ Level (dB) scale, displayed on the vertical axis (not shown when LUMI or RADIAL [switches](#mode-switches) are active);
++ Both.
+
+You can cycle through the available options using the **S** and **Shift + S** keyboard shortcuts, or clicking on the analyzer canvas.
 
 #### Analyzer switches
 
 ![ui-switches](img/UI_switches.png)
 
 + **INFO** toggles the on-screen display of song information on every track change
-+ **SCALE** toggles the display of the frequency scale on the X-axis
 + **PEAKS** shows amplitude peaks for each frequency
 
 Performance-related options:
@@ -146,15 +158,42 @@ Selects the visualization mode.
 
 + **Discrete frequencies** mode allows you to visualize individual frequencies provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform);
 + **Area graph** displays the same frequency data as above, but as a filled area graph;
-+ **Line graph** connects all the discrete frequency points in a continuous line and allows you to customize the line width and fill opacity;
++ **Line graph** connects all the discrete frequency points in a continuous line and allows you to customize the [line width and fill opacity](#line-width-and-fill-opacity);
 + **Octave bands** modes display wider vertical bars, each one representing the *n*th part of an octave, based on a [24-tone equal tempered scale](https://en.wikipedia.org/wiki/Quarter_tone).
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 
-Switches:
+#### Bar spacing
+
+![ui-bar-spacing](img/UI_bar_spacing.png)
+
+Bar Spacing can be configured when any [octave bands mode](#mode) is selected. Avaliable options are:
+
++ Legacy (minimum spacing between analyzer bars);
++ Narrow (10% of bar width) (default);
++ Regular (25% of bar width);
++ Wide (50% of bar width);
++ Extra wide (75% of bar width).
+
+#### Line Width and Fill Opacity
+
+![ui-line-graph-settings](img/UI_line_graph_settings.png)
+
+These settings can be configured when [Line graph mode](#mode) is selected.
+
+**Line Width** controls the thickness of the outer graph line, while **Fill Opacity** adjusts the transparency of the graph area.
+
+#### Mode switches
+
+![ui-mode-switches](img/UI_mode_switches.png)
+
+Select additional visualization effects.
 
 + **LEDS** toggles the vintage LED effect for the analyzer bars *(octave bands modes only)*
 + **LUMI** toggles the luminance bars effect - analyzer bars are displayed always at full-height, varying their luminance instead *(octave bands modes only)*
++ **RADIAL** displays a circular spectrum analyzer with radial frequencies *(disables both LEDS and LUMI)*
+
+When **RADIAL** is active, you can also configure the spinning speed.
 
 #### Random Mode
 
@@ -202,9 +241,11 @@ The presets can be customized in the [Config Panel](#config-panel).
 
 ![ui-preset](img/UI_preset.png)
 
-**Full resolution**, **Octave bands** and **LED bars** presets provide quick configuration recommendations.
+The **Demo** preset will pick new visualization settings when loaded and will set random mode to 15 seconds, so it's a great way to quickly overview all of audioMotion's features!
 
-Any changes to the settings will be automatically saved to the browser's [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+**Full resolution**, **LED bars** and **Octave bands** presets provide quick configuration recommendations.
+
+Any changes to the settings will be automatically saved to your browser's [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
 and restored the next time you open audioMotion. You can manually load the **Last session** preset to undo any changes made during the current session.
 
 The **Restore defaults** preset resets all options to their initial values, as in the first time you run audioMotion.
@@ -228,7 +269,7 @@ You can also drag and drop files from the file explorer into the play queue.
 
 Supported extensions are flac, m4a, mp3, ogg and wav for music files, and m3u or m3u8 for playlists. Codec support may vary, depending on your web browser and operating system.
 
-If the current folder contains a file named *cover* or *folder* with jpg, png, gif or bmp extension, the image will be shown in the background of the file explorer.
+Any image file found in the current folder will be shown in the background of the file explorer, preference given to filenames containing the words *cover*, *folder* or *front* (in this order).
 
 #### Play queue and playlists
 
