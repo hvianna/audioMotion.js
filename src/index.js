@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.8';
+const _VERSION = '20.8-attract';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1158,27 +1158,6 @@ function formatHHMMSS( time ) {
  */
 function displayCanvasMsg() {
 
-	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
-		playNextSong( true );
-
-	// update background image for pulse and zoom effects
-	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
-		let size;
-
-		if ( elBgImageFit.value == 3 )	// pulse
-			size = ( audioMotion.energy * 70 | 0 ) - 25;
-		else {
-			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
-			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
-		}
-
-		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
-	}
-
-	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
-		return;
-
 	const canvas    = audioMotion.canvas,
 		  canvasCtx = audioMotion.canvasCtx,
 		  fontSize  = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
@@ -1207,6 +1186,20 @@ function displayCanvasMsg() {
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	else if ( timeLeft < .1 )
 		playNextSong( true );
+
+	// update background image for pulse and zoom effects
+	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
+		let size;
+
+		if ( elBgImageFit.value == 3 )	// pulse
+			size = ( audioMotion.energy * 70 | 0 ) - 25;
+		else {
+			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
+			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
+		}
+
+		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+	}
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
