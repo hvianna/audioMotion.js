@@ -19,15 +19,16 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 
 * High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer with fullscreen support
 * Logarithmic frequency scale with customizable range
-* 12 visualization modes: visualize discrete frequencies, or octave bands based on the equal tempered scale
-* 17 beautiful color gradients, with optional vintage LEDs and variable luminance effects
+* Visualize discrete frequencies with full FFT resolution, or octave bands based on the equal tempered scale
+* Optional effects: vintage LEDs, luminance bars, reflection, radial visualization
+* 17 beautiful color gradients
 * Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing constant)
 * HTML5 audio player supports MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser)
 * Visual file explorer and play queue with drag-and-drop functionality
 * Support for M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 * Lightweight custom file server — also works on standard web servers with minimal configuration
-* Client runs on any modern browser (tested with Firefox, Chrome and Safari)
+* Client runs on any modern browser (tested on Chrome, Firefox, Opera and Safari)
 
 ## Online demo
 
