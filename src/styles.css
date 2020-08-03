@@ -263,6 +263,11 @@ table {
 .config-col > .config-col {
 	display: inline-block;
 	margin: 0;
+	vertical-align: top;
+}
+
+div.value {
+	text-align: center;
 }
 
 .config-sub {
@@ -538,6 +543,11 @@ kbd.wide {
 #enabled_gradients {
 	height: 260px;
 	overflow-y: auto;
+}
+
+#spin_label {
+	float: right;
+	margin-bottom: 0;
 }
 
 .credits {

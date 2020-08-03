@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.6';
+const _VERSION = '20.8';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -37,34 +37,41 @@ import './notie.css';
 
 import './styles.css';
 
+// selector shorthand functions
+const $   = document.querySelector.bind( document ),
+	  $$  = document.querySelectorAll.bind( document ),
+	  $id = document.getElementById.bind( document );
+
 // UI HTML elements
-const elFFTsize     = document.getElementById('fft_size'),
-	  elRangeMin    = document.getElementById('freq_min'),
-	  elRangeMax    = document.getElementById('freq_max'),
-	  elSmoothing   = document.getElementById('smoothing'),
-	  elMode        = document.getElementById('mode'),
-	  elGradient    = document.getElementById('gradient'),
-	  elShowScale   = document.getElementById('show_scale'),
-	  elSensitivity = document.getElementById('sensitivity'),
-	  elShowPeaks   = document.getElementById('show_peaks'),
-	  elCycleGrad   = document.getElementById('cycle_grad'),
-	  elRandomMode  = document.getElementById('random_mode'),
-	  elLedDisplay  = document.getElementById('led_display'),
-	  elLumiBars    = document.getElementById('lumi_bars'),
-	  elRepeat      = document.getElementById('repeat'),
-	  elShowSong    = document.getElementById('show_song'),
-	  elNoShadow    = document.getElementById('no_shadow'),
-	  elLoRes       = document.getElementById('lo_res'),
-	  elFPS         = document.getElementById('fps'),
-	  elSource      = document.getElementById('source'),
-	  elPlaylists   = document.getElementById('playlists'),
-	  elLineWidth   = document.getElementById('line_width'),
-	  elFillAlpha   = document.getElementById('fill_alpha'),
-	  elBarSpace    = document.getElementById('bar_space'),
-	  elReflex      = document.getElementById('reflex'),
-	  elBackground  = document.getElementById('background'),
-	  elBgImageDim  = document.getElementById('bg_img_dim'),
-	  elBgImageFit  = document.getElementById('bg_img_fit');
+const elFFTsize     = $id('fft_size'),
+	  elRangeMin    = $id('freq_min'),
+	  elRangeMax    = $id('freq_max'),
+	  elSmoothing   = $id('smoothing'),
+	  elMode        = $id('mode'),
+	  elGradient    = $id('gradient'),
+	  elShowScale   = $id('show_scale'),
+	  elSensitivity = $id('sensitivity'),
+	  elShowPeaks   = $id('show_peaks'),
+	  elCycleGrad   = $id('cycle_grad'),
+	  elRandomMode  = $id('random_mode'),
+	  elLedDisplay  = $id('led_display'),
+	  elLumiBars    = $id('lumi_bars'),
+	  elRepeat      = $id('repeat'),
+	  elShowSong    = $id('show_song'),
+	  elNoShadow    = $id('no_shadow'),
+	  elLoRes       = $id('lo_res'),
+	  elFPS         = $id('fps'),
+	  elSource      = $id('source'),
+	  elPlaylists   = $id('playlists'),
+	  elLineWidth   = $id('line_width'),
+	  elFillAlpha   = $id('fill_alpha'),
+	  elBarSpace    = $id('bar_space'),
+	  elReflex      = $id('reflex'),
+	  elBackground  = $id('background'),
+	  elBgImageDim  = $id('bg_img_dim'),
+	  elBgImageFit  = $id('bg_img_fit'),
+	  elRadial      = $id('radial'),
+	  elSpin		= $id('spin');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -96,13 +103,13 @@ let serverMode;
 // Configuration presets
 const presets = {
 	default: {
-		mode        : 0,	    // discrete frequencies mode
-		fftSize     : 8192,		// FFT size
-		freqMin     : 20,		// lowest frequency
-		freqMax     : 22000,	// highest frequency
-		smoothing   : 0.5,		// 0 to 0.9 - smoothing time constant
+		mode        : 0,	// discrete frequencies
+		fftSize     : 8192,
+		freqMin     : 20,
+		freqMax     : 22000,
+		smoothing   : 0.5,
 		gradient    : 'prism',
-		background  : 0,
+		background  : 0,	// gradient default
 		cycleGrad   : 1,
 		randomMode  : 0,
 		ledDisplay  : 0,
@@ -118,32 +125,48 @@ const presets = {
 		lineWidth   : 2,
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
-		reflex      : 'off',
+		reflex      : 0,
 		bgImageDim  : 0.3,
-		bgImageFit  : 'center'
+		bgImageFit  : 1, 	// center
+		radial      : 0,
+		spin        : 2
 	},
 
 	fullres: {
-		mode        : 0,
 		fftSize     : 8192,
 		freqMin     : 20,
 		freqMax     : 22000,
+		mode        : 0,
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0,
 		smoothing   : 0.5
 	},
 
 	octave: {
-		mode        : 4,		// 1/6th octave bands mode
-		fftSize     : 8192,
-		smoothing   : 0.5
+		barSpace    : 0.1,
+		ledDisplay  : 0,
+		lumiBars    : 0,
+		mode        : 3,	// 1/8th octave bands mode
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0
 	},
 
 	ledbars: {
-		mode        : 2,		// 1/12th octave bands mode
-		fftSize     : 8192,
-		smoothing   : 0.5,
-		background  : 1,
+		background  : 0,
+		barSpace    : 0.5,
 		ledDisplay  : 1,
-		showScale   : 0
+		lumiBars    : 0,
+		mode        : 3,
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0
+	},
+
+	demo: {
+		cycleGrad   : 1,
+		randomMode  : 6    // 15 seconds
 	}
 };
 
@@ -251,7 +274,9 @@ const randomProperties = [
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
-	{ value: 'fill',   text: 'Fill Opacity', disabled: false }
+	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
+	{ value: 'radial', text: 'Radial',       disabled: false },
+	{ value: 'spin',   text: 'Spin',         disabled: false }
 ];
 
 // Sensitivity presets
@@ -266,215 +291,179 @@ const sensitivityDefaults = [
  */
 function fullscreen() {
 	audioMotion.toggleFullscreen();
-	document.getElementById('btn_fullscreen').blur();
+	$id('btn_fullscreen').blur();
 }
 
 /**
- * Set bar spacing
+ * Set audioMotion properties
+ *
+ * @param obj {object} - HTML object when called directly, or event object when called by an event handler
+ * @param [save] {boolean} - true to save current settings to last used preset
+ *                           defaults to true when called by an event handler or false otherwise
  */
-function setBarSpace() {
-	audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
-	updateLastConfig();
-}
+function setProperty ( prop, save ) {
+	// if called by an event handler, get the target HTML element
+	if ( prop.target ) {
+		prop = prop.target;
+		save = true;
+	}
 
-/**
- * Adjust the analyzer's sensitivity
- */
-function setSensitivity() {
-	const sensitivity = elSensitivity.value;
-	audioMotion.setSensitivity(
-		document.querySelector(`.min-db[data-preset="${sensitivity}"]`).value,
-		document.querySelector(`.max-db[data-preset="${sensitivity}"]`).value
-	);
-	updateLastConfig();
-}
+	switch ( prop ) {
+		case elBackground:
+		case elBgImageFit:
+		case elBgImageDim:
+			const bgOption = elBackground.value,
+				  bgFit    = elBgImageFit.value;
 
-/**
- * Set the smoothing time constant
- */
-function setSmoothing() {
-	audioMotion.smoothing = elSmoothing.value;
-	consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
-	updateLastConfig();
-}
+			audioMotion.overlay = ( bgOption > 1 );
+			audioMotion.showBgColor = ( bgOption == 0 );
+			audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
+			audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
 
-/**
- * Set the size of the FFT performed by the analyzer node
- */
-function setFFTsize() {
-	audioMotion.fftSize = elFFTsize.value;
-	consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
-	updateLastConfig();
-}
+			setCurrentCover();
+			break;
 
-/**
- * Set fill alpha
- */
-function setFillAlpha() {
-	audioMotion.fillAlpha = elFillAlpha.value;
-	updateLastConfig();
-}
+		case elBarSpace:
+			audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
+			break;
 
-/**
- * Set desired frequency range
- */
-function setFreqRange() {
-	while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
-		elRangeMax.selectedIndex++;
-	audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
-	updateLastConfig();
-}
+		case elFFTsize:
+			audioMotion.fftSize = elFFTsize.value;
+			consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+			break;
 
-/**
- * Set Gradient
- */
-function setGradient() {
-	// handle invalid selection
-	if ( elGradient.value === '' )
-		elGradient.selectedIndex = 0;
-
-	audioMotion.gradient = elGradient.value;
-	updateLastConfig();
-}
-
-/**
- * Set line width
- */
-function setLineWidth() {
-	audioMotion.lineWidth = elLineWidth.value;
-	updateLastConfig();
-}
-
-/**
- * Set visualization mode and related options
- */
-function setMode() {
-	// handle invalid selection
-	if ( elMode.value === '' )
-		elMode.selectedIndex = 0;
-
-	const lineWidthLabel = document.getElementById('line_width_label'),
-		  fillAlphaLabel = document.getElementById('fill_alpha_label'),
-		  barSpaceLabel  = document.getElementById('bar_space_label'),
-		  mode = elMode.value;
-
-	lineWidthLabel.style.display = 'none';
-	fillAlphaLabel.style.display = 'none';
-	barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
-
-	if ( mode < 10 )
-		audioMotion.mode = mode;
-	else {
-		audioMotion.mode = 10;
-
-		if ( mode == 10 ) {
-			// "Area graph" mode
-			audioMotion.lineWidth = 0;
-			audioMotion.fillAlpha = 1;
-		}
-		else {
-			// "Line graph" mode with customizable line width and fill opacity
-			lineWidthLabel.style.display = '';
-			fillAlphaLabel.style.display = '';
-			audioMotion.lineWidth = elLineWidth.value;
+		case elFillAlpha:
 			audioMotion.fillAlpha = elFillAlpha.value;
-		}
-	}
-
-	updateLastConfig();
-}
-
-/**
- * Set random visualization mode
- */
-function setRandomMode() {
-	const option = elRandomMode.value;
-
-	if ( randomModeTimer )
-		randomModeTimer = window.clearInterval( randomModeTimer );
-
-	if ( option > 1 )
-		randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
-
-	updateLastConfig();
-}
-
-/**
- * Set Reflex mode
- */
-function setReflex() {
-	switch ( elReflex.value ) {
-		case 'on':
-			audioMotion.reflexRatio = .4;
-			audioMotion.reflexAlpha = .2;
 			break;
 
-		case 'mirror':
-			audioMotion.reflexRatio = .5;
-			audioMotion.reflexAlpha = 1;
+		case elRangeMin:
+		case elRangeMax:
+			while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
+				elRangeMax.selectedIndex++;
+			audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 			break;
 
-		default:
-			audioMotion.reflexRatio = 0;
+		case elGradient:
+			if ( elGradient.value === '' ) // handle invalid setting
+				elGradient.selectedIndex = 0;
+			audioMotion.gradient = elGradient.value;
+			break;
+
+		case elLedDisplay:
+			audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
+			break;
+
+		case elLineWidth:
+			audioMotion.lineWidth = elLineWidth.value;
+			break;
+
+		case elLoRes:
+			audioMotion.loRes = ( elLoRes.dataset.active == '1' );
+			break;
+
+		case elLumiBars:
+			audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
+			setProperty( elBarSpace );
+			setProperty( elReflex );
+			break;
+
+		case elMode:
+			if ( elMode.value === '' ) // handle invalid setting
+				elMode.selectedIndex = 0;
+
+			const lineWidthLabel = $id('line_width_label'),
+				  fillAlphaLabel = $id('fill_alpha_label'),
+				  barSpaceLabel  = $id('bar_space_label'),
+				  mode = elMode.value;
+
+			lineWidthLabel.style.display = 'none';
+			fillAlphaLabel.style.display = 'none';
+			barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
+
+			if ( mode < 10 )
+				audioMotion.mode = mode;
+			else {
+				audioMotion.mode = 10;
+
+				if ( mode == 10 ) { // "Area graph" mode
+					audioMotion.lineWidth = 0;
+					audioMotion.fillAlpha = 1;
+				}
+				else { // "Line graph" mode with custom line width and fill opacity
+					lineWidthLabel.style.display = '';
+					fillAlphaLabel.style.display = '';
+					audioMotion.lineWidth = elLineWidth.value;
+					audioMotion.fillAlpha = elFillAlpha.value;
+				}
+			}
+			break;
+
+		case elRadial:
+			audioMotion.radial = ( elRadial.dataset.active == '1' );
+			$id('spin_label').style.display = audioMotion.radial ? '' : 'none';
+			break;
+
+		case elRandomMode:
+			const option = elRandomMode.value;
+
+			if ( randomModeTimer )
+				randomModeTimer = window.clearInterval( randomModeTimer );
+
+			if ( option > 1 )
+				randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+
+			break;
+
+		case elReflex:
+			switch ( elReflex.value ) {
+				case '1':
+					audioMotion.reflexRatio = .4;
+					audioMotion.reflexAlpha = .2;
+					break;
+
+				case '2':
+					audioMotion.reflexRatio = .5;
+					audioMotion.reflexAlpha = 1;
+					break;
+
+				default:
+					audioMotion.reflexRatio = 0;
+			}
+			break;
+
+		case elShowScale:
+			audioMotion.showScale  = !! ( elShowScale.value & 1 );
+			audioMotion.showScaleY = !! ( elShowScale.value & 2 );
+			break;
+
+		case elSensitivity:
+			const sensitivity = elSensitivity.value;
+			audioMotion.setSensitivity(
+				$(`.min-db[data-preset="${sensitivity}"]`).value,
+				$(`.max-db[data-preset="${sensitivity}"]`).value
+			);
+			break;
+
+		case elFPS:
+			audioMotion.showFPS = ( elFPS.dataset.active == '1' );
+			break;
+
+		case elShowPeaks:
+			audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
+			break;
+
+		case elSmoothing:
+			audioMotion.smoothing = elSmoothing.value;
+			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+			break;
+
+		case elSpin:
+			audioMotion.spinSpeed = elSpin.value;
+			break;
 	}
-	updateLastConfig();
-}
 
-/**
- * Set scale display preference
- */
-function setScale() {
-	audioMotion.showScale = ( elShowScale.dataset.active == '1' );
-	updateLastConfig();
-}
-
-/**
- * Set LED display mode preference
- */
-function setLedDisplay() {
-	audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
-	updateLastConfig();
-}
-
-/**
- * Set lumi bars preference
- */
-function setLumiBars() {
-	audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
-	setBarSpace();
-	setReflex();
-}
-
-/**
- * Set show peaks preference
- */
-function setShowPeaks() {
-	audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
-	updateLastConfig();
-}
-
-/**
- * Set background preference
- */
-function setBackground() {
-	const bgOption = elBackground.value;
-	const bgFit = elBgImageFit.value;
-
-	audioMotion.overlay = ( bgOption > 1 );
-	audioMotion.showBgColor = ( bgOption == 0 );
-	audioMotion.canvas.classList.toggle( 'repeat', bgFit == 'repeat' );
-	audioMotion.canvas.classList.toggle( 'cover', bgFit == 'adjust' );
-
-	setCurrentCover();
-	updateLastConfig();
-}
-
-/**
- * Set display of current frame rate
- */
-function setFPS() {
-	audioMotion.showFPS = ( elFPS.dataset.active == '1' );
-	updateLastConfig();
+	if ( save )
+		updateLastConfig();
 }
 
 /**
@@ -1173,21 +1162,18 @@ function displayCanvasMsg() {
 	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
 		playNextSong( true );
 
-	// update background image
-	if ( elBackground.value > 1 ) {
+	// update background image for pulse and zoom effects
+	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
 		let size;
 
-		if ( elBgImageFit.value == 'pulse' ) {
-			const idx = audioMotion.freqToBin( 120 ); // use the 120Hz FFT bin to detect beats
-			size = audioMotion.dataArray[ idx ] / 10 | 0;
+		if ( elBgImageFit.value == 3 )	// pulse
+			size = ( audioMotion.energy * 70 | 0 ) - 25;
+		else {
+			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
+			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
 		}
-		else if ( elBgImageFit.value == 'zoom-in' )
-			size = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration * 100;
-		else if ( elBgImageFit.value == 'zoom-out' )
-			size = ( 1 - ( audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration ) ) * 100;
 
-		if ( size !== undefined )
-			audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
@@ -1322,10 +1308,10 @@ function showCanvasInfo( reason ) {
  * Output messages to the UI "console"
  */
 function consoleLog( msg, error ) {
-	const elConsole = document.getElementById( 'console' );
+	const elConsole = $id( 'console' );
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
-		document.getElementById( 'show_console' ).className = 'warning';
+		$id( 'show_console' ).className = 'warning';
 	}
 	elConsole.innerHTML += msg + '<br>';
 	elConsole.scrollTop = elConsole.scrollHeight;
@@ -1407,24 +1393,22 @@ function loadPreset( name, alert, init ) {
 	const thisPreset = presets[ name ],
 		  defaults   = presets['default'];
 
-	if ( thisPreset.hasOwnProperty( 'mode' ) ) {
-		if ( thisPreset.mode == 24 )      // for compatibility with legacy saved presets (version =< 19.7)
-			elMode.value = 8;
-		else if ( thisPreset.mode == 12 ) // ditto
-			elMode.value = 7;
-		else
-			elMode.value = thisPreset.mode;
-	}
-	else if ( init )
-		elMode.value = defaults.mode;
+	if ( thisPreset.hasOwnProperty( 'randomMode' ) ) // convert legacy boolean value to integer (version =< 19.12)
+		thisPreset.randomMode |= 0;
 
-	if ( thisPreset.hasOwnProperty( 'randomMode' ) )
-		thisPreset.randomMode |= 0; // convert legacy boolean value to integer (version =< 19.12)
+	if ( thisPreset.hasOwnProperty( 'blackBg' ) ) // convert legacy blackBg property (version =< 20.4)
+		thisPreset.background = thisPreset.blackBg | 0;
 
-	if ( thisPreset.hasOwnProperty( 'blackBg' ) )
-		thisPreset.background = thisPreset.blackBg | 0; // convert legacy blackBg property (version =< 20.4)
+	if ( thisPreset.hasOwnProperty( 'showScale' ) ) // convert legacy boolean value to integer (version =< 20.6)
+		thisPreset.showScale |= 0;
 
-	document.querySelectorAll('[data-prop]').forEach( el => {
+	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
+		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
+
+	if ( thisPreset.hasOwnProperty( 'bgImageFit') && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
+		thisPreset.bgImageFit = ['adjust','center','repeat','pulse','zoom-in','zoom-out'].indexOf( thisPreset.bgImageFit );
+
+	$$('[data-prop]').forEach( el => {
 		if ( el.classList.contains('switch') ) {
 			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
 				el.dataset.active = thisPreset[ el.dataset.prop ] | 0;
@@ -1445,8 +1429,8 @@ function loadPreset( name, alert, init ) {
 		elSensitivity.value = thisPreset.highSens ? 2 : 1;
 
 	if ( thisPreset.hasOwnProperty( 'minDb' ) && thisPreset.hasOwnProperty( 'maxDb' ) ) { // legacy options (version =< 19.12)
-		document.querySelector('.min-db[data-preset="1"]').value = thisPreset.minDb;
-		document.querySelector('.max-db[data-preset="1"]').value = thisPreset.maxDb;
+		$('.min-db[data-preset="1"]').value = thisPreset.minDb;
+		$('.max-db[data-preset="1"]').value = thisPreset.maxDb;
 		savePreferences('sens');
 	}
 
@@ -1455,7 +1439,6 @@ function loadPreset( name, alert, init ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		showScale  : elShowScale.dataset.active == '1',
 		showPeaks  : elShowPeaks.dataset.active == '1',
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
@@ -1463,13 +1446,19 @@ function loadPreset( name, alert, init ) {
 		showFPS    : elFPS.dataset.active == '1'
 	} );
 
-	setBackground();
-	setSensitivity();
-	setReflex();
-	setGradient();
-	setRandomMode();
-	setBarSpace();
-	setMode();
+	setProperty( elRadial );
+	setProperty( elSpin );
+	setProperty( elShowScale );
+	setProperty( elBackground );
+	setProperty( elSensitivity );
+	setProperty( elReflex );
+	setProperty( elGradient );
+	setProperty( elRandomMode );
+	setProperty( elBarSpace );
+	setProperty( elMode, true );
+
+	if ( name == 'demo' )
+		selectRandomMode( true );
 
 	if ( alert )
 		notie.alert({ text: 'Preset loaded!' });
@@ -1496,7 +1485,8 @@ function saveConfig( config ) {
 		background  : elBackground.value,
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
-		showScale 	: elShowScale.dataset.active,
+		spin        : elSpin.value,
+		showScale 	: elShowScale.value,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
@@ -1505,7 +1495,8 @@ function saveConfig( config ) {
 		showSong    : elShowSong.dataset.active,
 		noShadow    : elNoShadow.dataset.active,
 		loRes       : elLoRes.dataset.active,
-		showFPS     : elFPS.dataset.active
+		showFPS     : elFPS.dataset.active,
+		radial      : elRadial.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1523,7 +1514,7 @@ function updateLastConfig() {
  */
 function updateCustomPreset() {
 	saveConfig( 'custom-preset' );
-	document.getElementById('preset').value = 'custom';
+	$id('preset').value = 'custom';
 	notie.alert({ text: 'Custom preset saved!' });
 }
 
@@ -1567,7 +1558,6 @@ function keyboardControls( event ) {
 		case 'ArrowDown':
 		case 'KeyG':
 			cycleElement( elGradient, event.shiftKey || event.code == 'ArrowUp' );
-			setGradient();
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
 		case 'ArrowRight': 	// next song
@@ -1592,11 +1582,10 @@ function keyboardControls( event ) {
 				elCycleGrad.dataset.active = '1';
 				setCanvasMsg( 'Auto gradient ON' );
 			}
-			setRandomMode();
+			setProperty( elRandomMode, true );
 			break;
 		case 'KeyB': 		// background or image fit (shift)
 			cycleElement( event.shiftKey ? elBgImageFit : elBackground );
-			setBackground();
 			setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
 			break;
 		case 'KeyD': 		// display information
@@ -1628,12 +1617,10 @@ function keyboardControls( event ) {
 		case 'KeyM': 		// visualization mode
 		case 'KeyV':
 			cycleElement( elMode, event.shiftKey );
-			setMode();
 			setCanvasMsg( 'Mode: ' + getText( elMode ) );
 			break;
 		case 'KeyN': 		// increase or reduce sensitivity
 			cycleElement( elSensitivity, event.shiftKey );
-			setSensitivity();
 			setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
 			break;
 		case 'KeyO': 		// toggle resolution
@@ -1648,9 +1635,9 @@ function keyboardControls( event ) {
 			elRepeat.click();
 			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
-		case 'KeyS': 		// toggle scale
-			elShowScale.click();
-			setCanvasMsg( 'Scale ' + ( elShowScale.dataset.active == '1' ? 'ON' : 'OFF' ) );
+		case 'KeyS': 		// toggle X and Y axis scales
+			cycleElement( elShowScale, event.shiftKey );
+			setCanvasMsg( 'Scale: ' + getText( elShowScale ) );
 			break;
 		case 'KeyT': 		// toggle text shadow
 			elNoShadow.click();
@@ -1662,7 +1649,6 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyX':
 			cycleElement( elReflex, event.shiftKey );
-			setReflex();
 			setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
 			break;
 	}
@@ -1681,10 +1667,8 @@ function audioOnPlay() {
 	if ( audioElement[ currAudio ].currentTime < .1 ) {
 		if ( elRandomMode.value == '1' )
 			selectRandomMode( true );
-		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' ) {
+		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' )
 			cycleElement( elGradient );
-			setGradient();
-		}
 	}
 
 	setCurrentCover();
@@ -1709,14 +1693,6 @@ function audioOnEnded() {
 function audioOnError( e ) {
 	if ( e.target.attributes.src )
 		consoleLog( 'Error loading ' + e.target.src, true );
-}
-
-/**
- * Toggle low resolution mode
- */
-function setLoRes() {
-	audioMotion.loRes = ( elLoRes.dataset.active == '1' );
-	updateLastConfig();
 }
 
 /**
@@ -1751,18 +1727,18 @@ function selectRandomMode( force = false ) {
 
 	if ( isEnabled('peaks') ) {
 		elShowPeaks.dataset.active = randomInt(); // 0 or 1
-		audioMotion.showPeaks = elShowPeaks.dataset.active == '1';
+		setProperty( elShowPeaks );
 	}
 
 	if ( isEnabled('leds') ) {
 		elLedDisplay.dataset.active = randomInt();
-		audioMotion.showLeds = elLedDisplay.dataset.active == '1';
+		setProperty( elLedDisplay );
 	}
 
 	if ( isEnabled('lumi') ) {
 		// always disable lumi when leds are active and background is set to image
 		elLumiBars.dataset.active = elBackground.value > 1 && audioMotion.showLeds ? 0 : randomInt();
-		audioMotion.lumiBars = elLumiBars.dataset.active == '1';
+		setProperty( elLumiBars );
 	}
 
 	if ( isEnabled('line') ) {
@@ -1784,15 +1760,26 @@ function selectRandomMode( force = false ) {
 		elReflex.selectedIndex = randomInt( options );
 	}
 
+	if ( isEnabled('radial') ) {
+		elRadial.dataset.active = randomInt();
+		setProperty( elRadial );
+	}
+
+	if ( isEnabled('spin') ) {
+		elSpin.value = randomInt(4);
+		updateRangeValue( elSpin );
+		setProperty( elSpin );
+	}
+
 	// effectively set the affected properties
-	setBackground();
-	setBarSpace();
-	setReflex();
-	setMode();
+	setProperty( elBackground );
+	setProperty( elBarSpace );
+	setProperty( elReflex );
+	setProperty( elMode, true );
 
 	if ( elCycleGrad.dataset.active == '1' ) {
 		elGradient.selectedIndex = randomInt( elGradient.options.length );
-		audioMotion.gradient = elGradient.value;
+		setProperty( elGradient, true );
 	}
 }
 
@@ -1811,6 +1798,8 @@ function cycleElement( el, prev ) {
 		el.selectedIndex = 0;
 	else
 		el.selectedIndex = idx;
+
+	setProperty( el, true );
 }
 
 /**
@@ -1830,7 +1819,7 @@ function populateVisualizationModes() {
 	// restore previously selected mode
 	if ( mode !== '' ) {
 		elMode.value = mode;
-		setMode();
+		setProperty( elMode, true );
 	}
 }
 
@@ -1851,7 +1840,7 @@ function populateGradients() {
 
 	if ( grad !== '' ) {
 		elGradient.value = grad;
-		setGradient();
+		setProperty( elGradient, true );
 	}
 }
 
@@ -1861,22 +1850,22 @@ function populateGradients() {
 function setUIEventListeners() {
 
 	// Add event listeners for config panel selectors
-	document.getElementById('panel_selector').addEventListener( 'click', event => {
-		document.querySelectorAll('#panel_selector li').forEach( e => {
+	$id('panel_selector').addEventListener( 'click', event => {
+		$$('#panel_selector li').forEach( e => {
 			e.className = '';
-			document.getElementById( e.dataset.panel ).style.display = 'none';
+			$id( e.dataset.panel ).style.display = 'none';
 		});
-		const el = document.getElementById( event.target.dataset.panel || event.target.parentElement.dataset.panel );
+		const el = $id( event.target.dataset.panel || event.target.parentElement.dataset.panel );
 		el.style.display = 'block';
 		if ( event.target.nodeName == 'LI' )
 			event.target.className = 'active';
 		else
 			event.target.parentElement.className = 'active';
 	});
-	document.getElementById('show_filelist').click();
+	$id('show_filelist').click();
 
 	// Add event listeners to the custom checkboxes
-	document.querySelectorAll('.switch').forEach( el => {
+	$$('.switch').forEach( el => {
 		el.addEventListener( 'click', e => {
 			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
 				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
@@ -1885,58 +1874,62 @@ function setUIEventListeners() {
 		});
 	});
 
-	elShowScale.  addEventListener( 'click', setScale );
-	elShowPeaks.  addEventListener( 'click', setShowPeaks );
-	elCycleGrad.  addEventListener( 'click', updateLastConfig );
-	elLedDisplay. addEventListener( 'click', setLedDisplay );
-	elLumiBars.   addEventListener( 'click', setLumiBars );
-	elRepeat.     addEventListener( 'click', updateLastConfig );
-	elShowSong.   addEventListener( 'click', updateLastConfig );
-	elNoShadow.   addEventListener( 'click', updateLastConfig );
-	elLoRes.      addEventListener( 'click', setLoRes );
-	elFPS.        addEventListener( 'click', setFPS );
+	[ elShowPeaks,
+	  elLedDisplay,
+	  elLumiBars,
+	  elLoRes,
+	  elFPS,
+	  elRadial ].forEach( el => el.addEventListener( 'click', setProperty ) );
+
+	[ elCycleGrad,
+	  elRepeat,
+	  elShowSong,
+	  elNoShadow ].forEach( el => el.addEventListener( 'click', updateLastConfig ) );
 
 	// Add event listeners to UI config elements
 
-	elMode.       addEventListener( 'change', setMode );
-	elRandomMode. addEventListener( 'change', setRandomMode );
-	elFFTsize.    addEventListener( 'change', setFFTsize );
-	elRangeMin.   addEventListener( 'change', setFreqRange );
-	elRangeMax.   addEventListener( 'change', setFreqRange );
-	elGradient.   addEventListener( 'change', setGradient );
-	elSource.     addEventListener( 'change', setSource );
-	elSmoothing.  addEventListener( 'change', setSmoothing );
-	elSensitivity.addEventListener( 'change', setSensitivity );
-	elLineWidth.  addEventListener( 'change', setLineWidth );
-	elFillAlpha.  addEventListener( 'change', setFillAlpha );
-	elBarSpace.   addEventListener( 'change', setBarSpace );
-	elReflex.     addEventListener( 'change', setReflex );
-	elBackground. addEventListener( 'change', setBackground );
-	elBgImageDim. addEventListener( 'change', setBackground );
-	elBgImageFit. addEventListener( 'change', setBackground );
+	elSource.addEventListener( 'change', setSource );
+
+	[ elMode,
+	  elRandomMode,
+	  elFFTsize,
+	  elRangeMin,
+	  elRangeMax,
+	  elGradient,
+	  elSmoothing,
+	  elSensitivity,
+	  elLineWidth,
+	  elFillAlpha,
+	  elBarSpace,
+	  elReflex,
+	  elShowScale,
+	  elBackground,
+	  elBgImageDim,
+	  elBgImageFit,
+  	  elSpin ].forEach( el => el.addEventListener( 'change', setProperty ) );
 
 	// update range elements' value
-	document.querySelectorAll('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
+	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
 
 	// action buttons
-	document.getElementById('load_preset').addEventListener( 'click', () => loadPreset( document.getElementById('preset').value, true ) );
-	document.getElementById('btn_save').addEventListener( 'click', updateCustomPreset );
-	document.getElementById('btn_prev').addEventListener( 'click', playPreviousSong );
-	document.getElementById('btn_play').addEventListener( 'click', () => playPause() );
-	document.getElementById('btn_stop').addEventListener( 'click', stop );
-	document.getElementById('btn_next').addEventListener( 'click', () => playNextSong() );
-	document.getElementById('btn_shuf').addEventListener( 'click', shufflePlaylist );
-	document.getElementById('btn_fullscreen').addEventListener( 'click', fullscreen );
-	document.getElementById('load_playlist').addEventListener( 'click', () => {
+	$id('load_preset').addEventListener( 'click', () => loadPreset( $id('preset').value, true ) );
+	$id('btn_save').addEventListener( 'click', updateCustomPreset );
+	$id('btn_prev').addEventListener( 'click', playPreviousSong );
+	$id('btn_play').addEventListener( 'click', () => playPause() );
+	$id('btn_stop').addEventListener( 'click', stop );
+	$id('btn_next').addEventListener( 'click', () => playNextSong() );
+	$id('btn_shuf').addEventListener( 'click', shufflePlaylist );
+	$id('btn_fullscreen').addEventListener( 'click', fullscreen );
+	$id('load_playlist').addEventListener( 'click', () => {
 		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
 	});
-	document.getElementById('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('create_playlist').addEventListener( 'click', () => storePlaylist() );
-	document.getElementById('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
-	document.getElementById('btn_clear').addEventListener( 'click', clearPlaylist );
+	$id('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
+	$id('create_playlist').addEventListener( 'click', () => storePlaylist() );
+	$id('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
+	$id('btn_clear').addEventListener( 'click', clearPlaylist );
 
-	// clicks on canvas also toggle scale on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	elShowScale.click() );
+	// clicks on canvas cycle scales on/off
+	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
 }
 
 /**
@@ -1946,13 +1939,13 @@ function doConfigPanel() {
 
 	// Enabled visualization modes
 
-	const elEnabledModes = document.getElementById('enabled_modes');
+	const elEnabledModes = $id('enabled_modes');
 
 	modeOptions.forEach( mode => {
 		elEnabledModes.innerHTML += `<label><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</label>`;
 	});
 
-	document.querySelectorAll('.enabledMode').forEach( el => {
+	$$('.enabledMode').forEach( el => {
 		el.addEventListener( 'click', event => {
 			if ( ! el.checked ) {
 				const count = modeOptions.filter( item => ! item.disabled ).length;
@@ -1970,13 +1963,13 @@ function doConfigPanel() {
 
 	// Enabled gradients
 
-	const elEnabledGradients = document.getElementById('enabled_gradients');
+	const elEnabledGradients = $id('enabled_gradients');
 
 	Object.keys( gradients ).forEach( key => {
 		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
 	});
 
-	document.querySelectorAll('.enabledGradient').forEach( el => {
+	$$('.enabledGradient').forEach( el => {
 		el.addEventListener( 'click', event => {
 			if ( ! el.checked ) {
 				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
@@ -1994,13 +1987,13 @@ function doConfigPanel() {
 
 	// Random Mode properties
 
-	const elProperties = document.getElementById('random_properties');
+	const elProperties = $id('random_properties');
 
 	randomProperties.forEach( prop => {
 		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
 	});
 
-	document.querySelectorAll('.randomProperty').forEach( el => {
+	$$('.randomProperty').forEach( el => {
 		el.addEventListener( 'click', event => {
 			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
 			savePreferences('prop');
@@ -2008,20 +2001,20 @@ function doConfigPanel() {
 	});
 
 	// Sensitivity presets (already populated by loadPreferences())
-	document.querySelectorAll( '[data-preset]' ).forEach( el => {
+	$$( '[data-preset]' ).forEach( el => {
 		if ( el.className == 'reset-sens' ) {
 			el.addEventListener( 'click', () => {
-				document.querySelector(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
-				document.querySelector(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
+				$(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
+				$(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
 				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-					setSensitivity();
+					setProperty( elSensitivity );
 				savePreferences('sens');
 			});
 		}
 		else {
 			el.addEventListener( 'change', () => {
 				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-					setSensitivity();
+					setProperty( elSensitivity );
 				savePreferences('sens');
 			});
 		}
@@ -2072,11 +2065,11 @@ function loadPreferences() {
 	}
 
 	// Sensitivity presets
-	const elMinSens = document.querySelectorAll('.min-db');
+	const elMinSens = $$('.min-db');
 	for ( let i = -60; i >= -110; i -= 5 )
 		elMinSens.forEach( el => el[ el.options.length ] = new Option( i ) );
 
-	const elMaxSens = document.querySelectorAll('.max-db');
+	const elMaxSens = $$('.max-db');
 	for ( let i = 0; i >= -40; i -= 5 )
 		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
 
@@ -2116,8 +2109,8 @@ function savePreferences( pref ) {
 		let sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
-				min: document.querySelector(`.min-db[data-preset="${i}"]`).value,
-				max: document.querySelector(`.max-db[data-preset="${i}"]`).value
+				min: $(`.min-db[data-preset="${i}"]`).value,
+				max: $(`.max-db[data-preset="${i}"]`).value
 			});
 		}
 		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
@@ -2147,7 +2140,7 @@ function populateSelect( element, options ) {
 	loadPreferences();
 
 	// Initialize play queue and set event listeners
-	playlist = document.getElementById('playlist');
+	playlist = $id('playlist');
 	playlist.addEventListener( 'dblclick', e => {
 		if ( e.target && e.target.dataset.file ) {
 			playSong( getIndex( e.target ) );
@@ -2178,7 +2171,7 @@ function populateSelect( element, options ) {
 	// Create audioMotion analyzer
 
 	audioMotion = new AudioMotionAnalyzer(
-		document.getElementById('analyzer'),
+		$id('analyzer'),
 		{
 			onCanvasDraw: displayCanvasMsg,
 			onCanvasResize: showCanvasInfo
@@ -2190,8 +2183,8 @@ function populateSelect( element, options ) {
 	// Create audio elements
 
 	audioElement = [
-		document.getElementById('player0'),
-		document.getElementById('player1')
+		$id('player0'),
+		$id('player1')
 	];
 
 	currAudio = 0;
@@ -2254,9 +2247,16 @@ function populateSelect( element, options ) {
 	]);
 
 	populateSelect(	elReflex, [
-		{ value: 'off',    text: 'Off' },
-		{ value: 'on',     text: 'On' },
-		{ value: 'mirror', text: 'Mirrored' }
+		{ value: '0', text: 'Off' },
+		{ value: '1', text: 'On' },
+		{ value: '2', text: 'Mirrored' }
+	]);
+
+	populateSelect( elShowScale, [
+		{ value: '0', text: 'None' },
+		{ value: '1', text: 'Frequency' },
+		{ value: '2', text: 'Level (dB)' },
+		{ value: '3', text: 'Both' }
 	]);
 
 	populateSelect(	elBackground, [
@@ -2266,28 +2266,32 @@ function populateSelect( element, options ) {
 	]);
 
 	populateSelect( elBgImageFit, [
-		{ value: 'adjust',   text: 'Adjust' },
-		{ value: 'center',   text: 'Center' },
-		{ value: 'pulse',    text: 'Pulse' },
-		{ value: 'repeat',   text: 'Repeat' },
-		{ value: 'zoom-in',  text: 'Zoom In' },
-		{ value: 'zoom-out', text: 'Zoom Out' }
+		{ value: '0', text: 'Adjust' },
+		{ value: '1', text: 'Center' },
+		{ value: '3', text: 'Pulse' },
+		{ value: '2', text: 'Repeat' },
+		{ value: '4', text: 'Zoom In' },
+		{ value: '5', text: 'Zoom Out' }
 	]);
 
 	elBgImageDim.min  = '0.1';
 	elBgImageDim.max  = '1';
 	elBgImageDim.step = '0.1';
 
-	elLineWidth.min = '1';
-	elLineWidth.max = '5';
+	elLineWidth.min   = '1';
+	elLineWidth.max   = '5';
 
-	elFillAlpha.min = '0';
-	elFillAlpha.max = '0.5';
-	elFillAlpha.step= '0.1';
+	elFillAlpha.min   = '0';
+	elFillAlpha.max   = '0.5';
+	elFillAlpha.step  = '0.1';
 
-	elSmoothing.min = '0';
-	elSmoothing.max = '0.9';
-	elSmoothing.step= '0.1';
+	elSmoothing.min   = '0';
+	elSmoothing.max   = '0.9';
+	elSmoothing.step  = '0.1';
+
+	elSpin.min        = '0';
+	elSpin.max        = '3';
+	elSpin.step       = '1';
 
 	// Set UI event listeners
 	setUIEventListeners();
@@ -2316,7 +2320,7 @@ function populateSelect( element, options ) {
 
 	// initialize file explorer
 	fileExplorer.create(
-		document.getElementById('file_explorer'),
+		$id('file_explorer'),
 		{
 			dblClick: ( file, event ) => {
 				addBatchToQueue( [ { file } ], true );
@@ -2327,16 +2331,16 @@ function populateSelect( element, options ) {
 		serverMode = status;
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
-			document.getElementById('local_file_panel').style.display = 'block';
-			document.getElementById('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			document.getElementById('load_remote_url').addEventListener( 'click', () => {
-				let el = document.getElementById('remote_url');
+			$id('local_file_panel').style.display = 'block';
+			$id('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
+			$id('load_remote_url').addEventListener( 'click', () => {
+				let el = $id('remote_url');
 				if ( el.value )
 					addToPlaylist( el.value, true );
 				el.value = '';
 			});
 
-			document.querySelectorAll('#files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
+			$$('#files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
 			filelist.style.display = 'none';
 		}
 		else {
@@ -2365,8 +2369,8 @@ function populateSelect( element, options ) {
 			});
 		}
 
-		document.getElementById('btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
-		document.getElementById('btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
+		$id('btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
+		$id('btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
 	});
 
 	// Add event listener for keyboard controls

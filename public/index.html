@@ -218,7 +218,7 @@
 							</span>
 						</div>
 						<input id="bg_img_dim" type="range" data-prop="bgImageDim">
-						<span class="value"></span>
+						<div class="value"></div>
 					</div>
 				</div>
 
@@ -231,15 +231,20 @@
 					<select id="reflex" data-prop="reflex"></select>
 				</div>
 
+				<div class="config-col">
+					<div class="help"><span class="config-label"><u>S</u>cale</span>
+						<span class="tooltip">Show / hide frequency and level scales</span>
+					</div>
+					<select id="show_scale" data-prop="showScale"></select>
+				</div>
+
 				<ul class="config-col switch-bar">
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-						<span class="tooltip">Display song info in the visualization area on every track change
-					<li class="switch" id="show_scale" data-prop="showScale"><u>S</u>CALE
-						<span class="tooltip">Show / hide the frequency scale</span>
+						<span class="tooltip">Display song info on every track change
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
-						<span class="tooltip">Hold volume peaks on screen for a short time</span>
+						<span class="tooltip">Hold peak levels for a short time</span>
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
-						<span class="tooltip">Disable shadows on canvas messages</span>
+						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 					<li class="switch" id="fps" data-prop="showFPS">FPS
@@ -254,13 +259,16 @@
 						Visualization mode. Disable undesired modes in the Config panel.
 						</span>
 					</div>
-					<select id="mode"></select>
+					<select id="mode" data-prop="mode"></select>
 					<ul class="switch-bar">
 						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+						<li class="switch" id="radial" data-prop="radial">RADIAL
+							<span class="tooltip">Circular spectrum analyzer with radial frequencies <em>(disables LEDS and LUMI)</em></span>
 					</ul>
+
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
 							<input id="line_width" data-prop="lineWidth" type="range">
@@ -273,6 +281,10 @@
 						</label>
 						<label id="bar_space_label" class="config-label">Bar spacing:
 							<select id="bar_space" data-prop="barSpace"></select>
+						</label>
+						<label id="spin_label" class="config-label">Spin:
+							<input id="spin" data-prop="spin" type="range">
+							<span class="value"></span>
 						</label>
 					</div>
 				</div>
@@ -310,7 +322,7 @@
 						</span>
 					</div>
 					<input type="range" id="smoothing" data-prop="smoothing">
-					<span class="value"></span>
+					<div class="value"></div>
 				</div>
 
 				<div class="config-col">
@@ -334,9 +346,10 @@
 					</div>
 					<select id="preset">
 						<option value="" disabled selected>Select preset</option>
+						<option value="demo">Demo (random)</option>
 						<option value="fullres">Full resolution</option>
-						<option value="octave">Octave bands</option>
 						<option value="ledbars">LED bars</option>
+						<option value="octave">Octave bands</option>
 						<option value="custom">Custom</option>
 						<option value="last">Last session</option>
 						<option value="default">Restore defaults</option>

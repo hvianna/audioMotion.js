@@ -4,7 +4,7 @@
  * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '20.6';
+const _VERSION = '20.8';
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
@@ -59,6 +59,14 @@ function getDir( directoryPath, showHidden = false ) {
 	return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
+// helper function - find image files with given pattern in an array of filenames
+function findImg( arr, pattern ) {
+	const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+	return arr.find( el => el.match( regexp ) );
+}
+
+/* main */
+
 console.log( `\n${serverSignature}` );
 
 if ( ! semver.gte( process.version, '10.10.0' ) ) {
@@ -106,17 +114,20 @@ const server = express()
 server.use( express.static( path.join( __dirname, '../public' ) ) )
 
 server.use( '/music', express.static( musicPath ), ( req, res ) => {
-	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) )
+
+	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) ),
+		imgs  = [];
 
 	if ( files === false )
-		res.status(404).send( 'Not found!' )
+		res.status(404).send( 'Not found!' );
 	else {
 		files.files = files.files.filter( file => {
-			if ( file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
-				files.cover = file
-			return file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null
-		})
-		res.send( files )
+			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+				imgs.push( file );
+			return ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null );
+		});
+		files.cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
+		res.send( files );
 	}
 })
 
@@ -137,13 +148,13 @@ server.get( '/serverInfo', ( req, res ) => {
 
 // route for retrieving a directory's cover picture
 server.get( '/getCover/:path', ( req, res ) => {
-	const path = musicPath + decodeURI( req.params.path ).replace( /^\/music/, '' ).replace( /%23/g, '#' );
-	let entries = getDir( path );
+	const path    = musicPath + decodeURI( req.params.path ).replace( /^\/music/, '' ).replace( /%23/g, '#' ),
+		  entries = getDir( path );
 
 	if ( entries === false )
 		res.status(404).send( 'Not found!' );
 	else {
-		entries.files = entries.files.filter( file => file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) !== null );
-		res.send( entries.files[0] );
+		const imgs = entries.files.filter( file => file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) !== null );
+		res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
 	}
 });
