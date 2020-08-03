@@ -101,6 +101,8 @@ in the song's folder, and will use any image which filename contains the words *
 
 #### Image Fit
 
+![ui-image-fit](img/UI_image_fit.png)
+
 When [Background](#background) is set to **Album cover**, this option selects the size and positioning of the image.
 
 - **Adjust** - resizes the image so it fills the entire canvas;
@@ -113,6 +115,8 @@ When [Background](#background) is set to **Album cover**, this option selects th
 You can cycle through the available options using the **Shift + B** keyboard shortcut.
 
 #### Image Dim
+
+![ui-image-dim](img/UI_image_dim.png)
 
 When [Background](#background) is set to **Album cover**, this option adjusts the brightness of the background image.
 
@@ -183,6 +187,8 @@ These settings can be configured when [Line graph mode](#mode) is selected.
 
 **Line Width** controls the thickness of the outer graph line, while **Fill Opacity** adjusts the transparency of the graph area.
 
+🚧 On Firefox, Fill Opacity won’t work properly with [RADIAL](#mode-switches) mode, due to [this five-year-old bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912) still unaddressed.
+
 #### Mode switches
 
 ![ui-mode-switches](img/UI_mode_switches.png)
@@ -193,7 +199,7 @@ Select additional visualization effects.
 + **LUMI** toggles the luminance bars effect - analyzer bars are displayed always at full-height, varying their luminance instead *(octave bands modes only)*
 + **RADIAL** displays a circular spectrum analyzer with radial frequencies *(disables both LEDS and LUMI)*
 
-When **RADIAL** is active, you can also configure the spinning speed.
+When **RADIAL** is active, you can also configure its spinning speed.
 
 #### Random Mode
 
@@ -269,7 +275,7 @@ You can also drag and drop files from the file explorer into the play queue.
 
 Supported extensions are flac, m4a, mp3, ogg and wav for music files, and m3u or m3u8 for playlists. Codec support may vary, depending on your web browser and operating system.
 
-Any image file found in the current folder will be shown in the background of the file explorer, preference given to filenames containing the words *cover*, *folder* or *front* (in this order).
+Any image file found in the current folder will be shown in the background of the file explorer, giving preference to filenames containing the words *cover*, *folder* or *front* (in this order).
 
 #### Play queue and playlists
 

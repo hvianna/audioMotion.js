@@ -78,19 +78,19 @@ For full documentation summary, see the [docs folder](docs/).
 Discrete frequencies mode. User interface showing the file explorer and play queue.
 ![screenshot1](docs/img/screenshot1.png "Discrete frequencies mode. User interface showing the file explorer and play queue.")
 
-1/4th-octave bands mode, extra wide bar spacing, with LED effect and on-screen song information. User interface showing the settings panel.
+1/4th-octave bands with LED effect, extra wide bar spacing and on-screen song information. User interface showing the settings panel.
 ![screenshot2](docs/img/screenshot2.png "1/4th-octave bands mode, extra wide bar spacing, with LED effect and on-screen song information. User interface showing the settings panel.")
 
-Fullscreen 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, "Outrun" gradient, Reflex effect and complete on-screen information.
+Fullscreen 1/6th-octave bands, regular bar spacing, 30Hz-16KHz, "Outrun" gradient, Reflex effect and complete on-screen information.
 ![screenshot3](docs/img/screenshot3.png "Fullscreen 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, 'Outrun' gradient, Reflex effect and complete on-screen information")
 
-Fullscreen Line graph mode, 20Hz-22KHz, frequency and level scales on, "Rainbow" gradient.
+Fullscreen Line graph, 20Hz-22KHz, frequency and level scales on, "Rainbow" gradient.
 ![screenshot6](docs/img/screenshot6.png "Fullscreen Line graph mode, 20Hz-22KHz, frequency and level scales on, 'Rainbow' gradient")
 
-Fullscreen 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
+Fullscreen 1/8th-octave bands with Luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
 ![screenshot5](docs/img/screenshot5.png "Fullscreen 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
 
-Fullscreen Radial 1/6th-octave bands mode with frequency scale on, "Apple ][" gradient.
+Fullscreen Radial 1/6th-octave bands with frequency scale on, "Apple ][" gradient.
 ![screenshot7](docs/img/screenshot7.png "Fullscreen Radial 1/6th-octave bands mode with frequency scale on, 'Apple ][' gradient")
 
 ## Credits and acknowledgments
