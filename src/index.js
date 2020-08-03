@@ -1971,12 +1971,15 @@ function setUIEventListeners() {
 	// clicks on canvas cycle scales on/off
 	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
 
-	document.getElementById('dump_settings').addEventListener( 'click', () => {
+	// dump current settings to console
+	$id('dump_settings').addEventListener( 'click', () => {
 		console.log(
 			`time: ${ audioElement[ currAudio ].currentTime }, ` +
 			`mode: ${ elMode.value }, ` +
 			`gradient: '${ elGradient.value }', ` +
-			`blackBg: ${ elBlackBg.dataset.active }, ` +
+			`background: ${ elBackground.value }, ` +
+			`bgImageDim: ${ elBgImageDim.value }, ` +
+			`bgImageFit: ${ elBgImageFit.value }, ` +
 			`showPeaks: ${ elShowPeaks.dataset.active }, ` +
 			`ledDisplay: ${ elLedDisplay.dataset.active }, ` +
 			`lumiBars: ${ elLumiBars.dataset.active }, ` +
@@ -1984,6 +1987,8 @@ function setUIEventListeners() {
 			`fillAlpha: ${ elFillAlpha.value }, ` +
 			`barSpace: ${ elBarSpace.value }, ` +
 			`reflex: '${ elReflex.value }', ` +
+			`radial: ${ elRadial.dataset.active }, ` +
+			`spin: ${ elSpin.value }, ` +
 			`sensitivity: ${elSensitivity.value}`
 		);
 	});
