@@ -1192,6 +1192,7 @@ function displayCanvasMsg() {
 		else {
 			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
 			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
+		}
 
 		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
