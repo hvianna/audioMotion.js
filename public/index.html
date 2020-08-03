@@ -93,13 +93,14 @@
 						<tr><td><kbd>&uarr;</kbd> / <kbd>G</kbd></td><td>previous gradient</td></tr>
 						<tr><td><kbd>&darr;</kbd> / <kbd>g</kbd></td><td>next gradient</td></tr>
 						<tr><td><kbd>A</kbd></td><td>auto grad / rand mode</td></tr>
+						<tr><td><kbd>b</kbd> / <kbd>B</kbd></td><td>background / image fit</td></tr>
 						<tr><td><kbd>D</kbd></td><td>show current info</td></tr>
 						<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
 						<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
-						<tr><td><kbd>M</kbd> / <kbd>m</kbd></td><td>previous / next mode</td></tr>
-						<tr><td><kbd>N</kbd> / <kbd>n</kbd></td><td>sensitivity</td></tr>
+						<tr><td><kbd>m</kbd> / <kbd>M</kbd></td><td>next / previous mode</td></tr>
+						<tr><td><kbd>n</kbd> / <kbd>N</kbd></td><td>sensitivity</td></tr>
 						<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
-						<tr><td><kbd>X</kbd> / <kbd>x</kbd></td><td>reflex style</td></tr>
+						<tr><td><kbd>x</kbd> / <kbd>X</kbd></td><td>reflex style</td></tr>
 						<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcut</td></tr>
 					</table>
 				</span>
@@ -178,29 +179,6 @@
 		<div id="settings_panel" class="config-panel">
 			<div class="config-row flex">
 				<div class="config-col">
-					<div class="help"><span class="config-label">Preset</span>
-						<span class="tooltip">
-							Load a configuration preset.<br>
-							<strong>"Last session"</strong> restores last used configuration settings.
-						</span>
-					</div>
-					<select id="preset">
-						<option value="" disabled selected>Select preset</option>
-						<option value="fullres">Full resolution</option>
-						<option value="octave">Octave bands</option>
-						<option value="ledbars">LED bars</option>
-						<option value="custom">Custom</option>
-						<option value="last">Last session</option>
-						<option value="default">Restore defaults</option>
-					</select>
-					<button id="load_preset">Load</button>
-					<span class="help">
-						<button id="btn_save">Save</button>
-						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-					</span>
-				</div>
-
-				<div class="config-col">
 					<div class="help"><span class="config-label"><u>G</u>radient</span>
 						<span class="tooltip">
 							Color gradient for the analyzer bars. Disable undesired gradients in the Config panel.
@@ -211,9 +189,37 @@
 					<ul class="switch-bar">
 						<li class="switch" id="cycle_grad" data-prop="cycleGrad"><u>A</u>uto
 							<span class="tooltip">Select next gradient automatically on each track change</span>
-						<li class="switch" id="black_bg" data-prop="blackBg">NO <u>B</u>G
-							<span class="tooltip">Use black background instead of background color defined by gradient</span>
 					</ul>
+				</div>
+
+				<div class="config-col">
+					<div class="config-col">
+						<div class="help"><span class="config-label"><u>B</u>ackground</span>
+							<span class="tooltip">
+							Select background option
+							</span>
+						</div>
+						<select id="background" data-prop="background"></select>
+					</div>
+
+					<div class="config-col">
+						<div class="help"><span class="config-label">Image fit</span>
+							<span class="tooltip">
+								Adjust the size and position of the background image | <kbd>Shift</kbd><kbd>B</kbd>
+							</span>
+						</div>
+						<select id="bg_img_fit" data-prop="bgImageFit"></select>
+					</div>
+
+					<div class="config-col">
+						<div class="help"><span class="config-label">Image dim</span>
+							<span class="tooltip">
+								Adjust the intensity of the background image
+							</span>
+						</div>
+						<input id="bg_img_dim" type="range" data-prop="bgImageDim">
+						<div class="value"></div>
+					</div>
 				</div>
 
 				<div class="config-col">
@@ -225,15 +231,20 @@
 					<select id="reflex" data-prop="reflex"></select>
 				</div>
 
+				<div class="config-col">
+					<div class="help"><span class="config-label"><u>S</u>cale</span>
+						<span class="tooltip">Show / hide frequency and level scales</span>
+					</div>
+					<select id="show_scale" data-prop="showScale"></select>
+				</div>
+
 				<ul class="config-col switch-bar">
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-						<span class="tooltip">Display song info in the visualization area on every track change
-					<li class="switch" id="show_scale" data-prop="showScale"><u>S</u>CALE
-						<span class="tooltip">Show / hide the frequency scale</span>
+						<span class="tooltip">Display song info on every track change
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
-						<span class="tooltip">Hold volume peaks on screen for a short time</span>
+						<span class="tooltip">Hold peak levels for a short time</span>
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
-						<span class="tooltip">Disable shadows on canvas messages</span>
+						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 					<li class="switch" id="fps" data-prop="showFPS">FPS
@@ -248,13 +259,16 @@
 						Visualization mode. Disable undesired modes in the Config panel.
 						</span>
 					</div>
-					<select id="mode"></select>
+					<select id="mode" data-prop="mode"></select>
 					<ul class="switch-bar">
 						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 							<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+						<li class="switch" id="radial" data-prop="radial">RADIAL
+							<span class="tooltip">Circular spectrum analyzer with radial frequencies <em>(disables LEDS and LUMI)</em></span>
 					</ul>
+
 					<div class="config-sub">
 						<label id="line_width_label" class="config-label">Line width:
 							<input id="line_width" data-prop="lineWidth" type="range">
@@ -267,6 +281,10 @@
 						</label>
 						<label id="bar_space_label" class="config-label">Bar spacing:
 							<select id="bar_space" data-prop="barSpace"></select>
+						</label>
+						<label id="spin_label" class="config-label">Spin:
+							<input id="spin" data-prop="spin" type="range">
+							<span class="value"></span>
 						</label>
 					</div>
 				</div>
@@ -281,20 +299,20 @@
 				</div>
 
 				<div class="config-col">
-					<div class="help"><span class="config-label">FFT size</span>
-						<span class="tooltip">
-						Larger values provide more detail in the frequency domain, but less detail in the time domain.
-						</span>
-					</div>
-					<select id="fft_size" data-prop="fftSize"></select>
-				</div>
-
-				<div class="config-col">
 					<div class="help"><span class="config-label">Frequency Range</span>
-						<span class="tooltip">Lowest and highest frequencies represented in the analyzer</span>
+						<span class="tooltip">Lowest and highest frequencies represented in the X-axis</span>
 					</div>
 					<select id="freq_min" data-prop="freqMin"></select> to
 					<select id="freq_max" data-prop="freqMax"></select>	Hz
+				</div>
+
+				<div class="config-col">
+					<div class="help"><span class="config-label">FFT size</span>
+						<span class="tooltip">
+						Higher values provide more detail in the frequency domain, but less detail in the time domain.
+						</span>
+					</div>
+					<select id="fft_size" data-prop="fftSize"></select>
 				</div>
 
 				<div class="config-col">
@@ -304,7 +322,7 @@
 						</span>
 					</div>
 					<input type="range" id="smoothing" data-prop="smoothing">
-					<span class="value"></span>
+					<div class="value"></div>
 				</div>
 
 				<div class="config-col">
@@ -318,9 +336,35 @@
 
 			</div> <!-- .config-row -->
 
-			<div class="config-col">
-				<button id="dump_settings">Dump settings</button>
-			</div>
+			<div class="config-row flex align-start">
+				<div class="config-col">
+					<div class="help"><span class="config-label">Preset</span>
+						<span class="tooltip">
+							Load a configuration preset.<br>
+							<strong>"Last session"</strong> restores last used configuration settings.
+						</span>
+					</div>
+					<select id="preset">
+						<option value="" disabled selected>Select preset</option>
+						<option value="demo">Demo (random)</option>
+						<option value="fullres">Full resolution</option>
+						<option value="ledbars">LED bars</option>
+						<option value="octave">Octave bands</option>
+						<option value="custom">Custom</option>
+						<option value="last">Last session</option>
+						<option value="default">Restore defaults</option>
+					</select>
+					<button id="load_preset">Load</button>
+					<span class="help">
+						<button id="btn_save">Save</button>
+						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
+					</span>
+				</div>
+
+				<div class="config-col">
+					<button id="dump_settings">Dump settings</button>
+				</div>
+			</div> <!-- .config-row -->
 
 		</div> <!-- #settings_panel -->
 
@@ -346,24 +390,24 @@
 
 					<h3>Sensitivity presets:</h3>
 					<table>
-						<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Reset</th></tr>
+						<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
 						<tr>
 							<td>Low</td>
 							<td><select class="min-db" data-preset="0"></select></td>
 							<td><select class="max-db" data-preset="0"></select></td>
-							<td><button class="reset-sens" data-preset="0">Default</button></td>
+							<td><button class="reset-sens" data-preset="0">Reset</button></td>
 						</tr>
 						<tr>
 							<td>Normal</td>
 							<td><select class="min-db" data-preset="1"></select></td>
 							<td><select class="max-db" data-preset="1"></select></td>
-							<td><button class="reset-sens" data-preset="1">Default</button></td>
+							<td><button class="reset-sens" data-preset="1">Reset</button></td>
 						</tr>
 						<tr>
 							<td>High</td>
 							<td><select class="min-db" data-preset="2"></select></td>
 							<td><select class="max-db" data-preset="2"></select></td>
-							<td><button class="reset-sens" data-preset="2">Default</button></td>
+							<td><button class="reset-sens" data-preset="2">Reset</button></td>
 						</tr>
 					</table>
 				</div>

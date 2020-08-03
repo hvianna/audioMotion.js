@@ -10,6 +10,7 @@ var mounts = [],
 	defaultRoot = '/music',
 	ui_path,
 	ui_files,
+//	enterDirCallback,
 	dblClickCallback;
 
 /**
@@ -20,7 +21,6 @@ var mounts = [],
  */
 function updateUI( content, scrollTop ) {
 
-//	ui_cover.src = '';
 	ui_path.innerHTML = '';
 	ui_files.innerHTML = '';
 
@@ -52,8 +52,7 @@ function updateUI( content, scrollTop ) {
 				ui_files.innerHTML += `<li data-type="${ file.match(/\.(m3u|m3u8)$/) !== null ? 'list' : 'file' }" data-path="${file}">${file}</li>`;
 			});
 		}
-//		if ( content.cover )
-//			UI_cover.src = makePath( content.cover );
+		ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${makePath( content.cover )}')` : '' );
 	}
 
 	// restore scroll position when returning from subdirectory
@@ -101,6 +100,8 @@ function enterDir( target, scrollTop ) {
 				if ( ! nodeServer )
 					content = parseWebDirectory( content );
 				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
+//				if ( enterDirCallback )
+//					enterDirCallback( url, content );
 				resolve( true );
 			})
 			.catch( err => {
@@ -116,33 +117,41 @@ function enterDir( target, scrollTop ) {
  * @param {string}   content HTML body of a web server directory listing
  * @returns {object} folder/cover image, list of directories, list of files
  */
-function parseWebDirectory( content ) {
+export function parseWebDirectory( content ) {
 
-	let files = [];
-	let dirs = [];
-	let cover;
+	let files = [],
+		dirs  = [],
+		imgs  = [];
 
-	let entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+	// helper function
+	const findImg = ( arr, pattern ) => {
+		const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+		return arr.find( el => el.match( regexp ) );
+	}
 
-	for ( let e of entries ) {
-		let info = e.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
-		if ( info[1].substring( info[1].length - 1 ) == '/' ) {
-			if ( ! info[2].match( /parent directory/i ) ) {
-				if ( info[2].substring( info[2].length - 1 ) == '/' )
-					dirs.push( info[2].substring( 0, info[2].length - 1 ) );
+	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+
+	for ( const entry of entries ) {
+		const [ all, uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
+		if ( uri.substring( uri.length - 1 ) == '/' ) {
+			if ( ! file.match( /parent directory/i ) ) {
+				if ( file.substring( file.length - 1 ) == '/' )
+					dirs.push( file.substring( 0, file.length - 1 ) );
 				else
-					dirs.push( info[2] );
+					dirs.push( file );
 			}
 		}
 		else {
-			if ( info[2].match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
-				cover = info[2]
-			else if ( info[2].match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/ ) )
-				files.push( info[2] );
+			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+				imgs.push( file );
+			else if ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) )
+				files.push( file );
 		}
 	}
 
-	let collator = new Intl.Collator(); // for case-insensitive string sorting
+	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
+	const collator = new Intl.Collator(); // for case-insensitive string sorting
+
 	return { cover, dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
@@ -217,11 +226,11 @@ export function create( container, options = {} ) {
 
 	ui_path = document.createElement('ul');
 	ui_path.className = 'breadcrumb';
-	container.appendChild( ui_path );
+	container.append( ui_path );
 
 	ui_files = document.createElement('ul');
 	ui_files.className = 'filelist';
-	container.appendChild( ui_files );
+	container.append( ui_files );
 
 	startUpTimer = setTimeout( () => {
 		ui_path.innerHTML = 'Waiting for server...';
@@ -248,6 +257,9 @@ export function create( container, options = {} ) {
 
 	if ( typeof options.dblClick == 'function' )
 		dblClickCallback = options.dblClick;
+
+//	if ( typeof options.onEnterDir == 'function' )
+//		enterDirCallback = options.onEnterDir;
 
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
