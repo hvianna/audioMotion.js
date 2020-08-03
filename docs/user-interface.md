@@ -187,7 +187,7 @@ These settings can be configured when [Line graph mode](#mode) is selected.
 
 **Line Width** controls the thickness of the outer graph line, while **Fill Opacity** adjusts the transparency of the graph area.
 
-🚧 On Firefox, Fill Opacity won’t work properly with [RADIAL](#mode-switches) mode, due to [this five-year-old bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912) still unaddressed.
+🚧 On Firefox, Fill Opacity may not work properly with [RADIAL](#mode-switches) mode, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
 
 #### Mode switches
 
