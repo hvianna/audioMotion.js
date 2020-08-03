@@ -4,7 +4,7 @@
  * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '20.4';
+const _VERSION = '20.8';
 
 const serverSignature = `audioMotion.js server ver. ${_VERSION}`
 
@@ -59,6 +59,14 @@ function getDir( directoryPath, showHidden = false ) {
 	return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }
 
+// helper function - find image files with given pattern in an array of filenames
+function findImg( arr, pattern ) {
+	const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+	return arr.find( el => el.match( regexp ) );
+}
+
+/* main */
+
 console.log( `\n${serverSignature}` );
 
 if ( ! semver.gte( process.version, '10.10.0' ) ) {
@@ -106,17 +114,20 @@ const server = express()
 server.use( express.static( path.join( __dirname, '../public' ) ) )
 
 server.use( '/music', express.static( musicPath ), ( req, res ) => {
-	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) )
+
+	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) ),
+		imgs  = [];
 
 	if ( files === false )
-		res.status(404).send( 'Not found!' )
+		res.status(404).send( 'Not found!' );
 	else {
 		files.files = files.files.filter( file => {
-			if ( file.match( /(folder|cover)\.(jpg|jpeg|png|gif|bmp)$/i ) )
-				files.cover = file
-			return file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null
-		})
-		res.send( files )
+			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+				imgs.push( file );
+			return ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null );
+		});
+		files.cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
+		res.send( files );
 	}
 })
 
@@ -124,14 +135,8 @@ server.listen( port, host, () => {
 	console.log( `\n\n\tListening on port ${port} ${ host ? 'for localhost connections only' : 'accepting external connections!' }` )
 	console.log( `\n\t/music mounted to ${musicPath}` )
 	if ( launchClient ) {
-		// avoid error on Linux when running from the executable file
-		// related to https://github.com/zeit/pkg/issues/731
-		if ( __dirname.startsWith('/snapshot/') && process.platform == 'linux' )
-			console.log( `\n\n\tAccess http://localhost:${port} in your browser to open audioMotion` )
-		else {
-			open( `http://localhost:${port}` )
-			console.log( '\n\tLaunching client in browser...' )
-		}
+		open( `http://localhost:${port}` )
+		console.log( '\n\tLaunching client in browser...' )
 	}
 	console.log( '\n\nPress Ctrl+C to exit.' )
 })
@@ -140,3 +145,16 @@ server.listen( port, host, () => {
 server.get( '/serverInfo', ( req, res ) => {
 	res.send( serverSignature )
 })
+
+// route for retrieving a directory's cover picture
+server.get( '/getCover/:path', ( req, res ) => {
+	const path    = musicPath + decodeURI( req.params.path ).replace( /^\/music/, '' ).replace( /%23/g, '#' ),
+		  entries = getDir( path );
+
+	if ( entries === false )
+		res.status(404).send( 'Not found!' );
+	else {
+		const imgs = entries.files.filter( file => file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) !== null );
+		res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
+	}
+});
