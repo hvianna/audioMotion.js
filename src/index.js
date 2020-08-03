@@ -1990,6 +1990,7 @@ function setUIEventListeners() {
 			`reflex: '${ elReflex.value }', ` +
 			`radial: ${ elRadial.dataset.active }, ` +
 			`spin: ${ elSpin.value }, ` +
+			`showScale: ${ elShowScale.value }, ` +
 			`sensitivity: ${elSensitivity.value}`
 		);
 	});
