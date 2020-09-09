@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.8';
+const _VERSION = '20.9-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -38,40 +38,39 @@ import './notie.css';
 import './styles.css';
 
 // selector shorthand functions
-const $   = document.querySelector.bind( document ),
-	  $$  = document.querySelectorAll.bind( document ),
-	  $id = document.getElementById.bind( document );
+const $  = document.querySelector.bind( document ),
+	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elFFTsize     = $id('fft_size'),
-	  elRangeMin    = $id('freq_min'),
-	  elRangeMax    = $id('freq_max'),
-	  elSmoothing   = $id('smoothing'),
-	  elMode        = $id('mode'),
-	  elGradient    = $id('gradient'),
-	  elShowScale   = $id('show_scale'),
-	  elSensitivity = $id('sensitivity'),
-	  elShowPeaks   = $id('show_peaks'),
-	  elCycleGrad   = $id('cycle_grad'),
-	  elRandomMode  = $id('random_mode'),
-	  elLedDisplay  = $id('led_display'),
-	  elLumiBars    = $id('lumi_bars'),
-	  elRepeat      = $id('repeat'),
-	  elShowSong    = $id('show_song'),
-	  elNoShadow    = $id('no_shadow'),
-	  elLoRes       = $id('lo_res'),
-	  elFPS         = $id('fps'),
-	  elSource      = $id('source'),
-	  elPlaylists   = $id('playlists'),
-	  elLineWidth   = $id('line_width'),
-	  elFillAlpha   = $id('fill_alpha'),
-	  elBarSpace    = $id('bar_space'),
-	  elReflex      = $id('reflex'),
-	  elBackground  = $id('background'),
-	  elBgImageDim  = $id('bg_img_dim'),
-	  elBgImageFit  = $id('bg_img_fit'),
-	  elRadial      = $id('radial'),
-	  elSpin		= $id('spin');
+const elFFTsize     = $('#fft_size'),
+	  elRangeMin    = $('#freq_min'),
+	  elRangeMax    = $('#freq_max'),
+	  elSmoothing   = $('#smoothing'),
+	  elMode        = $('#mode'),
+	  elGradient    = $('#gradient'),
+	  elShowScale   = $('#show_scale'),
+	  elSensitivity = $('#sensitivity'),
+	  elShowPeaks   = $('#show_peaks'),
+	  elCycleGrad   = $('#cycle_grad'),
+	  elRandomMode  = $('#random_mode'),
+	  elLedDisplay  = $('#led_display'),
+	  elLumiBars    = $('#lumi_bars'),
+	  elRepeat      = $('#repeat'),
+	  elShowSong    = $('#show_song'),
+	  elNoShadow    = $('#no_shadow'),
+	  elLoRes       = $('#lo_res'),
+	  elFPS         = $('#fps'),
+	  elSource      = $('#source'),
+	  elPlaylists   = $('#playlists'),
+	  elLineWidth   = $('#line_width'),
+	  elFillAlpha   = $('#fill_alpha'),
+	  elBarSpace    = $('#bar_space'),
+	  elReflex      = $('#reflex'),
+	  elBackground  = $('#background'),
+	  elBgImageDim  = $('#bg_img_dim'),
+	  elBgImageFit  = $('#bg_img_fit'),
+	  elRadial      = $('#radial'),
+	  elSpin		= $('#spin');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -291,7 +290,7 @@ const sensitivityDefaults = [
  */
 function fullscreen() {
 	audioMotion.toggleFullscreen();
-	$id('btn_fullscreen').blur();
+	$('#btn_fullscreen').blur();
 }
 
 /**
@@ -371,9 +370,9 @@ function setProperty ( prop, save ) {
 			if ( elMode.value === '' ) // handle invalid setting
 				elMode.selectedIndex = 0;
 
-			const lineWidthLabel = $id('line_width_label'),
-				  fillAlphaLabel = $id('fill_alpha_label'),
-				  barSpaceLabel  = $id('bar_space_label'),
+			const lineWidthLabel = $('#line_width_label'),
+				  fillAlphaLabel = $('#fill_alpha_label'),
+				  barSpaceLabel  = $('#bar_space_label'),
 				  mode = elMode.value;
 
 			lineWidthLabel.style.display = 'none';
@@ -400,7 +399,7 @@ function setProperty ( prop, save ) {
 
 		case elRadial:
 			audioMotion.radial = ( elRadial.dataset.active == '1' );
-			$id('spin_label').style.display = audioMotion.radial ? '' : 'none';
+			$('#spin_label').style.display = audioMotion.radial ? '' : 'none';
 			break;
 
 		case elRandomMode:
@@ -1308,10 +1307,10 @@ function showCanvasInfo( reason ) {
  * Output messages to the UI "console"
  */
 function consoleLog( msg, error ) {
-	const elConsole = $id( 'console' );
+	const elConsole = $('#console');
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
-		$id( 'show_console' ).className = 'warning';
+		$('#show_console').className = 'warning';
 	}
 	elConsole.innerHTML += msg + '<br>';
 	elConsole.scrollTop = elConsole.scrollHeight;
@@ -1517,7 +1516,7 @@ function updateLastConfig() {
  */
 function updateCustomPreset() {
 	saveConfig( 'custom-preset' );
-	$id('preset').value = 'custom';
+	$('#preset').value = 'custom';
 	notie.alert({ text: 'Custom preset saved!' });
 }
 
@@ -1853,19 +1852,19 @@ function populateGradients() {
 function setUIEventListeners() {
 
 	// Add event listeners for config panel selectors
-	$id('panel_selector').addEventListener( 'click', event => {
+	$('#panel_selector').addEventListener( 'click', event => {
 		$$('#panel_selector li').forEach( e => {
 			e.className = '';
-			$id( e.dataset.panel ).style.display = 'none';
+			$(`#${e.dataset.panel}`).style.display = 'none';
 		});
-		const el = $id( event.target.dataset.panel || event.target.parentElement.dataset.panel );
+		const el = $(`#${ event.target.dataset.panel || event.target.parentElement.dataset.panel }`);
 		el.style.display = 'block';
 		if ( event.target.nodeName == 'LI' )
 			event.target.className = 'active';
 		else
 			event.target.parentElement.className = 'active';
 	});
-	$id('show_filelist').click();
+	$('#show_filelist').click();
 
 	// Add event listeners to the custom checkboxes
 	$$('.switch').forEach( el => {
@@ -1915,21 +1914,21 @@ function setUIEventListeners() {
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
 
 	// action buttons
-	$id('load_preset').addEventListener( 'click', () => loadPreset( $id('preset').value, true ) );
-	$id('btn_save').addEventListener( 'click', updateCustomPreset );
-	$id('btn_prev').addEventListener( 'click', playPreviousSong );
-	$id('btn_play').addEventListener( 'click', () => playPause() );
-	$id('btn_stop').addEventListener( 'click', stop );
-	$id('btn_next').addEventListener( 'click', () => playNextSong() );
-	$id('btn_shuf').addEventListener( 'click', shufflePlaylist );
-	$id('btn_fullscreen').addEventListener( 'click', fullscreen );
-	$id('load_playlist').addEventListener( 'click', () => {
+	$('#load_preset').addEventListener( 'click', () => loadPreset( $('#preset').value, true ) );
+	$('#btn_save').addEventListener( 'click', updateCustomPreset );
+	$('#btn_prev').addEventListener( 'click', playPreviousSong );
+	$('#btn_play').addEventListener( 'click', () => playPause() );
+	$('#btn_stop').addEventListener( 'click', stop );
+	$('#btn_next').addEventListener( 'click', () => playNextSong() );
+	$('#btn_shuf').addEventListener( 'click', shufflePlaylist );
+	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
+	$('#load_playlist').addEventListener( 'click', () => {
 		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
 	});
-	$id('save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
-	$id('create_playlist').addEventListener( 'click', () => storePlaylist() );
-	$id('delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
-	$id('btn_clear').addEventListener( 'click', clearPlaylist );
+	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
+	$('#create_playlist').addEventListener( 'click', () => storePlaylist() );
+	$('#delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
+	$('#btn_clear').addEventListener( 'click', clearPlaylist );
 
 	// clicks on canvas cycle scales on/off
 	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
@@ -1942,7 +1941,7 @@ function doConfigPanel() {
 
 	// Enabled visualization modes
 
-	const elEnabledModes = $id('enabled_modes');
+	const elEnabledModes = $('#enabled_modes');
 
 	modeOptions.forEach( mode => {
 		elEnabledModes.innerHTML += `<label><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</label>`;
@@ -1966,7 +1965,7 @@ function doConfigPanel() {
 
 	// Enabled gradients
 
-	const elEnabledGradients = $id('enabled_gradients');
+	const elEnabledGradients = $('#enabled_gradients');
 
 	Object.keys( gradients ).forEach( key => {
 		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
@@ -1990,7 +1989,7 @@ function doConfigPanel() {
 
 	// Random Mode properties
 
-	const elProperties = $id('random_properties');
+	const elProperties = $('#random_properties');
 
 	randomProperties.forEach( prop => {
 		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
@@ -2143,7 +2142,7 @@ function populateSelect( element, options ) {
 	loadPreferences();
 
 	// Initialize play queue and set event listeners
-	playlist = $id('playlist');
+	playlist = $('#playlist');
 	playlist.addEventListener( 'dblclick', e => {
 		if ( e.target && e.target.dataset.file ) {
 			playSong( getIndex( e.target ) );
@@ -2174,7 +2173,7 @@ function populateSelect( element, options ) {
 	// Create audioMotion analyzer
 
 	audioMotion = new AudioMotionAnalyzer(
-		$id('analyzer'),
+		$('#analyzer'),
 		{
 			onCanvasDraw: displayCanvasMsg,
 			onCanvasResize: showCanvasInfo
@@ -2186,8 +2185,8 @@ function populateSelect( element, options ) {
 	// Create audio elements
 
 	audioElement = [
-		$id('player0'),
-		$id('player1')
+		$('#player0'),
+		$('#player1')
 	];
 
 	currAudio = 0;
@@ -2323,7 +2322,7 @@ function populateSelect( element, options ) {
 
 	// initialize file explorer
 	fileExplorer.create(
-		$id('file_explorer'),
+		$('#file_explorer'),
 		{
 			dblClick: ( file, event ) => {
 				addBatchToQueue( [ { file } ], true );
@@ -2334,10 +2333,10 @@ function populateSelect( element, options ) {
 		serverMode = status;
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
-			$id('local_file_panel').style.display = 'block';
-			$id('local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			$id('load_remote_url').addEventListener( 'click', () => {
-				let el = $id('remote_url');
+			$('#local_file_panel').style.display = 'block';
+			$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
+			$('#load_remote_url').addEventListener( 'click', () => {
+				let el = $('#remote_url');
 				if ( el.value )
 					addToPlaylist( el.value, true );
 				el.value = '';
@@ -2372,8 +2371,8 @@ function populateSelect( element, options ) {
 			});
 		}
 
-		$id('btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
-		$id('btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
+		$('#btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
+		$('#btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
 	});
 
 	// Add event listener for keyboard controls
