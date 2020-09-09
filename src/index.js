@@ -1328,6 +1328,7 @@ function setSource() {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
+			audioMotion.analyzer.disconnect( audioMotion.audioCtx.destination ); // avoid feedback loop
 			sourceMic.connect( audioMotion.analyzer );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
@@ -1335,18 +1336,20 @@ function setSource() {
 			.then( stream => {
 				sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
 				consoleLog( 'Audio source set to microphone' );
-				setSource(); // recursive call, sourceMic is now set
+				setSource(); // recursive call, sourceMic should now be an object
 			})
 			.catch( err => {
 				consoleLog( `Could not change audio source - ${err}`, true );
-				elSource.selectedIndex = 0; // revert to player
-				cfgSource = 'player';
+				// revert source and UI control to built-in player
+				elSource.value = cfgSource = 'player';
 			});
 		}
 	}
 	else {
-		if ( typeof sourceMic == 'object' )
+		if ( typeof sourceMic == 'object' ) {
 			sourceMic.disconnect( audioMotion.analyzer );
+			audioMotion.analyzer.connect( audioMotion.audioCtx.destination );
+		}
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
