@@ -332,7 +332,7 @@ function setProperty ( prop, save ) {
 			break;
 
 		case elFillAlpha:
-			audioMotion.fillAlpha = elFillAlpha.value;
+			audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
 			break;
 
 		case elRangeMin:
@@ -353,7 +353,7 @@ function setProperty ( prop, save ) {
 			break;
 
 		case elLineWidth:
-			audioMotion.lineWidth = elLineWidth.value;
+			audioMotion.lineWidth = ( elMode.value == 10 ) ? 0 : elLineWidth.value;
 			break;
 
 		case elLoRes:
@@ -370,15 +370,7 @@ function setProperty ( prop, save ) {
 			if ( elMode.value === '' ) // handle invalid setting
 				elMode.selectedIndex = 0;
 
-			const lineWidthLabel = $('#line_width_label'),
-				  fillAlphaLabel = $('#fill_alpha_label'),
-				  barSpaceLabel  = $('#bar_space_label'),
-				  mode = elMode.value;
-
-			lineWidthLabel.style.display = 'none';
-			fillAlphaLabel.style.display = 'none';
-			barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
-
+			const mode = elMode.value;
 			if ( mode < 10 )
 				audioMotion.mode = mode;
 			else {
@@ -389,8 +381,6 @@ function setProperty ( prop, save ) {
 					audioMotion.fillAlpha = 1;
 				}
 				else { // "Line graph" mode with custom line width and fill opacity
-					lineWidthLabel.style.display = '';
-					fillAlphaLabel.style.display = '';
 					audioMotion.lineWidth = elLineWidth.value;
 					audioMotion.fillAlpha = elFillAlpha.value;
 				}
@@ -399,7 +389,6 @@ function setProperty ( prop, save ) {
 
 		case elRadial:
 			audioMotion.radial = ( elRadial.dataset.active == '1' );
-			$('#spin_label').style.display = audioMotion.radial ? '' : 'none';
 			break;
 
 		case elRandomMode:
