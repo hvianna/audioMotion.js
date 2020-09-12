@@ -11,28 +11,27 @@ body {
 
 select,
 input[type="text"] {
-	padding: 6px;
+	padding: 4px 0;
 }
 input[type="range"] {
 	vertical-align: middle;
-	width: 60px;
 }
 input[type="number"] {
 	padding: 4px;
-	width: 60px;
 }
 
-button {
+button,
+.button {
 	background: #e1e1e1;
 	border: 1px solid #adadad;
-	border-radius: 5px;
 	padding: 6px 16px;
 }
-button:hover {
+button:hover,
+.button:hover {
 	background: #e5f1fb;
 	border: 1px solid #0078d7;
 }
-button.switch[data-active="1"] {
+.button.switch[data-active="1"] {
 	background: #888;
 	box-shadow: inset 1px 1px 0 #0008;
 	color: #b2ff00;
@@ -40,11 +39,53 @@ button.switch[data-active="1"] {
 }
 
 header {
-	color: #eee;
-	padding: 10px 20px;
-	position: absolute;
-	right: 40px;
+	background: #222;
+	color: #ddd;
+	padding: .2em .5em;
+	text-align: center;
 }
+header li {
+	background: #444;
+	border: 1px solid #888;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 16px;
+	margin-right: 4px;
+	padding: 2px 4px;
+}
+header li a {
+	color: inherit;
+}
+header li.active {
+	background: #000;
+	border-color: #0c0;
+	color: #0f0;
+	text-shadow: 1px 1px 5px #0f0, -1px -1px 5px #0f0;
+}
+header li.warning::before {
+	background: #c00;
+	border-radius: 50%;
+	color: #fff;
+	content: '!';
+	display: block;
+	font-size: 10px;
+	font-weight: bold;
+	height: 6px;
+	line-height: 0.5;
+	margin-left: 10px;
+	padding: 4px;
+	position: absolute;
+	text-align: center;
+	top: 4px;
+	width: 6px;
+}
+.icon-about {
+	display: inline-block;
+	font-family: Orbitron;
+	font-style: normal;
+	width: 16px;
+}
+
 h1 {
 	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
 	background-clip: text;
@@ -69,6 +110,25 @@ table {
 	border-collapse: collapse;
 	width: 100%;
 }
+
+
+.controls {
+	flex-shrink: 0;
+	font-size: 11px;
+	padding: 0 5px;
+	width: 150px;
+}
+.controls input,
+.controls select {
+	margin: 4px 0;
+	width: 100%;
+}
+
+.player-area {
+	display: inline-block;
+	width: 100%;
+}
+
 
 .analyzer {
 	background: #000;
@@ -114,22 +174,29 @@ table {
 	margin: 20px 0 40px;
 }
 
-#config_panel .config-col {
+.config-panel {
+	background: #f5f5f5 !important;
+	font-size: 12px;
+	height: 400px;
+	padding-top: 0 !important;
+	width: 850px !important;
+}
+.config-panel .config-col {
     width: 33%;
 }
-#config_panel label {
+.config-panel label {
 	display: block;
 }
-#config_panel #random_properties label {
+.config-panel #random_properties label {
 	display: inline-block;
 	width: 33.3%;
 }
-#config_panel #enabled_gradients label {
+.config-panel #enabled_gradients label {
 	display: inline-block;
 	width: 50%;
 }
-#config_panel table th,
-#config_panel table td {
+.config-panel table th,
+.config-panel table td {
 	border-bottom: 1px solid #ccc;
 	border-top: 1px solid #ccc;
 	padding: 6px;
@@ -137,12 +204,12 @@ table {
 }
 
 .container {
+	background: #f5f5f5;
+	border-bottom: 1px solid #ccc;
 	margin: 0 auto;
-	max-width: 1400px;
 }
 
 .flex {
-	align-items: center;
 	display: flex;
 	justify-content: space-between;
 }
@@ -151,6 +218,9 @@ table {
 }
 .justify-left {
 	justify-content: start;
+}
+.align-center {
+	align-items: center;
 }
 .align-start {
 	align-items: start;
@@ -161,11 +231,11 @@ table {
 
 .config-label {
 	font-size: 11px;
-	text-transform: uppercase;
 }
-.config-label,
-.help {
-	margin-bottom: 4px;
+.config-label.help {
+	border-bottom: 1px dotted #080;
+	color: #080;
+	cursor: help;
 }
 
 .playlist-bar,
@@ -181,68 +251,15 @@ table {
 	font-size: 16px;
 }
 
-.panel-selector {
-	border: 1px solid #ccc;
-	border-top-left-radius: 5px;
-	border-bottom-left-radius: 5px;
-	border-width: 1px 0 1px 1px;
-	float: left;
-	margin: 10px 0;
-	padding: 0;
-	width: 100px;
+.file-panel {
+	margin: 0 auto;
+	max-width: 1200px;
+	padding-top: 10px;
 }
-.panel-selector li {
-	background: #f5f5f5;
-	border-bottom: 1px solid #ccc;
-	color: #444;
-	cursor: pointer;
-	padding: 10px 0 10px 10px;
-}
-.panel-selector li.active {
-	background: #ccc;
-	box-shadow: 1px 1px 2px inset #0008;
-}
-.panel-selector li:first-child {
-	border-top-left-radius: 5px;
-}
-.panel-selector li:last-child {
-	border-bottom: none;
-	border-bottom-left-radius: 5px;
-}
-.panel-selector li.warning::before {
-	background: #c00;
-	border-radius: 50%;
-	color: #fff;
-	content: '!';
-	display: block;
-	font-size: 10px;
-	font-weight: bold;
-	height: 6px;
-	line-height: 0.5;
-	margin-left: 10px;
-	padding: 4px;
-	position: absolute;
-	text-align: center;
-	width: 6px;
-}
-.panel-selector [class^="icons8-"] {
-	font-size: 20px;
-	margin-right: 8px;
-	vertical-align: middle;
-}
-
-.config-panel {
-	background: #f5f5f5;
-	border: 1px solid #ccc;
-	height: 400px;
-	margin-left: 100px;
-	padding: 15px 0;
-}
-
-#files_panel .config-col {
+.file-panel .config-col {
 	width: calc( 50% - 120px );
 }
-#files_panel .config-col:nth-child(2) {
+.file-panel .config-col:nth-child(2) {
 	width: 100px;
 }
 .button-column button {
@@ -258,20 +275,11 @@ table {
 }
 
 .config-col {
-	margin: 0 20px;
-}
-.config-col > .config-col {
-	display: inline-block;
-	margin: 0;
-	vertical-align: top;
+	margin: 4px 0;
 }
 
 div.value {
-	text-align: center;
-}
-
-.config-sub {
-	margin-top: 10px;
+	float: right;
 }
 
 .fullscreen-button {
@@ -285,7 +293,8 @@ div.value {
 .player-controls {
 	padding: 10px;
 }
-.player-controls button {
+.player-controls .button {
+	display: inline-block;
 	margin: 5px 0;
 	padding: 0 8px;
 	font-size: 30px;
@@ -294,11 +303,6 @@ div.value {
 .help {
 	position: relative;
 	text-decoration: none;
-}
-.help .config-label {
-	border-bottom: 1px dotted #080;
-	color: #080;
-	cursor: help;
 }
 .help:hover > .tooltip,
 .switch:hover > .tooltip {
@@ -309,34 +313,36 @@ div.value {
 	display: none;
 }
 .switch-bar {
-	display: inline-block;
+	margin: 5px 0;
 	position: relative;
 }
 .switch-bar .switch {
 	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
 	border: 1px solid #ccc;
+	border-bottom-width: 0;
 	border-left-width: 0;
 	cursor: pointer;
 	display: inline-block;
 	font-size: 11px;
-	min-width: 50px;
 	padding: 4px;
 	text-align: center;
 	text-transform: uppercase;
+	width: 50%;
 }
 .switch-bar .switch[data-active="1"] {
 	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
 	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
 	color: #fff;
 }
-.switch-bar .switch:first-child {
+.switch-bar .switch:nth-child(odd) {
 	border-left-width: 1px;
-	border-top-left-radius: 5px;
-	border-bottom-left-radius: 5px;
 }
-.switch-bar .switch:last-child {
-	border-top-right-radius: 5px;
-	border-bottom-right-radius: 5px;
+.switch-bar .switch:last-child:nth-child(odd) {
+	width: 100%;
+}
+.switch-bar .switch:last-child,
+.switch-bar .switch:nth-last-child(2):nth-child(odd) {
+	border-bottom-width: 1px;
 }
 
 .tooltip {
@@ -349,6 +355,7 @@ div.value {
 	padding: 10px;
 	position: absolute;
 	text-align: center;
+	text-shadow: none;
 	text-transform: none;
 	top: 25px;
 	width: 220px;
@@ -358,21 +365,24 @@ div.value {
 	left: 50%;
 	transform: translateX(-50%);
 }
+.tooltip.right {
+	right: 0;
+}
 .tooltip.shortcuts {
 	left: -270px;
 	top: -50px;
 }
-.switch .tooltip {
-	top: 30px;
-}
-.config-col:last-child .tooltip {
-	right: 0;
+.controls .tooltip {
+	left: 150px;
+	top: 0;
 }
 .button-column .tooltip {
 	left: -50%;
 }
 .player-controls .tooltip {
-	right: 0;
+	left: 50%;
+	top: 50px;
+	transform: translateX(-50%);
 }
 .playlist-bar .tooltip {
 	margin-top: 10px;
@@ -508,13 +518,17 @@ kbd.wide {
 
 #console {
 	background: #1c231a;
+	bottom: 0;
 	color: #0b0;
-	display: none;
 	font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 	font-size: 13px;
+	height: 250px;
+	left: 0;
 	line-height: 1.4;
 	overflow-y: scroll;
 	padding: 10px;
+	position: fixed;
+	right: 0;
 	/* FF experimental - https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Scrollbars */
 	scrollbar-color: #080 #333;
 	scrollbar-width: thin;
@@ -545,41 +559,84 @@ kbd.wide {
 	overflow-y: auto;
 }
 
-#spin_label {
-	float: right;
-	margin-bottom: 0;
-}
-
 .credits {
 	color: #030;
 	font-size: 12px;
 	margin: 20px 0;
 	text-align: center;
 }
-.credits a {
+.credits a:not([class]) {
 	color: #090;
 }
 
-/* Responsive layout */
+/**
+ *  Pure CSS modal windows
+ *  based on https://codepen.io/timothylong/pen/HhAer
+ *  and https://drublic.github.io/css-modal/
+ **/
 
-@media screen and (max-width: 1400px) {
-	.panel-selector {
-		width: 40px;
-	}
-	.panel-selector li span {
-		display: none;
-	}
-	.config-panel {
-		margin-left: 40px;
-	}
+.modal-window {
+	background-color: #000d;
+	bottom: 0;
+	left: 0;
+	opacity: 0;
+	pointer-events: none;
+	position: fixed;
+	right: 0;
+	top: 0;
+	transition: all 0.3s;
+	visibility: hidden;
+	z-index: 999;
 }
+.modal-window:target {
+	opacity: 1;
+	pointer-events: auto;
+	visibility: visible;
+}
+.modal-window > div {
+	background: #fff;
+	left: 50%;
+	max-width: 100%;
+	overflow: auto;
+	padding: 2em;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 400px;
+}
+
+.modal-close::before {
+	bottom: 0;
+	content: '';
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+.modal-close-internal {
+	background: #444;
+	color: #fff;
+	padding: 6px 10px;
+	position: absolute;
+	right: 1px;
+	text-decoration: none;
+	top: 1px;
+}
+.modal-close-internal::before {
+	content: '\2715';
+}
+.modal-close-internal:hover {
+	background: #c00;
+}
+
+/* Responsive layout */
 
 @media screen and (max-width: 1200px) {
 	.config-col {
 		margin: 0 5px;
 	}
 
-	#files_panel .config-col {
+	.file-panel .config-col {
 		width: calc( 50% - 70px );
 	}
 }
