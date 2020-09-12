@@ -2210,10 +2210,10 @@ function populateSelect( element, options ) {
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
 	for ( const i of [20,30,40,50,60,100,250,500,1000,2000] )
-		elRangeMin[ elRangeMin.options.length ] = new Option( i >= 1000 ? ( i / 1000 ) + 'k' : i, i );
+		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
 
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
-		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
+		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
 	populateSelect(	elSensitivity, [
 		{ value: '0', text: 'Low' },
