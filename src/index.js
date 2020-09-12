@@ -699,9 +699,6 @@ function addSongToPlaylist( uri, content = {} ) {
  */
 function loadPlaylist( path ) {
 
-	if ( ! path )
-		return;
-
 	// normalize slashes
 	path = path.replace( /\\/g, '/' );
 
@@ -712,7 +709,10 @@ function loadPlaylist( path ) {
 		songInfo;
 
 	return new Promise( resolve => {
-		if ( ['m3u','m3u8'].includes( ext ) ) {
+		if ( ! path ) {
+			resolve( -1 );
+		}
+		else if ( ['m3u','m3u8'].includes( ext ) ) {
 			fetch( path )
 				.then( response => {
 					if ( response.status == 200 )
