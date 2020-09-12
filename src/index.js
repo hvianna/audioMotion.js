@@ -610,7 +610,7 @@ function addToPlaylist( file, autoplay = false ) {
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
-		if ( autoplay && ! isPlaying() )
+		if ( autoplay && ! isPlaying() && n > 0 )
 			playSong( playlist.children.length - n );
 	});
 
@@ -1923,7 +1923,10 @@ function setUIEventListeners() {
 	$('#btn_shuf').addEventListener( 'click', shufflePlaylist );
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
 	$('#load_playlist').addEventListener( 'click', () => {
-		loadPlaylist( elPlaylists.value ).then( n => notie.alert({ text: `${n} song${ n > 1 ? 's' : '' } added to the queue`, time: 5 }) );
+		loadPlaylist( elPlaylists.value ).then( n => {
+			const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
+			notie.alert({ text, time: 5 });
+		});
 	});
 	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 	$('#create_playlist').addEventListener( 'click', () => storePlaylist() );
