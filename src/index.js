@@ -42,7 +42,8 @@ const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elFFTsize     = $('#fft_size'),
+const elConsole     = $('#console'),
+	  elFFTsize     = $('#fft_size'),
 	  elRangeMin    = $('#freq_min'),
 	  elRangeMax    = $('#freq_max'),
 	  elSmoothing   = $('#smoothing'),
@@ -1296,10 +1297,9 @@ function showCanvasInfo( reason ) {
  * Output messages to the UI "console"
  */
 function consoleLog( msg, error ) {
-	const elConsole = $('#console');
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
-		$('#show_console').className = 'warning';
+		$('#toggle_console').classList.add('warning');
 	}
 	elConsole.innerHTML += msg + '<br>';
 	elConsole.scrollTop = elConsole.scrollHeight;
@@ -1840,20 +1840,20 @@ function populateGradients() {
  */
 function setUIEventListeners() {
 
-	// Add event listeners for config panel selectors
-	$('#panel_selector').addEventListener( 'click', event => {
-		$$('#panel_selector li').forEach( e => {
-			e.className = '';
-			$(`#${e.dataset.panel}`).style.display = 'none';
-		});
-		const el = $(`#${ event.target.dataset.panel || event.target.parentElement.dataset.panel }`);
-		el.style.display = 'block';
-		if ( event.target.nodeName == 'LI' )
-			event.target.className = 'active';
-		else
-			event.target.parentElement.className = 'active';
+	const elToggleSettings = $('#toggle_settings');
+	elToggleSettings.addEventListener( 'click', event => {
+		elToggleSettings.classList.toggle('active');
+		$$('.controls').forEach( el => el.style.display = elToggleSettings.classList.contains('active') ? '' : 'none' );
 	});
-	$('#show_filelist').click();
+	elToggleSettings.click(); // starts with the settings panel open
+
+	const elToggleConsole = $('#toggle_console');
+	elToggleConsole.addEventListener( 'click', event => {
+		elToggleConsole.classList.toggle('active');
+		elToggleConsole.classList.remove('warning');
+		elConsole.style.display = elToggleConsole.classList.contains('active') ? '' : 'none';
+	});
+	elConsole.style.display = 'none';
 
 	// Add event listeners to the custom checkboxes
 	$$('.switch').forEach( el => {
