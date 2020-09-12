@@ -1690,7 +1690,7 @@ function audioOnError( e ) {
  * Update range elements value div
  */
 function updateRangeValue( el ) {
-	const elVal = el.nextElementSibling;
+	const elVal = el.previousElementSibling;
 	if ( elVal && elVal.className == 'value' )
 		elVal.innerText = el.value;
 }
