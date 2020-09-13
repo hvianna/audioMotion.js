@@ -6,6 +6,14 @@ nav_order: 3
 
 # Changelog
 
+## version 20.9 :mask:
+
+This is a minor update to address two bugs:
+
++ A day-one design flaw which connected the microphone output to the speakers, generating feedback loops;
++ An unexpected error message when trying to load a playlist with an empty value in the playlist selection.
+
+
 ## version 20.8 :mask:
 
 ### Added:
