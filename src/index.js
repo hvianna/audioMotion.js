@@ -1999,7 +1999,7 @@ function setUIEventListeners() {
 	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
 
 	// dump current settings to console
-	$id('dump_settings').addEventListener( 'click', () => {
+	$('#dump_settings').addEventListener( 'click', () => {
 		console.log(
 			`time: ${ audioElement[ currAudio ].currentTime }, ` +
 			`mode: ${ elMode.value }, ` +
