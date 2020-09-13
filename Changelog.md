@@ -6,6 +6,14 @@ nav_order: 3
 
 # Changelog
 
+## version 20.9 :mask:
+
+This is a minor update to address two bugs:
+
++ A day-one design flaw which connected the microphone output to the speakers, generating feedback loops;
++ An unexpected error message when trying to load a playlist with an empty value in the playlist selection.
+
+
 ## version 20.8 :mask:
 
 ### Added:
@@ -52,12 +60,13 @@ is now shown in the file explorer background, the on-screen song information and
 ### Added:
 
 + New **Line graph** visualization mode, with customizable line width and fill opacity;
-+ Customizable spacing between bars in octave bands modes;
-+ Visualization mode can now be randomized on a time interval;
++ New **Reflex** effect;
 + New **Config panel** where you can:
   + Enable/disable visualization modes and gradients;
   + Select options affected by random mode;
-  + Customize low, normal and high sensitivity presets.
+  + Customize sensitivity presets (low, normal and high);
++ Customizable spacing between bars in octave bands modes;
++ Visualization mode can now be randomized on a time interval.
 
 ### Changed:
 
