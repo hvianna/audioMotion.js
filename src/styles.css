@@ -112,10 +112,51 @@ table {
 }
 
 
+.settings {
+	background: #fffd;
+	border: 1px solid #222;
+	border-bottom-right-radius: 20px;
+	border-left-width: 0;
+	border-top-right-radius: 20px;
+	bottom: 0;
+	left: -325px;
+	padding: 10px;
+	position: fixed;
+	transition: left .5s;
+	z-index: 1;
+}
+.settings.active {
+	box-shadow: 1px 1px 20px #000c;
+	left: 0;
+}
+.settings-toggle {
+	cursor: pointer;
+	font-size: 16px;
+	position: absolute;
+	right: -22px;
+	top: 80px;
+}
+.settings-toggle span {
+	background: #fffd;
+	border: 1px solid #222;
+	border-left-color: transparent;
+	border-bottom-right-radius: 6px;
+	border-top-right-radius: 6px;
+	box-shadow: 5px 5px 10px rgba(0,0,0,.3);
+	padding: 6px;
+}
+.settings-toggle span::before {
+	content: '\276f';
+}
+.settings.active .settings-toggle span::before {
+	content: '\276e';
+}
+
 .controls {
-	flex-shrink: 0;
+	display: inline-block;
 	font-size: 11px;
 	padding: 0 5px;
+	vertical-align: top;
 	width: 150px;
 }
 .controls input,

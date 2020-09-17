@@ -1847,10 +1847,9 @@ function populateGradients() {
  */
 function setUIEventListeners() {
 
-	const elToggleSettings = $('#toggle_settings');
+	const elToggleSettings = $('.settings-toggle');
 	elToggleSettings.addEventListener( 'click', event => {
-		elToggleSettings.classList.toggle('active');
-		$$('.controls').forEach( el => el.style.display = elToggleSettings.classList.contains('active') ? '' : 'none' );
+		$('#settings').classList.toggle('active');
 	});
 	elToggleSettings.click(); // starts with the settings panel open
 
