@@ -1297,11 +1297,15 @@ function showCanvasInfo( reason ) {
  * Output messages to the UI "console"
  */
 function consoleLog( msg, error ) {
+	const dt = new Date(),
+		  time = dt.toLocaleTimeString({hour12: false}) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
+
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
 		$('#toggle_console').classList.add('warning');
 	}
-	elConsole.innerHTML += msg + '<br>';
+
+	elConsole.innerHTML += `${ time } ${msg}<br>`;
 	elConsole.scrollTop = elConsole.scrollHeight;
 }
 
