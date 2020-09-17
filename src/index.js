@@ -1284,8 +1284,11 @@ function setCanvasMsg( msg, timer = 2, fade = 1 ) {
  * Display information about canvas size changes
  */
 function showCanvasInfo( reason ) {
+	if ( reason == 'create' )
+		consoleLog('Canvas created.');
+
 	if ( ['lores','user'].includes( reason ) )
-		consoleLog( `Lo-res mode ${ audioMotion.loRes ? 'ON' : 'OFF' } - pixelRatio is ${ audioMotion.pixelRatio }` );
+		consoleLog( `Lo-res mode ${ audioMotion.loRes ? 'ON' : 'OFF' } (pixelRatio set to ${ audioMotion.pixelRatio })` );
 
 	if ( reason == 'user' )
 		consoleLog( `Canvas size set to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels` );
