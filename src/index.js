@@ -1301,7 +1301,7 @@ function showCanvasInfo( reason ) {
  */
 function consoleLog( msg, error ) {
 	const dt = new Date(),
-		  time = dt.toLocaleTimeString({hour12: false}) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
+		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
 
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
