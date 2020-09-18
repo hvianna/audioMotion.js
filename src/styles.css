@@ -300,8 +300,11 @@ table {
 .file-panel .config-col {
 	width: calc( 50% - 120px );
 }
-.file-panel .config-col:nth-child(2) {
-	width: 100px;
+.button-column {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 100px !important;
 }
 .button-column button {
 	margin: 10px 0;
@@ -469,10 +472,17 @@ kbd.wide {
 }
 
 .breadcrumb {
-	height: 35px;
+	min-height: 35px;
 	margin: 0;
 	order: -1;
 	padding-left: 0;
+}
+.breadcrumb::before {
+	content: '\f117';
+	font-family: audioMotion;
+	font-size: 18px;
+	margin-right: .25em;
+	vertical-align: sub;
 }
 .breadcrumb li {
 	cursor: pointer;
