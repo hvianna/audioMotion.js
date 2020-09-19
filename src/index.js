@@ -1705,9 +1705,10 @@ function updateRangeValue( el ) {
 /**
  * Choose a random visualization mode
  *
- * @param [force] {boolean} force change even when not playing (default false)
+ * @param [force] {boolean} force change even when not playing
+ *                (default true for microphone input, false otherwise )
  */
-function selectRandomMode( force = false ) {
+function selectRandomMode( force = isMicSource ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
