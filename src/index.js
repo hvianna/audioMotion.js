@@ -80,7 +80,7 @@ let audioMotion;
 let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-let audioElement, sourcePlayer, sourceMic, cfgSource;
+let audioElement, sourcePlayer, sourceMic, isMicSource;
 
 // on-screen messages
 let canvasMsg;
@@ -1014,7 +1014,7 @@ function playSong( n ) {
  * Player controls
  */
 function playPause( play ) {
-	if ( cfgSource == 'mic' )
+	if ( isMicSource )
 		return;
 	if ( isPlaying() && ! play )
 		audioElement[ currAudio ].pause();
@@ -1046,7 +1046,7 @@ function playPreviousSong() {
 
 function playNextSong( play ) {
 
-	if ( skipping || cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
+	if ( skipping || isMicSource || playlistPos > playlist.children.length - 1 )
 		return true;
 
 	skipping = true;
@@ -1317,26 +1317,26 @@ function consoleLog( msg, error ) {
  */
 function setSource() {
 
-	cfgSource = elSource.value;
+	isMicSource = elSource.checked;
 
-	if ( cfgSource == 'mic' ) {
+	if ( isMicSource ) {
 		if ( typeof sourceMic == 'object' ) {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
 			audioMotion.analyzer.disconnect( audioMotion.audioCtx.destination ); // avoid feedback loop
 			sourceMic.connect( audioMotion.analyzer );
+			consoleLog( 'Audio source set to microphone' );
 		}
 		else { // if sourceMic is not set yet, ask user's permission to use the microphone
 			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
 			.then( stream => {
 				sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
-				consoleLog( 'Audio source set to microphone' );
 				setSource(); // recursive call, sourceMic should now be an object
 			})
 			.catch( err => {
 				consoleLog( `Could not change audio source - ${err}`, true );
 				// revert source and UI control to built-in player
-				elSource.value = cfgSource = 'player';
+				elSource.checked = isMicSource = false;
 			});
 		}
 	}
@@ -1847,14 +1847,16 @@ function populateGradients() {
  */
 function setUIEventListeners() {
 
-	const elToggleSettings = $('.settings-toggle');
-	elToggleSettings.addEventListener( 'click', event => {
-		$('#settings').classList.toggle('active');
+	const elToggleSettings = $('#toggle_settings');
+	elToggleSettings.addEventListener( 'click', () => {
+		$('#settings').classList.toggle('active', elToggleSettings.classList.toggle('active') );
 	});
 	elToggleSettings.click(); // starts with the settings panel open
 
+	$('.settings-close').addEventListener( 'click', () => elToggleSettings.click() );
+
 	const elToggleConsole = $('#toggle_console');
-	elToggleConsole.addEventListener( 'click', event => {
+	elToggleConsole.addEventListener( 'click', () => {
 		elToggleConsole.classList.toggle('active');
 		elToggleConsole.classList.remove('warning');
 		elConsole.style.display = elToggleConsole.classList.contains('active') ? '' : 'none';
