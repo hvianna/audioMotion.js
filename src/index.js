@@ -49,7 +49,8 @@ const elConsole     = $('#console'),
 	  elSmoothing   = $('#smoothing'),
 	  elMode        = $('#mode'),
 	  elGradient    = $('#gradient'),
-	  elShowScale   = $('#show_scale'),
+	  elScaleX      = $('#scaleX'),
+	  elScaleY      = $('#scaleY'),
 	  elSensitivity = $('#sensitivity'),
 	  elShowPeaks   = $('#show_peaks'),
 	  elCycleGrad   = $('#cycle_grad'),
@@ -115,7 +116,8 @@ const presets = {
 		ledDisplay  : 0,
 		lumiBars    : 0,
 		sensitivity : 1,
-		showScale   : 1,
+		showScaleX  : 1,
+		showScaleY  : 1,
 		showPeaks   : 1,
 		showSong    : 1,
 		repeat      : 0,
@@ -420,9 +422,12 @@ function setProperty ( prop, save ) {
 			}
 			break;
 
-		case elShowScale:
-			audioMotion.showScale  = !! ( elShowScale.value & 1 );
-			audioMotion.showScaleY = !! ( elShowScale.value & 2 );
+		case elScaleX:
+			audioMotion.showScale = ( elScaleX.dataset.active == '1' );
+			break;
+
+		case elScaleY:
+			audioMotion.showScaleY = ( elScaleY.dataset.active == '1' );
 			break;
 
 		case elSensitivity:
@@ -1397,8 +1402,10 @@ function loadPreset( name, alert, init ) {
 	if ( thisPreset.hasOwnProperty( 'blackBg' ) ) // convert legacy blackBg property (version =< 20.4)
 		thisPreset.background = thisPreset.blackBg | 0;
 
-	if ( thisPreset.hasOwnProperty( 'showScale' ) ) // convert legacy boolean value to integer (version =< 20.6)
-		thisPreset.showScale |= 0;
+	if ( thisPreset.hasOwnProperty( 'showScale' ) ) { // convert legacy showScale property (version =< 20.9)
+		thisPreset.showScaleX = thisPreset.showScale & 1;
+		thisPreset.showScaleY = thisPreset.showScale >> 1;
+	}
 
 	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
 		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
@@ -1441,12 +1448,13 @@ function loadPreset( name, alert, init ) {
 		showLeds   : elLedDisplay.dataset.active == '1',
 		lumiBars   : elLumiBars.dataset.active == '1',
 		loRes      : elLoRes.dataset.active == '1',
-		showFPS    : elFPS.dataset.active == '1'
+		showFPS    : elFPS.dataset.active == '1',
+		showScale  : elScaleX.dataset.active == '1',
+		showScaleY : elScaleY.dataset.active == '1'
 	} );
 
 	setProperty( elRadial );
 	setProperty( elSpin );
-	setProperty( elShowScale );
 	setProperty( elBackground );
 	setProperty( elSensitivity );
 	setProperty( elReflex );
@@ -1484,7 +1492,8 @@ function saveConfig( config ) {
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
 		spin        : elSpin.value,
-		showScale 	: elShowScale.value,
+		showScaleX 	: elScaleX.dataset.active,
+		showScaleY 	: elScaleY.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
@@ -1634,8 +1643,7 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
 			break;
 		case 'KeyS': 		// toggle X and Y axis scales
-			cycleElement( elShowScale, event.shiftKey );
-			setCanvasMsg( 'Scale: ' + getText( elShowScale ) );
+			setCanvasMsg( 'Scale: ' + ['None','Frequency','Level (dB)','Both'][ cycleScale( event.shiftKey ) ] );
 			break;
 		case 'KeyT': 		// toggle text shadow
 			elNoShadow.click();
@@ -1802,6 +1810,29 @@ function cycleElement( el, prev ) {
 }
 
 /**
+ * Cycle X and Y axis scales
+ *
+ * @param [prev] {boolean} true to select previous option
+ * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
+ */
+function cycleScale( prev ) {
+	let scale = ( elScaleX.dataset.active | 0 ) + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
+
+	if ( scale < 0 )
+		scale = 3;
+	else if ( scale > 3 )
+		scale = 0;
+
+	elScaleX.dataset.active = scale & 1;
+	elScaleY.dataset.active = scale >> 1;
+
+	setProperty( elScaleX, true );
+	setProperty( elScaleY, true );
+
+	return scale;
+}
+
+/**
  * Populate UI visualization modes combo box
  */
 function populateVisualizationModes() {
@@ -1879,6 +1910,8 @@ function setUIEventListeners() {
 	  elLumiBars,
 	  elLoRes,
 	  elFPS,
+  	  elScaleX,
+	  elScaleY,
 	  elRadial ].forEach( el => el.addEventListener( 'click', setProperty ) );
 
 	[ elCycleGrad,
@@ -1902,7 +1935,6 @@ function setUIEventListeners() {
 	  elFillAlpha,
 	  elBarSpace,
 	  elReflex,
-	  elShowScale,
 	  elBackground,
 	  elBgImageDim,
 	  elBgImageFit,
@@ -1932,7 +1964,7 @@ function setUIEventListeners() {
 	$('#btn_clear').addEventListener( 'click', clearPlaylist );
 
 	// clicks on canvas cycle scales on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
+	audioMotion.canvas.addEventListener( 'click', () =>	cycleScale() );
 }
 
 /**
@@ -2253,13 +2285,6 @@ function populateSelect( element, options ) {
 		{ value: '0', text: 'Off' },
 		{ value: '1', text: 'On' },
 		{ value: '2', text: 'Mirrored' }
-	]);
-
-	populateSelect( elShowScale, [
-		{ value: '0', text: 'None' },
-		{ value: '1', text: 'Frequency' },
-		{ value: '2', text: 'Level (dB)' },
-		{ value: '3', text: 'Both' }
 	]);
 
 	populateSelect(	elBackground, [

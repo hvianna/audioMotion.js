@@ -292,19 +292,16 @@
 			</div>
 
 		<!-- COLUMN 5 -->
-			<div>
-				<span class="config-label help"><u>S</u>cale
-					<span class="tooltip">Show / hide frequency and level scales</span>
-				</span>
-				<select id="show_scale" data-prop="showScale"></select>
-			</div>
-
-			<div class="rowspan-2">
+			<div class="rowspan-3">
 				<span class="config-label">Switches</span>
 
 				<ul class="switch-bar rowspan-2">
+					<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
+						<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
+					<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
+						<span class="tooltip">Toggle level (dB) scale on the Y-axis</span>
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-						<span class="tooltip">Display song info on every track change
+						<span class="tooltip">Display song info on every track change</span>
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 						<span class="tooltip">Hold peak levels for a short time</span>
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>

@@ -156,6 +156,7 @@ button:hover,
 	padding: 10px;
 	position: absolute;
 	transition: margin-top .5s;
+	width: 700px;
 	z-index: 1;
 }
 .settings.active {
@@ -305,6 +306,9 @@ button:hover,
 .rowspan-2 {
 	grid-row: span 2;
 }
+.rowspan-3 {
+	grid-row: span 3;
+}
 
 .config-label {
 	font-size: 11px;
@@ -393,7 +397,6 @@ div.value {
 	display: none;
 }
 .switch-bar {
-	margin: 4px 0;
 	position: relative;
 }
 .switch-bar .switch {
@@ -423,6 +426,9 @@ div.value {
 .switch-bar .switch:last-child,
 .switch-bar .switch:nth-last-child(2):nth-child(odd) {
 	border-bottom-width: 1px;
+}
+.config-label + .switch-bar {
+	margin-top: 4px;
 }
 
 .tooltip {
