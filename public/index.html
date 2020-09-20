@@ -52,7 +52,7 @@
 		<audio id="player0" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 		<audio id="player1" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 
-		<header class="grid grid-3-cols align-center center">
+		<header class="grid align-center center">
 			<ul>
 				<li id="toggle_settings" class="round-button" data-text="Settings">
 					<i class="icons8-vertical-settings-mixer"></i>
@@ -70,7 +70,7 @@
 			</ul>
 		</header>
 
-		<div class="player-panel grid grid-3-cols align-center center">
+		<div class="player-panel grid align-center center">
 			<div>
 				<div class="config-label">SOURCE</div>
 				<input class="slider" type="checkbox" id="source">
@@ -127,9 +127,9 @@
 	<div id="settings" class="settings abs-center">
 		<div class="settings-close abs-center"></div>
 
-		<!-- COLUMN 1 -->
 		<div class="controls">
-			<div class="controls-item">
+		<!-- COLUMN 1 -->
+			<div>
 				<span class="config-label help"><u>M</u>ode
 					<span class="tooltip">
 					Visualization mode. Disable undesired modes in the Config panel.
@@ -138,7 +138,7 @@
 				<select id="mode" data-prop="mode"></select>
 			</div>
 
-			<div class="controls-item">
+			<div>
 				<span class="config-label help">R<u>a</u>ndom mode
 					<span class="tooltip">
 					Randomize visualization mode on track change or time interval
@@ -147,7 +147,7 @@
 				<select id="random_mode" data-prop="randomMode"></select>
 			</div>
 
-			<div class="controls-item">
+			<div>
 				<span class="config-label help">Bar spacing
 					<span class="tooltip">
 						Octave bands modes only
@@ -156,7 +156,7 @@
 				<select id="bar_space" data-prop="barSpace"></select>
 			</div>
 
-			<div class="controls-item">
+			<div>
 				<span class="config-label help">Line width
 					<span class="tooltip">
 						Line graph mode only
@@ -166,7 +166,7 @@
 				<input id="line_width" data-prop="lineWidth" type="range">
 			</div>
 
-			<div class="controls-item">
+			<div>
 				<span class="config-label help">Fill opacity
 					<span class="tooltip">
 						Line graph mode only
@@ -175,11 +175,9 @@
 				<div class="value"></div>
 				<input id="fill_alpha" data-prop="fillAlpha" type="range">
 			</div>
-		</div> <!-- .controls -->
 
 		<!-- COLUMN 2 -->
-		<div class="controls">
-			<div class="controls-item">
+			<div class="rowspan-2">
 				<span class="config-label help"><u>G</u>radient
 					<span class="tooltip">
 						Color gradient for the analyzer bars. Disable undesired gradients in the Config panel.
@@ -193,7 +191,8 @@
 				</ul>
 			</div>
 
-			<div class="controls-item">
+			<div class="rowspan-2">
+				<span class="config-label">Effects</span>
 				<ul class="switch-bar">
 					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
@@ -202,7 +201,9 @@
 					<li class="switch" id="radial" data-prop="radial">RADIAL
 						<span class="tooltip">Circular spectrum analyzer with radial frequencies <em>(disables LEDS and LUMI)</em></span>
 				</ul>
+			</div>
 
+			<div>
 				<span class="config-label help">Spin
 					<span class="tooltip">
 						Radial spin speed
@@ -211,11 +212,9 @@
 				<div class="value"></div>
 				<input id="spin" data-prop="spin" type="range">
 			</div>
-		</div> <!-- .controls -->
 
 		<!-- COLUMN 3 -->
-		<div class="controls">
-			<div class="controls-item">
+			<div>
 				<span class="config-label help"><u>B</u>ackground
 					<span class="tooltip">
 					Select background option
@@ -224,7 +223,7 @@
 				<select id="background" data-prop="background"></select>
 			</div>
 
-			<div class="controls-item">
+			<div>
 				<span class="config-label help">Image fit
 					<span class="tooltip">
 						Adjust the size and position of the background image | <kbd>Shift</kbd><kbd>B</kbd>
@@ -233,7 +232,7 @@
 				<select id="bg_img_fit" data-prop="bgImageFit"></select>
 			</div>
 
-			<div class="controls-item">
+			<div>
 				<span class="config-label help">Image dim
 					<span class="tooltip">
 						Adjust the intensity of the background image
@@ -242,11 +241,8 @@
 				<div class="value"></div>
 				<input id="bg_img_dim" type="range" data-prop="bgImageDim">
 			</div>
-		</div> <!-- .controls -->
 
-		<!-- COLUMN 4 -->
-		<div class="controls">
-			<div class="controls-item">
+			<div class="rowspan-2">
 				<span class="config-label help">Refle<u>x</u>
 					<span class="tooltip">
 					Select reflection style<br><em>(no effect when LUMI is active)</em>
@@ -255,30 +251,72 @@
 				<select id="reflex" data-prop="reflex"></select>
 			</div>
 
-			<div class="controls-item">
+		<!-- COLUMN 4 -->
+			<div>
+				<span class="config-label help">Frequency Range
+					<span class="tooltip">Lowest and highest frequencies represented in the X-axis</span>
+				</span>
+				<div class="flex align-center">
+					<select id="freq_min" data-prop="freqMin"></select>
+					&nbsp;-&nbsp;
+					<select id="freq_max" data-prop="freqMax"></select>
+				</div>
+			</div>
+
+			<div>
+				<span class="config-label help">FFT size
+					<span class="tooltip">
+					Higher values provide more detail in the frequency domain, but less detail in the time domain.
+					</span>
+				</span>
+				<select id="fft_size" data-prop="fftSize"></select>
+			</div>
+
+			<div>
+				<span class="config-label help">Smoothing
+					<span class="tooltip">
+					Lower values make the analyzer respond faster to changes
+					</span>
+				</span>
+				<div class="value"></div>
+				<input type="range" id="smoothing" data-prop="smoothing">
+			</div>
+
+			<div class="rowspan-2">
+				<span class="config-label help">Se<u>n</u>sitivity
+					<span class="tooltip">
+					Improve visualization of songs too quiet or too loud. Customize presets in the Config panel.
+					</span>
+				</span>
+				<select id="sensitivity" data-prop="sensitivity"></select>
+			</div>
+
+		<!-- COLUMN 5 -->
+			<div>
 				<span class="config-label help"><u>S</u>cale
 					<span class="tooltip">Show / hide frequency and level scales</span>
 				</span>
 				<select id="show_scale" data-prop="showScale"></select>
 			</div>
 
-			<ul class="controls-item switch-bar">
-				<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-					<span class="tooltip">Display song info on every track change
-				<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
-					<span class="tooltip">Hold peak levels for a short time</span>
-				<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
-					<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
-				<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
-					<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-				<li class="switch" id="fps" data-prop="showFPS">FPS
-					<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
-			</ul>
-		</div> <!-- .controls -->
+			<div class="rowspan-2">
+				<span class="config-label">Switches</span>
 
-		<!-- COLUMN 5 -->
-		<div class="controls">
-			<div class="controls-item">
+				<ul class="switch-bar rowspan-2">
+					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
+						<span class="tooltip">Display song info on every track change
+					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
+						<span class="tooltip">Hold peak levels for a short time</span>
+					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
+						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
+					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
+						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+					<li class="switch" id="fps" data-prop="showFPS">FPS
+						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
+				</ul>
+			</div>
+
+			<div class="rowspan-2">
 				<span class="config-label help">Preset
 					<span class="tooltip">
 						Load a configuration preset.<br>
@@ -302,44 +340,6 @@
 				</span>
 			</div>
 
-			<div class="controls-item">
-				<span class="config-label help">Frequency Range
-					<span class="tooltip">Lowest and highest frequencies represented in the X-axis</span>
-				</span>
-				<div class="flex align-center">
-					<select id="freq_min" data-prop="freqMin"></select>
-					&nbsp;-&nbsp;
-					<select id="freq_max" data-prop="freqMax"></select>
-				</div>
-			</div>
-
-			<div class="controls-item">
-				<span class="config-label help">FFT size
-					<span class="tooltip">
-					Higher values provide more detail in the frequency domain, but less detail in the time domain.
-					</span>
-				</span>
-				<select id="fft_size" data-prop="fftSize"></select>
-			</div>
-
-			<div class="controls-item">
-				<span class="config-label help">Smoothing
-					<span class="tooltip">
-					Lower values make the analyzer respond faster to changes
-					</span>
-				</span>
-				<div class="value"></div>
-				<input type="range" id="smoothing" data-prop="smoothing">
-			</div>
-
-			<div class="controls-item">
-				<span class="config-label help">Se<u>n</u>sitivity
-					<span class="tooltip">
-					Improve visualization of songs too quiet or too loud. Customize presets in the Config panel.
-					</span>
-				</span>
-				<select id="sensitivity" data-prop="sensitivity"></select>
-			</div>
 		</div> <!-- .controls -->
 
 	</div> <!-- #settings -->

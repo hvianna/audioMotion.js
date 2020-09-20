@@ -157,7 +157,6 @@ button:hover,
 	position: absolute;
 	transition: margin-top .5s;
 	z-index: 1;
-	width: 800px;
 }
 .settings.active {
 	box-shadow: 0 5px 10px rgba(0,0,0,.3);
@@ -179,20 +178,18 @@ button:hover,
 }
 
 .controls {
-	display: inline-block;
+	display: grid;
 	font-size: 11px;
+	grid-auto-flow: column;
+	grid-gap: 5px 15px;
+	grid-template-columns: repeat(5, 1fr);
+	grid-template-rows: repeat(5, 1fr);
 	padding: 0 5px;
-	vertical-align: top;
-	width: 150px;
 }
 .controls input,
 .controls select {
 	margin: 4px 0;
 	width: 100%;
-}
-
-.controls-item:not(:first-child) {
-	margin-top: 5px;
 }
 
 .player-area {
@@ -201,7 +198,6 @@ button:hover,
 	width: 100%;
 	z-index: 2;
 }
-
 
 .analyzer {
 	background: #000;
@@ -304,15 +300,10 @@ button:hover,
 
 .grid {
 	display: grid;
-}
-.grid-3-cols {
 	grid-template-columns: repeat(3, 1fr);
 }
-.grid-4-cols {
-	grid-template-columns: repeat(4, 1fr);
-}
-.grid-5-cols {
-	grid-template-columns: repeat(5, 1fr);
+.rowspan-2 {
+	grid-row: span 2;
 }
 
 .config-label {
@@ -402,6 +393,7 @@ div.value {
 	display: none;
 }
 .switch-bar {
+	margin: 4px 0;
 	position: relative;
 }
 .switch-bar .switch {
@@ -460,12 +452,15 @@ div.value {
 	left: -270px;
 	top: -50px;
 }
-.controls .tooltip {
-	left: 150px;
-	top: 0;
-}
 .button-column .tooltip {
-	left: -50%;
+	left: 110%;
+	top: 50%;
+	transform: translateY(-50%);
+}
+.controls .tooltip {
+	box-shadow: 0 0 10px #0008;
+	left: 110%;
+	top: 0;
 }
 .player-controls .tooltip {
 	left: 50%;
