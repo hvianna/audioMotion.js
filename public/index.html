@@ -330,11 +330,13 @@
 					<option value="last">Last session</option>
 					<option value="default">Restore defaults</option>
 				</select>
-				<button id="load_preset">Load</button>
-				<span class="help">
-					<button id="btn_save">Save</button>
-					<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-				</span>
+				<div class="flex">
+					<button id="load_preset">Load</button>
+					<span class="help">
+						<button id="btn_save">Save</button>
+						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
+					</span>
+				</div>
 			</div>
 
 		</div> <!-- .controls -->
@@ -448,8 +450,14 @@
 		<a href="#!" title="Close" class="modal-close"></a>
 		<div class="credits">
 			<a href="#!" title="Close" class="modal-close-internal"></a>
-			<strong>audioMotion.js</strong> Copyright &copy; 2018-2020 Henrique Avila Vianna.
-			Source code available on <a href="https://github.com/hvianna/audioMotion.js/">GitHub</a>. Icons by <a href="https://icons8.com/">icons8</a>.
+			<h1>audioMotion</h1>
+			<div>version <span id="version"></span></div>
+			<p>Copyright &copy; 2018-2020 Henrique Avila Vianna</p>
+			<ul>
+				<li><a href="https://audiomotion.me">Documentation website</a></li>
+				<li><a href="https://github.com/hvianna/audioMotion.js/">GitHub project</a></li>
+				<li><a href="https://audiomotion.me/#credits-and-acknowledgments">Credits and acknowledgments</a></li>
+			</ul>
 		</div>
 	</div> <!-- #about -->
 

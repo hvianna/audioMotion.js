@@ -54,17 +54,6 @@ header li.warning::before {
 	width: 1em;
 }
 
-/*
-h1 {
-	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
-	background-clip: text;
-	display: inline;
-	font: 30px Orbitron, sans-serif;
-	margin: 0;
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-}
-*/
 h1 {
 /* inset text: https://codepen.io/adambundy/pen/HtmaK */
 	background-clip: text;
@@ -656,13 +645,21 @@ kbd.wide {
 }
 
 .credits {
-	color: #030;
-	font-size: 12px;
-	margin: 20px 0;
+	line-height: 1.6;
 	text-align: center;
 }
 .credits a:not([class]) {
 	color: #090;
+}
+.credits h1 {
+	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
+	background-clip: text;
+	display: inline;
+	font: 30px Orbitron, sans-serif;
+	margin: 0;
+	text-shadow: none;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
 }
 
 /**

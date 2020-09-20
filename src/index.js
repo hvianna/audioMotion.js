@@ -2171,6 +2171,8 @@ function populateSelect( element, options ) {
 	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
+	$('#version').innerText = _VERSION;
+
 	// Load preferences from localStorage
 	loadPreferences();
 
