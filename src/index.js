@@ -296,18 +296,11 @@ function fullscreen() {
 /**
  * Set audioMotion properties
  *
- * @param obj {object} - HTML object when called directly, or event object when called by an event handler
- * @param [save] {boolean} - true to save current settings to last used preset
- *                           defaults to true when called by an event handler or false otherwise
+ * @param el {object} a DOM element object
+ * @param [save] {boolean} true to save current settings to last used preset
  */
-function setProperty ( prop, save ) {
-	// if called by an event handler, get the target HTML element
-	if ( prop.target ) {
-		prop = prop.target;
-		save = true;
-	}
-
-	switch ( prop ) {
+function setProperty ( el, save ) {
+	switch ( el ) {
 		case elBackground:
 		case elBgImageFit:
 		case elBgImageDim:
@@ -1868,12 +1861,7 @@ function setUIEventListeners() {
 
 	// Add event listeners to the custom checkboxes
 	$$('.switch').forEach( el => {
-		el.addEventListener( 'click', e => {
-			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
-				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
-			else
-				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
-		});
+		el.addEventListener( 'click', () => { el.dataset.active = ! ( el.dataset.active | 0 ) | 0 } );
 	});
 
 	[ elShowPeaks,
@@ -1881,7 +1869,7 @@ function setUIEventListeners() {
 	  elLumiBars,
 	  elLoRes,
 	  elFPS,
-	  elRadial ].forEach( el => el.addEventListener( 'click', setProperty ) );
+	  elRadial ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
 
 	[ elCycleGrad,
 	  elRepeat,
@@ -1908,7 +1896,7 @@ function setUIEventListeners() {
 	  elBackground,
 	  elBgImageDim,
 	  elBgImageFit,
-  	  elSpin ].forEach( el => el.addEventListener( 'change', setProperty ) );
+  	  elSpin ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
 
 	// update range elements' value
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
