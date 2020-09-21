@@ -299,155 +299,159 @@ function fullscreen() {
 /**
  * Set audioMotion properties
  *
- * @param el {object} a DOM element object
+ * @param elems {object|array} a DOM element object or array of objects
  * @param [save] {boolean} true to save current settings to last used preset
  */
-function setProperty ( el, save ) {
-	switch ( el ) {
-		case elBackground:
-		case elBgImageFit:
-		case elBgImageDim:
-			const bgOption = elBackground.value,
-				  bgFit    = elBgImageFit.value;
+function setProperty( elems, save ) {
+	if ( ! Array.isArray( elems ) )
+		elems = [ elems ];
 
-			audioMotion.overlay = ( bgOption > 1 );
-			audioMotion.showBgColor = ( bgOption == 0 );
-			audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
-			audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
+	for ( const el of elems ) {
+		switch ( el ) {
+			case elBackground:
+			case elBgImageFit:
+			case elBgImageDim:
+				const bgOption = elBackground.value,
+					  bgFit    = elBgImageFit.value;
 
-			setCurrentCover();
-			break;
+				audioMotion.overlay = ( bgOption > 1 );
+				audioMotion.showBgColor = ( bgOption == 0 );
+				audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
+				audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
 
-		case elBarSpace:
-			audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
-			break;
+				setCurrentCover();
+				break;
 
-		case elFFTsize:
-			audioMotion.fftSize = elFFTsize.value;
-			consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
-			break;
+			case elBarSpace:
+				audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
+				break;
 
-		case elFillAlpha:
-			audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
-			break;
+			case elFFTsize:
+				audioMotion.fftSize = elFFTsize.value;
+				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+				break;
 
-		case elRangeMin:
-		case elRangeMax:
-			while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
-				elRangeMax.selectedIndex++;
-			audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
-			break;
+			case elFillAlpha:
+				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
+				break;
 
-		case elGradient:
-			if ( elGradient.value === '' ) // handle invalid setting
-				elGradient.selectedIndex = 0;
-			audioMotion.gradient = elGradient.value;
-			break;
+			case elRangeMin:
+			case elRangeMax:
+				while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
+					elRangeMax.selectedIndex++;
+				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
 
-		case elLedDisplay:
-			audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
-			break;
+			case elGradient:
+				if ( elGradient.value === '' ) // handle invalid setting
+					elGradient.selectedIndex = 0;
+				audioMotion.gradient = elGradient.value;
+				break;
 
-		case elLineWidth:
-			audioMotion.lineWidth = ( elMode.value == 10 ) ? 0 : elLineWidth.value;
-			break;
+			case elLedDisplay:
+				audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
+				break;
 
-		case elLoRes:
-			audioMotion.loRes = ( elLoRes.dataset.active == '1' );
-			break;
+			case elLineWidth:
+				audioMotion.lineWidth = ( elMode.value == 10 ) ? 0 : elLineWidth.value;
+				break;
 
-		case elLumiBars:
-			audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
-			setProperty( elBarSpace );
-			setProperty( elReflex );
-			break;
+			case elLoRes:
+				audioMotion.loRes = ( elLoRes.dataset.active == '1' );
+				break;
 
-		case elMode:
-			if ( elMode.value === '' ) // handle invalid setting
-				elMode.selectedIndex = 0;
+			case elLumiBars:
+				audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
+				setProperty( [ elBarSpace, elReflex ] );
+				break;
 
-			const mode = elMode.value;
-			if ( mode < 10 )
-				audioMotion.mode = mode;
-			else {
-				audioMotion.mode = 10;
+			case elMode:
+				if ( elMode.value === '' ) // handle invalid setting
+					elMode.selectedIndex = 0;
 
-				if ( mode == 10 ) { // "Area graph" mode
-					audioMotion.lineWidth = 0;
-					audioMotion.fillAlpha = 1;
+				const mode = elMode.value;
+				if ( mode < 10 )
+					audioMotion.mode = mode;
+				else {
+					audioMotion.mode = 10;
+
+					if ( mode == 10 ) { // "Area graph" mode
+						audioMotion.lineWidth = 0;
+						audioMotion.fillAlpha = 1;
+					}
+					else { // "Line graph" mode with custom line width and fill opacity
+						audioMotion.lineWidth = elLineWidth.value;
+						audioMotion.fillAlpha = elFillAlpha.value;
+					}
 				}
-				else { // "Line graph" mode with custom line width and fill opacity
-					audioMotion.lineWidth = elLineWidth.value;
-					audioMotion.fillAlpha = elFillAlpha.value;
+				break;
+
+			case elRadial:
+				audioMotion.radial = ( elRadial.dataset.active == '1' );
+				break;
+
+			case elRandomMode:
+				const option = elRandomMode.value;
+
+				if ( randomModeTimer )
+					randomModeTimer = window.clearInterval( randomModeTimer );
+
+				if ( option > 1 )
+					randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+
+				break;
+
+			case elReflex:
+				switch ( elReflex.value ) {
+					case '1':
+						audioMotion.reflexRatio = .4;
+						audioMotion.reflexAlpha = .2;
+						break;
+
+					case '2':
+						audioMotion.reflexRatio = .5;
+						audioMotion.reflexAlpha = 1;
+						break;
+
+					default:
+						audioMotion.reflexRatio = 0;
 				}
-			}
-			break;
+				break;
 
-		case elRadial:
-			audioMotion.radial = ( elRadial.dataset.active == '1' );
-			break;
+			case elScaleX:
+				audioMotion.showScale = ( elScaleX.dataset.active == '1' );
+				break;
 
-		case elRandomMode:
-			const option = elRandomMode.value;
+			case elScaleY:
+				audioMotion.showScaleY = ( elScaleY.dataset.active == '1' );
+				break;
 
-			if ( randomModeTimer )
-				randomModeTimer = window.clearInterval( randomModeTimer );
+			case elSensitivity:
+				const sensitivity = elSensitivity.value;
+				audioMotion.setSensitivity(
+					$(`.min-db[data-preset="${sensitivity}"]`).value,
+					$(`.max-db[data-preset="${sensitivity}"]`).value
+				);
+				break;
 
-			if ( option > 1 )
-				randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+			case elFPS:
+				audioMotion.showFPS = ( elFPS.dataset.active == '1' );
+				break;
 
-			break;
+			case elShowPeaks:
+				audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
+				break;
 
-		case elReflex:
-			switch ( elReflex.value ) {
-				case '1':
-					audioMotion.reflexRatio = .4;
-					audioMotion.reflexAlpha = .2;
-					break;
+			case elSmoothing:
+				audioMotion.smoothing = elSmoothing.value;
+				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+				break;
 
-				case '2':
-					audioMotion.reflexRatio = .5;
-					audioMotion.reflexAlpha = 1;
-					break;
-
-				default:
-					audioMotion.reflexRatio = 0;
-			}
-			break;
-
-		case elScaleX:
-			audioMotion.showScale = ( elScaleX.dataset.active == '1' );
-			break;
-
-		case elScaleY:
-			audioMotion.showScaleY = ( elScaleY.dataset.active == '1' );
-			break;
-
-		case elSensitivity:
-			const sensitivity = elSensitivity.value;
-			audioMotion.setSensitivity(
-				$(`.min-db[data-preset="${sensitivity}"]`).value,
-				$(`.max-db[data-preset="${sensitivity}"]`).value
-			);
-			break;
-
-		case elFPS:
-			audioMotion.showFPS = ( elFPS.dataset.active == '1' );
-			break;
-
-		case elShowPeaks:
-			audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
-			break;
-
-		case elSmoothing:
-			audioMotion.smoothing = elSmoothing.value;
-			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
-			break;
-
-		case elSpin:
-			audioMotion.spinSpeed = elSpin.value;
-			break;
-	}
+			case elSpin:
+				audioMotion.spinSpeed = elSpin.value;
+				break;
+		} // switch
+	} // for
 
 	if ( save )
 		updateLastConfig();
@@ -1443,18 +1447,20 @@ function loadPreset( name, alert, init ) {
 		loRes      : elLoRes.dataset.active == '1',
 		showFPS    : elFPS.dataset.active == '1',
 		showScale  : elScaleX.dataset.active == '1',
-		showScaleY : elScaleY.dataset.active == '1'
+		showScaleY : elScaleY.dataset.active == '1',
+		radial     : elRadial.dataset.active == '1',
+		spinSpeed  : elSpin.value
 	} );
 
-	setProperty( elRadial );
-	setProperty( elSpin );
-	setProperty( elBackground );
-	setProperty( elSensitivity );
-	setProperty( elReflex );
-	setProperty( elGradient );
-	setProperty( elRandomMode );
-	setProperty( elBarSpace );
-	setProperty( elMode, true );
+	// settings that make additional changes are set by the setProperty() function
+	setProperty(
+		[ elBackground,
+		elSensitivity,
+		elReflex,
+		elGradient,
+		elRandomMode,
+		elBarSpace,
+		elMode ], true );
 
 	if ( name == 'demo' )
 		selectRandomMode( true );
@@ -1717,6 +1723,8 @@ function selectRandomMode( force = isMicSource ) {
 	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
 	const randomInt = ( n=2 ) => Math.random() * n | 0;
 
+	let props = []; // properties that need to be updated
+
 	elMode.selectedIndex = randomInt( elMode.options.length );
 
 	if ( isEnabled('nobg') )
@@ -1727,18 +1735,18 @@ function selectRandomMode( force = isMicSource ) {
 
 	if ( isEnabled('peaks') ) {
 		elShowPeaks.dataset.active = randomInt(); // 0 or 1
-		setProperty( elShowPeaks );
+		props.push( elShowPeaks );
 	}
 
 	if ( isEnabled('leds') ) {
 		elLedDisplay.dataset.active = randomInt();
-		setProperty( elLedDisplay );
+		props.push( elLedDisplay );
 	}
 
 	if ( isEnabled('lumi') ) {
 		// always disable lumi when leds are active and background is set to image
-		elLumiBars.dataset.active = elBackground.value > 1 && audioMotion.showLeds ? 0 : randomInt();
-		setProperty( elLumiBars );
+		elLumiBars.dataset.active = elBackground.value > 1 && elLedDisplay.dataset.active == '1' ? 0 : randomInt();
+		props.push( elLumiBars );
 	}
 
 	if ( isEnabled('line') ) {
@@ -1762,25 +1770,25 @@ function selectRandomMode( force = isMicSource ) {
 
 	if ( isEnabled('radial') ) {
 		elRadial.dataset.active = randomInt();
-		setProperty( elRadial );
+		props.push( elRadial );
 	}
 
 	if ( isEnabled('spin') ) {
 		elSpin.value = randomInt(4);
 		updateRangeValue( elSpin );
-		setProperty( elSpin );
+		props.push( elSpin );
 	}
-
-	// effectively set the affected properties
-	setProperty( elBackground );
-	setProperty( elBarSpace );
-	setProperty( elReflex );
-	setProperty( elMode, true );
 
 	if ( elCycleGrad.dataset.active == '1' ) {
 		elGradient.selectedIndex = randomInt( elGradient.options.length );
-		setProperty( elGradient, true );
+		props.push( elGradient );
 	}
+
+	// add properties that depend on other settings
+	props.push( elBackground, elBarSpace, elReflex, elMode );
+
+	// effectively set the affected properties
+	setProperty( props, true );
 }
 
 /**
@@ -1819,9 +1827,7 @@ function cycleScale( prev ) {
 	elScaleX.dataset.active = scale & 1;
 	elScaleY.dataset.active = scale >> 1;
 
-	setProperty( elScaleX, true );
-	setProperty( elScaleY, true );
-
+	setProperty( [ elScaleX, elScaleY ], true );
 	return scale;
 }
 
