@@ -57,7 +57,7 @@ header li.warning::before {
 h1 {
 /* inset text: https://codepen.io/adambundy/pen/HtmaK */
 	background-clip: text;
-	background-color: #565656;
+	background-color: #0008;
 	color: transparent;
 	font: 30px Orbitron;
 	margin: 0;
@@ -121,7 +121,7 @@ button:hover,
 }
 .round-button::after {
 	bottom: -1.5em;
-	color: #666;
+	color: #222;
 	content: attr(data-text);
 	font-size: 10px;
 	left: 50%;
@@ -183,10 +183,18 @@ button:hover,
 }
 
 .player-area {
+	background: linear-gradient(to right, #8a8a8a, #ededed, #7a7a7a) !important;
+	color: #222;
 	display: inline-block;
 	position: relative;
 	width: 100%;
 	z-index: 2;
+}
+.player-area .config-label {
+	font-size: 11px;
+}
+.player-area .config-label.help {
+	color: #222;
 }
 
 .analyzer {
@@ -300,10 +308,11 @@ button:hover,
 }
 
 .config-label {
-	font-size: 11px;
+	font-size: 10px;
+	text-transform: uppercase;
 }
 .config-label.help {
-	border-bottom: 1px dotted #080;
+	border-bottom: 1px dotted;
 	color: #080;
 	cursor: help;
 }
@@ -424,6 +433,7 @@ div.value {
 	background-color: #fffce0;
 	border: 1px solid #ccc;
 	border-radius: 5px;
+	box-shadow: 0 0 10px #0008;
 	color: #444;
 	display: none;
 	font-size: 11px;
@@ -453,7 +463,6 @@ div.value {
 	transform: translateY(-50%);
 }
 .controls .tooltip {
-	box-shadow: 0 0 10px #0008;
 	left: 110%;
 	top: 0;
 }
@@ -672,7 +681,7 @@ input.slider {
 }
 
 label.slider {
-	background: linear-gradient(rgba(0,0,0,0.07),rgba(255,255,255,0)),#ddd;
+	background: linear-gradient(rgba(0,0,0,.4),rgba(255,255,255,0)),#0003;
 	border-radius: 1.5em;
 	box-shadow:	0 0.07em 0.1em -0.1em rgba(0,0,0,.4) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7);
@@ -688,9 +697,9 @@ label.slider {
 }
 
 label.slider::before {
-	background: linear-gradient(#f5f5f5 10%,#eee);
+	background: linear-gradient(#ddd 10%, #eee);
 	border-radius: 50%;
-	box-shadow:	0 0.1em 0.15em -0.05em rgba(255,255,255,.9) inset,
+	box-shadow:	0 0.1em 0.15em -0.05em rgba(255,255,255,.5) inset,
 				0 0.5em 0.3em -0.1em rgba(0,0,0,.25);
 	content:'';
 	height: 2em;
@@ -707,10 +716,10 @@ label.slider::after {
 	height: .5em;
 	left: 6em;
 	border-radius: 50%;
-	background: linear-gradient(rgba(0,0,0,0.07),rgba(255,255,255,0.1)),#ddd;
+	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0.1) ), #444;
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 #4c6;
+				-7em 0 0 0 #b2ff00;
 	position: absolute;
 	top: 1.25em;
 	transition: 250ms ease-in;
@@ -718,7 +727,7 @@ label.slider::after {
 
 .slider-on,
 .slider-off {
-	color: #666;
+	color: #444;
 	font-size: 10px;
 	position: absolute;
 	top: -1.25em;
@@ -736,16 +745,16 @@ input.slider:checked + .slider::before {
 }
 
 input.slider:checked + .slider::after {
-	background: linear-gradient(rgba(0,0,0,0.07),rgba(255,255,255,0.1)),#4c6;
+	background: linear-gradient( rgba(0,0,0,.07), rgba(255,255,255,.1) ), #b2ff00;
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 rgba(0,0,0,.12);
+				-7em 0 0 0 rgba(0,0,0,.5);
 }
 
 input.slider:checked + .slider .slider-on,
 input.slider:not(:checked) + .slider .slider-off {
-	text-shadow: 0px 0px 5px #b2ff00;
-	color: #0c0;
+	text-shadow: 0px 0px 5px;
+	color: #b2ff00;
 }
 
 /**
@@ -806,6 +815,18 @@ input.slider:not(:checked) + .slider .slider-off {
 }
 .modal-close-internal:hover {
 	background: #c00;
+}
+
+/**
+ * Webkit audio element customizations
+ * https://stackoverflow.com/a/33948255/2370385
+ */
+audio::-webkit-media-controls-enclosure {
+	background: transparent;
+}
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+    text-shadow: none;
 }
 
 /* Responsive layout */
