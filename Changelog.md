@@ -6,6 +6,13 @@ nav_order: 3
 
 # Changelog
 
+## version NEXT
+
+### Fixed:
+
++ Clicks on settings switches not being properly detected.
+
+
 ## version 20.9 :mask:
 
 This is a minor update to address two bugs:
