@@ -246,10 +246,10 @@ button:hover,
 	font-size: 12px;
 	height: 400px;
 	padding-top: 0 !important;
-	width: 850px !important;
+	width: 880px !important;
 }
-.config-panel .config-col {
-    width: 33%;
+.config-panel > .config-col {
+    width: 33.3%;
 }
 .config-panel label {
 	display: block;

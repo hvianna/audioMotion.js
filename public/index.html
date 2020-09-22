@@ -115,7 +115,7 @@
 							<tr><td><kbd>n</kbd> / <kbd>N</kbd></td><td>sensitivity</td></tr>
 							<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
 							<tr><td><kbd>x</kbd> / <kbd>X</kbd></td><td>reflex style</td></tr>
-							<tr><td colspan="2"><br>Underlined character on switches indicate their keyboard shortcut</td></tr>
+							<tr><td colspan="2"><br>See underlined letter on labels and switches for their keyboard shortcuts</td></tr>
 						</table>
 					</span>
 				</span>
@@ -253,6 +253,15 @@
 
 		<!-- COLUMN 4 -->
 			<div>
+				<span class="config-label help">Se<u>n</u>sitivity
+					<span class="tooltip">
+					Improve visualization of songs too quiet or too loud. Customize presets in the Config panel.
+					</span>
+				</span>
+				<select id="sensitivity" data-prop="sensitivity"></select>
+			</div>
+
+			<div>
 				<span class="config-label help">Frequency Range
 					<span class="tooltip">Lowest and highest frequencies represented in the X-axis</span>
 				</span>
@@ -272,7 +281,7 @@
 				<select id="fft_size" data-prop="fftSize"></select>
 			</div>
 
-			<div>
+			<div class="rowspan-2">
 				<span class="config-label help">Smoothing
 					<span class="tooltip">
 					Lower values make the analyzer respond faster to changes
@@ -280,15 +289,6 @@
 				</span>
 				<div class="value"></div>
 				<input type="range" id="smoothing" data-prop="smoothing">
-			</div>
-
-			<div class="rowspan-2">
-				<span class="config-label help">Se<u>n</u>sitivity
-					<span class="tooltip">
-					Improve visualization of songs too quiet or too loud. Customize presets in the Config panel.
-					</span>
-				</span>
-				<select id="sensitivity" data-prop="sensitivity"></select>
 			</div>
 
 		<!-- COLUMN 5 -->
