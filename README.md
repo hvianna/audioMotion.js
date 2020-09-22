@@ -117,12 +117,12 @@ Some of audioMotion's great features are provided by these awesome open-source l
 
 ### Graphic resources
 
+* Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
 * The *Apple ][* gradient was created based on [this post](https://creativemarket.com/blog/6-famous-logos-with-great-color-schemes) by Creative Market
 * Gradients used in the UI buttons are from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
 * The audioMotion logo uses the [Orbitron font](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
-* Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 
 ### References
 
@@ -137,7 +137,10 @@ These online references were invaluable for the development and improvement of a
 * [Equations for equal-tempered scale frequencies](http://pages.mtu.edu/~suits/NoteFreqCalcs.html)
 * [Efficient case-insensitive sorting in JavaScript](https://stackoverflow.com/a/40390844/2370385)
 * [Fastest way to find the index of a child node in parent](https://stackoverflow.com/a/13657635/2370385)
-
+* [Custom CSS media element selectors for Webkit browsers](https://stackoverflow.com/a/33948255/2370385)
+* Pure CSS modal windows based on [this pen](https://codepen.io/timothylong/pen/HhAer) by Timothy Long and [this project](https://drublic.github.io/css-modal/) by Hans Christian Reinl
+* [CSS3 inset text-shadow](https://codepen.io/adambundy/pen/HtmaK) by Adam Bundy
+* [CSS slider switches](https://codepen.io/billyysea/pen/CHmiE) by Billy
 
 ## License
 

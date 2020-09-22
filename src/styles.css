@@ -55,7 +55,6 @@ header li.warning::before {
 }
 
 h1 {
-/* inset text: https://codepen.io/adambundy/pen/HtmaK */
 	background-clip: text;
 	background-color: #0008;
 	color: transparent;
@@ -672,8 +671,7 @@ kbd.wide {
 }
 
 /**
- * Sliders
- * https://codepen.io/billyysea/pen/CHmiE
+ * Slider switches
  */
 
 input.slider {
@@ -759,8 +757,6 @@ input.slider:not(:checked) + .slider .slider-off {
 
 /**
  *  Pure CSS modal windows
- *  based on https://codepen.io/timothylong/pen/HhAer
- *  and https://drublic.github.io/css-modal/
  **/
 
 .modal-window {
@@ -819,7 +815,6 @@ input.slider:not(:checked) + .slider .slider-off {
 
 /**
  * Webkit audio element customizations
- * https://stackoverflow.com/a/33948255/2370385
  */
 audio::-webkit-media-controls-enclosure {
 	background: transparent;
