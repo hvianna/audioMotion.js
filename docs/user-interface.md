@@ -50,6 +50,7 @@ You can use the keyboard shortcuts below to control the player and change some s
 **Shift+A** / **A** | | cycle through auto gradient and random mode options
 **B** | | cycle through Background options
 **Shift+B** | | cycle through background Image Fit options
+**C** | | toggle radial mode
 **D** | | display current song info - press again for settings info
 **E** | | shuffle play queue
 **F** | | toggle fullscreen mode

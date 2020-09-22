@@ -1532,8 +1532,9 @@ function keyboardControls( event ) {
 	if ( event.target.tagName != 'BODY' )
 		return;
 
-	// helper function
+	// helper functions
 	const getText = ( el ) => el[ el.selectedIndex ].text;
+	const onOff = ( el ) => el.dataset.active == '1' ? 'ON' : 'OFF';
 
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
@@ -1594,6 +1595,10 @@ function keyboardControls( event ) {
 			cycleElement( event.shiftKey ? elBgImageFit : elBackground );
 			setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
 			break;
+		case 'KeyC': 		// radial
+			elRadial.click();
+			setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+			break;
 		case 'KeyD': 		// display information
 			if ( canvasMsg.info == 2 )
 				setCanvasMsg();
@@ -1614,11 +1619,11 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyI': 		// toggle info display on track change
 			elShowSong.click();
-			setCanvasMsg( 'Song info display ' + ( elShowSong.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
 			break;
 		case 'KeyL': 		// toggle LED display effect
 			elLedDisplay.click();
-			setCanvasMsg( 'LED effect ' + ( elLedDisplay.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
 			break;
 		case 'KeyM': 		// visualization mode
 		case 'KeyV':
@@ -1635,14 +1640,14 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyP': 		// toggle peaks display
 			elShowPeaks.click();
-			setCanvasMsg( 'Peaks ' + ( elShowPeaks.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
 			break;
 		case 'KeyR': 		// toggle playlist repeat
 			elRepeat.click();
-			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
 			break;
 		case 'KeyS': 		// toggle X and Y axis scales
-			setCanvasMsg( 'Scale: ' + ['None','Frequency','Level (dB)','Both'][ cycleScale( event.shiftKey ) ] );
+			setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( event.shiftKey ) ] );
 			break;
 		case 'KeyT': 		// toggle text shadow
 			elNoShadow.click();
@@ -1650,7 +1655,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyU': 		// toggle lumi bars
 			elLumiBars.click();
-			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
+			setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
 			break;
 		case 'KeyX':
 			cycleElement( elReflex, event.shiftKey );
