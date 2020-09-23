@@ -52,7 +52,7 @@
 		<audio id="player0" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 		<audio id="player1" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 
-		<header class="grid align-center center">
+		<header class="grid grid-3-cols align-center center">
 			<ul>
 				<li id="toggle_settings" class="round-button" data-text="Settings">
 					<i class="icons8-vertical-settings-mixer"></i>
@@ -70,7 +70,7 @@
 			</ul>
 		</header>
 
-		<div class="player-panel grid align-center center">
+		<div class="player-panel grid grid-3-cols align-center center">
 			<div>
 				<div class="config-label">SOURCE</div>
 				<input class="slider" type="checkbox" id="source">
@@ -401,21 +401,21 @@
 
 	<div id="config" class="modal-window">
 		<a href="#!" title="Close" class="modal-close"></a>
-		<div class="config-panel flex align-start">
+		<div class="config-panel grid grid-3-cols">
 			<a href="#!" class="modal-close-internal"></a>
 			<div class="config-col">
 				<h3>Enabled Modes:</h3>
-				<div id="enabled_modes">
+				<div id="enabled_modes" class="grid">
 				</div>
 			</div>
 			<div class="config-col">
 				<h3>Enabled Gradients:</h3>
-				<div id="enabled_gradients">
+				<div id="enabled_gradients" class="grid grid-2-cols">
 				</div>
 			</div>
 			<div class="config-col">
 				<h3>Options affected by Random Mode:</h3>
-				<div id="random_properties">
+				<div id="random_properties" class="grid grid-3-cols">
 				</div>
 
 				<h3>Sensitivity presets:</h3>

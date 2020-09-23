@@ -247,20 +247,6 @@ button:hover,
 	padding-top: 0 !important;
 	width: 880px !important;
 }
-.config-panel > .config-col {
-    width: 33.3%;
-}
-.config-panel label {
-	display: block;
-}
-.config-panel #random_properties label {
-	display: inline-block;
-	width: 33.3%;
-}
-.config-panel #enabled_gradients label {
-	display: inline-block;
-	width: 50%;
-}
 .config-panel table th,
 .config-panel table td {
 	border-bottom: 1px solid #ccc;
@@ -296,7 +282,13 @@ button:hover,
 }
 
 .grid {
+	align-content: start;
 	display: grid;
+}
+.grid-2-cols {
+	grid-template-columns: repeat(2, 1fr);
+}
+.grid-3-cols {
 	grid-template-columns: repeat(3, 1fr);
 }
 .rowspan-2 {
