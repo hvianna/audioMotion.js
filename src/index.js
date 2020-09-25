@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.9';
+const _VERSION = '20.10-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -42,8 +42,7 @@ const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elConsole     = $('#console'),
-	  elFFTsize     = $('#fft_size'),
+const elFFTsize     = $('#fft_size'),
 	  elRangeMin    = $('#freq_min'),
 	  elRangeMax    = $('#freq_max'),
 	  elSmoothing   = $('#smoothing'),
@@ -1301,17 +1300,23 @@ function showCanvasInfo( reason ) {
 /**
  * Output messages to the UI "console"
  */
-function consoleLog( msg, error ) {
-	const dt = new Date(),
+function consoleLog( msg, error, clear ) {
+	const content = $('#console-content'),
+	 	  dt = new Date(),
 		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
+
+	if ( clear )
+		content.innerHTML = '';
 
 	if ( error ) {
 		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
 		$('#toggle_console').classList.add('warning');
 	}
 
-	elConsole.innerHTML += `${ time } ${msg}<br>`;
-	elConsole.scrollTop = elConsole.scrollHeight;
+	if ( msg )
+		content.innerHTML += `${ time } ${msg}<br>`;
+
+	content.scrollTop = content.scrollHeight;
 }
 
 /**
@@ -1883,21 +1888,23 @@ function populateGradients() {
  */
 function setUIEventListeners() {
 
+	// toggle settings
 	const elToggleSettings = $('#toggle_settings');
 	elToggleSettings.addEventListener( 'click', () => {
 		$('#settings').classList.toggle('active', elToggleSettings.classList.toggle('active') );
 	});
-	elToggleSettings.click(); // starts with the settings panel open
-
 	$('.settings-close').addEventListener( 'click', () => elToggleSettings.click() );
 
+	// toggle console
 	const elToggleConsole = $('#toggle_console');
 	elToggleConsole.addEventListener( 'click', () => {
 		elToggleConsole.classList.toggle('active');
 		elToggleConsole.classList.remove('warning');
-		elConsole.style.display = elToggleConsole.classList.contains('active') ? '' : 'none';
+		$('#console').style.display = elToggleConsole.classList.contains('active') ? 'block' : '';
+		consoleLog(); // update scroll only
 	});
-	elConsole.style.display = 'none';
+	$('#console-close').addEventListener( 'click', () => elToggleConsole.click() );
+	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 
 	// Add event listeners to the custom checkboxes
 	$$('.switch').forEach( el => {

@@ -612,18 +612,14 @@ kbd.wide {
 	background: #1c231a;
 	bottom: 0;
 	color: #0b0;
+	display: none;
 	font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 	font-size: 13px;
 	height: 250px;
 	left: 0;
 	line-height: 1.4;
-	overflow-y: scroll;
-	padding: 10px;
 	position: fixed;
 	right: 0;
-	/* FF experimental - https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Scrollbars */
-	scrollbar-color: #080 #333;
-	scrollbar-width: thin;
 }
 
 #console i[class^="icons8-"] {
@@ -635,14 +631,41 @@ kbd.wide {
 	color: #c33;
 }
 
-#console::-webkit-scrollbar-track {
+#console-content {
+	height: 100%;
+	overflow-y: scroll;
+	padding: 10px;
+	/* FF experimental - https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Scrollbars */
+	scrollbar-color: #080 #333;
+	scrollbar-width: thin;
+}
+#console-content::-webkit-scrollbar-track {
 	background-color: #333;
 }
-#console::-webkit-scrollbar {
+#console-content::-webkit-scrollbar {
 	width: 6px;
 }
-#console::-webkit-scrollbar-thumb {
+#console-content::-webkit-scrollbar-thumb {
 	background-color: #080;
+}
+
+#console-clear,
+#console-close {
+	bottom: 225px;
+	cursor: pointer;
+	padding: 2px 4px;
+	position: fixed;
+}
+#console-clear {
+	right: 70px;
+}
+#console-close {
+	right: 20px;
+}
+#console-clear:hover,
+#console-close:hover {
+	background: #0c0;
+	color: #000;
 }
 
 #enabled_modes,
