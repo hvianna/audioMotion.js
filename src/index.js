@@ -1964,6 +1964,19 @@ function setUIEventListeners() {
 
 	// clicks on canvas cycle scales on/off
 	audioMotion.canvas.addEventListener( 'click', () =>	cycleScale() );
+
+	// local file upload
+	$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
+
+	// load remote files from URL
+	$('#btn_load_url').addEventListener( 'click', () => {
+		notie.input({
+			text: 'Load audio file or stream from URL',
+			value: 'http://schizoid.in:8000/chill',
+			submitText: 'Load',
+			submitCallback: url => { if ( url.trim() ) addToPlaylist( url, true ) }
+		});
+	});
 }
 
 /**
@@ -2360,17 +2373,7 @@ function populateSelect( element, options ) {
 		serverMode = status;
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
-			$('#local_file_panel').style.display = 'block';
-			$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			$('#load_remote_url').addEventListener( 'click', () => {
-				let el = $('#remote_url');
-				if ( el.value )
-					addToPlaylist( el.value, true );
-				el.value = '';
-			});
-
-			$$('#files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
-			filelist.style.display = 'none';
+			$('#files_panel').classList.add('local');
 		}
 		else {
 			consoleLog( `${serversignature} detected` );

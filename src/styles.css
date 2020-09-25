@@ -20,10 +20,16 @@ input[type="number"] {
 	padding: 4px;
 }
 
-button {
+button,
+.button {
 	background: #e1e1e1;
 	border: 1px solid #adadad;
 	padding: 6px 16px;
+}
+button:hover,
+.button:hover {
+	background: #e5f1fb;
+	border: 1px solid #0078d7;
 }
 
 header {
@@ -74,14 +80,8 @@ table {
 }
 
 .button {
-	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;;
-	border: 1px solid #adadad;
-	padding: 6px 16px;
-}
-button:hover,
-.button:hover {
-	background: #e5f1fb;
-	border: 1px solid #0078d7;
+	display: inline-block;
+	text-align: center;
 }
 .button.switch[data-active="1"] {
 	background: #888;
@@ -235,16 +235,6 @@ button:hover,
 	width: 100%;
 }
 
-#local_file_panel {
-	display: none;
-	height: 250px;
-	line-height: 1.6;
-}
-#local_file_panel label {
-	display: block;
-	margin: 20px 0 40px;
-}
-
 .config-panel {
 	background: #f5f5f5 !important;
 	font-size: 12px;
@@ -337,12 +327,23 @@ button:hover,
 .button-column {
 	display: flex;
 	flex-direction: column;
+}
+.button-column button,
+.button-column .button {
+	margin: 10px 0;
+	width: 100%;
+}
+
+#files_panel:not(.local) .button-column {
 	justify-content: center;
 	width: 100px !important;
 }
-.button-column button {
-	margin: 10px 0;
-	width: 100%;
+
+#files_panel.local .file-panel .config-col:first-child,
+#files_panel.local #btn_add_selected,
+#files_panel.local #btn_add_folder,
+#local_file {
+	display: none;
 }
 
 .config-row {
@@ -372,6 +373,7 @@ div.value {
 	margin: 15px 0 5px;
 }
 .player-controls .button {
+	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
 	display: inline-block;
 	margin: 5px 0;
 	padding: 0 8px;
@@ -454,7 +456,7 @@ div.value {
 	top: -50px;
 }
 .button-column .tooltip {
-	left: 110%;
+	left: calc( 100% + 10px );
 	top: 50%;
 	transform: translateY(-50%);
 }

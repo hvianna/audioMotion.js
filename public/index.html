@@ -350,27 +350,28 @@
 					<div id="file_explorer"></div>
 					<p><kbd>Ctrl</kbd>+click to select multiple / <kbd>Ctrl</kbd> <kbd>Shift</kbd> to select range</p>
 				</div>
-				<div id="local_file_panel" class="local-file">
-					<label>
-						<strong>Play an audio file from your computer:<br></strong>
-						<input id="local_file" type="file" accept="audio/*">
-					</label>
-
-					<label>
-						<strong>Load a remote file or stream from URL:<br></strong>
-						<input id="remote_url" type="text" size="50" placeholder="http://"> <button id="load_remote_url">Load >></button>
-					</label>
-				</div>
 			</div>
 
 			<div class="config-col button-column">
-				<span class="help"><button id="btn_add_selected">Add selected</button>
-					<span class="tooltip">Add selected files to the queue</span>
-				</span>
-				<br>
-				<span class="help"><button id="btn_add_folder">Add all files</button>
-					<span class="tooltip">Add all files in current folder to the queue</span>
-				</span>
+				<div class="help">
+					<label class="button">
+						Upload file
+						<input id="local_file" type="file" accept="audio/*">
+					</label>
+					<span class="tooltip">Upload an audio file from your computer and play it</span>
+				</div>
+
+				<div class="help"><button id="btn_load_url">Add from URL</button>
+					<span class="tooltip">Add a remote audio file or stream to the queue</span>
+				</div>
+
+				<div class="help"><button id="btn_add_selected">Add selected</button>
+					<span class="tooltip">Add selected files in the current folder to the queue</span>
+				</div>
+
+				<div class="help"><button id="btn_add_folder">Add all files</button>
+					<span class="tooltip">Add all files in the current folder to the queue</span>
+				</div>
 			</div>
 
 			<div id="playlist_panel" class="config-col">
