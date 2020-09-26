@@ -494,9 +494,9 @@ function clearAudioElement( n = currAudio ) {
 }
 
 /**
- * Clear the playlist
+ * Clear the play queue
  */
-function clearPlaylist() {
+function clearPlayQueue() {
 
 	while ( playlist.hasChildNodes() )
 		playlist.removeChild( playlist.firstChild );
@@ -517,7 +517,7 @@ function clearPlaylist() {
  */
 function loadSavedPlaylists( keyName ) {
 
-	let playlists = localStorage.getItem('playlists');
+	// reset UI playlist selection box
 
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
@@ -526,6 +526,10 @@ function loadSavedPlaylists( keyName ) {
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
+
+	// load playlists from localStorage
+
+	let playlists = localStorage.getItem('playlists');
 
 	if ( playlists ) {
 		playlists = JSON.parse( playlists );
@@ -538,6 +542,8 @@ function loadSavedPlaylists( keyName ) {
 			elPlaylists.options[ elPlaylists.options.length ] = item;
 		});
 	}
+
+	// try to load legacy playlists.cfg file
 
 	fetch( 'playlists.cfg' )
 		.then( response => {
@@ -575,8 +581,8 @@ function loadSavedPlaylists( keyName ) {
  * @param files {array} array of objects with a 'file' property
  * @param [autoplay] {boolean}
  */
-function addBatchToQueue( files, autoplay = false ) {
-	const promises = files.map( entry => addToPlaylist( entry.file, autoplay ) );
+function addBatchToPlayQueue( files, autoplay = false ) {
+	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
 	Promise.all( promises ).then( added => {
 		const total = added.reduce( ( sum, val ) => sum + val, 0 );
 		notie.alert({ text: `${total} song${ total > 1 ? 's' : '' } added to the queue`, time: 5 });
@@ -584,9 +590,9 @@ function addBatchToQueue( files, autoplay = false ) {
 }
 
 /**
- * Add a song or playlist to the current playlist
+ * Add a song or playlist to the play queue
  */
-function addToPlaylist( file, autoplay = false ) {
+function addToPlayQueue( file, autoplay = false ) {
 
 	const ext = file.slice( file.lastIndexOf('.') + 1 ).toLowerCase();
 	let ret;
@@ -595,7 +601,7 @@ function addToPlaylist( file, autoplay = false ) {
 		ret = loadPlaylist( file );
 	else
 		ret = new Promise( resolve => {
-			addSongToPlaylist( file );
+			addSongToPlayQueue( file );
 			resolve(1);
 		});
 
@@ -641,24 +647,26 @@ function addMetadata( metadata, target ) {
 }
 
 /**
- * Add a song to the playlist
+ * Add a song to the play queue
  */
-function addSongToPlaylist( uri, content = {} ) {
-
-	const newEl = document.createElement('li');
+function addSongToPlayQueue( uri, content = {} ) {
 
 	// normalize slashes in path
 	uri = uri.replace( /\\/g, '/' );
 
+	// extract file name and extension
+	const file = uri.split('/').pop(),
+		  ext  = file.split('.').pop();
+
+	// create new list element
+	const newEl = document.createElement('li');
+
 	newEl.dataset.artist = content.artist || '';
+	newEl.dataset.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+	newEl.dataset.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
 
-	newEl.dataset.title = content.title ||
-		uri.slice( uri.lastIndexOf('/') + 1 ).replace( /%23/g, '#' ) ||
-		uri.slice( uri.lastIndexOf('//') + 2 );
-
-	newEl.dataset.codec = uri.slice( uri.lastIndexOf('.') + 1 ).toUpperCase();
-
-	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
+	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
+	uri = uri.replace( /#/g, '%23' );
 	newEl.dataset.file = uri;
 
 	playlist.appendChild( newEl );
@@ -669,12 +677,13 @@ function addSongToPlaylist( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
+	// try to retrieve metadata from audio file or stream
 	fetch( uri ).then( response => {
 		return response.body;
 	}).then( stream => {
 		mm.parseReadableStream( stream, '', { skipCovers: true } ).then( metadata => {
 			if ( metadata ) {
-				addMetadata( metadata, newEl ); // add metadata to playlist item
+				addMetadata( metadata, newEl ); // add metadata to play queue item
 				audioElement.forEach( el => {
 					if ( el.dataset.file == newEl.dataset.file )
 						addMetadata( newEl, el ); // transfer metadata to audio element
@@ -726,9 +735,9 @@ function loadPlaylist( path ) {
 							// extract artist name and song title off the info tag (format: ARTIST - SONG)
 							const sep = songInfo.indexOf(' - ');
 							if ( sep == -1 )
-								addSongToPlaylist( line, { title: songInfo } );
+								addSongToPlayQueue( line, { title: songInfo } );
 							else
-								addSongToPlaylist( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
+								addSongToPlayQueue( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
 							songInfo = '';
 						}
 						else if ( line.slice( 0, 7 ) == '#EXTINF' )
@@ -750,7 +759,7 @@ function loadPlaylist( path ) {
 					item = item.replace( /\\/g, '/' );
 					songInfo = item.slice( item.lastIndexOf('/') + 1 );
 					songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-					addSongToPlaylist( item, { title: songInfo } )
+					addSongToPlayQueue( item, { title: songInfo } )
 				});
 			}
 			else
@@ -888,7 +897,7 @@ function updatePlaylistUI() {
 /**
  * Shuffle the playlist
  */
-function shufflePlaylist() {
+function shufflePlayQueue() {
 
 	let temp, r;
 
@@ -1612,7 +1621,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyE': 		// shuffle queue
 			if ( playlist.children.length > 0 ) {
-				shufflePlaylist();
+				shufflePlayQueue();
 				setCanvasMsg( 'Shuffle' );
 			}
 			break;
@@ -1956,7 +1965,7 @@ function setUIEventListeners() {
 	$('#btn_play').addEventListener( 'click', () => playPause() );
 	$('#btn_stop').addEventListener( 'click', stop );
 	$('#btn_next').addEventListener( 'click', () => playNextSong() );
-	$('#btn_shuf').addEventListener( 'click', shufflePlaylist );
+	$('#btn_shuf').addEventListener( 'click', shufflePlayQueue );
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
 	$('#load_playlist').addEventListener( 'click', () => {
 		loadPlaylist( elPlaylists.value ).then( n => {
@@ -1967,7 +1976,7 @@ function setUIEventListeners() {
 	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 	$('#create_playlist').addEventListener( 'click', () => storePlaylist() );
 	$('#delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
-	$('#btn_clear').addEventListener( 'click', clearPlaylist );
+	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
 
 	// clicks on canvas cycle scales on/off
 	audioMotion.canvas.addEventListener( 'click', () =>	cycleScale() );
@@ -1979,9 +1988,8 @@ function setUIEventListeners() {
 	$('#btn_load_url').addEventListener( 'click', () => {
 		notie.input({
 			text: 'Load audio file or stream from URL',
-			value: 'http://schizoid.in:8000/chill',
 			submitText: 'Load',
-			submitCallback: url => { if ( url.trim() ) addToPlaylist( url, true ) }
+			submitCallback: url => { if ( url.trim() ) addToPlayQueue( url, true ) }
 		});
 	});
 }
@@ -2372,7 +2380,7 @@ function populateSelect( element, options ) {
 		$('#file_explorer'),
 		{
 			dblClick: ( file, event ) => {
-				addBatchToQueue( [ { file } ], true );
+				addBatchToPlayQueue( [ { file } ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			}
 		}
@@ -2400,7 +2408,7 @@ function populateSelect( element, options ) {
 					if ( evt.to.id == 'playlist') {
 						let items = evt.items.length ? evt.items : [ evt.item ];
 						items.forEach( item => {
-							addToPlaylist( fileExplorer.makePath( item.dataset.path ) );
+							addToPlayQueue( fileExplorer.makePath( item.dataset.path ) );
 							item.remove();
 						});
 					}
@@ -2408,8 +2416,8 @@ function populateSelect( element, options ) {
 			});
 		}
 
-		$('#btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
-		$('#btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
+		$('#btn_add_selected').addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
+		$('#btn_add_folder').addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 	});
 
 	// Add event listener for keyboard controls
