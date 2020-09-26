@@ -23,9 +23,9 @@
     "optimize-css-assets-webpack-plugin": "^5.0.4",
     "readline-sync": "^1.4.10",
     "semver": "^7.3.2",
-    "sortablejs": "^1.10.1",
-    "terser-webpack-plugin": "^4.2.0",
-    "webpack": "^4.44.1",
+    "sortablejs": "1.10.2",
+    "terser-webpack-plugin": "^4.2.2",
+    "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12"
   }
 }
