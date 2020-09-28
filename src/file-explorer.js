@@ -150,7 +150,7 @@ export function parseWebDirectory( content ) {
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
-	const collator = new Intl.Collator(); // for case-insensitive string sorting
+	const collator = new Intl.Collator(); // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
 
 	return { cover, dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
 }

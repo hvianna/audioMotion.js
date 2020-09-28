@@ -912,6 +912,7 @@ function shufflePlayQueue() {
 
 /**
  * Return the index of an element inside its parent
+ * based on https://stackoverflow.com/a/13657635/2370385
  */
 function getIndex( node ) {
 	if ( ! node )
