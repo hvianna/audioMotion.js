@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.10-beta.2';
+const _VERSION = '20.10-beta.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1294,17 +1294,27 @@ function setCanvasMsg( msg, timer = 2, fade = 1 ) {
 /**
  * Display information about canvas size changes
  */
-function showCanvasInfo( reason ) {
-	if ( reason == 'create' )
-		consoleLog('Canvas created.');
+function showCanvasInfo( reason, instance ) {
+	let msg;
 
-	if ( ['lores','user'].includes( reason ) )
-		consoleLog( `Lo-res mode ${ audioMotion.loRes ? 'ON' : 'OFF' } (pixelRatio set to ${ audioMotion.pixelRatio })` );
+	switch ( reason ) {
+		case 'create':
+			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} pixels` );
+			consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
+			msg = 'Canvas created';
+			break;
+		case 'lores':
+			msg = `Lo-res mode ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${instance.pixelRatio})`;
+			break;
+		case 'fschange':
+			msg = 'Fullscreen changed';
+			break;
+		case 'resize':
+			msg = 'Container resized';
+			break;
+	}
 
-	if ( reason == 'user' )
-		consoleLog( `Canvas size set to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels` );
-	else if ( ['lores','resize'].includes( reason ) )
-		consoleLog( `Canvas resized to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels ${ audioMotion.isFullscreen ? '(fullscreen)' : '' }` )
+	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px ${ instance.isFullscreen ? '(fullscreen)' : '' }` );
 }
 
 /**
@@ -2363,9 +2373,6 @@ function populateSelect( element, options ) {
 			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
 	});
 	populateGradients();
-
-	consoleLog( `Display resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
-	consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
 
 	// Load last used settings
 	loadPreset( 'last', false, true );
