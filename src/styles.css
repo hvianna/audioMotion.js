@@ -28,9 +28,10 @@ button,
 	padding: 6px 16px;
 }
 button:hover,
-.button:hover {
-	background: #e5f1fb;
-	border: 1px solid #0078d7;
+.button:not([data-active="1"]):hover,
+.round-button:not(.active):hover {
+	background: #f2ffd3 !important;
+	border: 1px solid #72aa00;
 }
 
 header {
@@ -394,6 +395,11 @@ div.value {
 }
 .player-controls .button:not(:last-child) {
 	border-right-width: 0;
+}
+.player-controls .button:not(:last-child):not([data-active="1"]):hover {
+	border-right-width: 1px !important;
+    margin-right: -1px;
+    z-index: 1;
 }
 
 .help {
