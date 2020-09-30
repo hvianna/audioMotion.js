@@ -189,7 +189,7 @@ table {
 }
 
 .player-area {
-	background: linear-gradient(to right, #7a7a7a, #ededed, #7a7a7a);
+	background: inherit;
 	box-shadow: 0 1px 3px #0008;
 	color: #222;
 	display: inline-block;
@@ -241,9 +241,8 @@ table {
 .config-panel {
 	background: #f5f5f5 !important;
 	font-size: 12px;
-	height: 400px;
 	padding-top: 0 !important;
-	width: 880px !important;
+	width: 880px;
 }
 .config-panel table th,
 .config-panel table td {
@@ -353,13 +352,6 @@ table {
 .file-panel.local #btn_add_folder,
 #local_file {
 	display: none;
-}
-
-.config-row {
-	margin: 20px 0 30px;
-}
-.config-row select {
-	padding: 4px;
 }
 
 div.value {
@@ -663,11 +655,6 @@ kbd.wide {
 	right: 0;
 }
 
-#console i[class^="icons8-"] {
-	font-size: 1.2em;
-	vertical-align: middle;
-}
-
 #console .error {
 	color: #f33;
 }
@@ -709,15 +696,12 @@ kbd.wide {
 	color: #000;
 }
 
-#enabled_modes,
-#enabled_gradients {
-	height: 260px;
-	overflow-y: auto;
-}
-
 .credits {
-	line-height: 1.6;
-	text-align: center;
+	width: 400px;
+}
+.credits p,
+.credits li {
+	line-height: 2;
 }
 .credits a:not([class]) {
 	color: #090;
@@ -849,7 +833,6 @@ input.slider:not(:checked) + .slider .slider-off {
 	position: absolute;
 	top: 50%;
 	transform: translate(-50%, -50%);
-	width: 400px;
 }
 
 .modal-close::before {
