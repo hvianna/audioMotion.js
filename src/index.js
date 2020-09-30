@@ -522,7 +522,7 @@ function loadSavedPlaylists( keyName ) {
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	const item = new Option( 'Select a playlist and click action to the right', '' );
+	const item = new Option( 'Select a playlist', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;

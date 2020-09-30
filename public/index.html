@@ -71,7 +71,7 @@
 		</header>
 
 		<div class="player-panel grid grid-3-cols align-center center">
-			<div>
+			<div class="controls-left">
 				<div class="config-label">SOURCE</div>
 				<input class="slider" type="checkbox" id="source">
   				<label class="slider" for="source">
@@ -95,7 +95,7 @@
 					<span class="tooltip">Repeat queue | <kbd>R</kbd></span>
 			</ul>
 
-			<div class="center">
+			<div class="controls-right">
 				<button id="btn_fullscreen" class="fullscreen-button"><u>F</u>ullscreen Analyzer</button>
 				<br>
 				<span class="config-label help">KEYBOARD SHORTCUTS
@@ -343,60 +343,55 @@
 
 	</div> <!-- #settings -->
 
-	<div id="files_panel">
-		<div class="file-panel flex">
-			<div class="config-col">
-				<div class="file_explorer">
-					<div id="file_explorer"></div>
-					<p><kbd>Ctrl</kbd>+click to select multiple / <kbd>Ctrl</kbd> <kbd>Shift</kbd> to select range</p>
-				</div>
+	<div id="files_panel" class="file-panel grid">
+		<div id="file_explorer" class="grid">
+			<p class="center"><kbd>Ctrl</kbd>+click to select multiple / <kbd>Ctrl</kbd> <kbd>Shift</kbd> to select range</p>
+		</div>
+
+		<div class="button-column">
+			<div class="help">
+				<label class="button">
+					Upload file
+					<input id="local_file" type="file" accept="audio/*">
+				</label>
+				<span class="tooltip">Upload an audio file from your computer and play it</span>
 			</div>
 
-			<div class="config-col button-column">
-				<div class="help">
-					<label class="button">
-						Upload file
-						<input id="local_file" type="file" accept="audio/*">
-					</label>
-					<span class="tooltip">Upload an audio file from your computer and play it</span>
-				</div>
-
-				<div class="help"><button id="btn_load_url">Add from URL</button>
-					<span class="tooltip">Add a remote audio file or stream to the queue</span>
-				</div>
-
-				<div class="help"><button id="btn_add_selected">Add selected</button>
-					<span class="tooltip">Add selected files in the current folder to the queue</span>
-				</div>
-
-				<div class="help"><button id="btn_add_folder">Add all files</button>
-					<span class="tooltip">Add all files in the current folder to the queue</span>
-				</div>
+			<div class="help"><button id="btn_load_url">Add from URL</button>
+				<span class="tooltip">Add a remote audio file or stream to the queue</span>
 			</div>
 
-			<div id="playlist_panel" class="config-col">
-				<div class="playlist-bar flex">
-					<select id="playlists"></select>
-					<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
-						<span class="tooltip">Load selected playlist</span>
-					</span>
-					<span class="help"><button id="save_playlist"><i class="icons8-save"></i></button>
-						<span class="tooltip">Overwrite selected playlist with play queue</span>
-					</span>
-					<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
-						<span class="tooltip">Delete selected playlist</span>
-					</span>
-				</div>
-				<div class="playqueue-bar flex">
-					<strong>Play queue:</strong>
-					<div>
-						<button id="btn_clear">Clear</button>
-						<button id="create_playlist">Save as...</button>
-					</div>
-				</div>
-				<ul id="playlist" class="filelist"></ul>
-				<p>Double-click to play / Drag to reorder / <kbd>Delete</kbd> to remove</p>
+			<div class="help"><button id="btn_add_selected">Add selected</button>
+				<span class="tooltip">Add selected files in the current folder to the queue</span>
 			</div>
+
+			<div class="help"><button id="btn_add_folder">Add all files</button>
+				<span class="tooltip">Add all files in the current folder to the queue</span>
+			</div>
+		</div>
+
+		<div id="playlist_panel" class="grid">
+			<div class="playlist-bar flex">
+				<select id="playlists"></select>
+				<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
+					<span class="tooltip">Load selected playlist</span>
+				</span>
+				<span class="help"><button id="save_playlist"><i class="icons8-save"></i></button>
+					<span class="tooltip">Overwrite selected playlist with play queue</span>
+				</span>
+				<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
+					<span class="tooltip">Delete selected playlist</span>
+				</span>
+			</div>
+			<div class="playqueue-bar flex">
+				<strong><i class="icons8-track-list"></i> Play queue</strong>
+				<div>
+					<button id="btn_clear">Clear</button>
+					<button id="create_playlist">Save as...</button>
+				</div>
+			</div>
+			<ul id="playlist" class="filelist"></ul>
+			<p class="center">Double-click to play / Drag to reorder / <kbd>Delete</kbd> to remove</p>
 		</div>
 	</div> <!-- #files_panel -->
 
@@ -404,17 +399,17 @@
 		<a href="#!" title="Close" class="modal-close"></a>
 		<div class="config-panel grid grid-3-cols">
 			<a href="#!" class="modal-close-internal"></a>
-			<div class="config-col">
+			<div>
 				<h3>Enabled Modes:</h3>
 				<div id="enabled_modes" class="grid">
 				</div>
 			</div>
-			<div class="config-col">
+			<div>
 				<h3>Enabled Gradients:</h3>
 				<div id="enabled_gradients" class="grid grid-2-cols">
 				</div>
 			</div>
-			<div class="config-col">
+			<div>
 				<h3>Options affected by Random Mode:</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>

@@ -4,7 +4,7 @@
 }
 
 body {
-	background: #f5f5f5;
+	background: linear-gradient(to right, #7a7a7a, #ededed, #7a7a7a);
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	font-size: 13px;
 	margin: 0;
@@ -36,23 +36,6 @@ button:hover,
 header {
 	margin: 10px auto 15px;
 	max-width: 960px;
-}
-header li.warning::before {
-	background: #c00;
-	border-radius: 50%;
-	color: #fff;
-	content: '!';
-	display: block;
-	font-size: 10px;
-	font-weight: bold;
-	height: 6px;
-	line-height: 0.5;
-	margin-left: 15px;
-	padding: 4px;
-	position: absolute;
-	text-align: center;
-	top: 4px;
-	width: 6px;
 }
 
 h1 {
@@ -112,7 +95,6 @@ table {
 }
 .round-button i {
 	line-height: 1.7;
-	margin-left: 1px;
 }
 .round-button.active {
 	background: #888;
@@ -130,6 +112,24 @@ table {
 	text-shadow: none;
 	transform: translateX(-50%);
 }
+.round-button.warning::before {
+	background: #c00;
+	border-radius: 50%;
+	color: #fff;
+	content: '!';
+	display: block;
+	font-size: 10px;
+	font-weight: bold;
+	height: 6px;
+	line-height: 0.5;
+	margin-left: 15px;
+	padding: 4px;
+	position: absolute;
+	text-align: center;
+	top: 4px;
+	width: 6px;
+}
+
 .icon-about {
 	font-family: Orbitron;
 	font-style: normal;
@@ -188,8 +188,8 @@ table {
 }
 
 .player-area {
-	background: linear-gradient(to right, #7a7a7a, #ededed, #7a7a7a) !important;
-	border-bottom: 1px solid #ccc;
+	background: linear-gradient(to right, #7a7a7a, #ededed, #7a7a7a);
+	box-shadow: 0 1px 3px #0008;
 	color: #222;
 	display: inline-block;
 	position: relative;
@@ -303,9 +303,11 @@ table {
 	cursor: help;
 }
 
-.playlist-bar,
+.playlist-bar {
+	padding: 10px 10px 0;
+}
 .playqueue-bar {
-	margin-bottom: 10px;
+	padding: 6px 10px 0;
 }
 .playlist-bar button {
 	font-size: 18px;
@@ -313,35 +315,41 @@ table {
 	padding: 3px 8px;
 }
 .playqueue-bar strong {
+	align-self: center;
 	font-size: 16px;
 }
 
 .file-panel {
+	grid-template-columns: 1fr 150px 1fr;
 	margin: 0 auto;
-	max-width: 1200px;
-	padding-top: 10px;
+	max-width: 1400px;
+	padding: 20px 0;
 }
-.file-panel .config-col {
-	width: calc( 50% - 120px );
+.file-panel.local {
+	grid-template-columns: 400px minmax(auto, 625px);
+	justify-content: space-between;
 }
+
 .button-column {
 	display: flex;
 	flex-direction: column;
+	justify-content: center;
 }
 .button-column button,
 .button-column .button {
+	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
 	margin: 10px 0;
+	padding: 12px;
 	width: 100%;
 }
-
-#files_panel:not(.local) .button-column {
-	justify-content: center;
-	width: 100px !important;
+.file-panel.local .button-column {
+	justify-content: start;
+	margin: 0 25px;
 }
 
-#files_panel.local .file-panel .config-col:first-child,
-#files_panel.local #btn_add_selected,
-#files_panel.local #btn_add_folder,
+.file-panel.local #file_explorer,
+.file-panel.local #btn_add_selected,
+.file-panel.local #btn_add_folder,
 #local_file {
 	display: none;
 }
@@ -351,10 +359,6 @@ table {
 }
 .config-row select {
 	padding: 4px;
-}
-
-.config-col {
-	margin: 4px 0;
 }
 
 div.value {
@@ -370,7 +374,16 @@ div.value {
 }
 
 .player-panel {
-	margin: 15px 0 5px;
+	margin: 15px auto 5px;
+	max-width: 1400px;
+}
+.controls-left {
+	margin-left: 50px;
+	justify-self: start;
+}
+.controls-right {
+	margin-right: 25px;
+	justify-self: end;
 }
 .player-controls .button {
 	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
@@ -508,25 +521,44 @@ kbd.wide {
 
 /* File explorer */
 
+#file_explorer,
+#playlist_panel {
+	background: #eee;
+	border-radius: 6px;
+	box-shadow: inset 0 1px 3px #0008;
+	height: 360px;
+	margin: 0 25px;
+}
+
+#file_explorer {
+	grid-template-rows: 45px 1fr 40px;
+}
+
+#playlist_panel {
+	grid-template-rows: 40px 40px 1fr 40px;
+}
+
+#file_explorer p {
+	order: 3;
+}
+
 #file_explorer .filelist {
 	background-position: top right;
 	background-repeat: no-repeat;
 	background-size: auto 100%;
-	height: 295px;
 }
 
 .breadcrumb {
-	min-height: 35px;
-	margin: 0;
-	order: -1;
-	padding-left: 0;
+	align-self: end;
+	margin-bottom: 5px;
+	padding: 0 10px;
 }
 .breadcrumb::before {
 	content: '\f117';
 	font-family: audioMotion;
-	font-size: 18px;
+	font-size: 16px;
 	margin-right: .25em;
-	vertical-align: sub;
+	vertical-align: middle;
 }
 .breadcrumb li {
 	cursor: pointer;
@@ -546,7 +578,7 @@ kbd.wide {
 .filelist {
 	background: #fff;
 	border: 1px solid #ccc;
-	height: 250px;
+	box-shadow: inset 0 0 3px #0004;
 	overflow: auto;
 	padding: 0;
 	vertical-align: top;
@@ -857,12 +889,21 @@ audio::-webkit-media-controls-time-remaining-display {
 
 /* Responsive layout */
 
-@media screen and (max-width: 1200px) {
-	.config-col {
+@media screen and (max-width: 1000px) {
+	#file_explorer,
+	#playlist_panel {
 		margin: 0 5px;
 	}
-
-	.file-panel .config-col {
-		width: calc( 50% - 70px );
+	.controls-left {
+		margin-left: 30px;
+	}
+	.controls-right {
+		margin-right: 5px;
+	}
+	.file-panel:not(.local) {
+		grid-template-columns: 1fr 110px 1fr;
+	}
+	.file-panel.local .button-column {
+		margin: 0 10px;
 	}
 }
