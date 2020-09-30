@@ -1351,31 +1351,39 @@ function consoleLog( msg, error, clear ) {
  */
 function setSource() {
 
+	// set global variable
 	isMicSource = elSource.checked;
 
 	if ( isMicSource ) {
-		if ( typeof sourceMic == 'object' ) {
+		if ( ! sourceMic ) {
+			// if sourceMic is not set yet, try to get access to user's microphone
+			if ( navigator.mediaDevices ) {
+				navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
+				.then( stream => {
+					sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
+					setSource(); // recursive call, sourceMic should now be set
+				})
+				.catch( err => {
+					consoleLog( `Could not change audio source - ${err}`, true );
+					elSource.checked = isMicSource = false;
+				});
+			}
+			else {
+				consoleLog( 'Cannot access user microphone', true );
+				elSource.checked = isMicSource = false;
+			}
+		}
+		else {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
-			audioMotion.analyzer.disconnect( audioMotion.audioCtx.destination ); // avoid feedback loop
+			// disconnect analyzer output from speakers to avoid feedback loop
+			audioMotion.analyzer.disconnect( audioMotion.audioCtx.destination );
 			sourceMic.connect( audioMotion.analyzer );
 			consoleLog( 'Audio source set to microphone' );
 		}
-		else { // if sourceMic is not set yet, ask user's permission to use the microphone
-			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
-			.then( stream => {
-				sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
-				setSource(); // recursive call, sourceMic should now be an object
-			})
-			.catch( err => {
-				consoleLog( `Could not change audio source - ${err}`, true );
-				// revert source and UI control to built-in player
-				elSource.checked = isMicSource = false;
-			});
-		}
 	}
 	else {
-		if ( typeof sourceMic == 'object' ) {
+		if ( sourceMic ) {
 			sourceMic.disconnect( audioMotion.analyzer );
 			audioMotion.analyzer.connect( audioMotion.audioCtx.destination );
 		}
