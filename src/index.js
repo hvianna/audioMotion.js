@@ -1925,9 +1925,8 @@ function setUIEventListeners() {
 	// toggle console
 	const elToggleConsole = $('#toggle_console');
 	elToggleConsole.addEventListener( 'click', () => {
-		elToggleConsole.classList.toggle('active');
+		$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle('active') );
 		elToggleConsole.classList.remove('warning');
-		$('#console').style.display = elToggleConsole.classList.contains('active') ? 'block' : '';
 		consoleLog(); // update scroll only
 	});
 	$('#console-close').addEventListener( 'click', () => elToggleConsole.click() );

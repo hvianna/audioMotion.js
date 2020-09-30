@@ -643,9 +643,8 @@ kbd.wide {
 
 #console {
 	background: #1c231a;
-	bottom: 0;
+	bottom: -250px;
 	color: #0b0;
-	display: none;
 	font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 	font-size: 13px;
 	height: 250px;
@@ -653,6 +652,10 @@ kbd.wide {
 	line-height: 1.4;
 	position: fixed;
 	right: 0;
+	transition: bottom .5s;
+}
+#console.active {
+	bottom: 0;
 }
 
 #console .error {
@@ -682,7 +685,7 @@ kbd.wide {
 	bottom: 225px;
 	cursor: pointer;
 	padding: 2px 4px;
-	position: fixed;
+	position: absolute;
 }
 #console-clear {
 	right: 70px;
