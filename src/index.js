@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.10-beta.3';
+const _VERSION = '20.10-beta.4';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -1179,15 +1179,17 @@ function displayCanvasMsg() {
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	const canvas    = audioMotion.canvas,
-		  canvasCtx = audioMotion.canvasCtx,
-		  fontSize  = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
-		  centerPos = canvas.width / 2,
-		  topLine   = fontSize * 1.4;
+	const canvas     = audioMotion.canvas,
+		  canvasCtx  = audioMotion.canvasCtx,
+		  fontSize   = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
+		  centerPos  = canvas.width / 2,
+		  topLine    = fontSize * 1.4,
+		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
+		  largeFont  = `bold ${fontSize}px sans-serif`;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
-	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
+	canvasCtx.font = normalFont;
 	canvasCtx.textAlign = 'center';
 
 	canvasCtx.fillStyle = '#fff';
@@ -1228,41 +1230,48 @@ function displayCanvasMsg() {
 			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, secondLine, maxWidthTop );
 		}
 
-		// codec and quality
-		canvasCtx.textAlign = 'right';
-		outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
-		outlineText( audioElement[ currAudio ].dataset.quality, rightPos, bottomLine1 + fontSize );
-
-		// artist name
-		canvasCtx.textAlign = 'left';
-		outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
-
-		// album title
-		canvasCtx.font = 'bold italic ' + ( fontSize * .7 ) + 'px sans-serif';
-		outlineText( audioElement[ currAudio ].dataset.album, leftPos, bottomLine3, maxWidth );
-
-		// song title
-		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
-		outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
-
-		// time
-		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
-			if ( ! audioElement[ currAudio ].dataset.duration ) {
-				audioElement[ currAudio ].dataset.duration =
-					audioElement[ currAudio ].duration === Infinity ? 'LIVE' : formatHHMMSS( audioElement[ currAudio ].duration );
-
-				if ( playlist.children[ playlistPos ] )
-					playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
-			}
-			canvasCtx.textAlign = 'right';
-
-			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+		if ( isMicSource ) {
+			canvasCtx.textAlign = 'left';
+			canvasCtx.font = largeFont;
+			outlineText( 'Microphone audio', leftPos, bottomLine2, maxWidth );
 		}
+		else {
+			// codec and quality
+			canvasCtx.textAlign = 'right';
+			outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
+			outlineText( audioElement[ currAudio ].dataset.quality, rightPos, bottomLine1 + fontSize );
 
-		// cover image
-		if ( coverImage[ currAudio ].width ) {
-			const coverSize = fontSize * 3;
-			canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+			// artist name
+			canvasCtx.textAlign = 'left';
+			outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+
+			// album title
+			canvasCtx.font = `italic ${normalFont}`;
+			outlineText( audioElement[ currAudio ].dataset.album, leftPos, bottomLine3, maxWidth );
+
+			// song title
+			canvasCtx.font = largeFont;
+			outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
+
+			// time
+			if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
+				if ( ! audioElement[ currAudio ].dataset.duration ) {
+					audioElement[ currAudio ].dataset.duration =
+						audioElement[ currAudio ].duration === Infinity ? 'LIVE' : formatHHMMSS( audioElement[ currAudio ].duration );
+
+					if ( playlist.children[ playlistPos ] )
+						playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
+				}
+				canvasCtx.textAlign = 'right';
+
+				outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+			}
+
+			// cover image
+			if ( coverImage[ currAudio ].width ) {
+				const coverSize = fontSize * 3;
+				canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+			}
 		}
 
 		if ( --canvasMsg.timer < 1 )
