@@ -1328,13 +1328,11 @@ function consoleLog( msg, error, clear ) {
 	if ( clear )
 		content.innerHTML = '';
 
-	if ( error ) {
-		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
+	if ( error )
 		$('#toggle_console').classList.add('warning');
-	}
 
 	if ( msg )
-		content.innerHTML += `${ time } ${msg}<br>`;
+		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } ${msg}</div>`;
 
 	content.scrollTop = content.scrollHeight;
 }
