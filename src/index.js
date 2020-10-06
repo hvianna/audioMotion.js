@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.10-beta.4';
+const _VERSION = '20.10-beta.5';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -40,6 +40,10 @@ import './styles.css';
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
+
+// helper functions
+const getText = ( el ) => el[ el.selectedIndex ].text;
+const onOff = ( el ) => el.dataset.active == '1' ? 'ON' : 'OFF';
 
 // UI HTML elements
 const elFFTsize     = $('#fft_size'),
@@ -1219,15 +1223,15 @@ function displayCanvasMsg() {
 			const secondLine = topLine * 1.8;
 
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, secondLine );
+			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, secondLine );
 
 			canvasCtx.textAlign = 'left';
-			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
-			outlineText( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text, leftPos, secondLine, maxWidthTop );
+			outlineText( getText( elMode ), leftPos, topLine, maxWidthTop );
+			outlineText( `Random mode: ${ getText( elRandomMode ) }`, leftPos, secondLine, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
-			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, secondLine, maxWidthTop );
+			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
+			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, secondLine, maxWidthTop );
 		}
 
 		if ( isMicSource ) {
@@ -1319,7 +1323,7 @@ function showCanvasInfo( reason, instance ) {
 			msg = 'Fullscreen changed';
 			break;
 		case 'resize':
-			msg = 'Container resized';
+			msg = 'Window resized';
 			break;
 	}
 
@@ -1506,7 +1510,7 @@ function loadPreset( name, alert, init ) {
 		selectRandomMode( true );
 
 	if ( alert )
-		notie.alert({ text: 'Preset loaded!' });
+		notie.alert({ text: 'Settings loaded!' });
 }
 
 /**
@@ -1571,10 +1575,6 @@ function keyboardControls( event ) {
 
 	if ( event.target.tagName != 'BODY' )
 		return;
-
-	// helper functions
-	const getText = ( el ) => el[ el.selectedIndex ].text;
-	const onOff = ( el ) => el.dataset.active == '1' ? 'ON' : 'OFF';
 
 	switch ( event.code ) {
 		case 'Delete': 		// delete selected songs from the playlist
@@ -1984,7 +1984,11 @@ function setUIEventListeners() {
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
 
 	// action buttons
-	$('#load_preset').addEventListener( 'click', () => loadPreset( $('#preset').value, true ) );
+	$('#load_preset').addEventListener( 'click', () => {
+		const elPreset = $('#preset');
+		consoleLog( `Loading preset '${ getText( elPreset ) }'` );
+		loadPreset( elPreset.value, true );
+	});
 	$('#btn_save').addEventListener( 'click', updateCustomPreset );
 	$('#btn_prev').addEventListener( 'click', playPreviousSong );
 	$('#btn_play').addEventListener( 'click', () => playPause() );
@@ -2113,9 +2117,10 @@ function doConfigPanel() {
  */
 function loadPreferences() {
 	// Load last used settings
-	const lastConfig = localStorage.getItem( 'last-config' );
+	const lastConfig    = localStorage.getItem( 'last-config' ),
+		  isLastSession = ( lastConfig !== null );
 
-	if ( lastConfig !== null )
+	if ( isLastSession )
 		presets['last'] = JSON.parse( lastConfig );
 	else // if no data found from last session, use the defaults
 		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
@@ -2165,10 +2170,13 @@ function loadPreferences() {
 		sensitivityPresets = sensitivityDefaults;
 	else
 		sensitivityPresets = JSON.parse( sensitivityPresets );
+
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
 		elMaxSens[ index ].value = preset.max;
 	});
+
+	return isLastSession;
 }
 
 /**
@@ -2220,13 +2228,13 @@ function populateSelect( element, options ) {
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
-	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
+	consoleLog( `audioMotion.js v${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	$('#version').innerText = _VERSION;
 
 	// Load preferences from localStorage
-	loadPreferences();
+	const isLastSession = loadPreferences();
 
 	// Initialize play queue and set event listeners
 	playlist = $('#playlist');
@@ -2389,6 +2397,7 @@ function populateSelect( element, options ) {
 	populateGradients();
 
 	// Load last used settings
+	consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 	loadPreset( 'last', false, true );
 
 	// Set audio source to built-in player
