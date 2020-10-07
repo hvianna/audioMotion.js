@@ -367,6 +367,7 @@ div.value {
 }
 
 .player-panel {
+	grid-template-columns: 1fr minmax(350px,1fr) 1fr;
 	margin: 15px auto 5px;
 	max-width: 1400px;
 }
@@ -682,10 +683,14 @@ kbd.wide {
 
 #console-clear,
 #console-close {
-	bottom: 225px;
+	background: #1c231a;
+	border: 1px solid;
+	bottom: 220px;
 	cursor: pointer;
-	padding: 2px 4px;
+	font-size: 12px;
+	padding: 2px 6px;
 	position: absolute;
+	text-transform: uppercase;
 }
 #console-clear {
 	right: 70px;
