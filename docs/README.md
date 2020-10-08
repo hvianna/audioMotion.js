@@ -32,8 +32,8 @@ has_toc: false
 ## Building audioMotion
 
 - [Building the web app](building.md#building-the-web-app)
-- [Building binaries](building.md#building-binaries)
+- [Creating binaries](building.md#creating-binaries)
 
 ## Legacy features
 
-- [Legacy playlists file](legacy.md)
+- [Legacy `playlists.cfg` file](legacy.md)

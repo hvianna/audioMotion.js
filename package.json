@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node ./src/server.js",
     "build": "webpack",
-    "pkg": "pkg . --out-path ./bin/"
+    "pack": "pkg . --out-path ./bin/"
   },
   "bin": "src/server.js",
   "pkg": {

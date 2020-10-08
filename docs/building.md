@@ -12,7 +12,8 @@ These steps require [node.js](https://nodejs.org) installed in your computer.
 
 ## Building the web app
 
-The source code is read from [src/](../src) and bundled with [webpack](https://webpack.js.org/) to generate the files `audioMotion.js` and `styles.css` into the [public/](../public) folder.
+The source code is read from the [src/](../src) directory and bundled with [webpack](https://webpack.js.org/) to generate the files `audioMotion.js` and `styles.css`
+into the [public/](../public) folder.
 
 Install the required npm packages:
 
@@ -27,14 +28,20 @@ npm run build
 ```
 
 
-## Building binaries
+## Creating binaries
 
-The provided binaries are compiled with [pkg](https://www.npmjs.com/package/pkg) and include both the server and the web app in a single, self-contained executable file.
+audioMotion binaries use [pkg](https://www.npmjs.com/package/pkg) to package both the server and the web app files into a single, self-contained executable.
 
-If you want to build your own binaries, first install pkg:
+To generate your own binaries, first install **pkg** globally:
 
 ```
 npm install -g pkg
 ```
 
-After that, `npm run pkg` will build binaries for the standard targets: Windows, Linux and macOS. Please refer to pkg documentation for building to other available platforms.
+Then package the application with:
+
+```
+npm run pack
+```
+
+This will create executable files for Windows, Linux and macOS in the `bin/` folder. Please refer to the pkg documentation for building to other available platforms.
