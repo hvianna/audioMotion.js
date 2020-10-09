@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-alpha';
+const _VERSION = '20.11-alpha.1';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -85,7 +85,7 @@ let audioMotion;
 let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-let audioElement, sourcePlayer, sourceMic, isMicSource;
+let audioElement, micStream, isMicSource;
 
 // on-screen messages
 let canvasMsg;
@@ -1366,13 +1366,13 @@ function setSource() {
 	isMicSource = elSource.checked;
 
 	if ( isMicSource ) {
-		if ( ! sourceMic ) {
-			// if sourceMic is not set yet, try to get access to user's microphone
+		if ( ! micStream ) {
+			// if micStream is not set yet, try to get access to user's microphone
 			if ( navigator.mediaDevices ) {
 				navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
 				.then( stream => {
-					sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
-					setSource(); // recursive call, sourceMic should now be set
+					micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
+					setSource(); // recursive call, micStream should now be set
 				})
 				.catch( err => {
 					consoleLog( `Could not change audio source - ${err}`, true );
@@ -1391,13 +1391,13 @@ function setSource() {
 //			audioMotion.output.disconnect( audioMotion.audioCtx.destination );
 			// mute the output, as disconnecting it is preventing the analyzer from working on Chromium (??)
 			audioMotion.output.gain.setValueAtTime( 0, audioMotion.audioCtx.currentTime );
-			sourceMic.connect( audioMotion.input );
+			micStream.connect( audioMotion.input );
 			consoleLog( 'Audio source set to microphone' );
 		}
 	}
 	else {
-		if ( sourceMic ) {
-			sourceMic.disconnect( audioMotion.input );
+		if ( micStream ) {
+			micStream.disconnect( audioMotion.input );
 //			audioMotion.output.connect( audioMotion.audioCtx.destination );
 			audioMotion.output.gain.setValueAtTime( 1, audioMotion.audioCtx.currentTime );
 		}
@@ -2247,7 +2247,6 @@ function populateSelect( element, options ) {
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
 	consoleLog( `audioMotion.js v${_VERSION} initializing...` );
-	consoleLog( `Using audioMotion-analyzer package version ${ AudioMotionAnalyzer.version }` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	$('#version').innerText = _VERSION;
@@ -2286,22 +2285,18 @@ function populateSelect( element, options ) {
 
 	// Create audioMotion analyzer
 
-	audioMotion = new AudioMotionAnalyzer(
-		$('#analyzer'),
-		{
-			onCanvasDraw: displayCanvasMsg,
-			onCanvasResize: showCanvasInfo
-		}
-	);
+	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
+
+	audioMotion = new AudioMotionAnalyzer( $('#analyzer'), {
+		onCanvasDraw: displayCanvasMsg,
+		onCanvasResize: showCanvasInfo
+	});
 
 	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
-	// Create audio elements
+	// Initialize and connect audio elements
 
-	audioElement = [
-		$('#player0'),
-		$('#player1')
-	];
+	audioElement = [ $('#player0'),	$('#player1') ];
 
 	currAudio = 0;
 	nextAudio = 1;
@@ -2309,16 +2304,13 @@ function populateSelect( element, options ) {
 	audioElement[0].style.display = 'block';
 	audioElement[1].style.display = 'none';
 
-	sourcePlayer = [];
-
 	for ( const i of [0,1] ) {
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-		sourcePlayer.push( audioMotion.audioCtx.createMediaElementSource( audioElement[ i ] ) );
-		sourcePlayer[ i ].connect( audioMotion.input );
+		audioMotion.connectAudio( audioElement[ i ] );
 	}
 
 	// Setup configuration panel
