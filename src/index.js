@@ -22,9 +22,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.10-beta.6';
+const _VERSION = '20.11-alpha';
 
-import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
@@ -75,7 +75,8 @@ const elFFTsize     = $('#fft_size'),
 	  elBgImageDim  = $('#bg_img_dim'),
 	  elBgImageFit  = $('#bg_img_fit'),
 	  elRadial      = $('#radial'),
-	  elSpin		= $('#spin');
+	  elSpin		= $('#spin'),
+	  elStereo      = $('#stereo');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -134,7 +135,8 @@ const presets = {
 		bgImageDim  : 0.3,
 		bgImageFit  : 1, 	// center
 		radial      : 0,
-		spin        : 2
+		spin        : 2,
+		stereo      : 0
 	},
 
 	fullres: {
@@ -281,7 +283,8 @@ const randomProperties = [
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
 	{ value: 'radial', text: 'Radial',       disabled: false },
-	{ value: 'spin',   text: 'Spin',         disabled: false }
+	{ value: 'spin',   text: 'Spin',         disabled: false },
+	{ value: 'stereo', text: 'Stereo',       disabled: false }
 ];
 
 // Sensitivity presets
@@ -427,6 +430,10 @@ function setProperty( elems, save ) {
 
 			case elScaleY:
 				audioMotion.showScaleY = ( elScaleY.dataset.active == '1' );
+				break;
+
+			case elStereo:
+				audioMotion.stereo = ( elStereo.dataset.active == '1' );
 				break;
 
 			case elSensitivity:
@@ -1381,15 +1388,18 @@ function setSource() {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
 			// disconnect analyzer output from speakers to avoid feedback loop
-			audioMotion.analyzer.disconnect( audioMotion.audioCtx.destination );
-			sourceMic.connect( audioMotion.analyzer );
+//			audioMotion.output.disconnect( audioMotion.audioCtx.destination );
+			// mute the output, as disconnecting it is preventing the analyzer from working on Chromium (??)
+			audioMotion.output.gain.setValueAtTime( 0, audioMotion.audioCtx.currentTime );
+			sourceMic.connect( audioMotion.input );
 			consoleLog( 'Audio source set to microphone' );
 		}
 	}
 	else {
 		if ( sourceMic ) {
-			sourceMic.disconnect( audioMotion.analyzer );
-			audioMotion.analyzer.connect( audioMotion.audioCtx.destination );
+			sourceMic.disconnect( audioMotion.input );
+//			audioMotion.output.connect( audioMotion.audioCtx.destination );
+			audioMotion.output.gain.setValueAtTime( 1, audioMotion.audioCtx.currentTime );
 		}
 		consoleLog( 'Audio source set to built-in player' );
 	}
@@ -1493,7 +1503,8 @@ function loadPreset( name, alert, init ) {
 		showScale  : elScaleX.dataset.active == '1',
 		showScaleY : elScaleY.dataset.active == '1',
 		radial     : elRadial.dataset.active == '1',
-		spinSpeed  : elSpin.value
+		spinSpeed  : elSpin.value,
+		stereo     : elStereo.dataset.active == '1'
 	} );
 
 	// settings that make additional changes are set by the setProperty() function
@@ -1546,7 +1557,8 @@ function saveConfig( config ) {
 		noShadow    : elNoShadow.dataset.active,
 		loRes       : elLoRes.dataset.active,
 		showFPS     : elFPS.dataset.active,
-		radial      : elRadial.dataset.active
+		radial      : elRadial.dataset.active,
+		stereo      : elStereo.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1824,6 +1836,11 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elSpin );
 	}
 
+	if ( isEnabled('stereo') ) {
+		elStereo.dataset.active = randomInt();
+		props.push( elStereo );
+	}
+
 	if ( elCycleGrad.dataset.active == '1' ) {
 		elGradient.selectedIndex = randomInt( elGradient.options.length );
 		props.push( elGradient );
@@ -1952,7 +1969,8 @@ function setUIEventListeners() {
 	  elFPS,
   	  elScaleX,
 	  elScaleY,
-	  elRadial ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
+	  elRadial,
+	  elStereo ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
 
 	[ elCycleGrad,
 	  elRepeat,
@@ -2229,6 +2247,7 @@ function populateSelect( element, options ) {
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
 	consoleLog( `audioMotion.js v${_VERSION} initializing...` );
+	consoleLog( `Using audioMotion-analyzer package version ${ AudioMotionAnalyzer.version }` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
 	$('#version').innerText = _VERSION;
@@ -2299,7 +2318,7 @@ function populateSelect( element, options ) {
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
 		sourcePlayer.push( audioMotion.audioCtx.createMediaElementSource( audioElement[ i ] ) );
-		sourcePlayer[ i ].connect( audioMotion.analyzer );
+		sourcePlayer[ i ].connect( audioMotion.input );
 	}
 
 	// Setup configuration panel
