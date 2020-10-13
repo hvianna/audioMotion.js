@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-alpha.1';
+const _VERSION = '20.11-alpha.2';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -76,7 +76,8 @@ const elFFTsize     = $('#fft_size'),
 	  elBgImageFit  = $('#bg_img_fit'),
 	  elRadial      = $('#radial'),
 	  elSpin		= $('#spin'),
-	  elStereo      = $('#stereo');
+	  elStereo      = $('#stereo'),
+	  elSplitGrad   = $('#split_grad');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -136,7 +137,8 @@ const presets = {
 		bgImageFit  : 1, 	// center
 		radial      : 0,
 		spin        : 2,
-		stereo      : 0
+		stereo      : 0,
+		splitGrad   : 1
 	},
 
 	fullres: {
@@ -284,7 +286,8 @@ const randomProperties = [
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
 	{ value: 'radial', text: 'Radial',       disabled: false },
 	{ value: 'spin',   text: 'Spin',         disabled: false },
-	{ value: 'stereo', text: 'Stereo',       disabled: false }
+	{ value: 'stereo', text: 'Stereo',       disabled: false },
+	{ value: 'split',  text: 'Split',        disabled: false }
 ];
 
 // Sensitivity presets
@@ -432,10 +435,6 @@ function setProperty( elems, save ) {
 				audioMotion.showScaleY = ( elScaleY.dataset.active == '1' );
 				break;
 
-			case elStereo:
-				audioMotion.stereo = ( elStereo.dataset.active == '1' );
-				break;
-
 			case elSensitivity:
 				const sensitivity = elSensitivity.value;
 				audioMotion.setSensitivity(
@@ -460,6 +459,15 @@ function setProperty( elems, save ) {
 			case elSpin:
 				audioMotion.spinSpeed = elSpin.value;
 				break;
+
+			case elSplitGrad:
+				audioMotion.splitGradient = ( elSplitGrad.dataset.active == '1' );
+				break;
+
+			case elStereo:
+				audioMotion.stereo = ( elStereo.dataset.active == '1' );
+				break;
+
 		} // switch
 	} // for
 
@@ -1558,7 +1566,8 @@ function saveConfig( config ) {
 		loRes       : elLoRes.dataset.active,
 		showFPS     : elFPS.dataset.active,
 		radial      : elRadial.dataset.active,
-		stereo      : elStereo.dataset.active
+		stereo      : elStereo.dataset.active,
+		splitGrad   : elSplitGrad.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1836,6 +1845,11 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elSpin );
 	}
 
+	if ( isEnabled('split') ) {
+		elSplitGrad.dataset.active = randomInt();
+		props.push( elSplitGrad );
+	}
+
 	if ( isEnabled('stereo') ) {
 		elStereo.dataset.active = randomInt();
 		props.push( elStereo );
@@ -1970,7 +1984,8 @@ function setUIEventListeners() {
   	  elScaleX,
 	  elScaleY,
 	  elRadial,
-	  elStereo ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
+	  elStereo,
+	  elSplitGrad ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
 
 	[ elCycleGrad,
 	  elRepeat,
