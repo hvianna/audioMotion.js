@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-alpha.3';
+const _VERSION = '20.11-alpha.4';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -328,7 +328,7 @@ function setProperty( elems, save ) {
 				break;
 
 			case elBarSpace:
-				audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
+				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : elBarSpace.value;
 				break;
 
 			case elFFTsize:
@@ -367,7 +367,7 @@ function setProperty( elems, save ) {
 
 			case elLumiBars:
 				audioMotion.lumiBars = isSwitchOn( elLumiBars );
-				setProperty( [ elBarSpace, elReflex ] );
+				setProperty( elBarSpace );
 				break;
 
 			case elMode:
@@ -389,10 +389,12 @@ function setProperty( elems, save ) {
 						audioMotion.fillAlpha = elFillAlpha.value;
 					}
 				}
+				setProperty( elBarSpace );
 				break;
 
 			case elRadial:
 				audioMotion.radial = isSwitchOn( elRadial );
+				setProperty( elBarSpace );
 				break;
 
 			case elRandomMode:
@@ -1856,8 +1858,8 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elGradient );
 	}
 
-	// add properties that depend on other settings
-	props.push( elBackground, elBarSpace, elReflex, elMode );
+	// add properties that depend on other settings (mode also sets barspace)
+	props.push( elBackground, elReflex, elMode );
 
 	// effectively set the affected properties
 	setProperty( props, true );
