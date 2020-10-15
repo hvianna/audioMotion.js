@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-alpha.2';
+const _VERSION = '20.11-alpha.3';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -40,10 +40,6 @@ import './styles.css';
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
-
-// helper functions
-const getText = ( el ) => el[ el.selectedIndex ].text;
-const onOff = ( el ) => el.dataset.active == '1' ? 'ON' : 'OFF';
 
 // UI HTML elements
 const elFFTsize     = $('#fft_size'),
@@ -358,7 +354,7 @@ function setProperty( elems, save ) {
 				break;
 
 			case elLedDisplay:
-				audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
+				audioMotion.showLeds = isSwitchOn( elLedDisplay );
 				break;
 
 			case elLineWidth:
@@ -366,11 +362,11 @@ function setProperty( elems, save ) {
 				break;
 
 			case elLoRes:
-				audioMotion.loRes = ( elLoRes.dataset.active == '1' );
+				audioMotion.loRes = isSwitchOn( elLoRes );
 				break;
 
 			case elLumiBars:
-				audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
+				audioMotion.lumiBars = isSwitchOn( elLumiBars );
 				setProperty( [ elBarSpace, elReflex ] );
 				break;
 
@@ -396,7 +392,7 @@ function setProperty( elems, save ) {
 				break;
 
 			case elRadial:
-				audioMotion.radial = ( elRadial.dataset.active == '1' );
+				audioMotion.radial = isSwitchOn( elRadial );
 				break;
 
 			case elRandomMode:
@@ -428,11 +424,11 @@ function setProperty( elems, save ) {
 				break;
 
 			case elScaleX:
-				audioMotion.showScale = ( elScaleX.dataset.active == '1' );
+				audioMotion.showScale = isSwitchOn( elScaleX );
 				break;
 
 			case elScaleY:
-				audioMotion.showScaleY = ( elScaleY.dataset.active == '1' );
+				audioMotion.showScaleY = isSwitchOn( elScaleY );
 				break;
 
 			case elSensitivity:
@@ -444,11 +440,11 @@ function setProperty( elems, save ) {
 				break;
 
 			case elFPS:
-				audioMotion.showFPS = ( elFPS.dataset.active == '1' );
+				audioMotion.showFPS = isSwitchOn( elFPS );
 				break;
 
 			case elShowPeaks:
-				audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
+				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
 				break;
 
 			case elSmoothing:
@@ -461,11 +457,11 @@ function setProperty( elems, save ) {
 				break;
 
 			case elSplitGrad:
-				audioMotion.splitGradient = ( elSplitGrad.dataset.active == '1' );
+				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
 				break;
 
 			case elStereo:
-				audioMotion.stereo = ( elStereo.dataset.active == '1' );
+				audioMotion.stereo = isSwitchOn( elStereo );
 				break;
 
 		} // switch
@@ -1083,7 +1079,7 @@ function playNextSong( play ) {
 
 	if ( playlistPos < playlist.children.length - 1 )
 		playlistPos++;
-	else if ( elRepeat.dataset.active == '1' )
+	else if ( isSwitchOn( elRepeat ) )
 		playlistPos = 0;
 	else {
 		setCanvasMsg( 'Already at last song' );
@@ -1133,7 +1129,7 @@ function isPlaying() {
  */
 function outlineText( text, x, y, maxWidth ) {
 	const canvasCtx = audioMotion.canvasCtx;
-	if ( elNoShadow.dataset.active == '1') {
+	if ( isSwitchOn( elNoShadow ) ) {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
 	}
@@ -1503,16 +1499,16 @@ function loadPreset( name, alert, init ) {
 		minFreq    : elRangeMin.value,
 		maxFreq    : elRangeMax.value,
 		smoothing  : elSmoothing.value,
-		showPeaks  : elShowPeaks.dataset.active == '1',
-		showLeds   : elLedDisplay.dataset.active == '1',
-		lumiBars   : elLumiBars.dataset.active == '1',
-		loRes      : elLoRes.dataset.active == '1',
-		showFPS    : elFPS.dataset.active == '1',
-		showScale  : elScaleX.dataset.active == '1',
-		showScaleY : elScaleY.dataset.active == '1',
-		radial     : elRadial.dataset.active == '1',
+		showPeaks  : isSwitchOn( elShowPeaks ),
+		showLeds   : isSwitchOn( elLedDisplay ),
+		lumiBars   : isSwitchOn( elLumiBars ),
+		loRes      : isSwitchOn( elLoRes ),
+		showFPS    : isSwitchOn( elFPS ),
+		showScale  : isSwitchOn( elScaleX ),
+		showScaleY : isSwitchOn( elScaleY ),
+		radial     : isSwitchOn( elRadial ),
 		spinSpeed  : elSpin.value,
-		stereo     : elStereo.dataset.active == '1'
+		stereo     : isSwitchOn( elStereo )
 	} );
 
 	// settings that make additional changes are set by the setProperty() function
@@ -1634,9 +1630,9 @@ function keyboardControls( event ) {
 			playNextSong();
 			break;
 		case 'KeyA': 		// cycle thru auto gradient / random mode options
-			if ( elCycleGrad.dataset.active == '1' || event.shiftKey ) {
+			if ( isSwitchOn( elCycleGrad ) || event.shiftKey ) {
 				if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! event.shiftKey ) ||
-				     ( elRandomMode.selectedIndex == 0 && elCycleGrad.dataset.active == '1' && event.shiftKey ) ) {
+				     ( elRandomMode.selectedIndex == 0 && isSwitchOn( elCycleGrad ) && event.shiftKey ) ) {
 					elCycleGrad.dataset.active = '0';
 					elRandomMode.value = '0';
 					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
@@ -1697,7 +1693,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyO': 		// toggle resolution
 			elLoRes.click();
-			setCanvasMsg( ( elLoRes.dataset.active == '1' ? 'LOW' : 'HIGH' ) + ' Resolution' );
+			setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
 			break;
 		case 'KeyP': 		// toggle peaks display
 			elShowPeaks.click();
@@ -1712,7 +1708,7 @@ function keyboardControls( event ) {
 			break;
 		case 'KeyT': 		// toggle text shadow
 			elNoShadow.click();
-			setCanvasMsg( ( elNoShadow.dataset.active == '1' ? 'Flat' : 'Shadowed' ) + ' text mode' );
+			setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
 			break;
 		case 'KeyU': 		// toggle lumi bars
 			elLumiBars.click();
@@ -1738,13 +1734,13 @@ function audioOnPlay() {
 	if ( audioElement[ currAudio ].currentTime < .1 ) {
 		if ( elRandomMode.value == '1' )
 			selectRandomMode( true );
-		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' )
+		else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
 			cycleElement( elGradient );
 	}
 
 	setCurrentCover();
 
-	if ( elShowSong.dataset.active == '1' )
+	if ( isSwitchOn( elShowSong ) )
 		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
 }
 
@@ -1811,7 +1807,7 @@ function selectRandomMode( force = isMicSource ) {
 
 	if ( isEnabled('lumi') ) {
 		// always disable lumi when leds are active and background is set to image
-		elLumiBars.dataset.active = elBackground.value > 1 && elLedDisplay.dataset.active == '1' ? 0 : randomInt();
+		elLumiBars.dataset.active = elBackground.value > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
 		props.push( elLumiBars );
 	}
 
@@ -1855,7 +1851,7 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elStereo );
 	}
 
-	if ( elCycleGrad.dataset.active == '1' ) {
+	if ( isSwitchOn( elCycleGrad ) ) {
 		elGradient.selectedIndex = randomInt( elGradient.options.length );
 		props.push( elGradient );
 	}
@@ -2251,6 +2247,21 @@ function savePreferences( pref ) {
 function populateSelect( element, options ) {
 	for ( const item of options )
 		element[ element.options.length ] = new Option( item.text, item.value );
+}
+
+/**
+ * Helper functions
+ */
+function getText( el ) {
+	return el[ el.selectedIndex ].text;
+}
+
+function onOff( el ) {
+	return isSwitchOn( el ) ? 'ON' : 'OFF';
+}
+
+function isSwitchOn( el ) {
+	return el.dataset.active == '1';
 }
 
 /**
