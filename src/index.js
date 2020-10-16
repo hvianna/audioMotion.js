@@ -2455,10 +2455,15 @@ function isSwitchOn( el ) {
 			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {
+		const btnAddSelected = $('#btn_add_selected'),
+			  btnAddFolder   = $('#btn_add_folder');
+
 		serverMode = status;
+
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
-			$('#files_panel').classList.add('local');
+			btnAddSelected.disabled = true;
+			btnAddFolder.disabled = true;
 		}
 		else {
 			consoleLog( `${serversignature} detected` );
@@ -2484,10 +2489,11 @@ function isSwitchOn( el ) {
 					}
 				}
 			});
+
+			btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
+			btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 		}
 
-		$('#btn_add_selected').addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
-		$('#btn_add_folder').addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 	});
 
 	// Add event listener for keyboard controls

@@ -325,10 +325,6 @@ table {
 	max-width: 1400px;
 	padding: 20px 0;
 }
-.file-panel.local {
-	grid-template-columns: 400px minmax(auto, 625px);
-	justify-content: space-between;
-}
 
 .button-column {
 	display: flex;
@@ -342,14 +338,7 @@ table {
 	padding: 12px;
 	width: 100%;
 }
-.file-panel.local .button-column {
-	justify-content: start;
-	margin: 0 25px;
-}
 
-.file-panel.local #file_explorer,
-.file-panel.local #btn_add_selected,
-.file-panel.local #btn_add_folder,
 #local_file {
 	display: none;
 }
@@ -897,10 +886,7 @@ audio::-webkit-media-controls-time-remaining-display {
 	.controls-right {
 		margin-right: 5px;
 	}
-	.file-panel:not(.local) {
+	.file-panel {
 		grid-template-columns: 1fr 110px 1fr;
-	}
-	.file-panel.local .button-column {
-		margin: 0 10px;
 	}
 }
