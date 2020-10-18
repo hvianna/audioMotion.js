@@ -1497,20 +1497,21 @@ function loadPreset( name, alert, init ) {
 	}
 
 	audioMotion.setOptions( {
-		fftSize    : elFFTsize.value,
-		minFreq    : elRangeMin.value,
-		maxFreq    : elRangeMax.value,
-		smoothing  : elSmoothing.value,
-		showPeaks  : isSwitchOn( elShowPeaks ),
-		showLeds   : isSwitchOn( elLedDisplay ),
-		lumiBars   : isSwitchOn( elLumiBars ),
-		loRes      : isSwitchOn( elLoRes ),
-		showFPS    : isSwitchOn( elFPS ),
-		showScale  : isSwitchOn( elScaleX ),
-		showScaleY : isSwitchOn( elScaleY ),
-		radial     : isSwitchOn( elRadial ),
-		spinSpeed  : elSpin.value,
-		stereo     : isSwitchOn( elStereo )
+		fftSize      : elFFTsize.value,
+		minFreq      : elRangeMin.value,
+		maxFreq      : elRangeMax.value,
+		smoothing    : elSmoothing.value,
+		showPeaks    : isSwitchOn( elShowPeaks ),
+		showLeds     : isSwitchOn( elLedDisplay ),
+		lumiBars     : isSwitchOn( elLumiBars ),
+		loRes        : isSwitchOn( elLoRes ),
+		showFPS      : isSwitchOn( elFPS ),
+		showScale    : isSwitchOn( elScaleX ),
+		showScaleY   : isSwitchOn( elScaleY ),
+		radial       : isSwitchOn( elRadial ),
+		spinSpeed    : elSpin.value,
+		stereo       : isSwitchOn( elStereo ),
+		splitGradient: isSwitchOn( elSplitGrad )
 	} );
 
 	// settings that make additional changes are set by the setProperty() function
@@ -2017,8 +2018,10 @@ function setUIEventListeners() {
 	// action buttons
 	$('#load_preset').addEventListener( 'click', () => {
 		const elPreset = $('#preset');
-		consoleLog( `Loading preset '${ getText( elPreset ) }'` );
-		loadPreset( elPreset.value, true );
+		if ( elPreset.value ) {
+			consoleLog( `Loading preset '${ getText( elPreset ) }'` );
+			loadPreset( elPreset.value, true );
+		}
 	});
 	$('#btn_save').addEventListener( 'click', updateCustomPreset );
 	$('#btn_prev').addEventListener( 'click', playPreviousSong );
