@@ -1,10 +1,18 @@
+:root {
+	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
+	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
+	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
+	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
+	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+}
+
 * {
 	box-sizing: border-box;
 	font-size: inherit;
 }
 
 body {
-	background: linear-gradient(to right, #7a7a7a, #ededed, #7a7a7a);
+	background: var(--metal-gradient);
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	font-size: 13px;
 	margin: 0;
@@ -14,39 +22,48 @@ select,
 input[type="text"] {
 	padding: 4px 0;
 }
-input[type="range"] {
-	vertical-align: middle;
-}
 input[type="number"] {
 	padding: 4px;
 }
 
 button,
 .button {
-	background: #e1e1e1;
+	background: #f3f3f3;
 	border: 1px solid #adadad;
+	border-radius: 999px;
 	padding: 6px 16px;
 }
-button:hover,
+button:not([disabled]):hover,
 .button:not([data-active="1"]):hover,
-.round-button:not(.active):hover {
+.thin-button:not(.active):hover {
 	background: #f2ffd3 !important;
 	border: 1px solid #72aa00;
 }
 
 header {
-	margin: 10px auto 15px;
+	margin: 10px auto;
 	max-width: 960px;
+}
+header ul:first-child {
+    justify-self: left;
+}
+header ul:last-child {
+    justify-self: right;
 }
 
 h1 {
 	background-clip: text;
 	background-color: #0008;
 	color: transparent;
-	font: 30px Orbitron;
+	font: 32px Orbitron;
 	margin: 0;
 	text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
 	-webkit-background-clip: text;
+}
+h2 {
+	font-size: 1.4em;
+	margin: 0 0 1em;
+	text-align: left;
 }
 h3 {
 	font-size: 1.2em;
@@ -68,72 +85,44 @@ table {
 	display: inline-block;
 	text-align: center;
 }
-.button.switch[data-active="1"] {
+
+.thin-button {
+	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
+	border: 1px solid #777;
+	border-radius: 10px;
+	box-shadow: 1px 1px 2px #0008;
+	color: #444;
+	display: inline-block;
+	font-size: 10px;
+	margin: 0 5px;
+	position: relative;
+	text-transform: uppercase;
+	width: 80px;
+}
+.thin-button a {
+	color: inherit;
+	display: block;
+	padding: 3px 6px;
+	text-decoration: none;
+}
+.thin-button.active {
 	background: #888;
 	box-shadow: inset 1px 1px 0 #0008;
 	color: #b2ff00;
 	text-shadow: 0 0 5px;
 }
-
-.round-button {
-	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
-	border: 1px solid #777;
-	border-radius: 50%;
-	box-shadow: 1px 1px 2px #0008;
-	color: #444;
-	cursor: pointer;
-	display: inline-block;
-	font-size: 18px;
-	height: 32px;
-	margin: 0 6px;
-	position: relative;
-	width: 32px;
-}
-.round-button a {
-	color: inherit;
-	display: block;
-	text-decoration: none;
-}
-.round-button i {
-	line-height: 1.7;
-}
-.round-button.active {
-	background: #888;
-	box-shadow: inset 1px 1px 0 rgba(0,0,0,.53);
-	color: #b2ff00;
-	text-shadow: 0 0 5px;
-}
-.round-button::after {
-	bottom: -1.5em;
-	color: #222;
-	content: attr(data-text);
-	font-size: 10px;
-	left: 50%;
-	position: absolute;
-	text-shadow: none;
-	transform: translateX(-50%);
-}
-.round-button.warning::before {
+.thin-button.warning::before {
 	background: #c00;
 	border-radius: 50%;
-	color: #fff;
-	content: '!';
+	box-shadow: 0 0 4px #f00;
+	content: ' ';
 	display: block;
-	font-size: 10px;
-	font-weight: bold;
-	height: 6px;
-	line-height: 0.5;
-	margin-left: 15px;
-	padding: 4px;
+	height: 1px;
+	padding: 3px;
 	position: absolute;
-	text-align: center;
-	top: 4px;
-	width: 6px;
-}
-
-.icon-about {
-	font-family: Orbitron;
-	font-style: normal;
+	right: 5px;
+	top: 6px;
+	width: 1px;
 }
 
 .abs-center {
@@ -187,6 +176,10 @@ table {
 	margin: 4px 0;
 	width: 100%;
 }
+.controls input[type="range"] {
+	height: 16px; /* for consistency between Chromium and Gecko */
+	margin-top: 8px;
+}
 
 .player-area {
 	background: inherit;
@@ -230,6 +223,7 @@ table {
 #player0,
 #player1 {
 	display: none;
+	height: 40px; /* for consistency between Chromium and Gecko */
 	width: 100%
 }
 
@@ -309,10 +303,14 @@ table {
 .playqueue-bar {
 	padding: 6px 10px 0;
 }
+.playqueue-bar button {
+	min-width: 100px;
+}
 .playlist-bar button {
 	font-size: 18px;
 	margin-left: 5px;
-	padding: 3px 8px;
+	padding: 4px;
+	width: 45px;
 }
 .playqueue-bar strong {
 	align-self: center;
@@ -333,9 +331,9 @@ table {
 }
 .button-column button,
 .button-column .button {
-	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
+	border-radius: 20px;
 	margin: 10px 0;
-	padding: 12px;
+	padding: 10px;
 	width: 100%;
 }
 
@@ -347,17 +345,13 @@ div.value {
 	float: right;
 }
 
-.fullscreen-button {
-	width: 200px;
-}
-
 .center {
 	text-align: center;
 }
 
 .player-panel {
 	grid-template-columns: 1fr minmax(350px,1fr) 1fr;
-	margin: 15px auto 5px;
+	margin: 5px auto;
 	max-width: 1400px;
 }
 .controls-left {
@@ -369,14 +363,28 @@ div.value {
 	justify-self: end;
 }
 .player-controls .button {
-	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
+	background: var(--glass-gradient);
+	border-radius: 0;
 	display: inline-block;
 	margin: 5px 0;
-	padding: 0 8px;
+	padding: 0 10px;
 	font-size: 30px;
+}
+.player-controls .button:first-child {
+	border-bottom-left-radius: 20px;
+	border-top-left-radius: 20px;
+	padding-left: 15px;
+}
+.player-controls .button:last-child {
+	border-bottom-right-radius: 20px;
+	border-top-right-radius: 20px;
+	padding-right: 15px;
 }
 .player-controls .button:not(:last-child) {
 	border-right-width: 0;
+}
+.player-controls .button:not([data-active="1"]):hover {
+	background: var(--glass-gradient-hover) !important;
 }
 .player-controls .button:not(:last-child):not([data-active="1"]):hover {
 	border-right-width: 1px !important;
@@ -400,33 +408,54 @@ div.value {
 	position: relative;
 }
 .switch-bar .switch {
-	background: linear-gradient(to bottom, #ffffff 0%,#f1f1f1 50%,#e1e1e1 51%,#f6f6f6 100%);
+	background: var(--glass-gradient);
 	border: 1px solid #ccc;
-	border-bottom-width: 0;
 	border-left-width: 0;
 	cursor: pointer;
 	display: inline-block;
 	font-size: 11px;
+	margin-bottom: 2px;
 	padding: 4px;
 	text-align: center;
 	text-transform: uppercase;
 	width: 50%;
 }
-.switch-bar .switch[data-active="1"] {
-	background: linear-gradient(to bottom, #bfd255 0%,#8eb92a 50%,#72aa00 51%,#9ecb2d 100%);
-	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
-	color: #fff;
+.switch-bar .switch:not([data-active="1"]):hover {
+	background: var(--glass-gradient-hover);
+	border-color: #72aa00;
 }
 .switch-bar .switch:nth-child(odd) {
 	border-left-width: 1px;
+	border-bottom-left-radius: 12px;
+	border-top-left-radius: 12px;
 }
 .switch-bar .switch:last-child:nth-child(odd) {
+	border-bottom-right-radius: 12px;
+	border-top-right-radius: 12px;
 	width: 100%;
+}
+.switch-bar .switch:nth-child(even) {
+	border-bottom-right-radius: 12px;
+	border-top-right-radius: 12px;
+}
+.switch-bar .switch:nth-child(even):not([data-active="1"]):hover {
+	border-left-width: 1px;
+	margin-left: -1px;
+	padding-left: 5px;
 }
 .switch-bar .switch:last-child,
 .switch-bar .switch:nth-last-child(2):nth-child(odd) {
 	border-bottom-width: 1px;
 }
+
+.player-controls .button[data-active="1"],
+.switch-bar .switch[data-active="1"] {
+	background: var(--glass-gradient-active);
+	box-shadow: 1px 1px 1px 0 rgba(0,0,0,.3) inset;
+	color: #fff;
+	text-shadow: 0 0 6px;
+}
+
 .config-label + .switch-bar {
 	margin-top: 4px;
 }
@@ -478,8 +507,19 @@ div.value {
 	right: 0;
 }
 
+.shortcuts {
+	width: 600px;
+}
+
 .kbd-table {
 	width: 100%;
+}
+.kbd-table tr:nth-child(even) {
+	background: #f5f5f5;
+}
+.kbd-table td {
+	border: 1px solid #ddd;
+    padding: 4px;
 }
 kbd {
 	background-color: #eee;
@@ -514,7 +554,7 @@ kbd.wide {
 	background: #eee;
 	border-radius: 6px;
 	box-shadow: inset 0 1px 3px #0008;
-	height: 360px;
+	height: 370px;
 	margin: 0 25px;
 }
 
@@ -673,8 +713,9 @@ kbd.wide {
 #console-clear,
 #console-close {
 	background: #1c231a;
-	border: 1px solid;
+	border: 1px solid #0c0;
 	bottom: 220px;
+	color: #0c0;
 	cursor: pointer;
 	font-size: 12px;
 	padding: 2px 6px;
@@ -704,7 +745,7 @@ kbd.wide {
 	color: #090;
 }
 .credits h1 {
-	background: linear-gradient(-45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff);
+	background: var(--audioMotion-gradient);
 	background-clip: text;
 	display: inline;
 	font: 30px Orbitron, sans-serif;
@@ -824,7 +865,8 @@ input.slider:not(:checked) + .slider .slider-off {
 .modal-window > div {
 	background: #fff;
 	left: 50%;
-	max-width: 100%;
+	max-height: 80%;
+	max-width: 90%;
 	overflow: auto;
 	padding: 2em;
 	position: absolute;
@@ -862,6 +904,9 @@ input.slider:not(:checked) + .slider .slider-off {
 @supports selector( audio::-webkit-media-controls-enclosure ) {
 	header {
 		margin-top: 0;
+	}
+	.player-panel {
+		margin: 10px auto;
 	}
 }
 

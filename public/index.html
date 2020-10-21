@@ -52,21 +52,19 @@
 		<audio id="player0" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 		<audio id="player1" controls="controls" preload="auto" crossorigin="anonymous"></audio>
 
-		<header class="grid grid-3-cols center">
+		<header class="grid grid-3-cols align-center center">
 			<ul>
-				<li id="toggle_settings" class="round-button" data-text="Settings">
-					<i class="icons8-vertical-settings-mixer"></i>
-				<li id="toggle_console" class="round-button" data-text="Console">
-					<i class="icons8-console"></i>
+				<li id="toggle_settings" class="thin-button"><a href="#!">Settings</a></li>
+				<li class="thin-button"><a href="#config">Config</a></li>
+				<li id="toggle_console" class="thin-button"><a href="#!">Console</a></li>
 			</ul>
 
 			<h1>audioMotion</h1>
 
 			<ul>
-				<li class="round-button" data-text="Config">
-					<a href="#config"><i class="icons8-gear-outline"></i></a>
-				<li class="round-button" data-text="About">
-					<a href="#about"><i class="icon-about">?</i></a>
+				<li id="btn_fullscreen" class="thin-button"><a href="#!"><u>F</u>ullscreen</a></li>
+				<li class="thin-button"><a href="#shortcuts">Shortcuts</a></li>
+				<li class="thin-button"><a href="#about">About</a></li>
 			</ul>
 		</header>
 
@@ -96,29 +94,6 @@
 			</ul>
 
 			<div class="controls-right">
-				<button id="btn_fullscreen" class="fullscreen-button"><u>F</u>ullscreen Analyzer</button>
-				<br>
-				<span class="config-label help">KEYBOARD SHORTCUTS
-					<span class="tooltip shortcuts">
-						<table class="kbd-table">
-							<tr><td><kbd class="big">&larr;</kbd> / <kbd>J</kbd></td><td>previous song</td></tr>
-							<tr><td><kbd class="big">&rarr;</kbd> / <kbd>K</kbd></td><td>next song</td></tr>
-							<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
-							<tr><td><kbd>&uarr;</kbd> / <kbd>G</kbd></td><td>previous gradient</td></tr>
-							<tr><td><kbd>&darr;</kbd> / <kbd>g</kbd></td><td>next gradient</td></tr>
-							<tr><td><kbd>A</kbd></td><td>auto grad / rand mode</td></tr>
-							<tr><td><kbd>b</kbd> / <kbd>B</kbd></td><td>background / image fit</td></tr>
-							<tr><td><kbd>D</kbd></td><td>display current info</td></tr>
-							<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
-							<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
-							<tr><td><kbd>m</kbd> / <kbd>M</kbd></td><td>next / previous mode</td></tr>
-							<tr><td><kbd>n</kbd> / <kbd>N</kbd></td><td>sensitivity</td></tr>
-							<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
-							<tr><td><kbd>x</kbd> / <kbd>X</kbd></td><td>reflex style</td></tr>
-							<tr><td colspan="2"><br>Underlined letter on labels and switches indicate their keyboard shortcut</td></tr>
-						</table>
-					</span>
-				</span>
 			</div>
 		</div>
 
@@ -193,13 +168,19 @@
 				</ul>
 			</div>
 
-			<div class="rowspan-2">
+			<div>
 				<span class="config-label">Effects</span>
 				<ul class="switch-bar">
 					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 						<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
+				</ul>
+			</div>
+
+			<div>
+				<span class="config-label">&nbsp;</span>
+				<ul class="switch-bar">
 					<li class="switch" id="radial" data-prop="radial">RADIAL
 						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> | <kbd>C</kbd></span>
 				</ul>
@@ -464,6 +445,38 @@
 			</ul>
 		</div>
 	</div> <!-- #about -->
+
+	<div id="shortcuts" class="modal-window">
+		<a href="#!" title="Close" class="modal-close"></a>
+		<div class="shortcuts center">
+			<a href="#!" title="Close" class="modal-close-internal"></a>
+			<h2>Keyboard shortcuts:</h2>
+			<table class="kbd-table">
+				<tr><td><kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd> or <kbd>J</kbd> / <kbd>K</kbd></td><td>previous / next song</td></tr>
+				<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
+				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd> or <kbd>Shift</kbd><kbd>G</kbd> / <kbd>G</kbd></td><td>previous / next gradient</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>cycle through auto gradient and random mode options</td></tr>
+				<tr><td><kbd>B</kbd></td><td>change background</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>B</kbd></td><td>change background image fit</td></tr>
+				<tr><td><kbd>C</kbd></td><td>toggle Radial analyzer</td></tr>
+				<tr><td><kbd>D</kbd></td><td>display current info (press again for more)</td></tr>
+				<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
+				<tr><td><kbd>F</kbd></td><td>toggle fullscreen</td></tr>
+				<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
+				<tr><td><kbd>I</kbd></td><td>toggle song info display on track change</td></tr>
+				<tr><td><kbd>L</kbd></td><td>toggle LEDs effect</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>M</kbd> / <kbd>M</kbd></td><td>previous / next visualization mode</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>N</kbd> / <kbd>N</kbd></td><td>reduce / increase sensitivity</td></tr>
+				<tr><td><kbd>O</kbd></td><td>toggle low-resolution</td></tr>
+				<tr><td><kbd>P</kbd></td><td>toggle peaks display</td></tr>
+				<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>S</kbd> / <kbd>S</kbd></td><td>toggle display of frequency and level scales</td></tr>
+				<tr><td><kbd>T</kbd></td><td>toggle flat (no shadow) text</td></tr>
+				<tr><td><kbd>U</kbd></td><td>toggle luminance bars effect</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>X</kbd> / <kbd>X</kbd></td><td>change reflex style</td></tr>
+			</table>
+		</div>
+	</div> <!-- #shortcuts -->
 
 	<script src="audioMotion.js"></script>
 
