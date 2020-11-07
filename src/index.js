@@ -426,7 +426,7 @@ function setProperty( elems, save ) {
 				break;
 
 			case elScaleX:
-				audioMotion.showScale = isSwitchOn( elScaleX );
+				audioMotion.showScaleX = isSwitchOn( elScaleX );
 				break;
 
 			case elScaleY:
@@ -1393,19 +1393,16 @@ function setSource() {
 		else {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
-			// disconnect analyzer output from speakers to avoid feedback loop
-//			audioMotion.output.disconnect( audioMotion.audioCtx.destination );
-			// mute the output, as disconnecting it is preventing the analyzer from working on Chromium (??)
-			audioMotion.output.gain.setValueAtTime( 0, audioMotion.audioCtx.currentTime );
-			micStream.connect( audioMotion.input );
+			// mute the output to avoid feedback loop from the microphone
+			audioMotion.volume = 0;
+			audioMotion.connectInput( micStream );
 			consoleLog( 'Audio source set to microphone' );
 		}
 	}
 	else {
 		if ( micStream ) {
-			micStream.disconnect( audioMotion.input );
-//			audioMotion.output.connect( audioMotion.audioCtx.destination );
-			audioMotion.output.gain.setValueAtTime( 1, audioMotion.audioCtx.currentTime );
+			audioMotion.disconnectInput( micStream );
+			audioMotion.volume = 1;
 		}
 		consoleLog( 'Audio source set to built-in player' );
 	}
@@ -1506,7 +1503,7 @@ function loadPreset( name, alert, init ) {
 		lumiBars     : isSwitchOn( elLumiBars ),
 		loRes        : isSwitchOn( elLoRes ),
 		showFPS      : isSwitchOn( elFPS ),
-		showScale    : isSwitchOn( elScaleX ),
+		showScaleX   : isSwitchOn( elScaleX ),
 		showScaleY   : isSwitchOn( elScaleY ),
 		radial       : isSwitchOn( elRadial ),
 		spinSpeed    : elSpin.value,
@@ -2341,7 +2338,7 @@ function isSwitchOn( el ) {
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-		audioMotion.connectAudio( audioElement[ i ] );
+		audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	// Setup configuration panel
