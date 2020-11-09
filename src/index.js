@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-alpha.5';
+const _VERSION = '20.11-beta.0';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -73,7 +73,8 @@ const elFFTsize     = $('#fft_size'),
 	  elRadial      = $('#radial'),
 	  elSpin		= $('#spin'),
 	  elStereo      = $('#stereo'),
-	  elSplitGrad   = $('#split_grad');
+	  elSplitGrad   = $('#split_grad'),
+	  elVolume      = $('#volume');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -82,7 +83,7 @@ let audioMotion;
 let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-let audioElement, micStream, isMicSource;
+let audioElement, micStream, isMicSource, savedVolume;
 
 // on-screen messages
 let canvasMsg;
@@ -1394,7 +1395,8 @@ function setSource() {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
 			// mute the output to avoid feedback loop from the microphone
-			audioMotion.volume = 0;
+			savedVolume = audioMotion.volume;
+			setVolume(0);
 			audioMotion.connectInput( micStream );
 			consoleLog( 'Audio source set to microphone' );
 		}
@@ -1402,11 +1404,34 @@ function setSource() {
 	else {
 		if ( micStream ) {
 			audioMotion.disconnectInput( micStream );
-			audioMotion.volume = 1;
+			setVolume( savedVolume );
 		}
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
+}
+
+/**
+ * Increase or decrease volume
+ */
+function changeVolume( incr ) {
+	let newVal = Number( elVolume.dataset.value || 0 ) + incr * .05;
+
+	if ( newVal < 0 )
+		newVal = 0;
+	else if ( newVal > 1 )
+		newVal = 1;
+
+	setVolume( newVal );
+	setCanvasMsg( `Volume: ${ Math.round( newVal * 20 ) }` );
+}
+
+/**
+ * Set volume
+ */
+function setVolume( value ) {
+	audioMotion.volume = elVolume.dataset.value = value;
+	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
 }
 
 /**
@@ -1594,6 +1619,12 @@ function keyboardControls( event ) {
 		return;
 
 	switch ( event.code ) {
+		case 'ArrowUp': 	// volume
+			changeVolume(1);
+			break;
+		case 'ArrowDown':
+			changeVolume(-1);
+			break;
 		case 'Delete': 		// delete selected songs from the playlist
 		case 'Backspace':	// for Mac
 			playlist.querySelectorAll('.selected').forEach( e => {
@@ -1618,9 +1649,7 @@ function keyboardControls( event ) {
 			setCanvasMsg( 'Previous track', 1 );
 			playPreviousSong();
 			break;
-		case 'ArrowUp': 	// gradient
-		case 'ArrowDown':
-		case 'KeyG':
+		case 'KeyG': 		// gradient
 			cycleElement( elGradient, event.shiftKey || event.code == 'ArrowUp' );
 			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
 			break;
@@ -1991,6 +2020,11 @@ function setUIEventListeners() {
 	// Add event listeners to UI config elements
 
 	elSource.addEventListener( 'change', setSource );
+
+	elVolume.addEventListener( 'wheel', e => {
+		e.preventDefault();
+		changeVolume( Math.sign( e.deltaY || 0 ) );
+	});
 
 	[ elMode,
 	  elRandomMode,
@@ -2441,6 +2475,9 @@ function isSwitchOn( el ) {
 
 	// Set audio source to built-in player
 	setSource();
+
+	// Initialize volume button
+	setVolume(1);
 
 	// Load saved playlists
 	loadSavedPlaylists();

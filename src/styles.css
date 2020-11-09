@@ -1,7 +1,9 @@
 :root {
+	--accent-color: #b2ff00;
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
+	--knob-texture: url(img/brushed-knob.png);
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
 }
@@ -97,6 +99,7 @@ table {
 	margin: 0 5px;
 	position: relative;
 	text-transform: uppercase;
+	transition: 150ms ease-in;
 	width: 80px;
 }
 .thin-button a {
@@ -108,7 +111,7 @@ table {
 .thin-button.active {
 	background: #888;
 	box-shadow: inset 1px 1px 0 #0008;
-	color: #b2ff00;
+	color: var(--accent-color);
 	text-shadow: 0 0 5px;
 }
 .thin-button.warning::before {
@@ -764,7 +767,7 @@ input.slider {
 }
 
 label.slider {
-	background: linear-gradient(rgba(0,0,0,.4),rgba(255,255,255,0)),#0003;
+	background: linear-gradient( rgba(0,0,0,.6), transparent ), rgba(0,0,0,.3);
 	border-radius: 1.5em;
 	box-shadow:	0 0.07em 0.1em -0.1em rgba(0,0,0,.4) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7);
@@ -772,7 +775,7 @@ label.slider {
 	display: inline-block;
 	font-size: 8px;
 	height: 3em;
-	margin: 1.6em 0 .5em;
+	margin: 2em 0 0;
 	position: relative;
 	transition: 350ms;
 	vertical-align: middle;
@@ -780,21 +783,22 @@ label.slider {
 }
 
 label.slider::before {
-	background: linear-gradient(#ddd 10%, #eee);
+	background: var(--knob-texture);
+	background-size: 100%;
 	border-radius: 50%;
 	box-shadow:	0 0.1em 0.15em -0.05em rgba(255,255,255,.5) inset,
 				0 0.5em 0.3em -0.1em rgba(0,0,0,.25);
-	content:'';
+	content: '';
 	height: 2em;
 	left: 0.5em;
 	position: absolute;
-	transition: 250ms ease-in-out;
 	top: 0.5em;
+	transition: 250ms ease-in-out;
 	width: 2em;
 }
 
 label.slider::after {
-	content:'';
+	content: '';
 	width: .5em;
 	height: .5em;
 	left: 6em;
@@ -802,10 +806,10 @@ label.slider::after {
 	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0.1) ), #444;
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 #b2ff00;
+				-7em 0 0 0 var(--accent-color);
 	position: absolute;
 	top: 1.25em;
-	transition: 250ms ease-in;
+	transition: 250ms ease-in-out;
 }
 
 .slider-on,
@@ -814,6 +818,7 @@ label.slider::after {
 	font-size: 10px;
 	position: absolute;
 	top: -1.4em;
+	transition: 250ms ease-in-out;
 }
 
 .slider-on {
@@ -828,7 +833,7 @@ input.slider:checked + .slider::before {
 }
 
 input.slider:checked + .slider::after {
-	background: linear-gradient( rgba(0,0,0,.07), rgba(255,255,255,.1) ), #b2ff00;
+	background: linear-gradient( rgba(0,0,0,.07), rgba(255,255,255,.1) ), var(--accent-color);
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
 				-7em 0 0 0 rgba(0,0,0,.5);
@@ -837,7 +842,7 @@ input.slider:checked + .slider::after {
 input.slider:checked + .slider .slider-on,
 input.slider:not(:checked) + .slider .slider-off {
 	text-shadow: 0px 0px 5px;
-	color: #b2ff00;
+	color: var(--accent-color);
 }
 
 /**
@@ -896,6 +901,69 @@ input.slider:not(:checked) + .slider .slider-off {
 }
 .modal-close-internal:hover {
 	background: #c00;
+}
+
+/**
+ * volume knob
+ */
+.knob {
+	background: var(--knob-texture);
+	background-size: 100%;
+	border-radius: 50%;
+	box-shadow: inset -1px 1px 0 0 rgba(255,255,255,0.1),
+		inset 1px -1px 0 0 rgba(17,17,17,0.2),
+		4px 4px 10px 0 #222,
+		0 10px 10px -5px #222,
+		0 0 0 1px #666;
+	display: inline-block;
+	height: 60px;
+	margin: -10px 20px 0 10px;
+	position: relative;
+	width: 60px;
+}
+
+.knob::after,
+.knob::before {
+	bottom: -1em;
+	color: #444;
+	font-size: 10px;
+	position: absolute;
+	transition: all 200ms ease-in-out;
+}
+.knob::after {
+	content: 'MAX';
+	right: -1.5em;
+}
+.knob::before {
+	content: 'MIN';
+	left: -1.5em;
+}
+
+.knob[data-value="1"]::after,
+.knob[data-value="0"]::before {
+	color: var(--accent-color);
+	text-shadow: 0 0 5px;
+}
+
+.knob label {
+	left: -100%;
+	position: absolute;
+	top: 20px;
+}
+
+.knob .marker {
+	background-color: var(--accent-color);
+	border-radius: 2px;
+	box-shadow: inset 1px -1px 0 0 rgba(17,17,17,.3),
+		0 0 5px 0 var(--accent-color);
+	height: 4px;
+	left: 75%;
+	margin-top: -2px;
+	position: absolute;
+	top: 50%;
+	transition: all 200ms ease-in-out;
+	transform-origin: -100% 50%;
+	width: 25%;
 }
 
 /**

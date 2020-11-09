@@ -125,6 +125,8 @@ Some of audioMotion's great features are provided by these awesome open-source l
 * Gradients used in the UI buttons are from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
 * [CSS3 inset text shadow](https://codepen.io/adambundy/pen/HtmaK) by Adam Bundy
 * [CSS slider switches](https://codepen.io/billyysea/pen/CHmiE) by Billy
+* Radial brushed metal texture taken from [this pen](https://codepen.io/GreenSock/pen/gnoDc) by GreenSock
+* Volume knob design based on [Dark dial](https://codepen.io/stormwarning/pen/yNGeMm) by Jeff
 
 ### References
 
