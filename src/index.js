@@ -1014,19 +1014,18 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
-	let n;
-	if ( playlistPos < playlist.children.length - 1 )
-		n = playlistPos + 1;
-	else
-		n = 0;
-	const song = playlist.children[ n ];
-	audioElement[ nextAudio ].src = song.dataset.file;
-	audioElement[ nextAudio ].load();
-	audioElement[ nextAudio ].dataset.file = song.dataset.file;
-	coverImage[ nextAudio ] = new Image();
+	const next = ( playlistPos < playlist.children.length - 1 ) ? playlistPos + 1 : 0,
+		  song = playlist.children[ next ];
 
-	addMetadata( song, audioElement[ nextAudio ] );
-	loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
+	if ( song ) {
+		audioElement[ nextAudio ].src = song.dataset.file;
+		audioElement[ nextAudio ].load();
+		audioElement[ nextAudio ].dataset.file = song.dataset.file;
+		coverImage[ nextAudio ] = new Image();
+
+		addMetadata( song, audioElement[ nextAudio ] );
+		loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
+	}
 
 	skipping = false; // finished skipping track
 }
@@ -1630,14 +1629,21 @@ function keyboardControls( event ) {
 			playlist.querySelectorAll('.selected').forEach( e => {
 				e.remove();
 			});
-			const current = getIndex( playlist.querySelector('.current') );
+			const current = getIndex( playlist.querySelector('.current') ),
+				  queueLength = playlist.children.length;
 			if ( current !== undefined )
 				playlistPos = current;	// update playlistPos if current song hasn't been deleted
-			else if ( playlistPos > playlist.children.length - 1 )
-				playlistPos = playlist.children.length - 1;
+			else if ( playlistPos > queueLength - 1 )
+				playlistPos = queueLength - 1;
 			else
 				playlistPos--;
-			loadNextSong();
+			if ( queueLength )
+				loadNextSong();
+			else {
+				clearAudioElement( nextAudio );
+				if ( ! isPlaying() )
+					clearAudioElement();
+			}
 			break;
 		case 'Space': 		// play / pause
 			setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
