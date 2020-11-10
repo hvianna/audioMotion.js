@@ -1615,7 +1615,7 @@ function updateCustomPreset() {
  */
 function keyboardControls( event ) {
 
-	if ( event.target.tagName != 'BODY' )
+	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
 		return;
 
 	switch ( event.code ) {
@@ -1638,7 +1638,6 @@ function keyboardControls( event ) {
 			else
 				playlistPos--;
 			loadNextSong();
-			event.preventDefault();
 			break;
 		case 'Space': 		// play / pause
 			setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
@@ -1747,7 +1746,12 @@ function keyboardControls( event ) {
 			cycleElement( elReflex, event.shiftKey );
 			setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
 			break;
+		default:
+			// quit if no key matched
+			return;
 	}
+
+	event.preventDefault();
 }
 
 
@@ -2534,7 +2538,7 @@ function isSwitchOn( el ) {
 	});
 
 	// Add event listener for keyboard controls
-	window.addEventListener( 'keyup', keyboardControls );
+	window.addEventListener( 'keydown', keyboardControls );
 
 	// Unlock AudioContext on user gesture (autoplay policy)
 	window.addEventListener( 'click', () => {
