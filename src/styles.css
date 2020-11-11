@@ -20,6 +20,10 @@ body {
 	margin: 0;
 }
 
+audio {
+	display: none;
+}
+
 select,
 input[type="text"] {
 	padding: 4px 0;
@@ -43,7 +47,7 @@ button:not([disabled]):hover,
 }
 
 header {
-	margin: 10px auto;
+	margin: 15px auto 0;
 	max-width: 960px;
 }
 header ul:first-child {
@@ -223,13 +227,6 @@ table {
 	background-size: cover;
 }
 
-#player0,
-#player1 {
-	display: none;
-	height: 40px; /* for consistency between Chromium and Gecko */
-	width: 100%
-}
-
 #playlists {
 	margin-right: 10px;
 	width: 100%;
@@ -324,7 +321,7 @@ table {
 	grid-template-columns: 1fr 150px 1fr;
 	margin: 0 auto;
 	max-width: 1400px;
-	padding: 20px 0;
+	padding-top: 20px;
 }
 
 .button-column {
@@ -354,7 +351,7 @@ div.value {
 
 .player-panel {
 	grid-template-columns: 1fr minmax(350px,1fr) 1fr;
-	margin: 5px auto;
+	margin: 10px auto 15px;
 	max-width: 1400px;
 }
 .controls-left {
@@ -557,7 +554,7 @@ kbd.wide {
 	background: #eee;
 	border-radius: 6px;
 	box-shadow: inset 0 1px 3px #0008;
-	height: 370px;
+	height: 390px;
 	margin: 0 25px;
 }
 
@@ -775,7 +772,7 @@ label.slider {
 	display: inline-block;
 	font-size: 8px;
 	height: 3em;
-	margin: 2em 0 0;
+	margin: 10px 0;
 	position: relative;
 	transition: 350ms;
 	vertical-align: middle;
@@ -814,10 +811,10 @@ label.slider::after {
 
 .slider-on,
 .slider-off {
+	bottom: -13px;
 	color: #444;
 	font-size: 10px;
 	position: absolute;
-	top: -1.4em;
 	transition: 250ms ease-in-out;
 }
 
@@ -964,26 +961,6 @@ input.slider:not(:checked) + .slider .slider-off {
 	transition: all 200ms ease-in-out;
 	transform-origin: -100% 50%;
 	width: 25%;
-}
-
-/**
- * Webkit audio element customizations
- */
-@supports selector( audio::-webkit-media-controls-enclosure ) {
-	header {
-		margin-top: 0;
-	}
-	.player-panel {
-		margin: 10px auto;
-	}
-}
-
-audio::-webkit-media-controls-enclosure {
-	background: transparent;
-}
-audio::-webkit-media-controls-current-time-display,
-audio::-webkit-media-controls-time-remaining-display {
-    text-shadow: none;
 }
 
 /* Responsive layout */

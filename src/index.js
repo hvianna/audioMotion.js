@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.0';
+const _VERSION = '20.11-beta.1';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -1093,9 +1093,6 @@ function playNextSong( play ) {
 
 	currAudio = nextAudio;
 	nextAudio = ! currAudio | 0;
-
-	audioElement[ nextAudio ].style.display = 'none';
-	audioElement[ currAudio ].style.display = 'block';
 
 	if ( play ) {
 		audioElement[ currAudio ].play()
@@ -2468,9 +2465,6 @@ function isSwitchOn( el ) {
 
 	currAudio = 0;
 	nextAudio = 1;
-
-	audioElement[0].style.display = 'block';
-	audioElement[1].style.display = 'none';
 
 	for ( const i of [0,1] ) {
 		clearAudioElement( i );

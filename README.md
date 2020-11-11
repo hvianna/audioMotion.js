@@ -139,7 +139,6 @@ These online references were invaluable for the development and improvement of a
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
 * [Equations for equal-tempered scale frequencies](http://pages.mtu.edu/~suits/NoteFreqCalcs.html)
-* [Custom CSS media element selectors for Webkit browsers](https://stackoverflow.com/a/33948255/2370385)
 * Pure CSS modal windows based on [this pen](https://codepen.io/timothylong/pen/HhAer) by Timothy Long and [CSS Modal](https://drublic.github.io/css-modal/) by Hans Christian Reinl
 
 ## License
