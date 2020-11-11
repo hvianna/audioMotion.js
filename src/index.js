@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.1';
+const _VERSION = '20.11-beta.2';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -1232,8 +1232,11 @@ function formatHHMMSS( time ) {
  */
 function displayCanvasMsg() {
 
+	const audioEl   = audioElement[ currAudio ],
+		  trackData = audioEl.dataset;
+
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
+	if ( audioEl.duration - audioEl.currentTime < .1 )
 		playNextSong( true );
 
 	// update background image for pulse and zoom effects
@@ -1243,7 +1246,7 @@ function displayCanvasMsg() {
 		if ( elBgImageFit.value == 3 )	// pulse
 			size = ( audioMotion.energy * 70 | 0 ) - 25;
 		else {
-			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
+			const songProgress = audioEl.currentTime / audioEl.duration;
 			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
 		}
 
@@ -1307,38 +1310,38 @@ function displayCanvasMsg() {
 		if ( isMicSource ) {
 			canvasCtx.textAlign = 'left';
 			canvasCtx.font = largeFont;
-			outlineText( 'Microphone audio', leftPos, bottomLine2, maxWidth );
+			outlineText( 'MIC source', leftPos, bottomLine2, maxWidth );
 		}
 		else {
 			// codec and quality
 			canvasCtx.textAlign = 'right';
-			outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
-			outlineText( audioElement[ currAudio ].dataset.quality, rightPos, bottomLine1 + fontSize );
+			outlineText( trackData.codec, rightPos, bottomLine1 );
+			outlineText( trackData.quality, rightPos, bottomLine1 + fontSize );
 
 			// artist name
 			canvasCtx.textAlign = 'left';
-			outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+			outlineText( trackData.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
 
 			// album title
 			canvasCtx.font = `italic ${normalFont}`;
-			outlineText( audioElement[ currAudio ].dataset.album, leftPos, bottomLine3, maxWidth );
+			outlineText( trackData.album, leftPos, bottomLine3, maxWidth );
 
 			// song title
 			canvasCtx.font = largeFont;
-			outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
+			outlineText( audioEl.src ? trackData.title : 'No song loaded', leftPos, bottomLine2, maxWidth );
 
 			// time
-			if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
-				if ( ! audioElement[ currAudio ].dataset.duration ) {
-					audioElement[ currAudio ].dataset.duration =
-						audioElement[ currAudio ].duration === Infinity ? 'LIVE' : formatHHMMSS( audioElement[ currAudio ].duration );
+			if ( audioEl.duration || trackData.duration ) {
+				if ( ! trackData.duration ) {
+					trackData.duration =
+						audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
 
 					if ( playlist.children[ playlistPos ] )
-						playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
+						playlist.children[ playlistPos ].dataset.duration = trackData.duration;
 				}
 				canvasCtx.textAlign = 'right';
 
-				outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
+				outlineText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
 			}
 
 			// cover image
