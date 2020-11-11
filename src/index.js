@@ -492,7 +492,6 @@ function setCurrentCover( url ) {
 	audioMotion.canvas.style.backgroundSize = '';
 }
 
-
 /**
  * Clear audio element
  */
@@ -1175,6 +1174,16 @@ function isPlaying() {
 }
 
 /**
+ * Toggle display of song and settings information on canvas
+ */
+function toggleInfo() {
+	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
+		setCanvasMsg();
+	else // increase the information level (0 -> 1 -> 2)
+		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 5 );
+}
+
+/**
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
@@ -1770,10 +1779,7 @@ function keyboardControls( event ) {
 				setCanvasMsg( 'Radial ' + onOff( elRadial ) );
 				break;
 			case 'KeyD': 		// display information
-				if ( canvasMsg.info == 2 )
-					setCanvasMsg();
-				else
-					setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 5 );
+				toggleInfo();
 				break;
 			case 'KeyE': 		// shuffle queue
 				if ( playlist.children.length > 0 ) {
@@ -2175,8 +2181,8 @@ function setUIEventListeners() {
 	$('#delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
 	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
 
-	// clicks on canvas cycle scales on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	cycleScale() );
+	// clicks on canvas toggle info display on/off
+	audioMotion.canvas.addEventListener( 'click', () =>	toggleInfo() );
 
 	// local file upload
 	$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
