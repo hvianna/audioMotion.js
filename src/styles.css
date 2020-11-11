@@ -912,6 +912,7 @@ input.slider:not(:checked) + .slider .slider-off {
 		4px 4px 10px 0 #222,
 		0 10px 10px -5px #222,
 		0 0 0 1px #666;
+	cursor: url(img/icons/mousescroll.png) 16 16, ns-resize;
 	display: inline-block;
 	height: 60px;
 	margin: -10px 20px 0 10px;
