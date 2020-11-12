@@ -114,9 +114,10 @@ table {
 }
 .thin-button.active {
 	background: #888;
-	box-shadow: inset 1px 1px 0 #0008;
+	border-color: rgba(0,0,0,.2);
+	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3);
 	color: var(--accent-color);
-	text-shadow: 0 0 5px;
+	text-shadow: 0 0 6px;
 }
 .thin-button.warning::before {
 	background: #c00;
@@ -321,7 +322,7 @@ table {
 	grid-template-columns: 1fr 150px 1fr;
 	margin: 0 auto;
 	max-width: 1400px;
-	padding-top: 20px;
+	padding: 20px 0;
 }
 
 .button-column {
