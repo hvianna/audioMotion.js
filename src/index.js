@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.3';
+const _VERSION = '20.11-beta.4';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -300,10 +300,10 @@ const sensitivityDefaults = [
 
 // On-screen information display options
 const infoDisplayDefaults = {
-	info: 5,
-	track: 10,
-	end: 0,
-	covers: true
+	info  : 5,	 // display time (secs) when requested via click or keyboard shortcut
+	track : 10,  // display time (secs) on track change
+	end   : 0,   // display time (secs) at the end of the song
+	covers: true // show album covers in song information
 }
 
 /**
@@ -508,15 +508,20 @@ function setCurrentCover( url ) {
  * Clear audio element
  */
 function clearAudioElement( n = currAudio ) {
-	audioElement[ n ].removeAttribute('src');
-	audioElement[ n ].dataset.file = '';
-	audioElement[ n ].dataset.artist = '';
-	audioElement[ n ].dataset.title = '';
-	audioElement[ n ].dataset.album = '';
-	audioElement[ n ].dataset.codec = '';
-	audioElement[ n ].dataset.quality = '';
-	audioElement[ n ].dataset.duration = '';
-	audioElement[ n ].load();
+	const elAudio   = audioElement[ n ],
+		  trackData = elAudio.dataset;
+
+	elAudio.removeAttribute('src');
+	trackData.file = '';
+	trackData.artist = '';
+	trackData.title = '';
+	trackData.album = '';
+	trackData.codec = '';
+	trackData.quality = '';
+	trackData.duration = '';
+
+	elAudio.load();
+
 	coverImage[ n ] = new Image();
 	if ( n == currAudio )
 		setCurrentCover(); // clear current background image
@@ -647,31 +652,36 @@ function addToPlayQueue( file, autoplay = false ) {
  * Add audio metadata to a playlist item or audio element
  */
 function addMetadata( metadata, target ) {
-	if ( metadata.dataset ) { 	// just copy metadata from element dataset (playlist item)
-		target.dataset.artist   = metadata.dataset.artist || '';
-		target.dataset.title    = metadata.dataset.title || '';
-		target.dataset.album    = metadata.dataset.album || '';
-		target.dataset.codec    = metadata.dataset.codec || '';
-		target.dataset.quality  = metadata.dataset.quality || '';
-		target.dataset.duration = metadata.dataset.duration || '';
+	const trackData  = target.dataset,
+		  sourceData = metadata.dataset,
+		  common     = metadata.common,
+		  format     = metadata.format;
+
+	if ( sourceData ) { 	// just copy metadata from element dataset (playlist item)
+		trackData.artist   = sourceData.artist || '';
+		trackData.title    = sourceData.title || '';
+		trackData.album    = sourceData.album || '';
+		trackData.codec    = sourceData.codec || '';
+		trackData.quality  = sourceData.quality || '';
+		trackData.duration = sourceData.duration || '';
 	}
 	else {						// parse metadata read from file
-		target.dataset.artist   = metadata.common.artist || target.dataset.artist;
-		target.dataset.title    = metadata.common.title || target.dataset.title;
-		target.dataset.album    = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
-		target.dataset.codec    = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
+		trackData.artist   = common.artist || trackData.artist;
+		trackData.title    = common.title || trackData.title;
+		trackData.album    = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
+		trackData.codec    = format ? format.codec || format.container : trackData.codec;
 
-		if ( metadata.format && metadata.format.bitsPerSample )
-			target.dataset.quality = Math.floor( metadata.format.sampleRate / 1000 ) + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
-		else if ( metadata.format.bitrate )
-			target.dataset.quality = Math.floor( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
+		if ( format && format.bitsPerSample )
+			trackData.quality = Math.floor( format.sampleRate / 1000 ) + 'KHz / ' + format.bitsPerSample + 'bits';
+		else if ( format.bitrate )
+			trackData.quality = Math.floor( format.bitrate / 1000 ) + 'K ' + format.codecProfile || '';
 		else
-			target.dataset.quality = '';
+			trackData.quality = '';
 
-		if ( metadata.format && metadata.format.duration )
-			target.dataset.duration = formatHHMMSS( metadata.format.duration );
+		if ( format && format.duration )
+			trackData.duration = formatHHMMSS( format.duration );
 		else
-			target.dataset.duration = '';
+			trackData.duration = '';
 	}
 }
 
@@ -688,15 +698,16 @@ function addSongToPlayQueue( uri, content = {} ) {
 		  ext  = file.split('.').pop();
 
 	// create new list element
-	const newEl = document.createElement('li');
+	const newEl     = document.createElement('li'),
+		  trackData = newEl.dataset;
 
-	newEl.dataset.artist = content.artist || '';
-	newEl.dataset.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
-	newEl.dataset.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
+	trackData.artist = content.artist || '';
+	trackData.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
 
 	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	uri = uri.replace( /#/g, '%23' );
-	newEl.dataset.file = uri;
+	trackData.file = uri;
 
 	playlist.appendChild( newEl );
 
@@ -714,7 +725,7 @@ function addSongToPlayQueue( uri, content = {} ) {
 			if ( metadata ) {
 				addMetadata( metadata, newEl ); // add metadata to play queue item
 				audioElement.forEach( el => {
-					if ( el.dataset.file == newEl.dataset.file )
+					if ( el.dataset.file == trackData.file )
 						addMetadata( newEl, el ); // transfer metadata to audio element
 				});
 			}
@@ -912,14 +923,15 @@ function deletePlaylist( index ) {
  */
 function updatePlaylistUI() {
 
-	const current = playlist.querySelector('.current');
+	const current = playlist.querySelector('.current'),
+		  newCurr = playlist.children[ playlistPos ];
 
 	if ( current )
 		current.classList.remove('current');
 
-	if ( playlist.children[ playlistPos ] ) {
-		playlist.children[ playlistPos ].classList.add('current');
-		playlist.children[ playlistPos ].scrollIntoViewIfNeeded();
+	if ( newCurr ) {
+		newCurr.classList.add('current');
+		newCurr.scrollIntoViewIfNeeded();
 	}
 }
 
@@ -1025,16 +1037,17 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
-	const next = ( playlistPos < playlist.children.length - 1 ) ? playlistPos + 1 : 0,
-		  song = playlist.children[ next ];
+	const next    = ( playlistPos < playlist.children.length - 1 ) ? playlistPos + 1 : 0,
+		  song    = playlist.children[ next ],
+		  audioEl = audioElement[ nextAudio ];
 
 	if ( song ) {
-		audioElement[ nextAudio ].src = song.dataset.file;
-		audioElement[ nextAudio ].load();
-		audioElement[ nextAudio ].dataset.file = song.dataset.file;
+		audioEl.src = song.dataset.file;
+		audioEl.load();
+		audioEl.dataset.file = song.dataset.file;
 		coverImage[ nextAudio ] = new Image();
 
-		addMetadata( song, audioElement[ nextAudio ] );
+		addMetadata( song, audioEl );
 		loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
 	}
 
@@ -1178,11 +1191,13 @@ function finishFastSearch() {
  * Check if audio is playing
  */
 function isPlaying() {
-	return audioElement[ currAudio ]
-		&& audioElement[ currAudio ].currentTime > 0
-		&& !audioElement[ currAudio ].paused
-		&& !audioElement[ currAudio ].ended;
-//		&& audioElement.readyState > 2;
+	const audioEl = audioElement[ currAudio ];
+
+	return audioEl
+		&& audioEl.currentTime > 0
+		&& ! audioEl.paused
+		&& ! audioEl.ended;
+//		&& audioEl.readyState > 2;
 }
 
 /**
@@ -1526,13 +1541,14 @@ function loadLocalFile( obj ) {
 	if ( fileBlob ) {
 		clearAudioElement();
 
-		const el = audioElement[ currAudio ];
-		el.src = URL.createObjectURL( fileBlob );
-		el.play();
+		const audioEl = audioElement[ currAudio ];
+
+		audioEl.src = URL.createObjectURL( fileBlob );
+		audioEl.play();
 
 		mm.parseBlob( fileBlob )
 			.then( metadata => {
-				addMetadata( metadata, el );
+				addMetadata( metadata, audioEl );
 				if ( metadata.common.picture && metadata.common.picture.length ) {
 					const imgBlob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
 					setCurrentCover( URL.createObjectURL( imgBlob ) );
@@ -2206,7 +2222,7 @@ function setUIEventListeners() {
 	});
 	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 	$('#create_playlist').addEventListener( 'click', () => storePlaylist() );
-	$('#delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
+	$('#delete_playlist').addEventListener( 'click', () => deletePlaylist( elPlaylists.selectedIndex ) );
 	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
 
 	// clicks on canvas toggle info display on/off
@@ -2371,11 +2387,7 @@ function loadPreferences() {
 	for ( let i = 0; i >= -40; i -= 5 )
 		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
 
-	let sensitivityPresets = localStorage.getItem( 'sensitivity-presets' );
-	if ( sensitivityPresets == null )
-		sensitivityPresets = sensitivityDefaults;
-	else
-		sensitivityPresets = JSON.parse( sensitivityPresets );
+	const sensitivityPresets = JSON.parse( localStorage.getItem( 'sensitivity-presets' ) ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -2385,10 +2397,10 @@ function loadPreferences() {
 	// On-screen display options
 	const displayOptions = Object.assign( infoDisplayDefaults, JSON.parse( localStorage.getItem( 'display-options' ) ) || {} );
 
-	elInfoTimeout.value = displayOptions.info;
+	elInfoTimeout.value  = displayOptions.info;
 	elTrackTimeout.value = displayOptions.track;
-	elEndTimeout.value = displayOptions.end;
-	elShowCover.checked = displayOptions.covers;
+	elEndTimeout.value   = displayOptions.end;
+	elShowCover.checked  = displayOptions.covers;
 
 	return isLastSession;
 }
