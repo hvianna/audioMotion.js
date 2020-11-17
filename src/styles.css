@@ -29,7 +29,9 @@ input[type="text"] {
 	padding: 4px 0;
 }
 input[type="number"] {
+	margin: 2px 0;
 	padding: 4px;
+	width: 50px;
 }
 
 button,
@@ -280,6 +282,9 @@ table {
 }
 .grid-3-cols {
 	grid-template-columns: repeat(3, 1fr);
+}
+.colspan-2 {
+	grid-column: span 2;
 }
 .rowspan-2 {
 	grid-row: span 2;

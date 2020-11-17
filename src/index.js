@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.2';
+const _VERSION = '20.11-beta.3';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -74,7 +74,11 @@ const elFFTsize     = $('#fft_size'),
 	  elSpin		= $('#spin'),
 	  elStereo      = $('#stereo'),
 	  elSplitGrad   = $('#split_grad'),
-	  elVolume      = $('#volume');
+	  elVolume      = $('#volume'),
+	  elInfoTimeout = $('#info_timeout'),
+	  elTrackTimeout= $('#track_timeout'),
+	  elEndTimeout  = $('#end_timeout'),
+	  elShowCover   = $('#show_cover');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -293,6 +297,14 @@ const sensitivityDefaults = [
 	{ min: -85,  max: -25 }, // normal
 	{ min: -100, max: -30 }  // high
 ];
+
+// On-screen information display options
+const infoDisplayDefaults = {
+	info: 5,
+	track: 10,
+	end: 0,
+	covers: true
+}
 
 /**
  * Display the canvas in full-screen mode
@@ -1179,8 +1191,11 @@ function isPlaying() {
 function toggleInfo() {
 	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
 		setCanvasMsg();
-	else // increase the information level (0 -> 1 -> 2)
-		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 5 );
+	else {
+		const timeout = elInfoTimeout.value | 0 || Infinity;
+		// increase the information level (0 -> 1 -> 2)
+		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, timeout, timeout * .3 );
+	}
 }
 
 /**
@@ -1232,12 +1247,20 @@ function formatHHMMSS( time ) {
  */
 function displayCanvasMsg() {
 
-	const audioEl   = audioElement[ currAudio ],
-		  trackData = audioEl.dataset;
+	const audioEl    = audioElement[ currAudio ],
+		  trackData  = audioEl.dataset,
+		  remaining  = audioEl.duration - audioEl.currentTime,
+		  endTimeout = elEndTimeout.value | 0;
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( audioEl.duration - audioEl.currentTime < .1 )
+	if ( remaining < .1 ) {
 		playNextSong( true );
+		return;
+	}
+
+	// display song info at the end of the song
+	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info )
+		setCanvasMsg( 1, remaining, remaining * .3 );
 
 	// update background image for pulse and zoom effects
 	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
@@ -1345,14 +1368,14 @@ function displayCanvasMsg() {
 			}
 
 			// cover image
-			if ( coverImage[ currAudio ].width ) {
+			if ( coverImage[ currAudio ].width && elShowCover.checked ) {
 				const coverSize = fontSize * 3;
 				canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 			}
 		}
 
 		if ( --canvasMsg.timer < 1 )
-			canvasMsg.info = 0;
+			canvasMsg.info = canvasMsg.fade = 0;
 	}
 }
 
@@ -1365,8 +1388,8 @@ function setCanvasMsg( msg, timer = 2, fade = 1 ) {
 	else {
 		if ( typeof msg == 'number' ) {
 			canvasMsg.info = msg; // set info level 1 or 2
-			canvasMsg.timer = timer * 60;
-			canvasMsg.fade = fade * 60;
+			canvasMsg.timer = Math.max( timer * 60, canvasMsg.timer || 0 );
+			canvasMsg.fade = Math.max( fade * 60, canvasMsg.fade || 0 );
 		}
 		else {
 			canvasMsg.msg = msg;  // set custom message
@@ -1869,8 +1892,10 @@ function audioOnPlay() {
 
 	setCurrentCover();
 
-	if ( isSwitchOn( elShowSong ) )
-		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
+	if ( isSwitchOn( elShowSong ) ) {
+		const timeout = elTrackTimeout.value | 0 || Infinity;
+		setCanvasMsg( 1, timeout, timeout * .3 );
+	}
 }
 
 /**
@@ -2287,6 +2312,10 @@ function doConfigPanel() {
 			});
 		}
 	});
+
+	// On-screen display options
+	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover ] )
+		el.addEventListener( 'change', () => savePreferences('osd') );
 }
 
 /**
@@ -2353,6 +2382,14 @@ function loadPreferences() {
 		elMaxSens[ index ].value = preset.max;
 	});
 
+	// On-screen display options
+	const displayOptions = Object.assign( infoDisplayDefaults, JSON.parse( localStorage.getItem( 'display-options' ) ) || {} );
+
+	elInfoTimeout.value = displayOptions.info;
+	elTrackTimeout.value = displayOptions.track;
+	elEndTimeout.value = displayOptions.end;
+	elShowCover.checked = displayOptions.covers;
+
 	return isLastSession;
 }
 
@@ -2386,6 +2423,16 @@ function savePreferences( pref ) {
 			});
 		}
 		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
+	}
+
+	if ( ! pref || pref == 'osd' ) {
+		const displayOptions = {
+			info  : elInfoTimeout.value,
+			track : elTrackTimeout.value,
+			end   : elEndTimeout.value,
+			covers: elShowCover.checked
+		}
+		localStorage.setItem( 'display-options', JSON.stringify( displayOptions ) );
 	}
 }
 

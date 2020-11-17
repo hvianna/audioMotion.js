@@ -398,7 +398,7 @@
 				<div id="enabled_gradients" class="grid grid-2-cols">
 				</div>
 			</div>
-			<div>
+			<div class="rowspan-2">
 				<h3>Options affected by Random Mode:</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
@@ -425,6 +425,13 @@
 						<td><button class="reset-sens" data-preset="2">Reset</button></td>
 					</tr>
 				</table>
+			</div>
+			<div class="colspan-2">
+				<h3>On-screen information display options:</h3>
+				Show for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for persistent display)</strong><br>
+				Show for <input id="track_timeout" type="number" min="0"> seconds on track change
+				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song<br>
+				<label><input type="checkbox" id="show_cover"> Show album covers</label>
 			</div>
 		</div>
 	</div> <!-- #config -->
