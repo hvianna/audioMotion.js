@@ -1194,7 +1194,7 @@ function toggleInfo() {
 	else {
 		const timeout = elInfoTimeout.value | 0 || Infinity;
 		// increase the information level (0 -> 1 -> 2)
-		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, timeout, timeout * .3 );
+		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, timeout );
 	}
 }
 
@@ -1260,7 +1260,7 @@ function displayCanvasMsg() {
 
 	// display song info at the end of the song
 	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info )
-		setCanvasMsg( 1, remaining, remaining * .3 );
+		setCanvasMsg( 1, remaining );
 
 	// update background image for pulse and zoom effects
 	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
@@ -1382,14 +1382,14 @@ function displayCanvasMsg() {
 /**
  * Set message for on-screen display
  */
-function setCanvasMsg( msg, timer = 2, fade = 1 ) {
+function setCanvasMsg( msg, timer = 2 ) {
 	if ( ! msg )
 		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
 	else {
 		if ( typeof msg == 'number' ) {
 			canvasMsg.info = msg; // set info level 1 or 2
 			canvasMsg.timer = Math.max( timer * 60, canvasMsg.timer || 0 );
-			canvasMsg.fade = Math.max( fade * 60, canvasMsg.fade || 0 );
+			canvasMsg.fade = Math.max( timer * 20, canvasMsg.fade || 0 ); // use 1/3rd of set time for fade-out
 		}
 		else {
 			canvasMsg.msg = msg;  // set custom message
@@ -1894,7 +1894,7 @@ function audioOnPlay() {
 
 	if ( isSwitchOn( elShowSong ) ) {
 		const timeout = elTrackTimeout.value | 0 || Infinity;
-		setCanvasMsg( 1, timeout, timeout * .3 );
+		setCanvasMsg( 1, timeout );
 	}
 }
 
