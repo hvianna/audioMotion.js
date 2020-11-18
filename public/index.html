@@ -288,7 +288,7 @@
 					<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
 						<span class="tooltip">Toggle level (dB) scale on the Y-axis</span>
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-						<span class="tooltip">Display song info on every track change</span>
+						<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 						<span class="tooltip">Hold peak levels for a short time</span>
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
@@ -428,10 +428,10 @@
 			</div>
 			<div class="colspan-2">
 				<h3>On-screen information display options:</h3>
-				Show for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for persistent display)</strong><br>
-				Show for <input id="track_timeout" type="number" min="0"> seconds on track change
+				Show for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for continuous display)</strong><br>
+				Show for <input id="track_timeout" type="number" min="0"> seconds at song start
 				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song<br>
-				<label><input type="checkbox" id="show_cover"> Show album covers</label>
+				<label><input type="checkbox" id="show_cover"> Show album covers in song info</label>
 			</div>
 		</div>
 	</div> <!-- #config -->
@@ -475,7 +475,7 @@
 				<tr><td><kbd>F</kbd></td><td>toggle fullscreen</td></tr>
 				<tr><td><kbd>Shift</kbd><kbd>G</kbd> / <kbd>G</kbd></td><td>previous / next gradient</td></tr>
 				<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
-				<tr><td><kbd>I</kbd></td><td>toggle song info display on track change</td></tr>
+				<tr><td><kbd>I</kbd></td><td>toggle information display at song start/end</td></tr>
 				<tr><td><kbd>L</kbd></td><td>toggle LEDs effect</td></tr>
 				<tr><td><kbd>Shift</kbd><kbd>M</kbd> / <kbd>M</kbd></td><td>previous / next visualization mode</td></tr>
 				<tr><td><kbd>Shift</kbd><kbd>N</kbd> / <kbd>N</kbd></td><td>reduce / increase sensitivity</td></tr>
