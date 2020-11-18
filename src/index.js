@@ -1254,7 +1254,7 @@ function formatHHMMSS( time ) {
  * canvasMsg = {
  * 		info    : <number>, // 1 = song info; 2 = song + settings info
  *      timer   : <number>, // countdown timer (in frames) to display info
- *      fade    : <number>, // fade out time (in frames)
+ *      fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
  *		msg     : <string>, // custom message to be displayed at the top
  *      msgTimer: <number>  // countdown timer (in frames) to display custom message
  * 		                    // (fade for custom message is always 60 frames)
@@ -1272,7 +1272,7 @@ function displayCanvasMsg() {
 		playNextSong( true );
 
 	// set song info display at the end of the song
-	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info )
+	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
 		setCanvasMsg( 1, remaining, -1 );
 
 	// update background image for pulse and zoom effects
