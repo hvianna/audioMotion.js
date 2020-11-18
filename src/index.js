@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.4';
+const _VERSION = '20.11-beta.5';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -1418,14 +1418,14 @@ function setCanvasMsg( msg, timer = 2, dir = 1 ) {
 	else {
 		if ( typeof msg == 'number' ) {
 			canvasMsg.info = msg; // set info level 1 or 2
-			canvasMsg.timer = Math.max( timer * 60, canvasMsg.timer || 0 );
-			canvasMsg.fade = Math.max( timer * 20, canvasMsg.fade || 0 ) * dir;
+			canvasMsg.timer = Math.round( Math.max( timer * 60, canvasMsg.timer || 0 ) ); // note: Infinity | 0 == 0
+			canvasMsg.fade = Math.round( canvasMsg.timer / 3 ) * dir;
 		}
 		else {
 			canvasMsg.msg = msg;  // set custom message
 			if ( canvasMsg.info == 2 )
 				canvasMsg.info = 1;
-			canvasMsg.msgTimer = timer * 60;
+			canvasMsg.msgTimer = timer * 60 | 0;
 		}
 	}
 }
