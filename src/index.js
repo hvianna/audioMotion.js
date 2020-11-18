@@ -1083,6 +1083,12 @@ function stop() {
 	loadSong( 0 );
 }
 
+function skipTrack( back = false ) {
+	const status = back ? playPreviousSong() : playNextSong();
+	if ( ! status )
+		setCanvasMsg( `Already at ${ back ? 'first' : 'last' } track` );
+}
+
 function playPreviousSong() {
 	if ( isPlaying() ) {
 		if ( audioElement[ currAudio ].currentTime > 2 )
@@ -1090,10 +1096,10 @@ function playPreviousSong() {
 		else if ( playlistPos > 0 )
 			playSong( playlistPos - 1 );
 		else
-			setCanvasMsg( 'Already at first song' );
+			return false;
 	}
 	else
-		loadSong( playlistPos - 1 );
+		return loadSong( playlistPos - 1 );
 }
 
 function playNextSong( play ) {
@@ -1108,7 +1114,6 @@ function playNextSong( play ) {
 	else if ( isSwitchOn( elRepeat ) )
 		playlistPos = 0;
 	else {
-		setCanvasMsg( 'Already at last song' );
 		skipping = false;
 		return false;
 	}
@@ -1789,7 +1794,7 @@ function keyboardControls( event ) {
 			case 'KeyJ':
 				if ( ! finishFastSearch() ) {
 					setCanvasMsg( 'Previous track', 1 );
-					playPreviousSong();
+					skipTrack(true);
 				}
 				break;
 			case 'KeyG': 		// gradient
@@ -1800,7 +1805,7 @@ function keyboardControls( event ) {
 			case 'KeyK':
 				if ( ! finishFastSearch() ) {
 					setCanvasMsg( 'Next track', 1 );
-					playNextSong();
+					skipTrack();
 				}
 				break;
 			case 'KeyA': 		// cycle thru auto gradient / random mode options
@@ -2205,13 +2210,13 @@ function setUIEventListeners() {
 	$('#btn_prev').addEventListener( 'mousedown', () =>	scheduleFastSearch('m', -1) );
 	$('#btn_prev').addEventListener( 'click', e => {
 		if ( ! finishFastSearch() )
-			playPreviousSong();
+			skipTrack(true);
 	});
 
 	$('#btn_next').addEventListener( 'mousedown', () => scheduleFastSearch('m') );
 	$('#btn_next').addEventListener( 'click', () => {
 		if ( ! finishFastSearch() )
-			playNextSong();
+			skipTrack();
 	});
 
 	// action buttons
