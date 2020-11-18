@@ -1268,14 +1268,12 @@ function displayCanvasMsg() {
 		  endTimeout = elEndTimeout.value | 0;
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( remaining < .1 ) {
+	if ( remaining < .1 )
 		playNextSong( true );
-		return;
-	}
 
-	// display song info at the end of the song
+	// set song info display at the end of the song
 	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info )
-		setCanvasMsg( 1, remaining );
+		setCanvasMsg( 1, remaining, -1 );
 
 	// update background image for pulse and zoom effects
 	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
@@ -1327,7 +1325,14 @@ function displayCanvasMsg() {
 			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
 
-		canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
+		if ( canvasMsg.fade < 0 ) {
+			// fade-in
+			const fade     = Math.abs( canvasMsg.fade ),
+				  framesIn = fade * 3 - canvasMsg.timer;
+			canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
+		}
+		else // fade-out
+			canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
@@ -1396,15 +1401,20 @@ function displayCanvasMsg() {
 
 /**
  * Set message for on-screen display
+ *
+ * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
+ *                            string provides a custom message to be displayed at the top
+ * @param [timer] {number} time in seconds to display message (1/3rd of it will be used for fade in/out)
+ * @param [dir] {number} -1 for fade-in; 1 for fade-out (default)
  */
-function setCanvasMsg( msg, timer = 2 ) {
+function setCanvasMsg( msg, timer = 2, dir = 1 ) {
 	if ( ! msg )
 		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
 	else {
 		if ( typeof msg == 'number' ) {
 			canvasMsg.info = msg; // set info level 1 or 2
 			canvasMsg.timer = Math.max( timer * 60, canvasMsg.timer || 0 );
-			canvasMsg.fade = Math.max( timer * 20, canvasMsg.fade || 0 ); // use 1/3rd of set time for fade-out
+			canvasMsg.fade = Math.max( timer * 20, canvasMsg.fade || 0 ) * dir;
 		}
 		else {
 			canvasMsg.msg = msg;  // set custom message
