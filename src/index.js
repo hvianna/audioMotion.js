@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.5';
+const _VERSION = '20.11-beta.6';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -2719,17 +2719,6 @@ function isSwitchOn( el ) {
 	// Add events listeners for keyboard controls
 	window.addEventListener( 'keydown', keyboardControls );
 	window.addEventListener( 'keyup', keyboardControls );
-
-	// Unlock AudioContext on user gesture (autoplay policy)
-	window.addEventListener( 'click', () => {
-		if ( audioMotion.audioCtx.state == 'suspended' ) {
-			audioMotion.audioCtx.resume()
-				.then( () => consoleLog( 'AudioContext started' ) )
-				.catch( err => consoleLog( `Failed starting AudioContext: ${err}`, true ) );
-
-			audioElement[ nextAudio ].load(); // unlock next audio element - required on iOS Safari
-		}
-	});
 
 	// notie options
 	notie.setOptions({
