@@ -139,7 +139,7 @@ const presets = {
 		radial      : 0,
 		spin        : 2,
 		stereo      : 0,
-		splitGrad   : 1
+		splitGrad   : 0
 	},
 
 	fullres: {
