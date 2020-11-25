@@ -3,7 +3,6 @@
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
-	--knob-texture: url(img/brushed-knob.png);
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
 }
@@ -786,7 +785,7 @@ label.slider {
 }
 
 label.slider::before {
-	background: var(--knob-texture);
+	background: url(img/brushed-knob.png);
 	background-size: 100%;
 	border-radius: 50%;
 	box-shadow:	0 0.1em 0.15em -0.05em rgba(255,255,255,.5) inset,
@@ -910,7 +909,7 @@ input.slider:not(:checked) + .slider .slider-off {
  * volume knob
  */
 .knob {
-	background: var(--knob-texture);
+	background: url(img/brushed-knob.png);
 	background-size: 100%;
 	border-radius: 50%;
 	box-shadow: inset -1px 1px 0 0 rgba(255,255,255,0.1),
