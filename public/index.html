@@ -431,7 +431,10 @@
 				Show for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for continuous display)</strong><br>
 				Show for <input id="track_timeout" type="number" min="0"> seconds at song start
 				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song<br>
-				<label><input type="checkbox" id="show_cover"> Show album covers in song info</label>
+				<div class="flex align-center">
+					<label><input type="checkbox" id="show_cover"> Show album covers in song info</label>
+					<button id="reset_osd">Reset to defaults</button>
+				</div>
 			</div>
 		</div>
 	</div> <!-- #config -->

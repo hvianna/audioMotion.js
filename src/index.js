@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.11-beta.6';
+const _VERSION = '20.11-beta.7';
 
 import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audiomotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
@@ -2347,6 +2347,11 @@ function doConfigPanel() {
 	// On-screen display options
 	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover ] )
 		el.addEventListener( 'change', () => savePreferences('osd') );
+
+	$('#reset_osd').addEventListener( 'click', () => {
+		setInfoOptions( infoDisplayDefaults );
+		savePreferences('osd');
+	});
 }
 
 /**
@@ -2410,12 +2415,9 @@ function loadPreferences() {
 	});
 
 	// On-screen display options
-	const displayOptions = Object.assign( infoDisplayDefaults, JSON.parse( localStorage.getItem( 'display-options' ) ) || {} );
-
-	elInfoTimeout.value  = displayOptions.info;
-	elTrackTimeout.value = displayOptions.track;
-	elEndTimeout.value   = displayOptions.end;
-	elShowCover.checked  = displayOptions.covers;
+	const displayOptions = Object.assign( {}, infoDisplayDefaults ); // clone defaults so they don't get modified
+	// merge saved options (if any) with defaults and set UI fields
+	setInfoOptions( Object.assign( displayOptions, JSON.parse( localStorage.getItem( 'display-options' ) ) || {} ) );
 
 	return isLastSession;
 }
@@ -2469,6 +2471,16 @@ function savePreferences( pref ) {
 function populateSelect( element, options ) {
 	for ( const item of options )
 		element[ element.options.length ] = new Option( item.text, item.value );
+}
+
+/**
+ * Set on-screen display options UI fields
+ */
+function setInfoOptions( options ) {
+	elInfoTimeout.value  = options.info;
+	elTrackTimeout.value = options.track;
+	elEndTimeout.value   = options.end;
+	elShowCover.checked  = options.covers;
 }
 
 /**
