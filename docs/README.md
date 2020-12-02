@@ -10,17 +10,15 @@ has_toc: false
 
 ## User interface
 
-- [Main controls](user-interface.md)
-  - [Audio source](user-interface.md#audio-source)
-  - [Player controls](user-interface.md#player-controls)
-  - [Fullscreen mode and keyboard shortcuts](user-interface.md#fullscreen-mode-and-keyboard-shortcuts)
-- [Panels](user-interface.md#user-interface-panels)
-  - [Settings Panel](user-interface.md#settings-panel)
-  - [Files Panel](user-interface.md#files-panel)
-    - [File explorer](user-interface.md#file-explorer)
-    - [Play queue and playlists](user-interface.md#play-queue-and-playlists)
-  - [Console](user-interface.md#console)
-  - [Config Panel](user-interface.md#config-panel)
+- [Main function buttons](user-interface.md#main-function-buttons)
+- [Audio source](user-interface.md#audio-source)
+- [Player controls](user-interface.md#player-controls)
+- [Volume control](user-interface.md#volume-control)
+- [Keyboard shortcuts](user-interface.md#keyboard-shortcuts)
+- [File explorer and play queue](user-interface.md#file-explorer-and-play-queue)
+- [Settings Panel](user-interface.md#settings-panel)
+- [Console](user-interface.md#console)
+- [Config Panel](user-interface.md#config-panel)
 
 ## Server modes
 

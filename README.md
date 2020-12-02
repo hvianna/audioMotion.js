@@ -76,23 +76,23 @@ For full documentation summary, see the [docs folder](docs/).
 
 ## Screenshots
 
-Discrete frequencies mode. User interface showing the file explorer and play queue.
-![screenshot1](docs/img/screenshot1.png "Discrete frequencies mode. User interface showing the file explorer and play queue.")
+Analyzer in [Discrete frequencies](docs/user-interface.md#mode) mode. User interface showing the file explorer and play queue.
+![screenshot1](docs/img/screenshot1.png)
 
-1/4th-octave bands with LED effect, extra wide bar spacing and on-screen song information. User interface showing the settings panel.
-![screenshot2](docs/img/screenshot2.png "1/4th-octave bands mode, extra wide bar spacing, with LED effect and on-screen song information. User interface showing the settings panel.")
+1/4th-octave bands with LED effect, extra wide bar spacing and on-screen song information. User interface shows the [settings panel](docs/user-interface.md#settings-panel) open.
+![screenshot2](docs/img/screenshot2.png)
 
-Fullscreen 1/6th-octave bands, regular bar spacing, 30Hz-16KHz, "Outrun" gradient, Reflex effect and complete on-screen information.
-![screenshot3](docs/img/screenshot3.png "Fullscreen 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, 'Outrun' gradient, Reflex effect and complete on-screen information")
+Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](docs/user-interface.md#reflex) effect and complete on-screen information.
+![screenshot3](docs/img/screenshot3.png)
 
-Fullscreen Line graph, 20Hz-22KHz, frequency and level scales on, "Rainbow" gradient.
-![screenshot6](docs/img/screenshot6.png "Fullscreen Line graph mode, 20Hz-22KHz, frequency and level scales on, 'Rainbow' gradient")
+Fullscreen view: Line graph, frequency and level scales on, "Rainbow" gradient.
+![screenshot6](docs/img/screenshot6.png)
 
-Fullscreen 1/8th-octave bands with Luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
-![screenshot5](docs/img/screenshot5.png "Fullscreen 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
+Fullscreen view: 1/8th-octave bands, [LUMI effect](docs/user-interface.md#effects), "Tie Dye" gradient.
+![screenshot5](docs/img/screenshot5.png)
 
-Fullscreen Radial 1/6th-octave bands with frequency scale on, "Apple ][" gradient.
-![screenshot7](docs/img/screenshot7.png "Fullscreen Radial 1/6th-octave bands mode with frequency scale on, 'Apple ][' gradient")
+Fullscreen view: 1/6th-octave bands, [Radial](docs/user-interface.md#radial) analyzer, frequency scale on, "Apple ][" gradient.
+![screenshot7](docs/img/screenshot7.png)
 
 ## Credits and acknowledgments
 
