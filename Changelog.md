@@ -1,16 +1,36 @@
----
-layout: default
-title: Changelog
-nav_order: 3
----
-
 # Changelog
 
-## version NEXT
+## version 20.12 :mask:
+
+**:tada: Celebrating audioMotion's 2nd Anniversary! :confetti_ball:**
+
+### New features:
+
++ :fire: Revamped user interface with a cool new look! :sunglasses:
++ Stereo (dual channel) analyzer option :headphones: :notes: :musical_note:
++ :mega: Built-in volume control
+
+### Changed / improved:
+
++ Song info may now be displayed continuously (no fade-out), and also at the **end of the song**; display times are now customizable in the Config panel;
++ The display of album covers in song info is now optional;
++ Options to upload a local file and to load a song from an URL are now always available, not only in local file mode;
++ Hold the previous/next player buttons (or left/right arrow keys) to rewind/fast-foward the current song;
++ Frequency and level scales are now toggled via independent **SCALE X** and **SCALE Y** switches;
++ The size of scale labels on both axes is now scaled relatively to the canvas height;
++ Added timestamp to console messages and a button to clear the console;
++ Added a keyboard shortcut (**C**) for toggling **Radial** visualization;
++ **Shortcut changes:**
+  + **Up** and **down arrow** keys are now used to control the **volume** - for gradient selection use **G** or **Shift+G**;
+  + **J** and **K** keys still work as alternate shortcuts to previous/next song, but are no longer documented and may be reassigned in the future;
+  + Clicks on canvas now display song information (same behavior as the **D** key);
++ Updated documentation website.
 
 ### Fixed:
 
-+ Clicks on settings switches not being properly detected.
++ Clicks on switches not being properly detected sometimes;
++ Random mode not working when audio source was set to microphone;
++ An unexpected error message when deleting the last song from the queue.
 
 
 ## version 20.9 :mask:
@@ -25,14 +45,14 @@ This is a minor update to address two bugs:
 
 ### Added:
 
-+ New [Radial visualization](docs/user-interface.md#mode-switches) for all modes;
-+ Option to display [level (dB) scale](docs/user-interface.md#scale) on vertical axis;
-+ New [**Demo** preset](docs/user-interface.md#preset).
++ New [Radial visualization](docs/README.md#radial) for all modes;
++ Option to display [level (dB) scale](docs/README.md#switches) on vertical axis;
++ New [**Demo** preset](docs/README.md#preset).
 
 ### Changed:
 
-+ Improved the background image [**Pulse**](docs/user-interface.md#image-fit) effect to look more synced regardless of music style;
-+ Any image located in the song's folder can now be used as album cover when a picture is not found in the song metadata (see the [documentation](docs/user-interface.md#background) for filename precedence).
++ Improved the background image [**Pulse**](docs/README.md#image-fit) effect to look more synced regardless of music style;
++ Any image located in the song's folder can now be used as album cover when a picture is not found in the song metadata (see the [documentation](docs/README.md#background) for filename precedence).
 
 ### Fixed:
 
@@ -46,7 +66,7 @@ This is a minor update to address two bugs:
 + **Album cover image** retrieved from the song metadata or from a file named *cover* or *folder* (.jpg|png|gif|bmp) inside each folder
 is now shown in the file explorer background, the on-screen song information and, optionally, in the analyzer background;
 
-+ New [Background](docs/user-interface.md#background), [Image Fit](docs/user-interface.md#image-fit) and [Image Dim](docs/user-interface.md#image-dim) settings.
++ New [Background](docs/README.md#background), [Image Fit](docs/README.md#image-fit) and [Image Dim](docs/README.md#image-dim) settings.
 
 ### Changed:
 
