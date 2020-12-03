@@ -76,19 +76,24 @@ For full documentation summary, see the [docs folder](docs/).
 
 ## Screenshots
 
-Analyzer in [Discrete frequencies](docs/user-interface.md#mode) mode. User interface showing the file explorer and play queue.
+Analyzer in [Discrete frequencies](docs/user-interface.md#mode) mode. User interface components:
+[main function buttons](docs/user-interface.md#main-function-buttons),
+[audio source](docs/user-interface.md#audio-source) selector,
+[player controls](docs/user-interface.md#player-controls),
+[volume control](docs/user-interface.md#volume-control) and
+[file explorer and play queue](docs/user-interface.md#file-explorer-and-play-queue).
 ![screenshot1](docs/img/screenshot1.png)
 
-1/4th-octave bands with LED effect, extra wide bar spacing and on-screen song information. User interface shows the [settings panel](docs/user-interface.md#settings-panel) open.
+1/4th-octave bands with LED effect, extra wide [bar spacing](docs/user-interface.md#bar-spacing) and on-screen song information. User interface shows the [settings panel](docs/user-interface.md#settings-panel) open.
 ![screenshot2](docs/img/screenshot2.png)
 
 Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](docs/user-interface.md#reflex) effect and complete on-screen information.
 ![screenshot3](docs/img/screenshot3.png)
 
-Fullscreen view: Line graph, frequency and level scales on, "Rainbow" gradient.
+Fullscreen view: [Stereo](docs/user-interface.md#switches) Line graph, frequency and level scales on, "Rainbow" gradient.
 ![screenshot6](docs/img/screenshot6.png)
 
-Fullscreen view: 1/8th-octave bands, [LUMI effect](docs/user-interface.md#effects), "Tie Dye" gradient.
+Fullscreen view: 1/8th-octave bands, [LUMI effect](docs/user-interface.md#effects) on, "Tie Dye" gradient.
 ![screenshot5](docs/img/screenshot5.png)
 
 Fullscreen view: 1/6th-octave bands, [Radial](docs/user-interface.md#radial) analyzer, frequency scale on, "Apple ][" gradient.
