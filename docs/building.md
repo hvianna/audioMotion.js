@@ -1,10 +1,3 @@
----
-layout: default
-title: Building audioMotion
-parent: Documentation
-nav_order: 3
----
-
 # Building audioMotion
 
 These steps require [node.js](https://nodejs.org) installed in your computer.
@@ -44,4 +37,6 @@ Then package the application with:
 npm run pack
 ```
 
-This will create executable files for Windows, Linux and macOS in the `bin/` folder. Please refer to the pkg documentation for building to other available platforms.
+This will create executable files for Windows, Linux and macOS in the `bin/` folder.
+
+Please refer to the [pkg documentation](https://github.com/vercel/pkg#readme) for building to other available platforms.

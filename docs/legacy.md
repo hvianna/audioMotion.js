@@ -1,10 +1,3 @@
----
-layout: default
-title: Legacy features
-parent: Documentation
-nav_order: 4
----
-
 # Legacy features
 
 ## playlists.cfg file
