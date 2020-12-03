@@ -1,30 +1,24 @@
----
-layout: default
-title: Server modes
-parent: Documentation
-nav_order: 2
----
-
 # Server modes
 
+audioMotion can run in three different server scenarios:
++ serverless, in [local file mode](#local-file-mode) with limited capabilites;
++ using its own [custom file server](#custom-file-server) (preferred);
++ from a [standard web server](#standard-web-server) like Apache, Lighttpd or Nginx.
+
+## Local file mode
+
 You can run audioMotion in **file mode** by directly opening the `index.html` file located inside the `public` folder.
-In this mode you can play single music files and use the microphone input, but the file explorer won't be available.
+
+In this mode you can play individual music files from your computer or from a remote URL and use the microphone input, but the file explorer won't be available.
 
 Due to the security policy of web browsers, JavaScript can only read files via HTTP protocol.
 So, in order for audioMotion to read music files from your hard disk, you must have an HTTP server software running in your computer.
-
-audioMotion works with a variety of server options:
-
-+ [Custom file server](#custom-file-server)
-+ [Standard web servers (Apache, Lighttpd, Nginx)](#using-a-standard-web-server)
-+ [Apache web server with Docker](#apache-web-server-with-docker)
-
 
 ## Custom file server
 
 audioMotion's custom file server allows you to easily access music files anywhere in your computer. This is the easiest and preferred way to run audioMotion.
 
-You can download portable binaries for Windows, Linux and macOS from the project's [releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
+The custom file server is included in the binaries you can download from the project's [releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
 
 Simply double-click the executable to launch audioMotion and you'll be asked for the path to your music folder.
 
@@ -47,6 +41,8 @@ audioMotion -e -m /path/to/music
 ⚠ **WARNING:**<br>
 Please be aware that the `-e` flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
 
+### Running from source code
+
 audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
 
 ```
@@ -59,10 +55,11 @@ And then start the server by running:
 npm start -- -m /path/to/music
 ```
 
+## Standard web server
 
-## Using a standard web server
+You can also use audioMotion with a standard web server, like Apache, Lighttpd or Nginx.
 
-You can also use audioMotion with a standard web server, like Apache, Lighttpd or Nginx, to play music stored even in older [NAS](https://en.wikipedia.org/wiki/Network-attached_storage) servers not capable of running Node.js.
+This is an alternative way to play music stored, for example, in older [NAS](https://en.wikipedia.org/wiki/Network-attached_storage) servers not capable of running Node.js.
 
 Just copy the contents of the `public` folder to your server and make the necessary configurations:
 
@@ -103,7 +100,7 @@ Alias "/music" "/mnt/HD/HD_a2/MUSIC"
 
 *To do...*
 
-## Apache web server with Docker
+### Apache web server with Docker
 
 If you use Docker, you can simply open a command prompt in audioMotion's directory and run:
 

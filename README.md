@@ -1,45 +1,37 @@
----
-layout: default
-title: Home
-nav_order: 1
-permalink: /
----
+# ♪♫ **See** your music with **audioMotion**! ♪♫
 
-![header](docs/img/audioMotion-header.png "audioMotion - high-resolution real-time spectrum analyzer and music player")
+[![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
+[![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
-[![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg) ![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
-
-♪♫ **See** your music with **audioMotion**! ♪♫
-
-**audioMotion.js** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
+**audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
 
 The spectrum analyzer module is also available as a [standalone project](https://github.com/hvianna/audioMotion-analyzer) and a zero-dependency [npm package](https://www.npmjs.com/package/audiomotion-analyzer) you can use in your own JavaScript projects!
 
 ## Features
 
-* High-resolution (retina / HiDPI ready) real-time audio spectrum analyzer with fullscreen support
+* High-resolution real-time dual channel audio spectrum analyzer
+* Fullscreen support at up to 60fps, ready for retina / HiDPI displays
 * Logarithmic frequency scale with customizable range
-* Visualize discrete frequencies with full FFT resolution, or octave bands based on the equal tempered scale
+* Visualize discrete frequencies or octave bands based on the equal tempered scale
 * Optional effects: vintage LEDs, luminance bars, reflection, radial visualization
 * 17 beautiful color gradients
-* Customizable Web Audio API parameters (FFT size, sensitivity and time-smoothing constant)
-* HTML5 audio player supports MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser)
+* HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
 * Visual file explorer and play queue with drag-and-drop functionality
 * Support for M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 * Lightweight custom file server — also works on standard web servers with minimal configuration
 * Client runs on any modern browser (tested on Chrome, Firefox, Opera and Safari)
 
-## Online demo
+## Live demo
 
-[**DEMO SITE** ▶ audioMotion.me/public](https://audiomotion.me/public/)
+[▶ **TRY THE LIVE DEMO**](https://audiomotion.me/public/)
 
-The demo allows you to play audio files from your PC, load songs and streams from remote URLs and use the microphone input.
+The demo allows you to play audio files from your PC, remote files and streams via URL and use the microphone input.
 The file explorer is not available, since there are no media files hosted on the demo server.
 
-Also check out our [▶ **YouTube channel**](https://channel.audiomotion.io) for videos of some cool songs visualized with audioMotion!
+Also check out our [▶ **YouTube channel**](https://channel.audiomotion.io) for some cool songs visualized with audioMotion!
 
-## Download
+## Getting started
 
 Download the latest version from the [**releases page**](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
 
@@ -65,38 +57,45 @@ The complete command line options are:
 ⚠ **WARNING:**<br>
 Please be aware that the `-e` flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
 
-## Documentation
-
-+ [User interface](docs/user-interface.md)
-+ [Server modes](docs/server.md)
-+ [Building audioMotion](docs/building.md)
-+ [Legacy features](docs/legacy.md)
-
-For full documentation summary, see the [docs folder](docs/).
-
 ## Screenshots
 
-Discrete frequencies mode. User interface showing the file explorer and play queue.
-![screenshot1](docs/img/screenshot1.png "Discrete frequencies mode. User interface showing the file explorer and play queue.")
+![screenshot1](docs/img/screenshot1.png)
+*[Discrete frequencies](docs/README.md#mode) mode. User interface: [main function buttons](docs/README.md#main-function-buttons), [audio source](docs/README.md#audio-source) selector, [player controls](docs/README.md#player-controls), [volume control](docs/README.md#volume-control) and [file explorer](docs/README.md#file-explorer-and-play-queue).*
 
-1/4th-octave bands with LED effect, extra wide bar spacing and on-screen song information. User interface showing the settings panel.
-![screenshot2](docs/img/screenshot2.png "1/4th-octave bands mode, extra wide bar spacing, with LED effect and on-screen song information. User interface showing the settings panel.")
+---
 
-Fullscreen 1/6th-octave bands, regular bar spacing, 30Hz-16KHz, "Outrun" gradient, Reflex effect and complete on-screen information.
-![screenshot3](docs/img/screenshot3.png "Fullscreen 1/6th-octave bands, Regular bar spacing, 30Hz-16KHz, 'Outrun' gradient, Reflex effect and complete on-screen information")
+![screenshot2](docs/img/screenshot2.png)
+*1/4th-octave bands with LED effect, extra wide [bar spacing](docs/README.md#bar-spacing) and on-screen song information. User interface shows the [settings panel](docs/README.md#settings-panel) open.*
 
-Fullscreen Line graph, 20Hz-22KHz, frequency and level scales on, "Rainbow" gradient.
-![screenshot6](docs/img/screenshot6.png "Fullscreen Line graph mode, 20Hz-22KHz, frequency and level scales on, 'Rainbow' gradient")
+---
 
-Fullscreen 1/8th-octave bands with Luminance bars effect, 30Hz-16KHz, frequency scale on, "Tie Dye" gradient.
-![screenshot5](docs/img/screenshot5.png "Fullscreen 1/8th-octave bands mode with Luminance bars effect, 30Hz-16KHz, frequency scale on, 'Tie Dye' gradient")
+![screenshot3](docs/img/screenshot3.png)
+*Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](docs/README.md#reflex) effect and complete on-screen information.*
 
-Fullscreen Radial 1/6th-octave bands with frequency scale on, "Apple ][" gradient.
-![screenshot7](docs/img/screenshot7.png "Fullscreen Radial 1/6th-octave bands mode with frequency scale on, 'Apple ][' gradient")
+---
+
+![screenshot6](docs/img/screenshot6.png)
+*Fullscreen view: [Stereo](docs/README.md#switches) Line graph, frequency and level scales on, "Rainbow" gradient.*
+
+---
+
+![screenshot5](docs/img/screenshot5.png)
+*Fullscreen view: 1/8th-octave bands, [LUMI effect](docs/README.md#effects) on, "Tie Dye" gradient.*
+
+---
+
+![screenshot7](docs/img/screenshot7.png)
+*Fullscreen view: 1/6th-octave bands, [Radial](docs/README.md#radial) analyzer, frequency scale on, "Apple ][" gradient.*
+
+## Documentation
+
+For complete documentation, see the [docs](docs/README.md) folder.
 
 ## Credits and acknowledgments
 
 **audioMotion** was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike.
+
+The documentation website is powered by [GitHub Pages](https://pages.github.com/), [docsify](https://docsify.js.org/) and [docsify-themeable](https://jhildenbiddle.github.io/docsify-themeable).
 
 ### JavaScript libraries
 
@@ -117,12 +116,17 @@ Some of audioMotion's great features are provided by these awesome open-source l
 
 ### Graphic resources
 
+* The font used in audioMotion's logo is [Orbitron](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
+* Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
+* [Mouse scroll icon](https://thenounproject.com/term/mouse-scroll/628146/) by Viktor Ostrovsky, licensed under [Creative Commons CCBY](https://creativecommons.org/licenses/by/3.0/us/legalcode)
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
 * The *Apple ][* gradient was created based on [this post](https://creativemarket.com/blog/6-famous-logos-with-great-color-schemes) by Creative Market
 * Gradients used in the UI buttons are from [ColorZilla's Ultimate CSS Gradient Generator](http://www.colorzilla.com/gradient-editor/)
-* The audioMotion logo uses the [Orbitron font](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
-* Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
+* [CSS3 inset text shadow](https://codepen.io/adambundy/pen/HtmaK) by Adam Bundy
+* [CSS slider switches](https://codepen.io/billyysea/pen/CHmiE) by Billy
+* Radial brushed metal texture taken from [this pen](https://codepen.io/GreenSock/pen/gnoDc) by GreenSock
+* Volume knob design based on [Dark dial](https://codepen.io/stormwarning/pen/yNGeMm) by Jeff
 
 ### References
 
@@ -135,9 +139,7 @@ These online references were invaluable for the development and improvement of a
 * [HTML5 check if audio is playing?](https://stackoverflow.com/a/46117824/2370385)
 * [Unlocking Web Audio — the smarter way](https://hackernoon.com/unlocking-web-audio-the-smarter-way-8858218c0e09)
 * [Equations for equal-tempered scale frequencies](http://pages.mtu.edu/~suits/NoteFreqCalcs.html)
-* [Efficient case-insensitive sorting in JavaScript](https://stackoverflow.com/a/40390844/2370385)
-* [Fastest way to find the index of a child node in parent](https://stackoverflow.com/a/13657635/2370385)
-
+* Pure CSS modal windows based on [this pen](https://codepen.io/timothylong/pen/HhAer) by Timothy Long and [CSS Modal](https://drublic.github.io/css-modal/) by Hans Christian Reinl
 
 ## License
 

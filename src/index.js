@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.9';
+const _VERSION = '20.12';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -48,7 +48,8 @@ const elFFTsize     = $('#fft_size'),
 	  elSmoothing   = $('#smoothing'),
 	  elMode        = $('#mode'),
 	  elGradient    = $('#gradient'),
-	  elShowScale   = $('#show_scale'),
+	  elScaleX      = $('#scaleX'),
+	  elScaleY      = $('#scaleY'),
 	  elSensitivity = $('#sensitivity'),
 	  elShowPeaks   = $('#show_peaks'),
 	  elCycleGrad   = $('#cycle_grad'),
@@ -70,7 +71,14 @@ const elFFTsize     = $('#fft_size'),
 	  elBgImageDim  = $('#bg_img_dim'),
 	  elBgImageFit  = $('#bg_img_fit'),
 	  elRadial      = $('#radial'),
-	  elSpin		= $('#spin');
+	  elSpin		= $('#spin'),
+	  elStereo      = $('#stereo'),
+	  elSplitGrad   = $('#split_grad'),
+	  elVolume      = $('#volume'),
+	  elInfoTimeout = $('#info_timeout'),
+	  elTrackTimeout= $('#track_timeout'),
+	  elEndTimeout  = $('#end_timeout'),
+	  elShowCover   = $('#show_cover');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -79,13 +87,13 @@ let audioMotion;
 let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-let audioElement, sourcePlayer, sourceMic, cfgSource;
+let audioElement, micStream, isMicSource, savedVolume;
 
 // on-screen messages
 let canvasMsg;
 
-// flag for skip track in progress
-let skipping = false;
+// auxiliary variables for track skip and fast search
+let skipping = false, isFastSearch = false, fastSearchTimeout;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -114,7 +122,8 @@ const presets = {
 		ledDisplay  : 0,
 		lumiBars    : 0,
 		sensitivity : 1,
-		showScale   : 1,
+		showScaleX  : 1,
+		showScaleY  : 1,
 		showPeaks   : 1,
 		showSong    : 1,
 		repeat      : 0,
@@ -128,7 +137,9 @@ const presets = {
 		bgImageDim  : 0.3,
 		bgImageFit  : 1, 	// center
 		radial      : 0,
-		spin        : 2
+		spin        : 2,
+		stereo      : 0,
+		splitGrad   : 0
 	},
 
 	fullres: {
@@ -275,7 +286,9 @@ const randomProperties = [
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
 	{ value: 'radial', text: 'Radial',       disabled: false },
-	{ value: 'spin',   text: 'Spin',         disabled: false }
+	{ value: 'spin',   text: 'Spin',         disabled: false },
+	{ value: 'stereo', text: 'Stereo',       disabled: false },
+	{ value: 'split',  text: 'Split',        disabled: false }
 ];
 
 // Sensitivity presets
@@ -284,6 +297,14 @@ const sensitivityDefaults = [
 	{ min: -85,  max: -25 }, // normal
 	{ min: -100, max: -30 }  // high
 ];
+
+// On-screen information display options
+const infoDisplayDefaults = {
+	info  : 5,	 // display time (secs) when requested via click or keyboard shortcut
+	track : 10,  // display time (secs) on track change
+	end   : 0,   // display time (secs) at the end of the song
+	covers: true // show album covers in song information
+}
 
 /**
  * Display the canvas in full-screen mode
@@ -296,170 +317,170 @@ function fullscreen() {
 /**
  * Set audioMotion properties
  *
- * @param obj {object} - HTML object when called directly, or event object when called by an event handler
- * @param [save] {boolean} - true to save current settings to last used preset
- *                           defaults to true when called by an event handler or false otherwise
+ * @param elems {object|array} a DOM element object or array of objects
+ * @param [save] {boolean} true to save current settings to last used preset
  */
-function setProperty ( prop, save ) {
-	// if called by an event handler, get the target HTML element
-	if ( prop.target ) {
-		prop = prop.target;
-		save = true;
-	}
+function setProperty( elems, save ) {
+	if ( ! Array.isArray( elems ) )
+		elems = [ elems ];
 
-	switch ( prop ) {
-		case elBackground:
-		case elBgImageFit:
-		case elBgImageDim:
-			const bgOption = elBackground.value,
-				  bgFit    = elBgImageFit.value;
+	for ( const el of elems ) {
+		switch ( el ) {
+			case elBackground:
+			case elBgImageFit:
+			case elBgImageDim:
+				const bgOption = elBackground.value,
+					  bgFit    = elBgImageFit.value;
 
-			audioMotion.overlay = ( bgOption > 1 );
-			audioMotion.showBgColor = ( bgOption == 0 );
-			audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
-			audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
+				audioMotion.overlay = ( bgOption > 1 );
+				audioMotion.showBgColor = ( bgOption == 0 );
+				audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
+				audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
 
-			setCurrentCover();
-			break;
+				setCurrentCover();
+				break;
 
-		case elBarSpace:
-			audioMotion.barSpace = audioMotion.lumiBars ? 1.5 : elBarSpace.value;
-			break;
+			case elBarSpace:
+				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : elBarSpace.value;
+				break;
 
-		case elFFTsize:
-			audioMotion.fftSize = elFFTsize.value;
-			consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
-			break;
+			case elFFTsize:
+				audioMotion.fftSize = elFFTsize.value;
+				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+				break;
 
-		case elFillAlpha:
-			audioMotion.fillAlpha = elFillAlpha.value;
-			break;
+			case elFillAlpha:
+				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
+				break;
 
-		case elRangeMin:
-		case elRangeMax:
-			while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
-				elRangeMax.selectedIndex++;
-			audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
-			break;
+			case elRangeMin:
+			case elRangeMax:
+				while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
+					elRangeMax.selectedIndex++;
+				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
 
-		case elGradient:
-			if ( elGradient.value === '' ) // handle invalid setting
-				elGradient.selectedIndex = 0;
-			audioMotion.gradient = elGradient.value;
-			break;
+			case elGradient:
+				if ( elGradient.value === '' ) // handle invalid setting
+					elGradient.selectedIndex = 0;
+				audioMotion.gradient = elGradient.value;
+				break;
 
-		case elLedDisplay:
-			audioMotion.showLeds = ( elLedDisplay.dataset.active == '1' );
-			break;
+			case elLedDisplay:
+				audioMotion.showLeds = isSwitchOn( elLedDisplay );
+				break;
 
-		case elLineWidth:
-			audioMotion.lineWidth = elLineWidth.value;
-			break;
+			case elLineWidth:
+				audioMotion.lineWidth = ( elMode.value == 10 ) ? 0 : elLineWidth.value;
+				break;
 
-		case elLoRes:
-			audioMotion.loRes = ( elLoRes.dataset.active == '1' );
-			break;
+			case elLoRes:
+				audioMotion.loRes = isSwitchOn( elLoRes );
+				break;
 
-		case elLumiBars:
-			audioMotion.lumiBars = ( elLumiBars.dataset.active == '1' );
-			setProperty( elBarSpace );
-			setProperty( elReflex );
-			break;
+			case elLumiBars:
+				audioMotion.lumiBars = isSwitchOn( elLumiBars );
+				setProperty( elBarSpace );
+				break;
 
-		case elMode:
-			if ( elMode.value === '' ) // handle invalid setting
-				elMode.selectedIndex = 0;
+			case elMode:
+				if ( elMode.value === '' ) // handle invalid setting
+					elMode.selectedIndex = 0;
 
-			const lineWidthLabel = $('#line_width_label'),
-				  fillAlphaLabel = $('#fill_alpha_label'),
-				  barSpaceLabel  = $('#bar_space_label'),
-				  mode = elMode.value;
+				const mode = elMode.value;
+				if ( mode < 10 )
+					audioMotion.mode = mode;
+				else {
+					audioMotion.mode = 10;
 
-			lineWidthLabel.style.display = 'none';
-			fillAlphaLabel.style.display = 'none';
-			barSpaceLabel.style.display  = ( mode > 0 && mode < 10 ) ? '' : 'none';
-
-			if ( mode < 10 )
-				audioMotion.mode = mode;
-			else {
-				audioMotion.mode = 10;
-
-				if ( mode == 10 ) { // "Area graph" mode
-					audioMotion.lineWidth = 0;
-					audioMotion.fillAlpha = 1;
+					if ( mode == 10 ) { // "Area graph" mode
+						audioMotion.lineWidth = 0;
+						audioMotion.fillAlpha = 1;
+					}
+					else { // "Line graph" mode with custom line width and fill opacity
+						audioMotion.lineWidth = elLineWidth.value;
+						audioMotion.fillAlpha = elFillAlpha.value;
+					}
 				}
-				else { // "Line graph" mode with custom line width and fill opacity
-					lineWidthLabel.style.display = '';
-					fillAlphaLabel.style.display = '';
-					audioMotion.lineWidth = elLineWidth.value;
-					audioMotion.fillAlpha = elFillAlpha.value;
+				setProperty( elBarSpace );
+				break;
+
+			case elRadial:
+				audioMotion.radial = isSwitchOn( elRadial );
+				setProperty( elBarSpace );
+				break;
+
+			case elRandomMode:
+				const option = elRandomMode.value;
+
+				if ( randomModeTimer )
+					randomModeTimer = window.clearInterval( randomModeTimer );
+
+				if ( option > 1 )
+					randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+
+				break;
+
+			case elReflex:
+				switch ( elReflex.value ) {
+					case '1':
+						audioMotion.reflexRatio = .4;
+						audioMotion.reflexAlpha = .2;
+						break;
+
+					case '2':
+						audioMotion.reflexRatio = .5;
+						audioMotion.reflexAlpha = 1;
+						break;
+
+					default:
+						audioMotion.reflexRatio = 0;
 				}
-			}
-			break;
+				break;
 
-		case elRadial:
-			audioMotion.radial = ( elRadial.dataset.active == '1' );
-			$('#spin_label').style.display = audioMotion.radial ? '' : 'none';
-			break;
+			case elScaleX:
+				audioMotion.showScaleX = isSwitchOn( elScaleX );
+				break;
 
-		case elRandomMode:
-			const option = elRandomMode.value;
+			case elScaleY:
+				audioMotion.showScaleY = isSwitchOn( elScaleY );
+				break;
 
-			if ( randomModeTimer )
-				randomModeTimer = window.clearInterval( randomModeTimer );
+			case elSensitivity:
+				const sensitivity = elSensitivity.value;
+				audioMotion.setSensitivity(
+					$(`.min-db[data-preset="${sensitivity}"]`).value,
+					$(`.max-db[data-preset="${sensitivity}"]`).value
+				);
+				break;
 
-			if ( option > 1 )
-				randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+			case elFPS:
+				audioMotion.showFPS = isSwitchOn( elFPS );
+				break;
 
-			break;
+			case elShowPeaks:
+				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
+				break;
 
-		case elReflex:
-			switch ( elReflex.value ) {
-				case '1':
-					audioMotion.reflexRatio = .4;
-					audioMotion.reflexAlpha = .2;
-					break;
+			case elSmoothing:
+				audioMotion.smoothing = elSmoothing.value;
+				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+				break;
 
-				case '2':
-					audioMotion.reflexRatio = .5;
-					audioMotion.reflexAlpha = 1;
-					break;
+			case elSpin:
+				audioMotion.spinSpeed = elSpin.value;
+				break;
 
-				default:
-					audioMotion.reflexRatio = 0;
-			}
-			break;
+			case elSplitGrad:
+				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
+				break;
 
-		case elShowScale:
-			audioMotion.showScale  = !! ( elShowScale.value & 1 );
-			audioMotion.showScaleY = !! ( elShowScale.value & 2 );
-			break;
+			case elStereo:
+				audioMotion.stereo = isSwitchOn( elStereo );
+				break;
 
-		case elSensitivity:
-			const sensitivity = elSensitivity.value;
-			audioMotion.setSensitivity(
-				$(`.min-db[data-preset="${sensitivity}"]`).value,
-				$(`.max-db[data-preset="${sensitivity}"]`).value
-			);
-			break;
-
-		case elFPS:
-			audioMotion.showFPS = ( elFPS.dataset.active == '1' );
-			break;
-
-		case elShowPeaks:
-			audioMotion.showPeaks = ( elShowPeaks.dataset.active == '1' );
-			break;
-
-		case elSmoothing:
-			audioMotion.smoothing = elSmoothing.value;
-			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
-			break;
-
-		case elSpin:
-			audioMotion.spinSpeed = elSpin.value;
-			break;
-	}
+		} // switch
+	} // for
 
 	if ( save )
 		updateLastConfig();
@@ -483,29 +504,33 @@ function setCurrentCover( url ) {
 	audioMotion.canvas.style.backgroundSize = '';
 }
 
-
 /**
  * Clear audio element
  */
 function clearAudioElement( n = currAudio ) {
-	audioElement[ n ].removeAttribute('src');
-	audioElement[ n ].dataset.file = '';
-	audioElement[ n ].dataset.artist = '';
-	audioElement[ n ].dataset.title = '';
-	audioElement[ n ].dataset.album = '';
-	audioElement[ n ].dataset.codec = '';
-	audioElement[ n ].dataset.quality = '';
-	audioElement[ n ].dataset.duration = '';
-	audioElement[ n ].load();
+	const elAudio   = audioElement[ n ],
+		  trackData = elAudio.dataset;
+
+	elAudio.removeAttribute('src');
+	trackData.file = '';
+	trackData.artist = '';
+	trackData.title = '';
+	trackData.album = '';
+	trackData.codec = '';
+	trackData.quality = '';
+	trackData.duration = '';
+
+	elAudio.load();
+
 	coverImage[ n ] = new Image();
 	if ( n == currAudio )
 		setCurrentCover(); // clear current background image
 }
 
 /**
- * Clear the playlist
+ * Clear the play queue
  */
-function clearPlaylist() {
+function clearPlayQueue() {
 
 	while ( playlist.hasChildNodes() )
 		playlist.removeChild( playlist.firstChild );
@@ -526,15 +551,19 @@ function clearPlaylist() {
  */
 function loadSavedPlaylists( keyName ) {
 
-	let playlists = localStorage.getItem('playlists');
+	// reset UI playlist selection box
 
 	while ( elPlaylists.hasChildNodes() )
 		elPlaylists.removeChild( elPlaylists.firstChild );
 
-	const item = new Option( 'Select a playlist and click action to the right', '' );
+	const item = new Option( 'Select a playlist', '' );
 	item.disabled = true;
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
+
+	// load playlists from localStorage
+
+	let playlists = localStorage.getItem('playlists');
 
 	if ( playlists ) {
 		playlists = JSON.parse( playlists );
@@ -547,6 +576,8 @@ function loadSavedPlaylists( keyName ) {
 			elPlaylists.options[ elPlaylists.options.length ] = item;
 		});
 	}
+
+	// try to load legacy playlists.cfg file
 
 	fetch( 'playlists.cfg' )
 		.then( response => {
@@ -584,8 +615,8 @@ function loadSavedPlaylists( keyName ) {
  * @param files {array} array of objects with a 'file' property
  * @param [autoplay] {boolean}
  */
-function addBatchToQueue( files, autoplay = false ) {
-	const promises = files.map( entry => addToPlaylist( entry.file, autoplay ) );
+function addBatchToPlayQueue( files, autoplay = false ) {
+	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
 	Promise.all( promises ).then( added => {
 		const total = added.reduce( ( sum, val ) => sum + val, 0 );
 		notie.alert({ text: `${total} song${ total > 1 ? 's' : '' } added to the queue`, time: 5 });
@@ -593,9 +624,9 @@ function addBatchToQueue( files, autoplay = false ) {
 }
 
 /**
- * Add a song or playlist to the current playlist
+ * Add a song or playlist to the play queue
  */
-function addToPlaylist( file, autoplay = false ) {
+function addToPlayQueue( file, autoplay = false ) {
 
 	const ext = file.slice( file.lastIndexOf('.') + 1 ).toLowerCase();
 	let ret;
@@ -604,7 +635,7 @@ function addToPlaylist( file, autoplay = false ) {
 		ret = loadPlaylist( file );
 	else
 		ret = new Promise( resolve => {
-			addSongToPlaylist( file );
+			addSongToPlayQueue( file );
 			resolve(1);
 		});
 
@@ -621,54 +652,62 @@ function addToPlaylist( file, autoplay = false ) {
  * Add audio metadata to a playlist item or audio element
  */
 function addMetadata( metadata, target ) {
-	if ( metadata.dataset ) { 	// just copy metadata from element dataset (playlist item)
-		target.dataset.artist   = metadata.dataset.artist || '';
-		target.dataset.title    = metadata.dataset.title || '';
-		target.dataset.album    = metadata.dataset.album || '';
-		target.dataset.codec    = metadata.dataset.codec || '';
-		target.dataset.quality  = metadata.dataset.quality || '';
-		target.dataset.duration = metadata.dataset.duration || '';
+	const trackData  = target.dataset,
+		  sourceData = metadata.dataset,
+		  common     = metadata.common,
+		  format     = metadata.format;
+
+	if ( sourceData ) { 	// just copy metadata from element dataset (playlist item)
+		trackData.artist   = sourceData.artist || '';
+		trackData.title    = sourceData.title || '';
+		trackData.album    = sourceData.album || '';
+		trackData.codec    = sourceData.codec || '';
+		trackData.quality  = sourceData.quality || '';
+		trackData.duration = sourceData.duration || '';
 	}
 	else {						// parse metadata read from file
-		target.dataset.artist   = metadata.common.artist || target.dataset.artist;
-		target.dataset.title    = metadata.common.title || target.dataset.title;
-		target.dataset.album    = metadata.common.album ? metadata.common.album + ( metadata.common.year ? ' (' + metadata.common.year + ')' : '' ) : '';
-		target.dataset.codec    = metadata.format ? metadata.format.codec || metadata.format.container : target.dataset.codec;
+		trackData.artist   = common.artist || trackData.artist;
+		trackData.title    = common.title || trackData.title;
+		trackData.album    = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
+		trackData.codec    = format ? format.codec || format.container : trackData.codec;
 
-		if ( metadata.format && metadata.format.bitsPerSample )
-			target.dataset.quality = Math.floor( metadata.format.sampleRate / 1000 ) + 'KHz / ' + metadata.format.bitsPerSample + 'bits';
-		else if ( metadata.format.bitrate )
-			target.dataset.quality = Math.floor( metadata.format.bitrate / 1000 ) + 'K ' + metadata.format.codecProfile || '';
+		if ( format && format.bitsPerSample )
+			trackData.quality = Math.floor( format.sampleRate / 1000 ) + 'KHz / ' + format.bitsPerSample + 'bits';
+		else if ( format.bitrate )
+			trackData.quality = Math.floor( format.bitrate / 1000 ) + 'K ' + format.codecProfile || '';
 		else
-			target.dataset.quality = '';
+			trackData.quality = '';
 
-		if ( metadata.format && metadata.format.duration )
-			target.dataset.duration = formatHHMMSS( metadata.format.duration );
+		if ( format && format.duration )
+			trackData.duration = formatHHMMSS( format.duration );
 		else
-			target.dataset.duration = '';
+			trackData.duration = '';
 	}
 }
 
 /**
- * Add a song to the playlist
+ * Add a song to the play queue
  */
-function addSongToPlaylist( uri, content = {} ) {
-
-	const newEl = document.createElement('li');
+function addSongToPlayQueue( uri, content = {} ) {
 
 	// normalize slashes in path
 	uri = uri.replace( /\\/g, '/' );
 
-	newEl.dataset.artist = content.artist || '';
+	// extract file name and extension
+	const file = uri.split('/').pop(),
+		  ext  = file.split('.').pop();
 
-	newEl.dataset.title = content.title ||
-		uri.slice( uri.lastIndexOf('/') + 1 ).replace( /%23/g, '#' ) ||
-		uri.slice( uri.lastIndexOf('//') + 2 );
+	// create new list element
+	const newEl     = document.createElement('li'),
+		  trackData = newEl.dataset;
 
-	newEl.dataset.codec = uri.slice( uri.lastIndexOf('.') + 1 ).toUpperCase();
+	trackData.artist = content.artist || '';
+	trackData.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
 
-	uri = uri.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-	newEl.dataset.file = uri;
+	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
+	uri = uri.replace( /#/g, '%23' );
+	trackData.file = uri;
 
 	playlist.appendChild( newEl );
 
@@ -678,14 +717,15 @@ function addSongToPlaylist( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
+	// try to retrieve metadata from audio file or stream
 	fetch( uri ).then( response => {
 		return response.body;
 	}).then( stream => {
 		mm.parseReadableStream( stream, '', { skipCovers: true } ).then( metadata => {
 			if ( metadata ) {
-				addMetadata( metadata, newEl ); // add metadata to playlist item
+				addMetadata( metadata, newEl ); // add metadata to play queue item
 				audioElement.forEach( el => {
-					if ( el.dataset.file == newEl.dataset.file )
+					if ( el.dataset.file == trackData.file )
 						addMetadata( newEl, el ); // transfer metadata to audio element
 				});
 			}
@@ -735,9 +775,9 @@ function loadPlaylist( path ) {
 							// extract artist name and song title off the info tag (format: ARTIST - SONG)
 							const sep = songInfo.indexOf(' - ');
 							if ( sep == -1 )
-								addSongToPlaylist( line, { title: songInfo } );
+								addSongToPlayQueue( line, { title: songInfo } );
 							else
-								addSongToPlaylist( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
+								addSongToPlayQueue( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
 							songInfo = '';
 						}
 						else if ( line.slice( 0, 7 ) == '#EXTINF' )
@@ -759,7 +799,7 @@ function loadPlaylist( path ) {
 					item = item.replace( /\\/g, '/' );
 					songInfo = item.slice( item.lastIndexOf('/') + 1 );
 					songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-					addSongToPlaylist( item, { title: songInfo } )
+					addSongToPlayQueue( item, { title: songInfo } )
 				});
 			}
 			else
@@ -883,21 +923,22 @@ function deletePlaylist( index ) {
  */
 function updatePlaylistUI() {
 
-	const current = playlist.querySelector('.current');
+	const current = playlist.querySelector('.current'),
+		  newCurr = playlist.children[ playlistPos ];
 
 	if ( current )
 		current.classList.remove('current');
 
-	if ( playlist.children[ playlistPos ] ) {
-		playlist.children[ playlistPos ].classList.add('current');
-		playlist.children[ playlistPos ].scrollIntoViewIfNeeded();
+	if ( newCurr ) {
+		newCurr.classList.add('current');
+		newCurr.scrollIntoViewIfNeeded();
 	}
 }
 
 /**
  * Shuffle the playlist
  */
-function shufflePlaylist() {
+function shufflePlayQueue() {
 
 	let temp, r;
 
@@ -912,6 +953,7 @@ function shufflePlaylist() {
 
 /**
  * Return the index of an element inside its parent
+ * based on https://stackoverflow.com/a/13657635/2370385
  */
 function getIndex( node ) {
 	if ( ! node )
@@ -995,19 +1037,19 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
-	let n;
-	if ( playlistPos < playlist.children.length - 1 )
-		n = playlistPos + 1;
-	else
-		n = 0;
-	const song = playlist.children[ n ];
-	audioElement[ nextAudio ].src = song.dataset.file;
-	audioElement[ nextAudio ].load();
-	audioElement[ nextAudio ].dataset.file = song.dataset.file;
-	coverImage[ nextAudio ] = new Image();
+	const next    = ( playlistPos < playlist.children.length - 1 ) ? playlistPos + 1 : 0,
+		  song    = playlist.children[ next ],
+		  audioEl = audioElement[ nextAudio ];
 
-	addMetadata( song, audioElement[ nextAudio ] );
-	loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
+	if ( song ) {
+		audioEl.src = song.dataset.file;
+		audioEl.load();
+		audioEl.dataset.file = song.dataset.file;
+		coverImage[ nextAudio ] = new Image();
+
+		addMetadata( song, audioEl );
+		loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
+	}
 
 	skipping = false; // finished skipping track
 }
@@ -1024,7 +1066,7 @@ function playSong( n ) {
  * Player controls
  */
 function playPause( play ) {
-	if ( cfgSource == 'mic' )
+	if ( isMicSource )
 		return;
 	if ( isPlaying() && ! play )
 		audioElement[ currAudio ].pause();
@@ -1041,6 +1083,12 @@ function stop() {
 	loadSong( 0 );
 }
 
+function skipTrack( back = false ) {
+	const status = back ? playPreviousSong() : playNextSong();
+	if ( ! status )
+		setCanvasMsg( `Already at ${ back ? 'first' : 'last' } track` );
+}
+
 function playPreviousSong() {
 	if ( isPlaying() ) {
 		if ( audioElement[ currAudio ].currentTime > 2 )
@@ -1048,25 +1096,24 @@ function playPreviousSong() {
 		else if ( playlistPos > 0 )
 			playSong( playlistPos - 1 );
 		else
-			setCanvasMsg( 'Already at first song' );
+			return false;
 	}
 	else
-		loadSong( playlistPos - 1 );
+		return loadSong( playlistPos - 1 );
 }
 
 function playNextSong( play ) {
 
-	if ( skipping || cfgSource == 'mic' || playlistPos > playlist.children.length - 1 )
+	if ( skipping || isMicSource || playlistPos > playlist.children.length - 1 )
 		return true;
 
 	skipping = true;
 
 	if ( playlistPos < playlist.children.length - 1 )
 		playlistPos++;
-	else if ( elRepeat.dataset.active == '1' )
+	else if ( isSwitchOn( elRepeat ) )
 		playlistPos = 0;
 	else {
-		setCanvasMsg( 'Already at last song' );
 		skipping = false;
 		return false;
 	}
@@ -1075,9 +1122,6 @@ function playNextSong( play ) {
 
 	currAudio = nextAudio;
 	nextAudio = ! currAudio | 0;
-
-	audioElement[ nextAudio ].style.display = 'none';
-	audioElement[ currAudio ].style.display = 'block';
 
 	if ( play ) {
 		audioElement[ currAudio ].play()
@@ -1098,14 +1142,80 @@ function playNextSong( play ) {
 }
 
 /**
+ * Schedule start of track fast search
+ *
+ * @param mode {string} 'm' for mouse, 'k' for keyboard
+ * @param [dir] {number} 1 for FF, -1 for REW
+ */
+function scheduleFastSearch( mode, dir = 1 ) {
+	// set a 200ms timeout to start fast search (wait for 'click' or 'keyup' event)
+	fastSearchTimeout = window.setTimeout( () => {
+		isFastSearch = mode;
+		fastSearch( dir );
+	}, 200 );
+}
+
+/**
+ * Fast forward or rewind the current audio element
+ */
+function fastSearch( dir = 1 ) {
+	const audioEl = audioElement[ currAudio ];
+
+	if ( audioEl.duration > 0 && audioEl.duration < Infinity ) {
+		let newPos = audioEl.currentTime + dir * 5; // 5 seconds steps
+
+		if ( newPos < 0 )
+			newPos = 0;
+		else if ( newPos > audioEl.duration - 1 )
+			newPos = audioEl.duration - 1
+
+		setCanvasMsg(1); // display song info
+		audioEl.currentTime = newPos;
+	}
+
+	// 'keydown' keeps triggering while the key is pressed, but 'mousedown' triggers only once,
+	// so we need to schedule another call to keep this working when in mouse mode
+	if ( isFastSearch == 'm' )
+		scheduleFastSearch( 'm', dir );
+}
+
+/**
+ * Finish track fast search
+ */
+function finishFastSearch() {
+	window.clearTimeout( fastSearchTimeout );
+	if ( isFastSearch ) {
+		isFastSearch = false;
+		return true;
+	}
+	// fast search was never activated, return false to indicate a track skip
+	return false;
+}
+
+/**
  * Check if audio is playing
  */
 function isPlaying() {
-	return audioElement[ currAudio ]
-		&& audioElement[ currAudio ].currentTime > 0
-		&& !audioElement[ currAudio ].paused
-		&& !audioElement[ currAudio ].ended;
-//		&& audioElement.readyState > 2;
+	const audioEl = audioElement[ currAudio ];
+
+	return audioEl
+		&& audioEl.currentTime > 0
+		&& ! audioEl.paused
+		&& ! audioEl.ended;
+//		&& audioEl.readyState > 2;
+}
+
+/**
+ * Toggle display of song and settings information on canvas
+ */
+function toggleInfo() {
+	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
+		setCanvasMsg();
+	else {
+		const timeout = elInfoTimeout.value | 0 || Infinity;
+		// increase the information level (0 -> 1 -> 2)
+		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, timeout );
+	}
 }
 
 /**
@@ -1113,7 +1223,7 @@ function isPlaying() {
  */
 function outlineText( text, x, y, maxWidth ) {
 	const canvasCtx = audioMotion.canvasCtx;
-	if ( elNoShadow.dataset.active == '1') {
+	if ( isSwitchOn( elNoShadow ) ) {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
 	}
@@ -1149,7 +1259,7 @@ function formatHHMMSS( time ) {
  * canvasMsg = {
  * 		info    : <number>, // 1 = song info; 2 = song + settings info
  *      timer   : <number>, // countdown timer (in frames) to display info
- *      fade    : <number>, // fade out time (in frames)
+ *      fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
  *		msg     : <string>, // custom message to be displayed at the top
  *      msgTimer: <number>  // countdown timer (in frames) to display custom message
  * 		                    // (fade for custom message is always 60 frames)
@@ -1157,9 +1267,18 @@ function formatHHMMSS( time ) {
  */
 function displayCanvasMsg() {
 
+	const audioEl    = audioElement[ currAudio ],
+		  trackData  = audioEl.dataset,
+		  remaining  = audioEl.duration - audioEl.currentTime,
+		  endTimeout = elEndTimeout.value | 0;
+
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( audioElement[ currAudio ].duration - audioElement[ currAudio ].currentTime < .1 )
+	if ( remaining < .1 )
 		playNextSong( true );
+
+	// set song info display at the end of the song
+	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
+		setCanvasMsg( 1, remaining, -1 );
 
 	// update background image for pulse and zoom effects
 	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
@@ -1168,7 +1287,7 @@ function displayCanvasMsg() {
 		if ( elBgImageFit.value == 3 )	// pulse
 			size = ( audioMotion.energy * 70 | 0 ) - 25;
 		else {
-			const songProgress = audioElement[ currAudio ].currentTime / audioElement[ currAudio ].duration;
+			const songProgress = audioEl.currentTime / audioEl.duration;
 			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
 		}
 
@@ -1178,15 +1297,17 @@ function displayCanvasMsg() {
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	const canvas    = audioMotion.canvas,
-		  canvasCtx = audioMotion.canvasCtx,
-		  fontSize  = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
-		  centerPos = canvas.width / 2,
-		  topLine   = fontSize * 1.4;
+	const canvas     = audioMotion.canvas,
+		  canvasCtx  = audioMotion.canvasCtx,
+		  fontSize   = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
+		  centerPos  = canvas.width / 2,
+		  topLine    = fontSize * 1.4,
+		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
+		  largeFont  = `bold ${fontSize}px sans-serif`;
 
 	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
-	canvasCtx.font = 'bold ' + ( fontSize * .7 ) + 'px sans-serif';
+	canvasCtx.font = normalFont;
 	canvasCtx.textAlign = 'center';
 
 	canvasCtx.fillStyle = '#fff';
@@ -1209,83 +1330,102 @@ function displayCanvasMsg() {
 			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
 			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
 
-		canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
+		if ( canvasMsg.fade < 0 ) {
+			// fade-in
+			const fade     = Math.abs( canvasMsg.fade ),
+				  framesIn = fade * 3 - canvasMsg.timer;
+			canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
+		}
+		else // fade-out
+			canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
 			const secondLine = topLine * 1.8;
 
 			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-			outlineText( 'Auto gradient is ' + ( elCycleGrad.dataset.active == '1' ? 'ON' : 'OFF' ), centerPos, secondLine );
+			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, secondLine );
 
 			canvasCtx.textAlign = 'left';
-			outlineText( elMode[ elMode.selectedIndex ].text, leftPos, topLine, maxWidthTop );
-			outlineText( 'Random mode: ' + elRandomMode[ elRandomMode.selectedIndex ].text, leftPos, secondLine, maxWidthTop );
+			outlineText( getText( elMode ), leftPos, topLine, maxWidthTop );
+			outlineText( `Random mode: ${ getText( elRandomMode ) }`, leftPos, secondLine, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( elSensitivity[ elSensitivity.selectedIndex ].text.toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
-			outlineText( 'Repeat is ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ), rightPos, secondLine, maxWidthTop );
+			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
+			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, secondLine, maxWidthTop );
 		}
 
-		// codec and quality
-		canvasCtx.textAlign = 'right';
-		outlineText( audioElement[ currAudio ].dataset.codec, rightPos, bottomLine1 );
-		outlineText( audioElement[ currAudio ].dataset.quality, rightPos, bottomLine1 + fontSize );
+		if ( isMicSource ) {
+			canvasCtx.textAlign = 'left';
+			canvasCtx.font = largeFont;
+			outlineText( 'MIC source', leftPos, bottomLine2, maxWidth );
+		}
+		else {
+			// codec and quality
+			canvasCtx.textAlign = 'right';
+			outlineText( trackData.codec, rightPos, bottomLine1 );
+			outlineText( trackData.quality, rightPos, bottomLine1 + fontSize );
 
-		// artist name
-		canvasCtx.textAlign = 'left';
-		outlineText( audioElement[ currAudio ].dataset.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+			// artist name
+			canvasCtx.textAlign = 'left';
+			outlineText( trackData.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
 
-		// album title
-		canvasCtx.font = 'bold italic ' + ( fontSize * .7 ) + 'px sans-serif';
-		outlineText( audioElement[ currAudio ].dataset.album, leftPos, bottomLine3, maxWidth );
+			// album title
+			canvasCtx.font = `italic ${normalFont}`;
+			outlineText( trackData.album, leftPos, bottomLine3, maxWidth );
 
-		// song title
-		canvasCtx.font = 'bold ' + fontSize + 'px sans-serif';
-		outlineText( audioElement[ currAudio ].dataset.title, leftPos, bottomLine2, maxWidth );
+			// song title
+			canvasCtx.font = largeFont;
+			outlineText( audioEl.src ? trackData.title : 'No song loaded', leftPos, bottomLine2, maxWidth );
 
-		// time
-		if ( audioElement[ currAudio ].duration || audioElement[ currAudio ].dataset.duration ) {
-			if ( ! audioElement[ currAudio ].dataset.duration ) {
-				audioElement[ currAudio ].dataset.duration =
-					audioElement[ currAudio ].duration === Infinity ? 'LIVE' : formatHHMMSS( audioElement[ currAudio ].duration );
+			// time
+			if ( audioEl.duration || trackData.duration ) {
+				if ( ! trackData.duration ) {
+					trackData.duration =
+						audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
 
-				if ( playlist.children[ playlistPos ] )
-					playlist.children[ playlistPos ].dataset.duration = audioElement[ currAudio ].dataset.duration;
+					if ( playlist.children[ playlistPos ] )
+						playlist.children[ playlistPos ].dataset.duration = trackData.duration;
+				}
+				canvasCtx.textAlign = 'right';
+
+				outlineText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
 			}
-			canvasCtx.textAlign = 'right';
 
-			outlineText( formatHHMMSS( audioElement[ currAudio ].currentTime ) + ' / ' + audioElement[ currAudio ].dataset.duration, rightPos, bottomLine3 );
-		}
-
-		// cover image
-		if ( coverImage[ currAudio ].width ) {
-			const coverSize = fontSize * 3;
-			canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+			// cover image
+			if ( coverImage[ currAudio ].width && elShowCover.checked ) {
+				const coverSize = fontSize * 3;
+				canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+			}
 		}
 
 		if ( --canvasMsg.timer < 1 )
-			canvasMsg.info = 0;
+			canvasMsg.info = canvasMsg.fade = 0;
 	}
 }
 
 /**
  * Set message for on-screen display
+ *
+ * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
+ *                            string provides a custom message to be displayed at the top
+ * @param [timer] {number} time in seconds to display message (1/3rd of it will be used for fade in/out)
+ * @param [dir] {number} -1 for fade-in; 1 for fade-out (default)
  */
-function setCanvasMsg( msg, timer = 2, fade = 1 ) {
+function setCanvasMsg( msg, timer = 2, dir = 1 ) {
 	if ( ! msg )
 		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
 	else {
 		if ( typeof msg == 'number' ) {
 			canvasMsg.info = msg; // set info level 1 or 2
-			canvasMsg.timer = timer * 60;
-			canvasMsg.fade = fade * 60;
+			canvasMsg.timer = Math.round( Math.max( timer * 60, canvasMsg.timer || 0 ) ); // note: Infinity | 0 == 0
+			canvasMsg.fade = Math.round( canvasMsg.timer / 3 ) * dir;
 		}
 		else {
 			canvasMsg.msg = msg;  // set custom message
 			if ( canvasMsg.info == 2 )
 				canvasMsg.info = 1;
-			canvasMsg.msgTimer = timer * 60;
+			canvasMsg.msgTimer = timer * 60 | 0;
 		}
 	}
 }
@@ -1293,27 +1433,47 @@ function setCanvasMsg( msg, timer = 2, fade = 1 ) {
 /**
  * Display information about canvas size changes
  */
-function showCanvasInfo( reason ) {
-	if ( ['lores','user'].includes( reason ) )
-		consoleLog( `Lo-res mode ${ audioMotion.loRes ? 'ON' : 'OFF' } - pixelRatio is ${ audioMotion.pixelRatio }` );
+function showCanvasInfo( reason, instance ) {
+	let msg;
 
-	if ( reason == 'user' )
-		consoleLog( `Canvas size set to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels` );
-	else if ( ['lores','resize'].includes( reason ) )
-		consoleLog( `Canvas resized to ${ audioMotion.canvas.width } x ${ audioMotion.canvas.height } pixels ${ audioMotion.isFullscreen ? '(fullscreen)' : '' }` )
+	switch ( reason ) {
+		case 'create':
+			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} pixels` );
+			consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
+			msg = 'Canvas created';
+			break;
+		case 'lores':
+			msg = `Lo-res mode ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${instance.pixelRatio})`;
+			break;
+		case 'fschange':
+			msg = 'Fullscreen changed';
+			break;
+		case 'resize':
+			msg = 'Window resized';
+			break;
+	}
+
+	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px ${ instance.isFullscreen ? '(fullscreen)' : '' }` );
 }
 
 /**
  * Output messages to the UI "console"
  */
-function consoleLog( msg, error ) {
-	const elConsole = $('#console');
-	if ( error ) {
-		msg = '<span class="error"><i class="icons8-warn"></i> ' + msg + '</span>';
-		$('#show_console').className = 'warning';
-	}
-	elConsole.innerHTML += msg + '<br>';
-	elConsole.scrollTop = elConsole.scrollHeight;
+function consoleLog( msg, error, clear ) {
+	const content = $('#console-content'),
+	 	  dt = new Date(),
+		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
+
+	if ( clear )
+		content.innerHTML = '';
+
+	if ( error )
+		$('#toggle_console').classList.add('warning');
+
+	if ( msg )
+		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } ${msg}</div>`;
+
+	content.scrollTop = content.scrollHeight;
 }
 
 /**
@@ -1321,37 +1481,69 @@ function consoleLog( msg, error ) {
  */
 function setSource() {
 
-	cfgSource = elSource.value;
+	// set global variable
+	isMicSource = elSource.checked;
 
-	if ( cfgSource == 'mic' ) {
-		if ( typeof sourceMic == 'object' ) {
+	if ( isMicSource ) {
+		if ( ! micStream ) {
+			// if micStream is not set yet, try to get access to user's microphone
+			if ( navigator.mediaDevices ) {
+				navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
+				.then( stream => {
+					micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
+					setSource(); // recursive call, micStream should now be set
+				})
+				.catch( err => {
+					consoleLog( `Could not change audio source - ${err}`, true );
+					elSource.checked = isMicSource = false;
+				});
+			}
+			else {
+				consoleLog( 'Cannot access user microphone', true );
+				elSource.checked = isMicSource = false;
+			}
+		}
+		else {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
-			audioMotion.analyzer.disconnect( audioMotion.audioCtx.destination ); // avoid feedback loop
-			sourceMic.connect( audioMotion.analyzer );
-		}
-		else { // if sourceMic is not set yet, ask user's permission to use the microphone
-			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
-			.then( stream => {
-				sourceMic = audioMotion.audioCtx.createMediaStreamSource( stream );
-				consoleLog( 'Audio source set to microphone' );
-				setSource(); // recursive call, sourceMic should now be an object
-			})
-			.catch( err => {
-				consoleLog( `Could not change audio source - ${err}`, true );
-				// revert source and UI control to built-in player
-				elSource.value = cfgSource = 'player';
-			});
+			// mute the output to avoid feedback loop from the microphone
+			savedVolume = audioMotion.volume;
+			setVolume(0);
+			audioMotion.connectInput( micStream );
+			consoleLog( 'Audio source set to microphone' );
 		}
 	}
 	else {
-		if ( typeof sourceMic == 'object' ) {
-			sourceMic.disconnect( audioMotion.analyzer );
-			audioMotion.analyzer.connect( audioMotion.audioCtx.destination );
+		if ( micStream ) {
+			audioMotion.disconnectInput( micStream );
+			setVolume( savedVolume );
 		}
 		consoleLog( 'Audio source set to built-in player' );
 	}
 
+}
+
+/**
+ * Increase or decrease volume
+ */
+function changeVolume( incr ) {
+	let newVal = Number( elVolume.dataset.value || 0 ) + incr * .05;
+
+	if ( newVal < 0 )
+		newVal = 0;
+	else if ( newVal > 1 )
+		newVal = 1;
+
+	setVolume( newVal );
+	setCanvasMsg( `Volume: ${ Math.round( newVal * 20 ) }` );
+}
+
+/**
+ * Set volume
+ */
+function setVolume( value ) {
+	audioMotion.volume = elVolume.dataset.value = value;
+	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
 }
 
 /**
@@ -1364,13 +1556,14 @@ function loadLocalFile( obj ) {
 	if ( fileBlob ) {
 		clearAudioElement();
 
-		const el = audioElement[ currAudio ];
-		el.src = URL.createObjectURL( fileBlob );
-		el.play();
+		const audioEl = audioElement[ currAudio ];
+
+		audioEl.src = URL.createObjectURL( fileBlob );
+		audioEl.play();
 
 		mm.parseBlob( fileBlob )
 			.then( metadata => {
-				addMetadata( metadata, el );
+				addMetadata( metadata, audioEl );
 				if ( metadata.common.picture && metadata.common.picture.length ) {
 					const imgBlob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
 					setCurrentCover( URL.createObjectURL( imgBlob ) );
@@ -1401,8 +1594,10 @@ function loadPreset( name, alert, init ) {
 	if ( thisPreset.hasOwnProperty( 'blackBg' ) ) // convert legacy blackBg property (version =< 20.4)
 		thisPreset.background = thisPreset.blackBg | 0;
 
-	if ( thisPreset.hasOwnProperty( 'showScale' ) ) // convert legacy boolean value to integer (version =< 20.6)
-		thisPreset.showScale |= 0;
+	if ( thisPreset.hasOwnProperty( 'showScale' ) ) { // convert legacy showScale property (version =< 20.9)
+		thisPreset.showScaleX = thisPreset.showScale & 1;
+		thisPreset.showScaleY = thisPreset.showScale >> 1;
+	}
 
 	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
 		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
@@ -1437,33 +1632,38 @@ function loadPreset( name, alert, init ) {
 	}
 
 	audioMotion.setOptions( {
-		fftSize    : elFFTsize.value,
-		minFreq    : elRangeMin.value,
-		maxFreq    : elRangeMax.value,
-		smoothing  : elSmoothing.value,
-		showPeaks  : elShowPeaks.dataset.active == '1',
-		showLeds   : elLedDisplay.dataset.active == '1',
-		lumiBars   : elLumiBars.dataset.active == '1',
-		loRes      : elLoRes.dataset.active == '1',
-		showFPS    : elFPS.dataset.active == '1'
+		fftSize      : elFFTsize.value,
+		minFreq      : elRangeMin.value,
+		maxFreq      : elRangeMax.value,
+		smoothing    : elSmoothing.value,
+		showPeaks    : isSwitchOn( elShowPeaks ),
+		showLeds     : isSwitchOn( elLedDisplay ),
+		lumiBars     : isSwitchOn( elLumiBars ),
+		loRes        : isSwitchOn( elLoRes ),
+		showFPS      : isSwitchOn( elFPS ),
+		showScaleX   : isSwitchOn( elScaleX ),
+		showScaleY   : isSwitchOn( elScaleY ),
+		radial       : isSwitchOn( elRadial ),
+		spinSpeed    : elSpin.value,
+		stereo       : isSwitchOn( elStereo ),
+		splitGradient: isSwitchOn( elSplitGrad )
 	} );
 
-	setProperty( elRadial );
-	setProperty( elSpin );
-	setProperty( elShowScale );
-	setProperty( elBackground );
-	setProperty( elSensitivity );
-	setProperty( elReflex );
-	setProperty( elGradient );
-	setProperty( elRandomMode );
-	setProperty( elBarSpace );
-	setProperty( elMode, true );
+	// settings that make additional changes are set by the setProperty() function
+	setProperty(
+		[ elBackground,
+		elSensitivity,
+		elReflex,
+		elGradient,
+		elRandomMode,
+		elBarSpace,
+		elMode ], true );
 
 	if ( name == 'demo' )
 		selectRandomMode( true );
 
 	if ( alert )
-		notie.alert({ text: 'Preset loaded!' });
+		notie.alert({ text: 'Settings loaded!' });
 }
 
 /**
@@ -1488,7 +1688,8 @@ function saveConfig( config ) {
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
 		spin        : elSpin.value,
-		showScale 	: elShowScale.value,
+		showScaleX 	: elScaleX.dataset.active,
+		showScaleY 	: elScaleY.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
@@ -1498,7 +1699,9 @@ function saveConfig( config ) {
 		noShadow    : elNoShadow.dataset.active,
 		loRes       : elLoRes.dataset.active,
 		showFPS     : elFPS.dataset.active,
-		radial      : elRadial.dataset.active
+		radial      : elRadial.dataset.active,
+		stereo      : elStereo.dataset.active,
+		splitGrad   : elSplitGrad.dataset.active
 	};
 
 	localStorage.setItem( config, JSON.stringify( settings ) );
@@ -1525,135 +1728,180 @@ function updateCustomPreset() {
  */
 function keyboardControls( event ) {
 
-	if ( event.target.tagName != 'BODY' )
+	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
 		return;
 
-	// helper function
-	const getText = ( el ) => el[ el.selectedIndex ].text;
+	if ( event.type == 'keydown' ) {
+		switch ( event.code ) {
+			case 'ArrowUp': 	// volume up
+				changeVolume(1);
+				break;
+			case 'ArrowDown': 	// volume down
+				changeVolume(-1);
+				break;
+			case 'ArrowLeft': 	// rewind
+				if ( isFastSearch ) {
+					setCanvasMsg( 'Rewind', 1 );
+					fastSearch(-1);
+				}
+				else
+					scheduleFastSearch('k', -1);
+				break;
+			case 'ArrowRight': 	// fast forward
+				if ( isFastSearch ) {
+					setCanvasMsg( 'Fast forward', 1 );
+					fastSearch();
+				}
+				else
+					scheduleFastSearch('k');
+				break;
+			default:
+				// no key match - quit and keep default behavior
+				return;
+		}
+	}
+	else {
+		// the keys below are handled on 'keyup' to avoid key repetition
+		const isShiftKey = event.shiftKey;
 
-	switch ( event.code ) {
-		case 'Delete': 		// delete selected songs from the playlist
-		case 'Backspace':	// for Mac
-			playlist.querySelectorAll('.selected').forEach( e => {
-				e.remove();
-			});
-			const current = getIndex( playlist.querySelector('.current') );
-			if ( current !== undefined )
-				playlistPos = current;	// update playlistPos if current song hasn't been deleted
-			else if ( playlistPos > playlist.children.length - 1 )
-				playlistPos = playlist.children.length - 1;
-			else
-				playlistPos--;
-			loadNextSong();
-			event.preventDefault();
-			break;
-		case 'Space': 		// play / pause
-			setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
-			playPause();
-			break;
-		case 'ArrowLeft': 	// previous song
-		case 'KeyJ':
-			setCanvasMsg( 'Previous track', 1 );
-			playPreviousSong();
-			break;
-		case 'ArrowUp': 	// gradient
-		case 'ArrowDown':
-		case 'KeyG':
-			cycleElement( elGradient, event.shiftKey || event.code == 'ArrowUp' );
-			setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
-			break;
-		case 'ArrowRight': 	// next song
-		case 'KeyK':
-			setCanvasMsg( 'Next track', 1 );
-			playNextSong();
-			break;
-		case 'KeyA': 		// cycle thru auto gradient / random mode options
-			if ( elCycleGrad.dataset.active == '1' || event.shiftKey ) {
-				if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! event.shiftKey ) ||
-				     ( elRandomMode.selectedIndex == 0 && elCycleGrad.dataset.active == '1' && event.shiftKey ) ) {
-					elCycleGrad.dataset.active = '0';
-					elRandomMode.value = '0';
-					setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
+		switch ( event.code ) {
+			case 'Delete': 		// delete selected songs from the playlist
+			case 'Backspace':	// for Mac
+				playlist.querySelectorAll('.selected').forEach( e => {
+					e.remove();
+				});
+				const current = getIndex( playlist.querySelector('.current') ),
+					  queueLength = playlist.children.length;
+				if ( current !== undefined )
+					playlistPos = current;	// update playlistPos if current song hasn't been deleted
+				else if ( playlistPos > queueLength - 1 )
+					playlistPos = queueLength - 1;
+				else
+					playlistPos--;
+				if ( queueLength )
+					loadNextSong();
+				else {
+					clearAudioElement( nextAudio );
+					if ( ! isPlaying() )
+						clearAudioElement();
+				}
+				break;
+			case 'Space': 		// play / pause
+				setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
+				playPause();
+				break;
+			case 'ArrowLeft': 	// previous song
+			case 'KeyJ':
+				if ( ! finishFastSearch() ) {
+					setCanvasMsg( 'Previous track', 1 );
+					skipTrack(true);
+				}
+				break;
+			case 'KeyG': 		// gradient
+				cycleElement( elGradient, isShiftKey );
+				setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
+				break;
+			case 'ArrowRight': 	// next song
+			case 'KeyK':
+				if ( ! finishFastSearch() ) {
+					setCanvasMsg( 'Next track', 1 );
+					skipTrack();
+				}
+				break;
+			case 'KeyA': 		// cycle thru auto gradient / random mode options
+				if ( isSwitchOn( elCycleGrad ) || isShiftKey ) {
+					if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! isShiftKey ) ||
+					     ( elRandomMode.selectedIndex == 0 && isSwitchOn( elCycleGrad ) && isShiftKey ) ) {
+						elCycleGrad.dataset.active = '0';
+						elRandomMode.value = '0';
+						setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
+					}
+					else {
+						cycleElement( elRandomMode, isShiftKey );
+						setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
+					}
 				}
 				else {
-					cycleElement( elRandomMode, event.shiftKey );
-					setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
+					elCycleGrad.dataset.active = '1';
+					setCanvasMsg( 'Auto gradient ON' );
 				}
-			}
-			else {
-				elCycleGrad.dataset.active = '1';
-				setCanvasMsg( 'Auto gradient ON' );
-			}
-			setProperty( elRandomMode, true );
-			break;
-		case 'KeyB': 		// background or image fit (shift)
-			cycleElement( event.shiftKey ? elBgImageFit : elBackground );
-			setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
-			break;
-		case 'KeyD': 		// display information
-			if ( canvasMsg.info == 2 )
-				setCanvasMsg();
-			else
-				setCanvasMsg( ( canvasMsg.info | 0 ) + 1, 5 );
-			break;
-		case 'KeyE': 		// shuffle queue
-			if ( playlist.children.length > 0 ) {
-				shufflePlaylist();
-				setCanvasMsg( 'Shuffle' );
-			}
-			break;
-		case 'KeyF': 		// toggle fullscreen
-			fullscreen();
-			break;
-		case 'KeyH': 		// toggle fps display
-			elFPS.click();
-			break;
-		case 'KeyI': 		// toggle info display on track change
-			elShowSong.click();
-			setCanvasMsg( 'Song info display ' + ( elShowSong.dataset.active == '1' ? 'ON' : 'OFF' ) );
-			break;
-		case 'KeyL': 		// toggle LED display effect
-			elLedDisplay.click();
-			setCanvasMsg( 'LED effect ' + ( elLedDisplay.dataset.active == '1' ? 'ON' : 'OFF' ) );
-			break;
-		case 'KeyM': 		// visualization mode
-		case 'KeyV':
-			cycleElement( elMode, event.shiftKey );
-			setCanvasMsg( 'Mode: ' + getText( elMode ) );
-			break;
-		case 'KeyN': 		// increase or reduce sensitivity
-			cycleElement( elSensitivity, event.shiftKey );
-			setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
-			break;
-		case 'KeyO': 		// toggle resolution
-			elLoRes.click();
-			setCanvasMsg( ( elLoRes.dataset.active == '1' ? 'LOW' : 'HIGH' ) + ' Resolution' );
-			break;
-		case 'KeyP': 		// toggle peaks display
-			elShowPeaks.click();
-			setCanvasMsg( 'Peaks ' + ( elShowPeaks.dataset.active == '1' ? 'ON' : 'OFF' ) );
-			break;
-		case 'KeyR': 		// toggle playlist repeat
-			elRepeat.click();
-			setCanvasMsg( 'Queue repeat ' + ( elRepeat.dataset.active == '1' ? 'ON' : 'OFF' ) );
-			break;
-		case 'KeyS': 		// toggle X and Y axis scales
-			cycleElement( elShowScale, event.shiftKey );
-			setCanvasMsg( 'Scale: ' + getText( elShowScale ) );
-			break;
-		case 'KeyT': 		// toggle text shadow
-			elNoShadow.click();
-			setCanvasMsg( ( elNoShadow.dataset.active == '1' ? 'Flat' : 'Shadowed' ) + ' text mode' );
-			break;
-		case 'KeyU': 		// toggle lumi bars
-			elLumiBars.click();
-			setCanvasMsg( 'Luminance bars ' + ( elLumiBars.dataset.active == '1' ? 'ON' : 'OFF' ) );
-			break;
-		case 'KeyX':
-			cycleElement( elReflex, event.shiftKey );
-			setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
-			break;
-	}
+				setProperty( elRandomMode, true );
+				break;
+			case 'KeyB': 		// background or image fit (shift)
+				cycleElement( isShiftKey ? elBgImageFit : elBackground );
+				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
+				break;
+			case 'KeyC': 		// radial
+				elRadial.click();
+				setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+				break;
+			case 'KeyD': 		// display information
+				toggleInfo();
+				break;
+			case 'KeyE': 		// shuffle queue
+				if ( playlist.children.length > 0 ) {
+					shufflePlayQueue();
+					setCanvasMsg( 'Shuffle' );
+				}
+				break;
+			case 'KeyF': 		// toggle fullscreen
+				fullscreen();
+				break;
+			case 'KeyH': 		// toggle fps display
+				elFPS.click();
+				break;
+			case 'KeyI': 		// toggle info display on track change
+				elShowSong.click();
+				setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
+				break;
+			case 'KeyL': 		// toggle LED display effect
+				elLedDisplay.click();
+				setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
+				break;
+			case 'KeyM': 		// visualization mode
+			case 'KeyV':
+				cycleElement( elMode, isShiftKey );
+				setCanvasMsg( 'Mode: ' + getText( elMode ) );
+				break;
+			case 'KeyN': 		// increase or reduce sensitivity
+				cycleElement( elSensitivity, isShiftKey );
+				setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
+				break;
+			case 'KeyO': 		// toggle resolution
+				elLoRes.click();
+				setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
+				break;
+			case 'KeyP': 		// toggle peaks display
+				elShowPeaks.click();
+				setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+				break;
+			case 'KeyR': 		// toggle playlist repeat
+				elRepeat.click();
+				setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
+				break;
+			case 'KeyS': 		// toggle X and Y axis scales
+				setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
+				break;
+			case 'KeyT': 		// toggle text shadow
+				elNoShadow.click();
+				setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
+				break;
+			case 'KeyU': 		// toggle lumi bars
+				elLumiBars.click();
+				setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
+				break;
+			case 'KeyX':
+				cycleElement( elReflex, isShiftKey );
+				setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
+				break;
+			default:
+				// no key match - quit and keep default behavior
+				return;
+
+		} // switch
+	} // else
+
+	event.preventDefault();
 }
 
 
@@ -1669,14 +1917,16 @@ function audioOnPlay() {
 	if ( audioElement[ currAudio ].currentTime < .1 ) {
 		if ( elRandomMode.value == '1' )
 			selectRandomMode( true );
-		else if ( elCycleGrad.dataset.active == '1' && elRandomMode.value == '0' )
+		else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
 			cycleElement( elGradient );
 	}
 
 	setCurrentCover();
 
-	if ( elShowSong.dataset.active == '1' )
-		setCanvasMsg( 1, 10, 3 ); // display song info (level 1) for 10 seconds, with 3-second fade out
+	if ( isSwitchOn( elShowSong ) ) {
+		const timeout = elTrackTimeout.value | 0 || Infinity;
+		setCanvasMsg( 1, timeout );
+	}
 }
 
 /**
@@ -1701,7 +1951,7 @@ function audioOnError( e ) {
  * Update range elements value div
  */
 function updateRangeValue( el ) {
-	const elVal = el.nextElementSibling;
+	const elVal = el.previousElementSibling;
 	if ( elVal && elVal.className == 'value' )
 		elVal.innerText = el.value;
 }
@@ -1709,15 +1959,18 @@ function updateRangeValue( el ) {
 /**
  * Choose a random visualization mode
  *
- * @param [force] {boolean} force change even when not playing (default false)
+ * @param [force] {boolean} force change even when not playing
+ *                (default true for microphone input, false otherwise )
  */
-function selectRandomMode( force = false ) {
+function selectRandomMode( force = isMicSource ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
 	// helper functions
 	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
 	const randomInt = ( n=2 ) => Math.random() * n | 0;
+
+	let props = []; // properties that need to be updated
 
 	elMode.selectedIndex = randomInt( elMode.options.length );
 
@@ -1729,18 +1982,18 @@ function selectRandomMode( force = false ) {
 
 	if ( isEnabled('peaks') ) {
 		elShowPeaks.dataset.active = randomInt(); // 0 or 1
-		setProperty( elShowPeaks );
+		props.push( elShowPeaks );
 	}
 
 	if ( isEnabled('leds') ) {
 		elLedDisplay.dataset.active = randomInt();
-		setProperty( elLedDisplay );
+		props.push( elLedDisplay );
 	}
 
 	if ( isEnabled('lumi') ) {
 		// always disable lumi when leds are active and background is set to image
-		elLumiBars.dataset.active = elBackground.value > 1 && audioMotion.showLeds ? 0 : randomInt();
-		setProperty( elLumiBars );
+		elLumiBars.dataset.active = elBackground.value > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
+		props.push( elLumiBars );
 	}
 
 	if ( isEnabled('line') ) {
@@ -1764,25 +2017,35 @@ function selectRandomMode( force = false ) {
 
 	if ( isEnabled('radial') ) {
 		elRadial.dataset.active = randomInt();
-		setProperty( elRadial );
+		props.push( elRadial );
 	}
 
 	if ( isEnabled('spin') ) {
 		elSpin.value = randomInt(4);
 		updateRangeValue( elSpin );
-		setProperty( elSpin );
+		props.push( elSpin );
 	}
+
+	if ( isEnabled('split') ) {
+		elSplitGrad.dataset.active = randomInt();
+		props.push( elSplitGrad );
+	}
+
+	if ( isEnabled('stereo') ) {
+		elStereo.dataset.active = randomInt();
+		props.push( elStereo );
+	}
+
+	if ( isSwitchOn( elCycleGrad ) ) {
+		elGradient.selectedIndex = randomInt( elGradient.options.length );
+		props.push( elGradient );
+	}
+
+	// add properties that depend on other settings (mode also sets barspace)
+	props.push( elBackground, elReflex, elMode );
 
 	// effectively set the affected properties
-	setProperty( elBackground );
-	setProperty( elBarSpace );
-	setProperty( elReflex );
-	setProperty( elMode, true );
-
-	if ( elCycleGrad.dataset.active == '1' ) {
-		elGradient.selectedIndex = randomInt( elGradient.options.length );
-		setProperty( elGradient, true );
-	}
+	setProperty( props, true );
 }
 
 /**
@@ -1802,6 +2065,27 @@ function cycleElement( el, prev ) {
 		el.selectedIndex = idx;
 
 	setProperty( el, true );
+}
+
+/**
+ * Cycle X and Y axis scales
+ *
+ * @param [prev] {boolean} true to select previous option
+ * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
+ */
+function cycleScale( prev ) {
+	let scale = ( elScaleX.dataset.active | 0 ) + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
+
+	if ( scale < 0 )
+		scale = 3;
+	else if ( scale > 3 )
+		scale = 0;
+
+	elScaleX.dataset.active = scale & 1;
+	elScaleY.dataset.active = scale >> 1;
+
+	setProperty( [ elScaleX, elScaleY ], true );
+	return scale;
 }
 
 /**
@@ -1851,29 +2135,26 @@ function populateGradients() {
  */
 function setUIEventListeners() {
 
-	// Add event listeners for config panel selectors
-	$('#panel_selector').addEventListener( 'click', event => {
-		$$('#panel_selector li').forEach( e => {
-			e.className = '';
-			$(`#${e.dataset.panel}`).style.display = 'none';
-		});
-		const el = $(`#${ event.target.dataset.panel || event.target.parentElement.dataset.panel }`);
-		el.style.display = 'block';
-		if ( event.target.nodeName == 'LI' )
-			event.target.className = 'active';
-		else
-			event.target.parentElement.className = 'active';
+	// toggle settings
+	const elToggleSettings = $('#toggle_settings');
+	elToggleSettings.addEventListener( 'click', () => {
+		$('#settings').classList.toggle('active', elToggleSettings.classList.toggle('active') );
 	});
-	$('#show_filelist').click();
+	$('.settings-close').addEventListener( 'click', () => elToggleSettings.click() );
+
+	// toggle console
+	const elToggleConsole = $('#toggle_console');
+	elToggleConsole.addEventListener( 'click', () => {
+		$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle('active') );
+		elToggleConsole.classList.remove('warning');
+		consoleLog(); // update scroll only
+	});
+	$('#console-close').addEventListener( 'click', () => elToggleConsole.click() );
+	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 
 	// Add event listeners to the custom checkboxes
 	$$('.switch').forEach( el => {
-		el.addEventListener( 'click', e => {
-			if ( e.target.classList.contains('switch') ) // check for clicks on child nodes
-				e.target.dataset.active = Number( ! Number( e.target.dataset.active ) );
-			else
-				e.target.parentElement.dataset.active = Number( ! Number( e.target.parentElement.dataset.active ) );
-		});
+		el.addEventListener( 'click', () => { el.dataset.active = ! ( el.dataset.active | 0 ) | 0 } );
 	});
 
 	[ elShowPeaks,
@@ -1881,7 +2162,11 @@ function setUIEventListeners() {
 	  elLumiBars,
 	  elLoRes,
 	  elFPS,
-	  elRadial ].forEach( el => el.addEventListener( 'click', setProperty ) );
+  	  elScaleX,
+	  elScaleY,
+	  elRadial,
+	  elStereo,
+	  elSplitGrad ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
 
 	[ elCycleGrad,
 	  elRepeat,
@@ -1891,6 +2176,11 @@ function setUIEventListeners() {
 	// Add event listeners to UI config elements
 
 	elSource.addEventListener( 'change', setSource );
+
+	elVolume.addEventListener( 'wheel', e => {
+		e.preventDefault();
+		changeVolume( Math.sign( e.deltaY || 0 ) );
+	});
 
 	[ elMode,
 	  elRandomMode,
@@ -1904,23 +2194,40 @@ function setUIEventListeners() {
 	  elFillAlpha,
 	  elBarSpace,
 	  elReflex,
-	  elShowScale,
 	  elBackground,
 	  elBgImageDim,
 	  elBgImageFit,
-  	  elSpin ].forEach( el => el.addEventListener( 'change', setProperty ) );
+  	  elSpin ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
 
 	// update range elements' value
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
 
-	// action buttons
-	$('#load_preset').addEventListener( 'click', () => loadPreset( $('#preset').value, true ) );
-	$('#btn_save').addEventListener( 'click', updateCustomPreset );
-	$('#btn_prev').addEventListener( 'click', playPreviousSong );
+	// player controls
 	$('#btn_play').addEventListener( 'click', () => playPause() );
 	$('#btn_stop').addEventListener( 'click', stop );
-	$('#btn_next').addEventListener( 'click', () => playNextSong() );
-	$('#btn_shuf').addEventListener( 'click', shufflePlaylist );
+	$('#btn_shuf').addEventListener( 'click', shufflePlayQueue );
+
+	$('#btn_prev').addEventListener( 'mousedown', () =>	scheduleFastSearch('m', -1) );
+	$('#btn_prev').addEventListener( 'click', e => {
+		if ( ! finishFastSearch() )
+			skipTrack(true);
+	});
+
+	$('#btn_next').addEventListener( 'mousedown', () => scheduleFastSearch('m') );
+	$('#btn_next').addEventListener( 'click', () => {
+		if ( ! finishFastSearch() )
+			skipTrack();
+	});
+
+	// action buttons
+	$('#load_preset').addEventListener( 'click', () => {
+		const elPreset = $('#preset');
+		if ( elPreset.value ) {
+			consoleLog( `Loading preset '${ getText( elPreset ) }'` );
+			loadPreset( elPreset.value, true );
+		}
+	});
+	$('#btn_save').addEventListener( 'click', updateCustomPreset );
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
 	$('#load_playlist').addEventListener( 'click', () => {
 		loadPlaylist( elPlaylists.value ).then( n => {
@@ -1930,11 +2237,23 @@ function setUIEventListeners() {
 	});
 	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 	$('#create_playlist').addEventListener( 'click', () => storePlaylist() );
-	$('#delete_playlist').addEventListener( 'click', () =>	deletePlaylist( elPlaylists.selectedIndex ) );
-	$('#btn_clear').addEventListener( 'click', clearPlaylist );
+	$('#delete_playlist').addEventListener( 'click', () => deletePlaylist( elPlaylists.selectedIndex ) );
+	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
 
-	// clicks on canvas cycle scales on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	cycleElement( elShowScale ) );
+	// clicks on canvas toggle info display on/off
+	audioMotion.canvas.addEventListener( 'click', () =>	toggleInfo() );
+
+	// local file upload
+	$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
+
+	// load remote files from URL
+	$('#btn_load_url').addEventListener( 'click', () => {
+		notie.input({
+			text: 'Load audio file or stream from URL',
+			submitText: 'Load',
+			submitCallback: url => { if ( url.trim() ) addToPlayQueue( url, true ) }
+		});
+	});
 }
 
 /**
@@ -2024,6 +2343,15 @@ function doConfigPanel() {
 			});
 		}
 	});
+
+	// On-screen display options
+	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover ] )
+		el.addEventListener( 'change', () => savePreferences('osd') );
+
+	$('#reset_osd').addEventListener( 'click', () => {
+		setInfoOptions( infoDisplayDefaults );
+		savePreferences('osd');
+	});
 }
 
 /**
@@ -2031,9 +2359,10 @@ function doConfigPanel() {
  */
 function loadPreferences() {
 	// Load last used settings
-	const lastConfig = localStorage.getItem( 'last-config' );
+	const lastConfig    = localStorage.getItem( 'last-config' ),
+		  isLastSession = ( lastConfig !== null );
 
-	if ( lastConfig !== null )
+	if ( isLastSession )
 		presets['last'] = JSON.parse( lastConfig );
 	else // if no data found from last session, use the defaults
 		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
@@ -2078,15 +2407,19 @@ function loadPreferences() {
 	for ( let i = 0; i >= -40; i -= 5 )
 		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
 
-	let sensitivityPresets = localStorage.getItem( 'sensitivity-presets' );
-	if ( sensitivityPresets == null )
-		sensitivityPresets = sensitivityDefaults;
-	else
-		sensitivityPresets = JSON.parse( sensitivityPresets );
+	const sensitivityPresets = JSON.parse( localStorage.getItem( 'sensitivity-presets' ) ) || sensitivityDefaults;
+
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
 		elMaxSens[ index ].value = preset.max;
 	});
+
+	// On-screen display options
+	const displayOptions = Object.assign( {}, infoDisplayDefaults ); // clone defaults so they don't get modified
+	// merge saved options (if any) with defaults and set UI fields
+	setInfoOptions( Object.assign( displayOptions, JSON.parse( localStorage.getItem( 'display-options' ) ) || {} ) );
+
+	return isLastSession;
 }
 
 /**
@@ -2120,6 +2453,16 @@ function savePreferences( pref ) {
 		}
 		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
 	}
+
+	if ( ! pref || pref == 'osd' ) {
+		const displayOptions = {
+			info  : elInfoTimeout.value,
+			track : elTrackTimeout.value,
+			end   : elEndTimeout.value,
+			covers: elShowCover.checked
+		}
+		localStorage.setItem( 'display-options', JSON.stringify( displayOptions ) );
+	}
 }
 
 /**
@@ -2131,6 +2474,31 @@ function populateSelect( element, options ) {
 }
 
 /**
+ * Set on-screen display options UI fields
+ */
+function setInfoOptions( options ) {
+	elInfoTimeout.value  = options.info;
+	elTrackTimeout.value = options.track;
+	elEndTimeout.value   = options.end;
+	elShowCover.checked  = options.covers;
+}
+
+/**
+ * Helper functions
+ */
+function getText( el ) {
+	return el[ el.selectedIndex ].text;
+}
+
+function onOff( el ) {
+	return isSwitchOn( el ) ? 'ON' : 'OFF';
+}
+
+function isSwitchOn( el ) {
+	return el.dataset.active == '1';
+}
+
+/**
  * Initialization function
  */
 (function() {
@@ -2138,11 +2506,13 @@ function populateSelect( element, options ) {
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
-	consoleLog( `audioMotion.js ver. ${_VERSION} initializing...` );
+	consoleLog( `audioMotion.js v${_VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
+	$('#version').innerText = _VERSION;
+
 	// Load preferences from localStorage
-	loadPreferences();
+	const isLastSession = loadPreferences();
 
 	// Initialize play queue and set event listeners
 	playlist = $('#playlist');
@@ -2175,30 +2545,21 @@ function populateSelect( element, options ) {
 
 	// Create audioMotion analyzer
 
-	audioMotion = new AudioMotionAnalyzer(
-		$('#analyzer'),
-		{
-			onCanvasDraw: displayCanvasMsg,
-			onCanvasResize: showCanvasInfo
-		}
-	);
+	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
+
+	audioMotion = new AudioMotionAnalyzer( $('#analyzer'), {
+		onCanvasDraw: displayCanvasMsg,
+		onCanvasResize: showCanvasInfo
+	});
 
 	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
 
-	// Create audio elements
+	// Initialize and connect audio elements
 
-	audioElement = [
-		$('#player0'),
-		$('#player1')
-	];
+	audioElement = [ $('#player0'),	$('#player1') ];
 
 	currAudio = 0;
 	nextAudio = 1;
-
-	audioElement[0].style.display = 'block';
-	audioElement[1].style.display = 'none';
-
-	sourcePlayer = [];
 
 	for ( const i of [0,1] ) {
 		clearAudioElement( i );
@@ -2206,8 +2567,7 @@ function populateSelect( element, options ) {
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-		sourcePlayer.push( audioMotion.audioCtx.createMediaElementSource( audioElement[ i ] ) );
-		sourcePlayer[ i ].connect( audioMotion.analyzer );
+		audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	// Setup configuration panel
@@ -2221,10 +2581,10 @@ function populateSelect( element, options ) {
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
 	for ( const i of [20,30,40,50,60,100,250,500,1000,2000] )
-		elRangeMin[ elRangeMin.options.length ] = new Option( i >= 1000 ? ( i / 1000 ) + 'k' : i, i );
+		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
 
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
-		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'k', i );
+		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
 	populateSelect(	elSensitivity, [
 		{ value: '0', text: 'Low' },
@@ -2255,13 +2615,6 @@ function populateSelect( element, options ) {
 		{ value: '0', text: 'Off' },
 		{ value: '1', text: 'On' },
 		{ value: '2', text: 'Mirrored' }
-	]);
-
-	populateSelect( elShowScale, [
-		{ value: '0', text: 'None' },
-		{ value: '1', text: 'Frequency' },
-		{ value: '2', text: 'Level (dB)' },
-		{ value: '3', text: 'Both' }
 	]);
 
 	populateSelect(	elBackground, [
@@ -2311,14 +2664,15 @@ function populateSelect( element, options ) {
 	});
 	populateGradients();
 
-	consoleLog( `Display resolution: ${audioMotion.fsWidth} x ${audioMotion.fsHeight} pixels` );
-	consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
-
 	// Load last used settings
+	consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 	loadPreset( 'last', false, true );
 
 	// Set audio source to built-in player
 	setSource();
+
+	// Initialize volume button
+	setVolume(1);
 
 	// Load saved playlists
 	loadSavedPlaylists();
@@ -2328,25 +2682,20 @@ function populateSelect( element, options ) {
 		$('#file_explorer'),
 		{
 			dblClick: ( file, event ) => {
-				addBatchToQueue( [ { file } ], true );
+				addBatchToPlayQueue( [ { file } ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {
+		const btnAddSelected = $('#btn_add_selected'),
+			  btnAddFolder   = $('#btn_add_folder');
+
 		serverMode = status;
+
 		if ( status == -1 ) {
 			consoleLog( 'No server found. File explorer will not be available.', true );
-			$('#local_file_panel').style.display = 'block';
-			$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
-			$('#load_remote_url').addEventListener( 'click', () => {
-				let el = $('#remote_url');
-				if ( el.value )
-					addToPlaylist( el.value, true );
-				el.value = '';
-			});
-
-			$$('#files_panel .button-column, .file_explorer p').forEach( e => e.style.display = 'none' );
-			filelist.style.display = 'none';
+			btnAddSelected.disabled = true;
+			btnAddFolder.disabled = true;
 		}
 		else {
 			consoleLog( `${serversignature} detected` );
@@ -2366,31 +2715,22 @@ function populateSelect( element, options ) {
 					if ( evt.to.id == 'playlist') {
 						let items = evt.items.length ? evt.items : [ evt.item ];
 						items.forEach( item => {
-							addToPlaylist( fileExplorer.makePath( item.dataset.path ) );
+							addToPlayQueue( fileExplorer.makePath( item.dataset.path ) );
 							item.remove();
 						});
 					}
 				}
 			});
+
+			btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
+			btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 		}
 
-		$('#btn_add_selected').addEventListener( 'mousedown', () => addBatchToQueue( fileExplorer.getFolderContents('.selected') ) );
-		$('#btn_add_folder').addEventListener( 'click', () => addBatchToQueue(	fileExplorer.getFolderContents() ) );
 	});
 
-	// Add event listener for keyboard controls
+	// Add events listeners for keyboard controls
+	window.addEventListener( 'keydown', keyboardControls );
 	window.addEventListener( 'keyup', keyboardControls );
-
-	// Unlock AudioContext on user gesture (autoplay policy)
-	window.addEventListener( 'click', () => {
-		if ( audioMotion.audioCtx.state == 'suspended' ) {
-			audioMotion.audioCtx.resume()
-				.then( () => consoleLog( 'AudioContext started' ) )
-				.catch( err => consoleLog( `Failed starting AudioContext: ${err}`, true ) );
-
-			audioElement[ nextAudio ].load(); // unlock next audio element - required on iOS Safari
-		}
-	});
 
 	// notie options
 	notie.setOptions({
