@@ -4,9 +4,9 @@
  * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '20.9';
+const _VERSION = '20.12';
 
-const serverSignature = `audioMotion.js server ver. ${_VERSION}`
+const serverSignature = `audioMotion.js server v${_VERSION}`
 
 const fs = require('fs')
 const path = require('path')
