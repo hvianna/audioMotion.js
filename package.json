@@ -13,7 +13,7 @@
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
   "devDependencies": {
-    "audiomotion-analyzer": "^2.5.0",
+    "audiomotion-analyzer": "^3.0.0",
     "css-loader": "^4.3.0",
     "express": "^4.16.4",
     "mini-css-extract-plugin": "^0.12.0",
@@ -22,7 +22,7 @@
     "open": "^7.3.0",
     "optimize-css-assets-webpack-plugin": "^5.0.4",
     "readline-sync": "^1.4.10",
-    "semver": "^7.3.2",
+    "semver": "^7.3.4",
     "sortablejs": "1.10.2",
     "terser-webpack-plugin": "^4.2.3",
     "webpack": "^4.44.2",
