@@ -286,6 +286,7 @@ export function create( container, options = {} ) {
 				mounts = [ options.rootPath || defaultRoot ];
 				if ( await enterDir( mounts[0] ) === false ) {
 					ui_path.innerHTML = `Cannot access media folder (${mounts[0]}) on server!`;
+					ui_files.innerHTML = '';
 					status = -1;
 				}
 				resolve([ status, ui_files, status ? content : 'Standard web server' ]);
