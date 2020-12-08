@@ -119,13 +119,16 @@ function enterDir( target, scrollTop ) {
  */
 export function parseWebDirectory( content ) {
 
+	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
+	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
+
 	let files = [],
 		dirs  = [],
 		imgs  = [];
 
 	// helper function
 	const findImg = ( arr, pattern ) => {
-		const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+		const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
 		return arr.find( el => el.match( regexp ) );
 	}
 
@@ -142,9 +145,9 @@ export function parseWebDirectory( content ) {
 			}
 		}
 		else {
-			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+			if ( file.match( imageExtensions ) )
 				imgs.push( file );
-			else if ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) )
+			else if ( file.match( audioExtensions ) )
 				files.push( file );
 		}
 	}

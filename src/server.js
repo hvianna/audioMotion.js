@@ -14,6 +14,8 @@ const express = require('express')
 const open = require('open')
 const readlineSync = require('readline-sync')
 const semver = require('semver')
+const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
+const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
 var port = 8000
 var host = 'localhost'
@@ -61,7 +63,7 @@ function getDir( directoryPath, showHidden = false ) {
 
 // helper function - find image files with given pattern in an array of filenames
 function findImg( arr, pattern ) {
-	const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+	const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
 	return arr.find( el => el.match( regexp ) );
 }
 
@@ -122,9 +124,9 @@ server.use( '/music', express.static( musicPath ), ( req, res ) => {
 		res.status(404).send( 'Not found!' );
 	else {
 		files.files = files.files.filter( file => {
-			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+			if ( file.match( imageExtensions ) )
 				imgs.push( file );
-			return ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) !== null );
+			return ( file.match( audioExtensions ) !== null );
 		});
 		files.cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 		res.send( files );
@@ -154,7 +156,7 @@ server.get( '/getCover/:path', ( req, res ) => {
 	if ( entries === false )
 		res.status(404).send( 'Not found!' );
 	else {
-		const imgs = entries.files.filter( file => file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) !== null );
+		const imgs = entries.files.filter( file => file.match( imageExtensions ) !== null );
 		res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
 	}
 });
