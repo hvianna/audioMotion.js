@@ -143,5 +143,5 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2020 Henrique Avila Vianna<br>
+audioMotion.js copyright (c) 2018-2021 Henrique Avila Vianna<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).

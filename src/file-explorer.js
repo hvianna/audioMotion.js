@@ -1,7 +1,7 @@
 /**
  * audioMotion.js file explorer module
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
  */
 
 var mounts = [],
