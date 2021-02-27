@@ -42,7 +42,9 @@ const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elFFTsize     = $('#fft_size'),
+const elContainer   = $('#bg_container'),
+	  elAnalyzer    = $('#analyzer'),
+	  elFFTsize     = $('#fft_size'),
 	  elRangeMin    = $('#freq_min'),
 	  elRangeMax    = $('#freq_max'),
 	  elSmoothing   = $('#smoothing'),
@@ -78,7 +80,8 @@ const elFFTsize     = $('#fft_size'),
 	  elInfoTimeout = $('#info_timeout'),
 	  elTrackTimeout= $('#track_timeout'),
 	  elEndTimeout  = $('#end_timeout'),
-	  elShowCover   = $('#show_cover');
+	  elShowCover   = $('#show_cover'),
+	  elFsHeight    = $('#fs_height');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -139,7 +142,8 @@ const presets = {
 		radial      : 0,
 		spin        : 2,
 		stereo      : 0,
-		splitGrad   : 0
+		splitGrad   : 0,
+		fsHeight    : 100
 	},
 
 	fullres: {
@@ -310,7 +314,18 @@ const infoDisplayDefaults = {
  * Display the canvas in full-screen mode
  */
 function fullscreen() {
-	audioMotion.toggleFullscreen();
+	if ( document.fullscreenElement ) {
+		if ( document.exitFullscreen )
+			document.exitFullscreen();
+		else if ( document.webkitExitFullscreen )
+			document.webkitExitFullscreen();
+	}
+	else {
+		if ( elContainer.requestFullscreen )
+			elContainer.requestFullscreen();
+		else if ( elContainer.webkitRequestFullscreen )
+			elContainer.webkitRequestFullscreen();
+	}
 	$('#btn_fullscreen').blur();
 }
 
@@ -334,8 +349,8 @@ function setProperty( elems, save ) {
 
 				audioMotion.overlay = ( bgOption > 1 );
 				audioMotion.showBgColor = ( bgOption == 0 );
-				audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
-				audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
+				elContainer.classList.toggle( 'repeat', bgFit == 2 );
+				elContainer.classList.toggle( 'cover', bgFit == 0 );
 
 				setCurrentCover();
 				break;
@@ -351,6 +366,10 @@ function setProperty( elems, save ) {
 
 			case elFillAlpha:
 				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
+				break;
+
+			case elFsHeight:
+				elAnalyzer.style.height = `${ audioMotion.radial ? '100' : elFsHeight.value }%`;
 				break;
 
 			case elRangeMin:
@@ -407,7 +426,7 @@ function setProperty( elems, save ) {
 
 			case elRadial:
 				audioMotion.radial = isSwitchOn( elRadial );
-				setProperty( elBarSpace );
+				setProperty( [ elBarSpace, elFsHeight ] );
 				break;
 
 			case elRandomMode:
@@ -496,12 +515,12 @@ function setCurrentCover( url ) {
 	if ( elBackground.value > 1 && coverImage[ currAudio ].src ) {
 		const alpha = 1 - elBgImageDim.value;
 		const imageUrl = coverImage[ currAudio ].src.replace( /'/g, "\\'" ); // escape single quotes
-		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
+		elContainer.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
 	}
 	else
-		audioMotion.canvas.style.backgroundImage = '';
+		elContainer.style.backgroundImage = '';
 
-	audioMotion.canvas.style.backgroundSize = '';
+	elContainer.style.backgroundSize = '';
 }
 
 /**
@@ -1291,7 +1310,7 @@ function displayCanvasMsg() {
 			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
 		}
 
-		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
@@ -1657,6 +1676,7 @@ function loadPreset( name, alert, init ) {
 		elGradient,
 		elRandomMode,
 		elBarSpace,
+		elFsHeight,
 		elMode ], true );
 
 	if ( name == 'demo' )
@@ -1688,6 +1708,7 @@ function saveConfig( config ) {
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
 		spin        : elSpin.value,
+		fsHeight    : elFsHeight.value,
 		showScaleX 	: elScaleX.dataset.active,
 		showScaleY 	: elScaleY.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
@@ -2197,7 +2218,8 @@ function setUIEventListeners() {
 	  elBackground,
 	  elBgImageDim,
 	  elBgImageFit,
-  	  elSpin ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
+  	  elSpin,
+  	  elFsHeight ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
 
 	// update range elements' value
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -2547,7 +2569,7 @@ function isSwitchOn( el ) {
 
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
-	audioMotion = new AudioMotionAnalyzer( $('#analyzer'), {
+	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
 	});
@@ -2632,24 +2654,28 @@ function isSwitchOn( el ) {
 		{ value: '5', text: 'Zoom Out' }
 	]);
 
-	elBgImageDim.min  = '0.1';
-	elBgImageDim.max  = '1';
-	elBgImageDim.step = '0.1';
+	elBgImageDim.min  = 0.1;
+	elBgImageDim.max  = 1;
+	elBgImageDim.step = .1;
 
-	elLineWidth.min   = '1';
-	elLineWidth.max   = '5';
+	elLineWidth.min   = 1;
+	elLineWidth.max   = 5;
 
-	elFillAlpha.min   = '0';
-	elFillAlpha.max   = '0.5';
-	elFillAlpha.step  = '0.1';
+	elFillAlpha.min   = 0;
+	elFillAlpha.max   = .5;
+	elFillAlpha.step  = .1;
 
-	elSmoothing.min   = '0';
-	elSmoothing.max   = '0.9';
-	elSmoothing.step  = '0.1';
+	elSmoothing.min   = 0;
+	elSmoothing.max   = .9;
+	elSmoothing.step  = .1;
 
-	elSpin.min        = '0';
-	elSpin.max        = '3';
-	elSpin.step       = '1';
+	elSpin.min        = 0;
+	elSpin.max        = 3;
+	elSpin.step       = 1;
+
+	elFsHeight.min    = 25;
+	elFsHeight.max    = 100;
+	elFsHeight.step   = 5;
 
 	// Set UI event listeners
 	setUIEventListeners();

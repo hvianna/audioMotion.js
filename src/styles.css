@@ -207,26 +207,45 @@ table {
 }
 
 .analyzer {
-	background: #000;
-	height: calc( 100vh - 570px );
-	min-height: 270px;
 	overflow: hidden;
+	position: absolute;
+	width: 100%;
 }
 .analyzer canvas {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: auto 100%;
 	display: block;
 	width: 100%;
 }
 .analyzer canvas:-webkit-full-screen {
 	height: auto;
 }
-.analyzer canvas.repeat {
+
+.bg-container {
+	background: #000;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	height: calc( 100vh - 570px );
+	min-height: 270px;
+	position: relative;
+}
+.bg-container:fullscreen {
+	position: relative !important;
+}
+.bg-container.repeat {
 	background-repeat: repeat-x;
 }
-.analyzer canvas.cover {
+.bg-container.cover {
 	background-size: cover;
+}
+
+.bg-container:fullscreen .analyzer,
+.bg-container:-webkit-full-screen .analyzer {
+	top: 50%;
+	transform: translateY(-50%);
+}
+.bg-container:not(:fullscreen) .analyzer,
+.bg-container:not(:-webkit-full-screen) .analyzer {
+	height: 100% !important;
 }
 
 #playlists {
