@@ -81,7 +81,8 @@ const elContainer   = $('#bg_container'),
 	  elTrackTimeout= $('#track_timeout'),
 	  elEndTimeout  = $('#end_timeout'),
 	  elShowCover   = $('#show_cover'),
-	  elFsHeight    = $('#fs_height');
+	  elFsHeight    = $('#fs_height'),
+	  elOSD         = $('#osd');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -1241,7 +1242,7 @@ function toggleInfo() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
-	const canvasCtx = audioMotion.canvasCtx;
+	const canvasCtx = elOSD.getContext('2d');
 	if ( isSwitchOn( elNoShadow ) ) {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
@@ -1313,13 +1314,16 @@ function displayCanvasMsg() {
 		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
 
+	// resize and clear OSD canvas
+	elOSD.width  = elContainer.clientWidth;
+	elOSD.height = elContainer.clientHeight;
+
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	const canvas     = audioMotion.canvas,
-		  canvasCtx  = audioMotion.canvasCtx,
-		  fontSize   = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
-		  centerPos  = canvas.width / 2,
+	const canvasCtx  = elOSD.getContext('2d'),
+		  fontSize   = elOSD.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
+		  centerPos  = elOSD.width / 2,
 		  topLine    = fontSize * 1.4,
 		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
 		  largeFont  = `bold ${fontSize}px sans-serif`;
@@ -1342,12 +1346,12 @@ function displayCanvasMsg() {
 	// Display song and config info
 	if ( canvasMsg.timer > 0 ) {
 		const leftPos     = fontSize,
-			  rightPos    = canvas.width - fontSize,
-			  bottomLine1 = canvas.height - fontSize * 4,
-			  bottomLine2 = canvas.height - fontSize * 2.8,
-			  bottomLine3 = canvas.height - fontSize * 1.6,
-			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
-			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
+			  rightPos    = elOSD.width - fontSize,
+			  bottomLine1 = elOSD.height - fontSize * 4,
+			  bottomLine2 = elOSD.height - fontSize * 2.8,
+			  bottomLine3 = elOSD.height - fontSize * 1.6,
+			  maxWidth    = elOSD.width - fontSize * 7,    // maximum width for artist and song name
+			  maxWidthTop = elOSD.width / 3 - fontSize;    // maximum width for messages shown at the top
 
 		if ( canvasMsg.fade < 0 ) {
 			// fade-in

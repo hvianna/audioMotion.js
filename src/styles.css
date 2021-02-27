@@ -248,6 +248,10 @@ table {
 	height: 100% !important;
 }
 
+.osd {
+	position: absolute;
+}
+
 #playlists {
 	margin-right: 10px;
 	width: 100%;
