@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.12';
+const _VERSION = '21.3-beta.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -370,7 +370,7 @@ function setProperty( elems, save ) {
 				break;
 
 			case elFsHeight:
-				elAnalyzer.style.height = `${ audioMotion.radial ? '100' : elFsHeight.value }%`;
+				elAnalyzer.style.height = `${elFsHeight.value}%`;
 				break;
 
 			case elRangeMin:
@@ -427,7 +427,7 @@ function setProperty( elems, save ) {
 
 			case elRadial:
 				audioMotion.radial = isSwitchOn( elRadial );
-				setProperty( [ elBarSpace, elFsHeight ] );
+				setProperty( elBarSpace );
 				break;
 
 			case elRandomMode:
