@@ -1315,8 +1315,9 @@ function displayCanvasMsg() {
 	}
 
 	// resize and clear OSD canvas
-	elOSD.width  = elContainer.clientWidth;
-	elOSD.height = elContainer.clientHeight;
+	const dPR = audioMotion.pixelRatio;
+	elOSD.width  = elContainer.clientWidth * dPR;
+	elOSD.height = elContainer.clientHeight * dPR;
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
@@ -1328,7 +1329,7 @@ function displayCanvasMsg() {
 		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
 		  largeFont  = `bold ${fontSize}px sans-serif`;
 
-	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
+	canvasCtx.lineWidth = 4 * dPR;
 	canvasCtx.lineJoin = 'round';
 	canvasCtx.font = normalFont;
 	canvasCtx.textAlign = 'center';

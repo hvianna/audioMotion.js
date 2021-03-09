@@ -47,6 +47,11 @@ button:not([disabled]):hover,
 	border: 1px solid #72aa00;
 }
 
+canvas {
+	display: block;
+	width: 100%;
+}
+
 header {
 	margin: 15px auto 0;
 	max-width: 960px;
@@ -210,13 +215,6 @@ table {
 	overflow: hidden;
 	position: absolute;
 	width: 100%;
-}
-.analyzer canvas {
-	display: block;
-	width: 100%;
-}
-.analyzer canvas:-webkit-full-screen {
-	height: auto;
 }
 
 .bg-container {
