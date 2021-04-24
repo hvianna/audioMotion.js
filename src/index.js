@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '20.12';
+const _VERSION = '21.3-beta.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -42,7 +42,9 @@ const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elFFTsize     = $('#fft_size'),
+const elContainer   = $('#bg_container'),
+	  elAnalyzer    = $('#analyzer'),
+	  elFFTsize     = $('#fft_size'),
 	  elRangeMin    = $('#freq_min'),
 	  elRangeMax    = $('#freq_max'),
 	  elSmoothing   = $('#smoothing'),
@@ -78,7 +80,9 @@ const elFFTsize     = $('#fft_size'),
 	  elInfoTimeout = $('#info_timeout'),
 	  elTrackTimeout= $('#track_timeout'),
 	  elEndTimeout  = $('#end_timeout'),
-	  elShowCover   = $('#show_cover');
+	  elShowCover   = $('#show_cover'),
+	  elFsHeight    = $('#fs_height'),
+	  elOSD         = $('#osd');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -139,7 +143,8 @@ const presets = {
 		radial      : 0,
 		spin        : 2,
 		stereo      : 0,
-		splitGrad   : 0
+		splitGrad   : 0,
+		fsHeight    : 100
 	},
 
 	fullres: {
@@ -310,7 +315,18 @@ const infoDisplayDefaults = {
  * Display the canvas in full-screen mode
  */
 function fullscreen() {
-	audioMotion.toggleFullscreen();
+	if ( document.fullscreenElement ) {
+		if ( document.exitFullscreen )
+			document.exitFullscreen();
+		else if ( document.webkitExitFullscreen )
+			document.webkitExitFullscreen();
+	}
+	else {
+		if ( elContainer.requestFullscreen )
+			elContainer.requestFullscreen();
+		else if ( elContainer.webkitRequestFullscreen )
+			elContainer.webkitRequestFullscreen();
+	}
 	$('#btn_fullscreen').blur();
 }
 
@@ -334,8 +350,8 @@ function setProperty( elems, save ) {
 
 				audioMotion.overlay = ( bgOption > 1 );
 				audioMotion.showBgColor = ( bgOption == 0 );
-				audioMotion.canvas.classList.toggle( 'repeat', bgFit == 2 );
-				audioMotion.canvas.classList.toggle( 'cover', bgFit == 0 );
+				elContainer.classList.toggle( 'repeat', bgFit == 2 );
+				elContainer.classList.toggle( 'cover', bgFit == 0 );
 
 				setCurrentCover();
 				break;
@@ -351,6 +367,10 @@ function setProperty( elems, save ) {
 
 			case elFillAlpha:
 				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
+				break;
+
+			case elFsHeight:
+				elAnalyzer.style.height = `${elFsHeight.value}%`;
 				break;
 
 			case elRangeMin:
@@ -496,12 +516,12 @@ function setCurrentCover( url ) {
 	if ( elBackground.value > 1 && coverImage[ currAudio ].src ) {
 		const alpha = 1 - elBgImageDim.value;
 		const imageUrl = coverImage[ currAudio ].src.replace( /'/g, "\\'" ); // escape single quotes
-		audioMotion.canvas.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
+		elContainer.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
 	}
 	else
-		audioMotion.canvas.style.backgroundImage = '';
+		elContainer.style.backgroundImage = '';
 
-	audioMotion.canvas.style.backgroundSize = '';
+	elContainer.style.backgroundSize = '';
 }
 
 /**
@@ -1222,7 +1242,7 @@ function toggleInfo() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
-	const canvasCtx = audioMotion.canvasCtx;
+	const canvasCtx = elOSD.getContext('2d');
 	if ( isSwitchOn( elNoShadow ) ) {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
@@ -1291,21 +1311,25 @@ function displayCanvasMsg() {
 			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
 		}
 
-		audioMotion.canvas.style.backgroundSize = `auto ${ 100 + size }%`;
+		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
+
+	// resize and clear OSD canvas
+	const dPR = audioMotion.pixelRatio;
+	elOSD.width  = elContainer.clientWidth * dPR;
+	elOSD.height = elContainer.clientHeight * dPR;
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	const canvas     = audioMotion.canvas,
-		  canvasCtx  = audioMotion.canvasCtx,
-		  fontSize   = canvas.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
-		  centerPos  = canvas.width / 2,
+	const canvasCtx  = elOSD.getContext('2d'),
+		  fontSize   = elOSD.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
+		  centerPos  = elOSD.width / 2,
 		  topLine    = fontSize * 1.4,
 		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
 		  largeFont  = `bold ${fontSize}px sans-serif`;
 
-	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
+	canvasCtx.lineWidth = 4 * dPR;
 	canvasCtx.lineJoin = 'round';
 	canvasCtx.font = normalFont;
 	canvasCtx.textAlign = 'center';
@@ -1323,12 +1347,12 @@ function displayCanvasMsg() {
 	// Display song and config info
 	if ( canvasMsg.timer > 0 ) {
 		const leftPos     = fontSize,
-			  rightPos    = canvas.width - fontSize,
-			  bottomLine1 = canvas.height - fontSize * 4,
-			  bottomLine2 = canvas.height - fontSize * 2.8,
-			  bottomLine3 = canvas.height - fontSize * 1.6,
-			  maxWidth    = canvas.width - fontSize * 7,    // maximum width for artist and song name
-			  maxWidthTop = canvas.width / 3 - fontSize;    // maximum width for messages shown at the top
+			  rightPos    = elOSD.width - fontSize,
+			  bottomLine1 = elOSD.height - fontSize * 4,
+			  bottomLine2 = elOSD.height - fontSize * 2.8,
+			  bottomLine3 = elOSD.height - fontSize * 1.6,
+			  maxWidth    = elOSD.width - fontSize * 7,    // maximum width for artist and song name
+			  maxWidthTop = elOSD.width / 3 - fontSize;    // maximum width for messages shown at the top
 
 		if ( canvasMsg.fade < 0 ) {
 			// fade-in
@@ -1657,6 +1681,7 @@ function loadPreset( name, alert, init ) {
 		elGradient,
 		elRandomMode,
 		elBarSpace,
+		elFsHeight,
 		elMode ], true );
 
 	if ( name == 'demo' )
@@ -1688,6 +1713,7 @@ function saveConfig( config ) {
 		bgImageDim  : elBgImageDim.value,
 		bgImageFit  : elBgImageFit.value,
 		spin        : elSpin.value,
+		fsHeight    : elFsHeight.value,
 		showScaleX 	: elScaleX.dataset.active,
 		showScaleY 	: elScaleY.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
@@ -2197,7 +2223,8 @@ function setUIEventListeners() {
 	  elBackground,
 	  elBgImageDim,
 	  elBgImageFit,
-  	  elSpin ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
+  	  elSpin,
+  	  elFsHeight ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
 
 	// update range elements' value
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -2547,7 +2574,7 @@ function isSwitchOn( el ) {
 
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
-	audioMotion = new AudioMotionAnalyzer( $('#analyzer'), {
+	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
 	});
@@ -2632,24 +2659,28 @@ function isSwitchOn( el ) {
 		{ value: '5', text: 'Zoom Out' }
 	]);
 
-	elBgImageDim.min  = '0.1';
-	elBgImageDim.max  = '1';
-	elBgImageDim.step = '0.1';
+	elBgImageDim.min  = 0.1;
+	elBgImageDim.max  = 1;
+	elBgImageDim.step = .1;
 
-	elLineWidth.min   = '1';
-	elLineWidth.max   = '5';
+	elLineWidth.min   = 1;
+	elLineWidth.max   = 5;
 
-	elFillAlpha.min   = '0';
-	elFillAlpha.max   = '0.5';
-	elFillAlpha.step  = '0.1';
+	elFillAlpha.min   = 0;
+	elFillAlpha.max   = .5;
+	elFillAlpha.step  = .1;
 
-	elSmoothing.min   = '0';
-	elSmoothing.max   = '0.9';
-	elSmoothing.step  = '0.1';
+	elSmoothing.min   = 0;
+	elSmoothing.max   = .9;
+	elSmoothing.step  = .1;
 
-	elSpin.min        = '0';
-	elSpin.max        = '3';
-	elSpin.step       = '1';
+	elSpin.min        = 0;
+	elSpin.max        = 3;
+	elSpin.step       = 1;
+
+	elFsHeight.min    = 25;
+	elFsHeight.max    = 100;
+	elFsHeight.step   = 5;
 
 	// Set UI event listeners
 	setUIEventListeners();

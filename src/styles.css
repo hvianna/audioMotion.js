@@ -47,6 +47,11 @@ button:not([disabled]):hover,
 	border: 1px solid #72aa00;
 }
 
+canvas {
+	display: block;
+	width: 100%;
+}
+
 header {
 	margin: 15px auto 0;
 	max-width: 960px;
@@ -207,26 +212,42 @@ table {
 }
 
 .analyzer {
-	background: #000;
-	height: calc( 100vh - 570px );
-	min-height: 270px;
 	overflow: hidden;
+	position: absolute;
+	width: 100%;
 }
-.analyzer canvas {
+
+.bg-container {
+	background: #000;
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: auto 100%;
-	display: block;
-	width: 100%;
+	height: calc( 100vh - 570px );
+	min-height: 270px;
+	position: relative;
 }
-.analyzer canvas:-webkit-full-screen {
-	height: auto;
+.bg-container:fullscreen {
+	position: relative !important;
 }
-.analyzer canvas.repeat {
+.bg-container.repeat {
 	background-repeat: repeat-x;
 }
-.analyzer canvas.cover {
+.bg-container.cover {
 	background-size: cover;
+}
+
+.bg-container:fullscreen .analyzer,
+.bg-container:-webkit-full-screen .analyzer {
+	top: 50%;
+	transform: translateY(-50%);
+}
+.bg-container:not(:fullscreen) .analyzer,
+.bg-container:not(:-webkit-full-screen) .analyzer {
+	height: 100% !important;
+}
+
+.osd {
+	position: absolute;
 }
 
 #playlists {

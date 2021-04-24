@@ -47,7 +47,10 @@
 	<!-- ANALYZER & PLAYER AREA -->
 	<div class="player-area">
 
-		<div id="analyzer" class="analyzer"></div>
+		<div id="bg_container" class="bg-container">
+			<div id="analyzer" class="analyzer"></div>
+			<canvas id="osd" class="osd"></canvas>
+		</div>
 
 		<audio id="player0" preload="auto" crossorigin="anonymous"></audio>
 		<audio id="player1" preload="auto" crossorigin="anonymous"></audio>
@@ -229,13 +232,23 @@
 				<input id="bg_img_dim" type="range" data-prop="bgImageDim">
 			</div>
 
-			<div class="rowspan-2">
+			<div>
 				<span class="config-label help">Refle<u>x</u>
 					<span class="tooltip">
 					Select reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
 					</span>
 				</span>
 				<select id="reflex" data-prop="reflex"></select>
+			</div>
+
+			<div>
+				<span class="config-label help">Fullscreen height
+					<span class="tooltip">
+					% of screen height used by analyzer when in fullscreen
+					</span>
+				</span>
+				<div class="value"></div>
+				<input id="fs_height" type="range" data-prop="fsHeight">
 			</div>
 
 		<!-- COLUMN 4 -->
