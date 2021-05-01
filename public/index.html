@@ -242,13 +242,12 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Fullscreen height
+				<span class="config-label help">Mirror</u>
 					<span class="tooltip">
-					% of screen height used by analyzer when in fullscreen
+					Horizontal mirroring effect
 					</span>
 				</span>
-				<div class="value"></div>
-				<input id="fs_height" type="range" data-prop="fsHeight">
+				<select id="mirror" data-prop="mirror"></select>
 			</div>
 
 		<!-- COLUMN 4 -->
@@ -281,7 +280,7 @@
 				<select id="fft_size" data-prop="fftSize"></select>
 			</div>
 
-			<div class="rowspan-2">
+			<div>
 				<span class="config-label help">Smoothing
 					<span class="tooltip">
 					Lower values make the analyzer respond faster to changes
@@ -289,6 +288,16 @@
 				</span>
 				<div class="value"></div>
 				<input type="range" id="smoothing" data-prop="smoothing">
+			</div>
+
+			<div>
+				<span class="config-label help">Fullscreen height
+					<span class="tooltip">
+					% of screen height used by analyzer when in fullscreen
+					</span>
+				</span>
+				<div class="value"></div>
+				<input id="fs_height" type="range" data-prop="fsHeight">
 			</div>
 
 		<!-- COLUMN 5 -->

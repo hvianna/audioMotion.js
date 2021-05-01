@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '21.3-beta.2';
+const _VERSION = '21.5-beta.0';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -82,7 +82,8 @@ const elContainer   = $('#bg_container'),
 	  elEndTimeout  = $('#end_timeout'),
 	  elShowCover   = $('#show_cover'),
 	  elFsHeight    = $('#fs_height'),
-	  elOSD         = $('#osd');
+	  elOSD         = $('#osd'),
+	  elMirror      = $('#mirror');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -144,7 +145,8 @@ const presets = {
 		spin        : 2,
 		stereo      : 0,
 		splitGrad   : 0,
-		fsHeight    : 100
+		fsHeight    : 100,
+		mirror      : 0
 	},
 
 	fullres: {
@@ -293,7 +295,8 @@ const randomProperties = [
 	{ value: 'radial', text: 'Radial',       disabled: false },
 	{ value: 'spin',   text: 'Spin',         disabled: false },
 	{ value: 'stereo', text: 'Stereo',       disabled: false },
-	{ value: 'split',  text: 'Split',        disabled: false }
+	{ value: 'split',  text: 'Split',        disabled: false },
+	{ value: 'mirror', text: 'Mirror',       disabled: false }
 ];
 
 // Sensitivity presets
@@ -423,6 +426,10 @@ function setProperty( elems, save ) {
 					}
 				}
 				setProperty( elBarSpace );
+				break;
+
+			case elMirror:
+				audioMotion.mirror = elMirror.value;
 				break;
 
 			case elRadial:
@@ -2062,6 +2069,11 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elStereo );
 	}
 
+	if ( isEnabled('mirror') ) {
+		elMirror.value = randomInt(3) - 1;
+		props.push( elMirror );
+	}
+
 	if ( isSwitchOn( elCycleGrad ) ) {
 		elGradient.selectedIndex = randomInt( elGradient.options.length );
 		props.push( elGradient );
@@ -2224,7 +2236,8 @@ function setUIEventListeners() {
 	  elBgImageDim,
 	  elBgImageFit,
   	  elSpin,
-  	  elFsHeight ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
+  	  elFsHeight,
+  	  elMirror ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
 
 	// update range elements' value
 	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
@@ -2657,6 +2670,12 @@ function isSwitchOn( el ) {
 		{ value: '2', text: 'Repeat' },
 		{ value: '4', text: 'Zoom In' },
 		{ value: '5', text: 'Zoom Out' }
+	]);
+
+	populateSelect( elMirror, [
+		{ value: '0', text: 'Disable' },
+		{ value: '-1', text: 'Left' },
+		{ value: '1', text: 'Right' }
 	]);
 
 	elBgImageDim.min  = 0.1;
