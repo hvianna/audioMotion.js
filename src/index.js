@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '21.5-beta.0';
+const _VERSION = '21.5-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -2506,14 +2506,6 @@ function savePreferences( pref ) {
 }
 
 /**
- * Populate a select HTML element
- */
-function populateSelect( element, options ) {
-	for ( const item of options )
-		element[ element.options.length ] = new Option( item.text, item.value );
-}
-
-/**
  * Set on-screen display options UI fields
  */
 function setInfoOptions( options ) {
@@ -2626,80 +2618,77 @@ function isSwitchOn( el ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
+	// populate select elements
+	const populateSelect = ( element, options ) => {
+		for ( const item of options )
+			element[ element.options.length ] = new Option( item[1], item[0] );
+	}
+
 	populateSelect(	elSensitivity, [
-		{ value: '0', text: 'Low' },
-		{ value: '1', text: 'Normal' },
-		{ value: '2', text: 'High' }
+		[ '0', 'Low'    ],
+		[ '1', 'Normal' ],
+		[ '2', 'High'   ]
 	]);
 
 	populateSelect(	elBarSpace, [
-		{ value: '1.5',  text: 'Legacy' },
-		{ value: '0.1',  text: 'Narrow' },
-		{ value: '0.25', text: 'Regular' },
-		{ value: '0.5',  text: 'Wide' },
-		{ value: '0.75', text: 'Extra wide' }
+		[ '1.5',  'Legacy'     ],
+		[ '0.1',  'Narrow'     ],
+		[ '0.25', 'Regular'    ],
+		[ '0.5',  'Wide'       ],
+		[ '0.75', 'Extra wide' ]
 	]);
 
 	populateSelect( elRandomMode, [
-		{ value: '0',   text: 'Off' },
-		{ value: '1',   text: 'On track change' },
-		{ value: '2',   text: '5 seconds' },
-		{ value: '6',   text: '15 seconds' },
-		{ value: '12',  text: '30 seconds' },
-		{ value: '24',  text: '1 minute' },
-		{ value: '48',  text: '2 minutes' },
-		{ value: '120', text: '5 minutes' }
+		[ '0',   'Off'             ],
+		[ '1',   'On track change' ],
+		[ '2',   '5 seconds'       ],
+		[ '6',   '15 seconds'      ],
+		[ '12',  '30 seconds'      ],
+		[ '24',  '1 minute'        ],
+		[ '48',  '2 minutes'       ],
+		[ '120', '5 minutes'       ]
 	]);
 
 	populateSelect(	elReflex, [
-		{ value: '0', text: 'Off' },
-		{ value: '1', text: 'On' },
-		{ value: '2', text: 'Mirrored' }
+		[ '0', 'Off'      ],
+		[ '1', 'On'       ],
+		[ '2', 'Mirrored' ]
 	]);
 
 	populateSelect(	elBackground, [
-		{ value: '0', text: 'Gradient default' },
-		{ value: '1', text: 'Black' },
-		{ value: '2', text: 'Album cover' }
+		[ '0', 'Gradient default' ],
+		[ '1', 'Black'            ],
+		[ '2', 'Album cover'      ]
 	]);
 
 	populateSelect( elBgImageFit, [
-		{ value: '0', text: 'Adjust' },
-		{ value: '1', text: 'Center' },
-		{ value: '3', text: 'Pulse' },
-		{ value: '2', text: 'Repeat' },
-		{ value: '4', text: 'Zoom In' },
-		{ value: '5', text: 'Zoom Out' }
+		[ '0', 'Adjust'   ],
+		[ '1', 'Center'   ],
+		[ '3', 'Pulse'    ],
+		[ '2', 'Repeat'   ],
+		[ '4', 'Zoom In'  ],
+		[ '5', 'Zoom Out' ]
 	]);
 
 	populateSelect( elMirror, [
-		{ value: '0', text: 'Disable' },
-		{ value: '-1', text: 'Left' },
-		{ value: '1', text: 'Right' }
+		[ '0',  'Disable' ],
+		[ '-1', 'Left'    ],
+		[ '1',  'Right'   ]
 	]);
 
-	elBgImageDim.min  = 0.1;
-	elBgImageDim.max  = 1;
-	elBgImageDim.step = .1;
+	// set attributes of range elements
+	const setRangeAtts = ( element, min, max, step = 1 ) => {
+		element.min  = min;
+		element.max  = max;
+		element.step = step;
+	}
 
-	elLineWidth.min   = 1;
-	elLineWidth.max   = 5;
-
-	elFillAlpha.min   = 0;
-	elFillAlpha.max   = .5;
-	elFillAlpha.step  = .1;
-
-	elSmoothing.min   = 0;
-	elSmoothing.max   = .9;
-	elSmoothing.step  = .1;
-
-	elSpin.min        = 0;
-	elSpin.max        = 3;
-	elSpin.step       = 1;
-
-	elFsHeight.min    = 25;
-	elFsHeight.max    = 100;
-	elFsHeight.step   = 5;
+	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
+	setRangeAtts( elLineWidth, 1, 5 );
+	setRangeAtts( elFillAlpha, 0, .5, .1 );
+	setRangeAtts( elSmoothing, 0, .9, .1 );
+	setRangeAtts( elSpin, 0, 3, 1 );
+	setRangeAtts( elFsHeight, 25, 100, 5 );
 
 	// Set UI event listeners
 	setUIEventListeners();
