@@ -14,19 +14,21 @@
   "license": "AGPL-3.0",
   "devDependencies": {
     "audiomotion-analyzer": "^3.3.0",
+    "buffer": "^6.0.3",
     "css-loader": "^5.2.4",
     "express": "^4.16.4",
     "mini-css-extract-plugin": "^1.6.0",
-    "music-metadata-browser": "^1.10.0",
+    "music-metadata-browser": "^2.2.6",
     "notie": "^4.3.1",
-    "open": "^8.0.7",
+    "open": "7.4.2",
     "optimize-css-assets-webpack-plugin": "^5.0.4",
+    "process": "^0.11.10",
     "readline-sync": "^1.4.10",
     "semver": "^7.3.5",
     "sortablejs": "1.10.2",
-    "terser-webpack-plugin": "^4.2.3",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "terser-webpack-plugin": "^5.1.1",
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.7.0"
   },
   "dependencies": {}
 }

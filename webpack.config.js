@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require('terser-webpack-plugin');
@@ -26,7 +27,11 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: 'styles.css',
-    })
+    }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+      process: 'process/browser.js',
+    }),
   ],
   output: {
     filename: 'audioMotion.js',
