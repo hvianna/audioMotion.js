@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '21.5-beta.2';
+const _VERSION = '21.5-beta.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -318,18 +318,7 @@ const infoDisplayDefaults = {
  * Display the canvas in full-screen mode
  */
 function fullscreen() {
-	if ( document.fullscreenElement ) {
-		if ( document.exitFullscreen )
-			document.exitFullscreen();
-		else if ( document.webkitExitFullscreen )
-			document.webkitExitFullscreen();
-	}
-	else {
-		if ( elContainer.requestFullscreen )
-			elContainer.requestFullscreen();
-		else if ( elContainer.webkitRequestFullscreen )
-			elContainer.webkitRequestFullscreen();
-	}
+	audioMotion.toggleFullscreen();
 	$('#btn_fullscreen').blur();
 }
 
@@ -1330,7 +1319,7 @@ function displayCanvasMsg() {
 		return;
 
 	const canvasCtx  = elOSD.getContext('2d'),
-		  fontSize   = elOSD.height / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
+		  fontSize   = Math.min( elOSD.width, elOSD.height ) / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
 		  centerPos  = elOSD.width / 2,
 		  topLine    = fontSize * 1.4,
 		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
@@ -2580,6 +2569,7 @@ function isSwitchOn( el ) {
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
 	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
+		fsElement: elContainer,
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
 	});

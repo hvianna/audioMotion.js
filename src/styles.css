@@ -226,22 +226,36 @@ table {
 	min-height: 270px;
 	position: relative;
 }
-.bg-container:fullscreen {
-	position: relative !important;
-}
 .bg-container.repeat {
 	background-repeat: repeat-x;
 }
 .bg-container.cover {
 	background-size: cover;
 }
+.bg-container:fullscreen {
+	position: relative !important;
+}
+.bg-container:fullscreen .analyzer {
+	top: 50%;
+	transform: translateY(-50%);
+}
+.bg-container:not(:fullscreen) .analyzer {
+	height: 100% !important;
+}
 
-.bg-container:fullscreen .analyzer,
+/**
+ * The Safari-specific rules below MUST NOT be combined with :fullscreen selectors, otherwise they won't work!
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API/Guide#presentation_differences
+ */
+.bg-container:-webkit-full-screen {
+	height: 100%;
+	position: relative !important;
+	width: 100%;
+}
 .bg-container:-webkit-full-screen .analyzer {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.bg-container:not(:fullscreen) .analyzer,
 .bg-container:not(:-webkit-full-screen) .analyzer {
 	height: 100% !important;
 }
