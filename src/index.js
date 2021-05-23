@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '21.5-beta.3';
+const _VERSION = '21.5-beta.4';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -83,7 +83,8 @@ const elContainer   = $('#bg_container'),
 	  elShowCover   = $('#show_cover'),
 	  elFsHeight    = $('#fs_height'),
 	  elOSD         = $('#osd'),
-	  elMirror      = $('#mirror');
+	  elMirror      = $('#mirror'),
+	  canvasCtx     = elOSD.getContext('2d');
 
 // AudioMotionAnalyzer object
 let audioMotion;
@@ -94,8 +95,8 @@ let playlist, playlistPos, currAudio, nextAudio;
 // audio sources
 let audioElement, micStream, isMicSource, savedVolume;
 
-// on-screen messages
-let canvasMsg;
+// variables for on-screen info display
+let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
 // auxiliary variables for track skip and fast search
 let skipping = false, isFastSearch = false, fastSearchTimeout;
@@ -1238,7 +1239,6 @@ function toggleInfo() {
  * Draws outlined text on canvas
  */
 function outlineText( text, x, y, maxWidth ) {
-	const canvasCtx = elOSD.getContext('2d');
 	if ( isSwitchOn( elNoShadow ) ) {
 		canvasCtx.strokeText( text, x, y, maxWidth );
 		canvasCtx.fillText( text, x, y, maxWidth );
@@ -1310,22 +1310,12 @@ function displayCanvasMsg() {
 		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
 	}
 
-	// resize and clear OSD canvas
-	const dPR = audioMotion.pixelRatio;
-	elOSD.width  = elContainer.clientWidth * dPR;
-	elOSD.height = elContainer.clientHeight * dPR;
+	elOSD.width |= 0; // clear OSD canvas
 
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	const canvasCtx  = elOSD.getContext('2d'),
-		  fontSize   = Math.min( elOSD.width, elOSD.height ) / 17, // ~64px for a 1080px-tall canvas - used to scale several other measures
-		  centerPos  = elOSD.width / 2,
-		  topLine    = fontSize * 1.4,
-		  normalFont = `bold ${ fontSize * .7 }px sans-serif`,
-		  largeFont  = `bold ${fontSize}px sans-serif`;
-
-	canvasCtx.lineWidth = 4 * dPR;
+	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
 	canvasCtx.lineJoin = 'round';
 	canvasCtx.font = normalFont;
 	canvasCtx.textAlign = 'center';
@@ -1336,20 +1326,12 @@ function displayCanvasMsg() {
 	// Display custom message if any and info level 2 is not set
 	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
 		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
-		outlineText( canvasMsg.msg, centerPos, topLine );
+		outlineText( canvasMsg.msg, centerPos, topLine1 );
 		canvasMsg.msgTimer--;
 	}
 
 	// Display song and config info
 	if ( canvasMsg.timer > 0 ) {
-		const leftPos     = fontSize,
-			  rightPos    = elOSD.width - fontSize,
-			  bottomLine1 = elOSD.height - fontSize * 4,
-			  bottomLine2 = elOSD.height - fontSize * 2.8,
-			  bottomLine3 = elOSD.height - fontSize * 1.6,
-			  maxWidth    = elOSD.width - fontSize * 7,    // maximum width for artist and song name
-			  maxWidthTop = elOSD.width / 3 - fontSize;    // maximum width for messages shown at the top
-
 		if ( canvasMsg.fade < 0 ) {
 			// fade-in
 			const fade     = Math.abs( canvasMsg.fade ),
@@ -1361,42 +1343,40 @@ function displayCanvasMsg() {
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
-			const secondLine = topLine * 1.8;
-
-			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine, maxWidthTop );
-			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, secondLine );
+			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
+			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
 
 			canvasCtx.textAlign = 'left';
-			outlineText( getText( elMode ), leftPos, topLine, maxWidthTop );
-			outlineText( `Random mode: ${ getText( elRandomMode ) }`, leftPos, secondLine, maxWidthTop );
+			outlineText( getText( elMode ), baseSize, topLine1, maxWidthTop );
+			outlineText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine, maxWidthTop );
-			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, secondLine, maxWidthTop );
+			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
+			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
 		}
 
 		if ( isMicSource ) {
 			canvasCtx.textAlign = 'left';
 			canvasCtx.font = largeFont;
-			outlineText( 'MIC source', leftPos, bottomLine2, maxWidth );
+			outlineText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
 		}
 		else {
 			// codec and quality
 			canvasCtx.textAlign = 'right';
 			outlineText( trackData.codec, rightPos, bottomLine1 );
-			outlineText( trackData.quality, rightPos, bottomLine1 + fontSize );
+			outlineText( trackData.quality, rightPos, bottomLine1 + baseSize );
 
 			// artist name
 			canvasCtx.textAlign = 'left';
-			outlineText( trackData.artist.toUpperCase(), leftPos, bottomLine1, maxWidth );
+			outlineText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
 
 			// album title
 			canvasCtx.font = `italic ${normalFont}`;
-			outlineText( trackData.album, leftPos, bottomLine3, maxWidth );
+			outlineText( trackData.album, baseSize, bottomLine3, maxWidthBot );
 
 			// song title
 			canvasCtx.font = largeFont;
-			outlineText( audioEl.src ? trackData.title : 'No song loaded', leftPos, bottomLine2, maxWidth );
+			outlineText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
 
 			// time
 			if ( audioEl.duration || trackData.duration ) {
@@ -1413,10 +1393,8 @@ function displayCanvasMsg() {
 			}
 
 			// cover image
-			if ( coverImage[ currAudio ].width && elShowCover.checked ) {
-				const coverSize = fontSize * 3;
-				canvasCtx.drawImage( coverImage[ currAudio ], leftPos, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
-			}
+			if ( coverImage[ currAudio ].width && elShowCover.checked )
+				canvasCtx.drawImage( coverImage[ currAudio ], baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 		}
 
 		if ( --canvasMsg.timer < 1 )
@@ -1454,6 +1432,12 @@ function setCanvasMsg( msg, timer = 2, dir = 1 ) {
  * Display information about canvas size changes
  */
 function showCanvasInfo( reason, instance ) {
+
+	// resize OSD canvas
+	const dPR    = instance.pixelRatio,
+		  width  = elOSD.width  = elContainer.clientWidth * dPR,
+		  height = elOSD.height = elContainer.clientHeight * dPR;
+
 	let msg;
 
 	switch ( reason ) {
@@ -1463,17 +1447,33 @@ function showCanvasInfo( reason, instance ) {
 			msg = 'Canvas created';
 			break;
 		case 'lores':
-			msg = `Lo-res mode ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${instance.pixelRatio})`;
+			msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
 			break;
 		case 'fschange':
-			msg = 'Fullscreen changed';
+			msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
 			break;
 		case 'resize':
 			msg = 'Window resized';
 			break;
 	}
 
-	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px ${ instance.isFullscreen ? '(fullscreen)' : '' }` );
+	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
+
+	// recalculate variables used for info display
+	baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
+	coverSize   = baseSize * 3;				// cover image size
+	centerPos   = width / 2;
+	rightPos    = width - baseSize;
+	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
+	topLine2    = topLine1 * 1.8;			// auto gradient, random mode & repeat status
+	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
+	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
+	bottomLine2 = height - baseSize * 2.8;	// song title
+	bottomLine3 = height - baseSize * 1.6;	// album title, time
+	maxWidthBot = width - baseSize * 7;		// maximum width for artist and song name
+
+	normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
+	largeFont   = `bold ${baseSize}px sans-serif`;
 }
 
 /**
@@ -2270,7 +2270,7 @@ function setUIEventListeners() {
 	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
 
 	// clicks on canvas toggle info display on/off
-	audioMotion.canvas.addEventListener( 'click', () =>	toggleInfo() );
+	elOSD.addEventListener( 'click', () =>	toggleInfo() );
 
 	// local file upload
 	$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
