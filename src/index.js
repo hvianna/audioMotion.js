@@ -1666,7 +1666,8 @@ function loadPreset( name, alert, init ) {
 		radial       : isSwitchOn( elRadial ),
 		spinSpeed    : elSpin.value,
 		stereo       : isSwitchOn( elStereo ),
-		splitGradient: isSwitchOn( elSplitGrad )
+		splitGradient: isSwitchOn( elSplitGrad ),
+		mirror       : elMirror.value
 	} );
 
 	// settings that make additional changes are set by the setProperty() function
@@ -1710,6 +1711,7 @@ function saveConfig( config ) {
 		bgImageFit  : elBgImageFit.value,
 		spin        : elSpin.value,
 		fsHeight    : elFsHeight.value,
+		mirror      : elMirror.value,
 		showScaleX 	: elScaleX.dataset.active,
 		showScaleY 	: elScaleY.dataset.active,
 		showPeaks 	: elShowPeaks.dataset.active,
