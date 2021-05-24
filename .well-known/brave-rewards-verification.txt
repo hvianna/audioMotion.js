@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: audiomotion.me
+Token: 05315e81324a2cf8a6104a3e5b8c806eac56daed250ac7bb5d352d8e2de02595
