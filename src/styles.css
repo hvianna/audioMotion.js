@@ -394,10 +394,16 @@ div.value {
 	margin: 10px auto 15px;
 	max-width: 1400px;
 }
+
 .controls-left {
-	margin-left: 50px;
+	display: flex;
+	margin-left: 40px;
 	justify-self: start;
 }
+.controls-left > div:not(:last-child) {
+	margin-right: 4em;
+}
+
 .controls-right {
 	margin-right: 25px;
 	justify-self: end;
@@ -812,7 +818,7 @@ label.slider {
 	display: inline-block;
 	font-size: 8px;
 	height: 3em;
-	margin: 10px 0;
+	margin: 5px 0 10px;
 	position: relative;
 	transition: 350ms;
 	vertical-align: middle;
@@ -843,26 +849,35 @@ label.slider::after {
 	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0.1) ), #444;
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 var(--accent-color);
+				-7em 0 0 0 var(--accent-color),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
 	position: absolute;
 	top: 1.25em;
 	transition: 250ms ease-in-out;
 }
 
+label.slider.on-off::after {
+	background: transparent;
+	box-shadow:	0 0.08em 0.15em -0.1em transparent,
+				0 0.05em 0.08em -0.01em transparent,
+				-7em 0 0 0 var(--accent-color),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
+}
+
 .slider-on,
 .slider-off {
-	bottom: -13px;
+	bottom: -1.5em;
 	color: #444;
 	font-size: 10px;
 	position: absolute;
 	transition: 250ms ease-in-out;
 }
 
-.slider-on {
+.slider-off {
 	left: 4em;
 }
-.slider-off {
-	left: -2.4em;
+.slider-on {
+	left: -1.3em;
 }
 
 input.slider:checked + .slider::before {
@@ -873,11 +888,20 @@ input.slider:checked + .slider::after {
 	background: linear-gradient( rgba(0,0,0,.07), rgba(255,255,255,.1) ), var(--accent-color);
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 rgba(0,0,0,.5);
+				-7em 0 0 0 rgba(0,0,0,.7),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
 }
 
-input.slider:checked + .slider .slider-on,
-input.slider:not(:checked) + .slider .slider-off {
+input.slider:checked + .slider.on-off::after {
+	background: transparent;
+	box-shadow:	0 0.08em 0.15em -0.1em transparent,
+				0 0.05em 0.08em -0.01em transparent,
+				-7em 0 0 0 rgba(0,0,0,.7),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
+}
+
+input.slider:checked + .slider:not(.on-off) .slider-off,
+input.slider:not(:checked) + .slider .slider-on {
 	text-shadow: 0px 0px 5px;
 	color: var(--accent-color);
 }
@@ -1012,7 +1036,7 @@ input.slider:not(:checked) + .slider .slider-off {
 		margin: 0 5px;
 	}
 	.controls-left {
-		margin-left: 30px;
+		margin-left: 20px;
 	}
 	.controls-right {
 		margin-right: 5px;

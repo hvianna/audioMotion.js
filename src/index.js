@@ -64,6 +64,7 @@ const elContainer   = $('#bg_container'),
 	  elLoRes       = $('#lo_res'),
 	  elFPS         = $('#fps'),
 	  elSource      = $('#source'),
+	  elMute        = $('#mute'),
 	  elPlaylists   = $('#playlists'),
 	  elLineWidth   = $('#line_width'),
 	  elFillAlpha   = $('#fill_alpha'),
@@ -93,7 +94,7 @@ let audioMotion;
 let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-let audioElement, micStream, isMicSource, savedVolume;
+let audioElement, micStream, isMicSource, wasMuted;
 
 // variables for on-screen info display
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
@@ -1527,8 +1528,8 @@ function setSource() {
 			if ( isPlaying() )
 				audioElement[ currAudio ].pause();
 			// mute the output to avoid feedback loop from the microphone
-			savedVolume = audioMotion.volume;
-			setVolume(0);
+			wasMuted = elMute.checked;
+			toggleMute( true );
 			audioMotion.connectInput( micStream );
 			consoleLog( 'Audio source set to microphone' );
 		}
@@ -1536,7 +1537,7 @@ function setSource() {
 	else {
 		if ( micStream ) {
 			audioMotion.disconnectInput( micStream );
-			setVolume( savedVolume );
+			toggleMute( wasMuted );
 		}
 		consoleLog( 'Audio source set to built-in player' );
 	}
@@ -1564,6 +1565,21 @@ function changeVolume( incr ) {
 function setVolume( value ) {
 	audioMotion.volume = elVolume.dataset.value = value;
 	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
+}
+
+/**
+ * Connect or disconnect audio output to the speakers
+ */
+function toggleMute( mute ) {
+	if ( mute !== undefined )
+		elMute.checked = mute;
+	else
+		mute = elMute.checked;
+
+	if ( mute )
+		audioMotion.disconnectOutput();
+	else
+		audioMotion.connectOutput();
 }
 
 /**
@@ -2205,6 +2221,7 @@ function setUIEventListeners() {
 	// Add event listeners to UI config elements
 
 	elSource.addEventListener( 'change', setSource );
+	elMute.addEventListener( 'change', () => toggleMute() );
 
 	elVolume.addEventListener( 'wheel', e => {
 		e.preventDefault();
