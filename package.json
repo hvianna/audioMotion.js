@@ -25,6 +25,7 @@
     "process": "^0.11.10",
     "readline-sync": "^1.4.10",
     "semver": "^7.3.5",
+    "serve-index": "^1.9.1",
     "sortablejs": "1.10.2",
     "terser-webpack-plugin": "^5.1.1",
     "webpack": "^5.36.2",

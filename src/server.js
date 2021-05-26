@@ -4,23 +4,25 @@
  * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
  */
 
-const _VERSION = '20.12';
+const VERSION = '21.6';
 
-const serverSignature = `audioMotion.js server v${_VERSION}`
+const serverSignature = `audioMotion.js server v${VERSION}`;
 
-const fs = require('fs')
-const path = require('path')
-const express = require('express')
-const open = require('open')
-const readlineSync = require('readline-sync')
-const semver = require('semver')
+const fs           = require('fs'),
+	  path         = require('path'),
+	  express      = require('express'),
+	  serveIndex   = require('serve-index'),
+	  open         = require('open'),
+	  readlineSync = require('readline-sync'),
+	  semver       = require('semver');
+
 const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
-var port = 8000
-var host = 'localhost'
-var launchClient = true
-var musicPath = ''
+var port = 8000;
+var host = 'localhost';
+var launchClient = true;
+var musicPath = '';
 
 function showHelp() {
 	console.log( `
@@ -33,7 +35,7 @@ function showHelp() {
 	-s        : start server only (do not launch client)
 	-e        : allow external connections (by default, only localhost)
 
-	` )
+	` );
 }
 
 function getDir( directoryPath, showHidden = false ) {
@@ -112,8 +114,22 @@ catch (err) {
 }
 
 // start Express web server
-const server = express()
-server.use( express.static( path.join( __dirname, '../public' ) ) )
+const server = express(),
+	  pathname = path.join( __dirname, '../public' );
+
+// returns directory index in a simple template compatible with our parseWebIndex() function
+const indexTemplate = ( locals, callback ) => {
+	let htmlString = '<ul>';
+
+	for ( const file of locals.fileList )
+		htmlString += `<li><a href="${ locals.directory }${ file.name}">${ file.name }</a></li>`;
+
+	htmlString += '</ul>';
+
+	callback( false, htmlString );
+}
+
+server.use( express.static( pathname ), serveIndex( pathname, { template: indexTemplate } ) );
 
 server.use( '/music', express.static( musicPath ), ( req, res ) => {
 
