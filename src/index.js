@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const _VERSION = '21.5-beta.4';
+const VERSION = '21.6-beta.0';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -36,6 +36,8 @@ import notie from 'notie';
 import './notie.css';
 
 import './styles.css';
+
+const BG_DIR = 'backgrounds'; // folder name for background images and videos (no slashes!)
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -73,6 +75,7 @@ const elContainer   = $('#bg_container'),
 	  elBackground  = $('#background'),
 	  elBgImageDim  = $('#bg_img_dim'),
 	  elBgImageFit  = $('#bg_img_fit'),
+	  elVideo       = $('#video'),
 	  elRadial      = $('#radial'),
 	  elSpin		= $('#spin'),
 	  elStereo      = $('#stereo'),
@@ -339,15 +342,20 @@ function setProperty( elems, save ) {
 			case elBackground:
 			case elBgImageFit:
 			case elBgImageDim:
-				const bgOption = elBackground.value,
-					  bgFit    = elBgImageFit.value;
+				const bgOption = elBackground.value[0],
+					  bgFit    = elBgImageFit.value,
+					  filename = elBackground.value.slice(1);
 
 				audioMotion.overlay = ( bgOption > 1 );
 				audioMotion.showBgColor = ( bgOption == 0 );
 				elContainer.classList.toggle( 'repeat', bgFit == 2 );
 				elContainer.classList.toggle( 'cover', bgFit == 0 );
 
-				setCurrentCover();
+				elVideo.style.display = bgOption == 7 ? '' : 'none';
+				if ( bgOption == 7 && ! decodeURI( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file
+					elVideo.src = filename;
+
+				setBackgroundImage();
 				break;
 
 			case elBarSpace:
@@ -505,15 +513,23 @@ function setProperty( elems, save ) {
 }
 
 /**
- * Set the current cover image or just update the canvas background
+ * Set the cover image for the current audio element
  */
 function setCurrentCover( url ) {
-	if ( url )
-		coverImage[ currAudio ].src = url;
+	coverImage[ currAudio ].src = url;
+	setBackgroundImage();
+}
 
-	if ( elBackground.value > 1 && coverImage[ currAudio ].src ) {
-		const alpha = 1 - elBgImageDim.value;
-		const imageUrl = coverImage[ currAudio ].src.replace( /'/g, "\\'" ); // escape single quotes
+/**
+ * Set the canvas background image and opacity
+ */
+function setBackgroundImage() {
+	const bgOption = elBackground.value[0],
+		  filename = elBackground.value.slice(1);
+
+	if ( bgOption > 1 && bgOption < 7 ) {
+		const alpha = 1 - elBgImageDim.value,
+			  imageUrl = filename || coverImage[ currAudio ].src.replace( /'/g, "\\'" ) ; // escape single quotes
 		elContainer.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
 	}
 	else
@@ -542,7 +558,7 @@ function clearAudioElement( n = currAudio ) {
 
 	coverImage[ n ] = new Image();
 	if ( n == currAudio )
-		setCurrentCover(); // clear current background image
+		setBackgroundImage(); // clear current background image
 }
 
 /**
@@ -1287,7 +1303,8 @@ function displayCanvasMsg() {
 	const audioEl    = audioElement[ currAudio ],
 		  trackData  = audioEl.dataset,
 		  remaining  = audioEl.duration - audioEl.currentTime,
-		  endTimeout = elEndTimeout.value | 0;
+		  endTimeout = elEndTimeout.value | 0,
+		  bgOption   = elBackground.value[0];
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	if ( remaining < .1 )
@@ -1298,7 +1315,7 @@ function displayCanvasMsg() {
 		setCanvasMsg( 1, remaining, -1 );
 
 	// update background image for pulse and zoom effects
-	if ( elBackground.value > 1 && elBgImageFit.value > 2 ) {
+	if ( bgOption > 1 && bgOption < 7 && elBgImageFit.value > 2 ) {
 		let size;
 
 		if ( elBgImageFit.value == 3 )	// pulse
@@ -1869,7 +1886,8 @@ function keyboardControls( event ) {
 				break;
 			case 'KeyB': 		// background or image fit (shift)
 				cycleElement( isShiftKey ? elBgImageFit : elBackground );
-				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( elBackground.value > 1 ? ` (${getText( elBgImageFit )})` : '' ) );
+				const bgOption = elBackground.value[0];
+				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
 				break;
 			case 'KeyC': 		// radial
 				elRadial.click();
@@ -1961,7 +1979,7 @@ function audioOnPlay() {
 			cycleElement( elGradient );
 	}
 
-	setCurrentCover();
+	setBackgroundImage();
 
 	if ( isSwitchOn( elShowSong ) ) {
 		const timeout = elTrackTimeout.value | 0 || Infinity;
@@ -2031,8 +2049,8 @@ function selectRandomMode( force = isMicSource ) {
 	}
 
 	if ( isEnabled('lumi') ) {
-		// always disable lumi when leds are active and background is set to image
-		elLumiBars.dataset.active = elBackground.value > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
+		// always disable lumi when leds are active and background is set to image or video
+		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
 		props.push( elLumiBars );
 	}
 
@@ -2546,10 +2564,10 @@ function isSwitchOn( el ) {
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
-	consoleLog( `audioMotion.js v${_VERSION} initializing...` );
+	consoleLog( `audioMotion.js v${VERSION} initializing...` );
 	consoleLog( `User agent: ${window.navigator.userAgent}` );
 
-	$('#version').innerText = _VERSION;
+	$('#version').innerText = VERSION;
 
 	// Load preferences from localStorage
 	const isLastSession = loadPreferences();
@@ -2685,7 +2703,29 @@ function isSwitchOn( el ) {
 		[ '1',  'Right'   ]
 	]);
 
-	// set attributes of range elements
+	// Load additional background options from the backgrounds directory
+	const bgDirPromise = fetch( BG_DIR )
+		.then( response => response.text() )
+		.then( content => {
+			const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
+				  videoExtensions = /\.(mp4|webm|mov)$/i;
+
+			let images = [],
+				videos = [];
+
+			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
+				const path = `${BG_DIR}/${file}`,
+					  name = file.slice( 0, file.lastIndexOf('.') );
+				if ( file.match( imageExtensions ) )
+					images.push( [ `6${path}`, `🖼️ ${name}` ] );
+				else if ( file.match( videoExtensions ) )
+					images.push( [ `7${path}`, `🎬 ${name}` ] );
+			}
+
+			populateSelect( elBackground, images.concat( videos ) );
+		});
+
+	// Set attributes of range elements
 	const setRangeAtts = ( element, min, max, step = 1 ) => {
 		element.min  = min;
 		element.max  = max;
@@ -2712,10 +2752,6 @@ function isSwitchOn( el ) {
 	});
 	populateGradients();
 
-	// Load last used settings
-	consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
-	loadPreset( 'last', false, true );
-
 	// Set audio source to built-in player
 	setSource();
 
@@ -2725,8 +2761,8 @@ function isSwitchOn( el ) {
 	// Load saved playlists
 	loadSavedPlaylists();
 
-	// initialize file explorer
-	fileExplorer.create(
+	// Initialize file explorer
+	const fileExplorerPromise = fileExplorer.create(
 		$('#file_explorer'),
 		{
 			dblClick: ( file, event ) => {
@@ -2773,7 +2809,6 @@ function isSwitchOn( el ) {
 			btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
 			btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 		}
-
 	});
 
 	// Add events listeners for keyboard controls
@@ -2785,5 +2820,11 @@ function isSwitchOn( el ) {
 		positions: { alert: 'bottom' }
 	});
 
-	consoleLog( 'Initialization complete!' );
+	// Wait for all async operations to finish before loading the last used settings
+	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
+		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
+		loadPreset( 'last', false, true );
+		consoleLog( 'Initialization complete!' );
+	});
+
 })();

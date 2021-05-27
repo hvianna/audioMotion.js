@@ -112,6 +112,26 @@ function enterDir( target, scrollTop ) {
 }
 
 /**
+ * Parses the list of files off a web server directory index
+ *
+ * @param {string}  content HTML body of a web server directory listing
+ * @returns {array} an array of objects representing each link found in the listing, with its full uri and filename only
+ */
+export function parseWebIndex( content ) {
+
+	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+
+	let listing = [];
+
+	for ( const entry of entries ) {
+		const [ , uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
+		listing.push( { uri, file } );
+	}
+
+	return listing;
+}
+
+/**
  * Parses file and directory names from a standard web server directory listing
  *
  * @param {string}   content HTML body of a web server directory listing
@@ -132,10 +152,7 @@ export function parseWebDirectory( content ) {
 		return arr.find( el => el.match( regexp ) );
 	}
 
-	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
-
-	for ( const entry of entries ) {
-		const [ all, uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
+	for ( const { uri, file } of parseWebIndex( content ) ) {
 		if ( uri.substring( uri.length - 1 ) == '/' ) {
 			if ( ! file.match( /parent directory/i ) ) {
 				if ( file.substring( file.length - 1 ) == '/' )
