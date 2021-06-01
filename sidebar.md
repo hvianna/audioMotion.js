@@ -1,5 +1,6 @@
 * [About](/#%e2%99%aa%e2%99%ab-see-your-music-with-audiomotion-%e2%99%aa%e2%99%ab)
 * [Features](/#features)
+* [For developers](/#for-developers)
 * [Live demo](/#live-demo)
 * [Getting started](/#getting-started)
 * [Screenshots](/#screenshots)

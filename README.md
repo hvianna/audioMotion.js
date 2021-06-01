@@ -3,9 +3,9 @@
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 [![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 
-**audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
+> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
 
-The spectrum analyzer module is also available as a [standalone project](https://github.com/hvianna/audioMotion-analyzer) and a zero-dependency [npm package](https://www.npmjs.com/package/audiomotion-analyzer) you can use in your own JavaScript projects!
+audioMotion is completely free, open source software, created out of my childhood passion for the graphic spectrum analyzers found in hi-fi systems from the '80s.
 
 ## Features
 
@@ -22,12 +22,15 @@ The spectrum analyzer module is also available as a [standalone project](https:/
 * Lightweight custom file server — also works on standard web servers with minimal configuration
 * Client runs on any modern browser (tested on Chrome, Firefox, Opera and Safari)
 
+## For developers
+
+?> Check out [**audioMotion-analyzer**](https://audiomotion.dev) for easy integration of audioMotion's full-featured spectrum analyzer into your own Javascript projects!
+
 ## Live demo
 
-[▶ **TRY THE LIVE DEMO**](https://audiomotion.me/public/)
+[▶ **TRY THE LIVE DEMO**](https://demo.audiomotion.me)
 
-The demo allows you to play audio files from your PC, remote files and streams via URL and use the microphone input.
-The file explorer is not available, since there are no media files hosted on the demo server.
+The demo includes a few songs ([credits here](#music-files-used-in-the-demo-site)) and also allows you to play audio files from your PC, load remote files and streams via URL and use the microphone input.
 
 Also check out our [▶ **YouTube channel**](https://channel.audiomotion.io) for some cool songs visualized with audioMotion!
 
@@ -48,14 +51,16 @@ This will start the server and should also launch the client in your browser.
 The complete command line options are:
 
 ```
+-b <path> : path to backgrounds directory (contents will replace the built-in background images and videos)
+-e        : allow external connections (by default, only localhost)
 -m <path> : path to music directory
+-nobg     : disable background images and videos
 -p <port> : change server listening port (default is 8000)
 -s        : start server only (do not launch client)
--e        : allow external connections (by default, only localhost)
 ```
 
-⚠ **WARNING:**<br>
-Please be aware that the `-e` flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
+!> **WARNING:**<br>
+Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
 
 ## Screenshots
 
@@ -128,6 +133,13 @@ Some of audioMotion's great features are provided by these awesome open-source l
 * Radial brushed metal texture taken from [this pen](https://codepen.io/GreenSock/pen/gnoDc) by GreenSock
 * Volume knob design based on [Dark dial](https://codepen.io/stormwarning/pen/yNGeMm) by Jeff
 
+### Music files used in the demo site
+
+* ["Funky Chunk"](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1500054) by [Kevin MacLeod](https://incompetech.com) - Licensed under [Creative Commons: By Attribution 3.0 License](https://creativecommons.org/licenses/by/3.0/)
+* ["Spell"](https://archive.org/details/Straw_Fields-8753) by [Rolemusic](http://rolemusic.sawsquarenoise.com/) - Licensed under [Creative Commons: By Attribution NonCommercial ShareAlike 3.0 US License](https://creativecommons.org/licenses/by-nc-sa/3.0/us/)
+* ["The Factory"](https://archive.org/details/The_Factory-3613) by [Multifaros](http://multifaros.info.se/) - Licensed under [Creative Commons: By Attribution 3.0 US License](https://creativecommons.org/licenses/by/3.0/us/)
+* ["We Come Together"](https://archive.org/details/ShMusic-DigitalMemories) by [Lukhash](https://lukhash.com) - Licensed under [Creative Commons: By Attribution NonCommercial NoDerivatives 3.0 License](https://creativecommons.org/licenses/by-nc-nd/3.0/)
+
 ### References
 
 These online references were invaluable for the development and improvement of audioMotion:
@@ -143,5 +155,5 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2021 Henrique Avila Vianna<br>
+audioMotion.js copyright (c) 2018-2021 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
