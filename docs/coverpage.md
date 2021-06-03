@@ -7,10 +7,10 @@
 - Several modes, color gradients and optional effects
 - Fullscreen high-resolution graphics @60fps
 
-[Live demo](/public/)
-[About](#%e2%99%aa%e2%99%ab-see-your-music-with-audiomotion-%e2%99%aa%e2%99%ab)
-[Get Started](#getting-started)
+[Live demo](https://demo.audiomotion.me)
+[About](/#about)
+[Get Started](/#getting-started)
 
 <!-- background image -->
 
-![](docs/img/screenshot5.png)
+![](img/screenshot5.png)

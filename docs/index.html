@@ -89,11 +89,24 @@
 	<script>
 		window.$docsify = {
 			name: 'audioMotion',
-			repo: 'https://github.com/hvianna/audioMotion.js',
+			repo: 'hvianna/audioMotion.js',
 			auto2top: true,
-			noCompileLinks: ['/public/.*'],
 			coverpage: 'coverpage.md',
-			loadSidebar: 'sidebar.md'
+			loadSidebar: 'sidebar.md',
+			subMaxLevel: 2,
+			plugins: [
+				function( hook ) {
+					const footer = [
+						'<hr>',
+						'<footer>',
+						'<p>audioMotion.js copyright (c) 2018-2021 <a href="https://henriquevianna.com" target="_blank" rel="noopener">Henrique Avila Vianna</a>, licensed under the <a href="https://www.gnu.org/licenses/agpl.html" target="_blank" rel="noopener">GNU AGPL 3.0 or later</a>.<br>',
+						'This website is powered by <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a>, <a href="https://docsify.js.org/" target="_blank" rel="noopener">docsify</a> and <a href="https://jhildenbiddle.github.io/docsify-themeable" target="_blank" rel="noopener">docsify-themeable</a>.</p>',
+						'</footer>'
+					].join('');
+
+					hook.afterEach( html => html + ( html.match(/License/) ? '' : footer ) );
+				}
+			]
 		}
 	</script>
 	<script src="//unpkg.com/docsify/lib/docsify.min.js"></script>

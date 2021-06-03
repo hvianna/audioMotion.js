@@ -1,11 +1,12 @@
-# ♪♫ **See** your music with **audioMotion**! ♪♫
+## About
+
+![audioMotion-header](img/audioMotion-header.png)
+
+> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you to ♪♫ **see your music!** ♪♫<br>
+> It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 [![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
-
-> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player written in JavaScript.
-
-audioMotion is completely free, open source software, created out of my childhood passion for the graphic spectrum analyzers found in hi-fi systems from the '80s.
 
 ## Features
 
@@ -28,9 +29,9 @@ audioMotion is completely free, open source software, created out of my childhoo
 
 ## Live demo
 
-[▶ **TRY THE LIVE DEMO**](https://demo.audiomotion.me)
+?> [**TRY THE LIVE DEMO**](https://demo.audiomotion.me)
 
-The demo includes a few songs ([credits here](#music-files-used-in-the-demo-site)) and also allows you to play audio files from your PC, load remote files and streams via URL and use the microphone input.
+The demo site includes a few songs ([credits here](#music-files-used-in-the-demo-site)) and also allows you to play audio files from your PC, load remote files and streams via URL and use the microphone input.
 
 Also check out our [▶ **YouTube channel**](https://channel.audiomotion.io) for some cool songs visualized with audioMotion!
 
@@ -64,60 +65,65 @@ Please be aware that using the `-e` flag will expose the contents of the mounted
 
 ## Screenshots
 
-![screenshot1](docs/img/screenshot1.png)
-*[Discrete frequencies](docs/README.md#mode) mode. User interface: [main function buttons](docs/README.md#main-function-buttons), [audio source](docs/README.md#audio-source) selector, [player controls](docs/README.md#player-controls), [volume control](docs/README.md#volume-control) and [file explorer](docs/README.md#file-explorer-and-play-queue).*
+![screenshot1](img/screenshot1.png)
+*[Discrete frequencies](user-interface.md#mode) mode. User interface: [main function buttons](user-interface.md#main-function-buttons), [audio source](user-interface.md#audio-source) selector, [player controls](user-interface.md#player-controls), [volume control](user-interface.md#volume-control) and [file explorer](user-interface.md#file-explorer-and-play-queue).*
 
 ---
 
-![screenshot2](docs/img/screenshot2.png)
-*1/4th-octave bands with LED effect, extra wide [bar spacing](docs/README.md#bar-spacing) and on-screen song information. User interface shows the [settings panel](docs/README.md#settings-panel) open.*
+![screenshot2](img/screenshot2.png)
+*1/4th-octave bands with LED effect, extra wide [bar spacing](user-interface.md#bar-spacing) and on-screen song information. User interface shows the [settings panel](user-interface.md#settings-panel) open.*
 
 ---
 
-![screenshot3](docs/img/screenshot3.png)
-*Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](docs/README.md#reflex) effect and complete on-screen information.*
+![screenshot3](img/screenshot3.png)
+*Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](user-interface.md#reflex) effect and complete on-screen information.*
 
 ---
 
-![screenshot6](docs/img/screenshot6.png)
-*Fullscreen view: [Stereo](docs/README.md#switches) Line graph, frequency and level scales on, "Rainbow" gradient.*
+![screenshot6](img/screenshot6.png)
+*Fullscreen view: [Stereo](user-interface.md#switches) Line graph, frequency and level scales on, "Rainbow" gradient.*
 
 ---
 
-![screenshot5](docs/img/screenshot5.png)
-*Fullscreen view: 1/8th-octave bands, [LUMI effect](docs/README.md#effects) on, "Tie Dye" gradient.*
+![screenshot5](img/screenshot5.png)
+*Fullscreen view: 1/8th-octave bands, [LUMI effect](user-interface.md#effects) on, "Tie Dye" gradient.*
 
 ---
 
-![screenshot7](docs/img/screenshot7.png)
-*Fullscreen view: 1/6th-octave bands, [Radial](docs/README.md#radial) analyzer, frequency scale on, "Apple ][" gradient.*
+![screenshot7](img/screenshot7.png)
+*Fullscreen view: 1/6th-octave bands, [Radial](user-interface.md#radial) analyzer, frequency scale on, "Apple ][" gradient.*
 
 ## Documentation
 
-For complete documentation, see the [docs](docs/README.md) folder.
+* [User Interface](user-interface.md)
+* [Server modes](server.md)
+* [Building audioMotion](building.md)
+* [Legacy features](legacy.md)
+
 
 ## Credits and acknowledgments
 
 **audioMotion** was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike.
 
-The documentation website is powered by [GitHub Pages](https://pages.github.com/), [docsify](https://docsify.js.org/) and [docsify-themeable](https://jhildenbiddle.github.io/docsify-themeable).
-
 ### JavaScript libraries
 
 Some of audioMotion's great features are provided by these awesome open-source libraries:
 
+* [buffer](https://www.npmjs.com/package/buffer) - Node.js Buffer API, for the browser
 * [express](https://www.npmjs.com/package/express) - fast, unopinionated, minimalist web framework for node
 * [music-metadata-browser](https://www.npmjs.com/package/music-metadata-browser) - stream and file based music metadata parser for the browser
 * [notie](https://www.npmjs.com/package/notie) - clean and simple notification, input, and selection suite for javascript, with no dependencies
 * [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
 * [pkg](https://www.npmjs.com/package/pkg) - single-command Node.js binary compiler
+* [process](https://www.npmjs.com/package/process) - process information for node.js and browsers
 * [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively requesting user input via console
 * [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101) - polyfill for non-standard scrollIntoViewIfNeeded() method
+* [serve-index](https://www.npmjs.com/package/serve-index) - serve directory listings
 * [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser
+  * [css-loader](https://www.npmjs.com/package/css-loader) - CSS loader module for webpack
+  * [css-minimizer-webpack-plugin](https://www.npmjs.com/package/css-minimizer-webpack-plugin) - cssnano plugin for Webpack
   * [mini-css-extract-plugin](https://www.npmjs.com/package/mini-css-extract-plugin) - extracts CSS into separate files
-  * [optimize-css-assets-webpack-plugin](https://www.npmjs.com/package/optimize-css-assets-webpack-plugin) - a webpack plugin to optimize / minimize CSS assets
-  * [terser-webpack-plugin](https://www.npmjs.com/package/terser-webpack-plugin) - JavaScript compressor
 
 ### Graphic resources
 
@@ -157,3 +163,7 @@ These online references were invaluable for the development and improvement of a
 
 audioMotion.js copyright (c) 2018-2021 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
+
+---
+
+This website is powered by [GitHub Pages](https://pages.github.com/), [docsify](https://docsify.js.org/) and [docsify-themeable](https://jhildenbiddle.github.io/docsify-themeable).
