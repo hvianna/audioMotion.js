@@ -41,10 +41,9 @@ audioMotion -e -m /path/to/music
 The complete command line options are:
 
 ```
--b <path> : path to backgrounds directory (contents will replace the built-in background images and videos)
+-b <path> : path to folder with background images and videos
 -e        : allow external connections (by default, only localhost)
--m <path> : path to music directory
--nobg     : disable background images and videos
+-m <path> : path to music folder
 -p <port> : change server listening port (default is 8000)
 -s        : start server only (do not launch client)
 ```

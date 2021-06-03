@@ -38,10 +38,9 @@ function showHelp() {
 
 	audioMotion -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
 
-	-b <path> : path to backgrounds directory (will replace built-in background images and videos)
+	-b <path> : path to folder with background images and videos
 	-e        : allow external connections (by default, only localhost)
-	-m <path> : path to music directory
-	-nobg     : disable background images and videos
+	-m <path> : path to music folder
 	-p <port> : change server listening port (default: ${port})
 	-s        : start server only (do not launch client)
 
@@ -107,8 +106,6 @@ process.argv.forEach( ( arg, index ) => {
 		launchClient = false;
 	else if ( arg == '-e' )
 		host = '';
-	else if ( arg == '-nobg' )
-		backgroundsPath = false;
 });
 
 if ( ! musicPath ) {
@@ -147,14 +144,9 @@ const indexTemplate = ( locals, callback ) => {
 }
 
 // set custom route for backgrounds folder
-if ( backgroundsPath != '' ) {
+if ( backgroundsPath ) {
 	server.use( BG_DIR, express.static( backgroundsPath ), serveIndex( backgroundsPath, { template: indexTemplate } ) );
 	console.log( `\n\t${BG_DIR} folder mounted on ${ backgroundsPath }` );
-}
-// disable backgrounds folder (returns an empty listing)
-else if ( backgroundsPath === false ) {
-	server.use( BG_DIR, express.static( pathPublic ), serveIndex( pathPublic, { template: ( locals, callback ) => callback( false, '' ) } ) );
-	console.log( `\n\t${BG_DIR} folder disabled` );
 }
 
 // set route for /music folder
