@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.6-beta.0';
+const VERSION = '21.7-beta.0';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -38,6 +38,8 @@ import './notie.css';
 import './styles.css';
 
 const BG_DIR = 'backgrounds'; // folder name for background images and videos (no slashes!)
+
+const KNOB_DELAY = 50; // for knob controls sensitivity (especially for mac touchpad/mouse)
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -102,8 +104,8 @@ let audioElement, micStream, isMicSource, wasMuted;
 // variables for on-screen info display
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
-// auxiliary variables for track skip and fast search
-let skipping = false, isFastSearch = false, fastSearchTimeout;
+// auxiliary variables for track skip, fast search and volume control
+let skipping = false, isFastSearch = false, volumeUpdating = false, fastSearchTimeout;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -1580,7 +1582,8 @@ function changeVolume( incr ) {
  * Set volume
  */
 function setVolume( value ) {
-	audioMotion.volume = elVolume.dataset.value = value;
+	elVolume.dataset.value = value;
+	audioMotion.volume = ( Math.log10( 1 - value * .9 ) ** 2 ) ** .6; // creates a more natural volume curve
 	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
 }
 
@@ -2243,7 +2246,11 @@ function setUIEventListeners() {
 
 	elVolume.addEventListener( 'wheel', e => {
 		e.preventDefault();
+		if ( volumeUpdating )
+			return;
+		volumeUpdating = true;
 		changeVolume( Math.sign( e.deltaY || 0 ) );
+		setTimeout( () => volumeUpdating = false, KNOB_DELAY );
 	});
 
 	[ elMode,
