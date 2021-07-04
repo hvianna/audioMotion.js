@@ -2723,7 +2723,8 @@ function isSwitchOn( el ) {
 			}
 
 			populateSelect( elBackground, images.concat( videos ) );
-		});
+		})
+		.catch( e => {} ); // fail silently
 
 	// Set attributes of range elements
 	const setRangeAtts = ( element, min, max, step = 1 ) => {
