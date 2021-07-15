@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.7-beta.1';
+const VERSION = '21.7-beta.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -321,6 +321,43 @@ const infoDisplayDefaults = {
 	end   : 0,   // display time (secs) at the end of the song
 	covers: true // show album covers in song information
 }
+
+/**
+ * Helper functions
+ */
+
+// precision fix for floating point numbers
+const fixFloating = value => Math.round( value * 100 ) / 100;
+
+// creates a more natural curve for volume control, for value between 0 and 1
+const exponentialVolume = value => ( Math.log10( 1 - value * .9 ) ** 2 ) ** .6;
+
+// return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
+const getIndex = node => {
+	if ( ! node )
+		return;
+	let i = 0;
+	while ( node = node.previousElementSibling )
+		i++;
+	return i;
+}
+
+// format time in seconds to hh:mm:ss string
+const formatHHMMSS = time => {
+	let str = '',
+		lead = '';
+
+	if ( time >= 3600 ) {
+		str = ( time / 3600 | 0 ) + ':';
+		time %= 3600;
+		lead = '0';
+	}
+
+	str += ( lead + ( time / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( time % 60 | 0 ) ).slice(-2);
+
+	return str;
+}
+
 
 /**
  * Display the canvas in full-screen mode
@@ -912,14 +949,14 @@ function storePlaylist( name, update = true ) {
 
 			playlists[ safename ] = name;
 
-			localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
+			saveToStorage( 'playlists', playlists );
 			loadSavedPlaylists( safename );
 		}
 
 		let songs = [];
 		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
-		localStorage.setItem( 'pl_' + safename, JSON.stringify( songs ) );
+		saveToStorage( 'pl_' + safename, songs );
 		notie.alert({ text: `Playlist saved!` });
 	}
 }
@@ -939,7 +976,7 @@ function deletePlaylist( index ) {
 				if ( playlists ) {
 					playlists = JSON.parse( playlists );
 					delete playlists[ keyName ];
-					localStorage.setItem( 'playlists', JSON.stringify( playlists ) );
+					saveToStorage( 'playlists', playlists );
 				}
 
 				localStorage.removeItem( `pl_${keyName}` );
@@ -986,19 +1023,6 @@ function shufflePlayQueue() {
 	}
 
 	playSong(0);
-}
-
-/**
- * Return the index of an element inside its parent
- * based on https://stackoverflow.com/a/13657635/2370385
- */
-function getIndex( node ) {
-	if ( ! node )
-		return;
-	let i = 0;
-	while ( node = node.previousElementSibling )
-		i++;
-	return i;
 }
 
 /**
@@ -1268,24 +1292,6 @@ function outlineText( text, x, y, maxWidth ) {
 		canvasCtx.fillText( text, x, y, maxWidth );
 		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
 	}
-}
-
-/**
- * Format time in seconds to hh:mm:ss
- */
-function formatHHMMSS( time ) {
-	let str = '',
-		lead = '';
-
-	if ( time >= 3600 ) {
-		str = Math.floor( time / 3600 ) + ':';
-		time %= 3600;
-		lead = '0';
-	}
-
-	str += ( lead + Math.floor( time / 60 ) ).slice(-2) + ':' + ( '0' + Math.floor( time % 60 ) ).slice(-2);
-
-	return str;
 }
 
 /**
@@ -1564,13 +1570,6 @@ function setSource() {
 }
 
 /**
- * Precision fix for floating point numbers
- */
-function fixFloating( value ) {
-	return Math.round( value * 100 ) / 100;
-}
-
-/**
  * Increase or decrease balance
  */
 function changeBalance( incr ) {
@@ -1590,7 +1589,7 @@ function changeBalance( incr ) {
  */
 function setBalance( value ) {
 	elBalance.dataset.value = value;
-	panNode.pan.value = ( Math.log10( 1 - Math.abs( value ) * .9 ) ** 2 ) ** .6 * Math.sign( value );
+	panNode.pan.value = exponentialVolume( Math.abs( value ) ) * Math.sign( value );
 	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
 }
 
@@ -1614,7 +1613,7 @@ function changeVolume( incr ) {
  */
 function setVolume( value ) {
 	elVolume.dataset.value = value;
-	audioMotion.volume = ( Math.log10( 1 - value * .9 ) ** 2 ) ** .6; // creates a more natural volume curve
+	audioMotion.volume = exponentialVolume( value );
 	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
 }
 
@@ -1795,7 +1794,7 @@ function saveConfig( config ) {
 		splitGrad   : elSplitGrad.dataset.active
 	};
 
-	localStorage.setItem( config, JSON.stringify( settings ) );
+	saveToStorage( config, settings );
 }
 
 /**
@@ -2485,17 +2484,11 @@ function loadPreferences() {
 	const lastConfig    = localStorage.getItem( 'last-config' ),
 		  isLastSession = ( lastConfig !== null );
 
-	if ( isLastSession )
-		presets['last'] = JSON.parse( lastConfig );
-	else // if no data found from last session, use the defaults
-		presets['last'] = JSON.parse( JSON.stringify( presets['default'] ) );
+	// if no data found from last session, use the defaults (in the demo site use the demo preset)
+	presets['last'] = JSON.parse( lastConfig ) || { ...presets[ location.host.startsWith('demo.') ? 'demo' : 'default' ] };
 
-	// Load custom preset
-	const customPreset = localStorage.getItem( 'custom-preset' );
-	if ( customPreset !== null )
-		presets['custom'] = JSON.parse( customPreset );
-	else
-		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
+	// Load custom preset; if none found in storage, use the last settings
+	presets['custom'] = JSON.parse( localStorage.getItem( 'custom-preset' ) ) || { ...presets['last'] };
 
 	// Load disabled modes preference
 	const disabledModes = localStorage.getItem( 'disabled-modes' );
@@ -2546,25 +2539,29 @@ function loadPreferences() {
 }
 
 /**
+ * Save an object to localStorage in JSON format
+ *
+ * @param {string} item key
+ * @param {object} data object
+ */
+function saveToStorage( key, data ) {
+	localStorage.setItem( key, JSON.stringify( data ) );
+}
+
+/**
  * Save Config Panel preferences to localStorage
  *
  * @param [pref] {string} preference to save; if undefined save all preferences (default)
  */
 function savePreferences( pref ) {
-	if ( ! pref || pref == 'mode' ) {
-		const disabledModes = modeOptions.filter( item => item.disabled ).map( item => item.value );
-		localStorage.setItem( 'disabled-modes', JSON.stringify( disabledModes ) );
-	}
+	if ( ! pref || pref == 'mode' )
+		saveToStorage( 'disabled-modes', modeOptions.filter( item => item.disabled ).map( item => item.value ) );
 
-	if ( ! pref || pref == 'grad' ) {
-		const disabledGradients = Object.keys( gradients ).filter( key => gradients[ key ].disabled );
-		localStorage.setItem( 'disabled-gradients', JSON.stringify( disabledGradients ) );
-	}
+	if ( ! pref || pref == 'grad' )
+		saveToStorage( 'disabled-gradients', Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
 
-	if ( ! pref || pref == 'prop' ) {
-		const disabledProperties = randomProperties.filter( item => item.disabled ).map( item => item.value );
-		localStorage.setItem( 'disabled-properties', JSON.stringify( disabledProperties ) );
-	}
+	if ( ! pref || pref == 'prop' )
+		saveToStorage( 'disabled-properties', randomProperties.filter( item => item.disabled ).map( item => item.value ) );
 
 	if ( ! pref || pref == 'sens' ) {
 		let sensitivityPresets = [];
@@ -2574,7 +2571,7 @@ function savePreferences( pref ) {
 				max: $(`.max-db[data-preset="${i}"]`).value
 			});
 		}
-		localStorage.setItem( 'sensitivity-presets', JSON.stringify( sensitivityPresets ) );
+		saveToStorage( 'sensitivity-presets', sensitivityPresets );
 	}
 
 	if ( ! pref || pref == 'osd' ) {
@@ -2584,7 +2581,7 @@ function savePreferences( pref ) {
 			end   : elEndTimeout.value,
 			covers: elShowCover.checked
 		}
-		localStorage.setItem( 'display-options', JSON.stringify( displayOptions ) );
+		saveToStorage( 'display-options', displayOptions );
 	}
 }
 
