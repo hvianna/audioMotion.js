@@ -985,9 +985,14 @@ input.slider:not(:checked) + .slider .slider-on {
 		0 0 0 1px #666;
 	cursor: url(img/icons/mousescroll.png) 16 16, ns-resize;
 	display: inline-block;
-	height: 60px;
-	margin: -10px 20px 0 10px;
+	height: 35px;
 	position: relative;
+	user-select: none;
+	width: 35px;
+}
+.knob-vol {
+	height: 60px;
+	margin: -10px 20px 0 70px;
 	width: 60px;
 }
 
@@ -1007,17 +1012,29 @@ input.slider:not(:checked) + .slider .slider-on {
 	content: 'MIN';
 	left: -1.5em;
 }
+.knob-bal::after {
+	content: 'R';
+	right: -.5em;
+}
+.knob-bal::before {
+	content: 'L';
+	left: -.5em;
+}
 
 .knob[data-value="1"]::after,
-.knob[data-value="0"]::before {
+.knob-vol[data-value="0"]::before,
+.knob-bal[data-value="-1"]::before {
 	color: var(--accent-color);
 	text-shadow: 0 0 5px;
 }
 
 .knob label {
-	left: -100%;
 	position: absolute;
-	top: 20px;
+	top: -20px;
+}
+.knob-vol label {
+	left: -65%;
+	top: -5px;
 }
 
 .knob .marker {

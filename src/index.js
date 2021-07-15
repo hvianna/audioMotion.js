@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.7-beta.0';
+const VERSION = '21.7-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -83,6 +83,7 @@ const elContainer   = $('#bg_container'),
 	  elStereo      = $('#stereo'),
 	  elSplitGrad   = $('#split_grad'),
 	  elVolume      = $('#volume'),
+	  elBalance     = $('#balance'),
 	  elInfoTimeout = $('#info_timeout'),
 	  elTrackTimeout= $('#track_timeout'),
 	  elEndTimeout  = $('#end_timeout'),
@@ -92,8 +93,8 @@ const elContainer   = $('#bg_container'),
 	  elMirror      = $('#mirror'),
 	  canvasCtx     = elOSD.getContext('2d');
 
-// AudioMotionAnalyzer object
-let audioMotion;
+// AudioMotionAnalyzer object, audio context and pan node
+let audioMotion, audioCtx, panNode;
 
 // playlist, index to the current song, indexes to current and next audio elements
 let playlist, playlistPos, currAudio, nextAudio;
@@ -105,7 +106,7 @@ let audioElement, micStream, isMicSource, wasMuted;
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
 // auxiliary variables for track skip, fast search and volume control
-let skipping = false, isFastSearch = false, volumeUpdating = false, fastSearchTimeout;
+let skipping = false, isFastSearch = false, volumeUpdating = false, balanceUpdating = false, fastSearchTimeout;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -379,7 +380,7 @@ function setProperty( elems, save ) {
 
 			case elRangeMin:
 			case elRangeMax:
-				while ( Number( elRangeMax.value ) <= Number( elRangeMin.value ) )
+				while ( +elRangeMax.value <= +elRangeMin.value )
 					elRangeMax.selectedIndex++;
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
@@ -1462,8 +1463,7 @@ function showCanvasInfo( reason, instance ) {
 
 	switch ( reason ) {
 		case 'create':
-			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} pixels` );
-			consoleLog( `Display pixel ratio: ${window.devicePixelRatio}` );
+			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
 			msg = 'Canvas created';
 			break;
 		case 'lores':
@@ -1530,7 +1530,7 @@ function setSource() {
 			if ( navigator.mediaDevices ) {
 				navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
 				.then( stream => {
-					micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
+					micStream = audioCtx.createMediaStreamSource( stream );
 					setSource(); // recursive call, micStream should now be set
 				})
 				.catch( err => {
@@ -1564,10 +1564,41 @@ function setSource() {
 }
 
 /**
+ * Precision fix for floating point numbers
+ */
+function fixFloating( value ) {
+	return Math.round( value * 100 ) / 100;
+}
+
+/**
+ * Increase or decrease balance
+ */
+function changeBalance( incr ) {
+	let newVal = incr ? fixFloating( ( +elBalance.dataset.value || 0 ) + incr * .1 ) : 0;
+
+	if ( newVal < -1 )
+		newVal = -1;
+	else if ( newVal > 1 )
+		newVal = 1;
+
+	setBalance( newVal );
+	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
+}
+
+/**
+ * Set balance
+ */
+function setBalance( value ) {
+	elBalance.dataset.value = value;
+	panNode.pan.value = ( Math.log10( 1 - Math.abs( value ) * .9 ) ** 2 ) ** .6 * Math.sign( value );
+	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
+}
+
+/**
  * Increase or decrease volume
  */
 function changeVolume( incr ) {
-	let newVal = Number( elVolume.dataset.value || 0 ) + incr * .05;
+	let newVal = fixFloating( ( +elVolume.dataset.value || 0 ) + incr * .05 );
 
 	if ( newVal < 0 )
 		newVal = 0;
@@ -1575,7 +1606,7 @@ function changeVolume( incr ) {
 		newVal = 1;
 
 	setVolume( newVal );
-	setCanvasMsg( `Volume: ${ Math.round( newVal * 20 ) }` );
+	setCanvasMsg( `Volume: ${ newVal * 20 }` );
 }
 
 /**
@@ -1791,6 +1822,8 @@ function keyboardControls( event ) {
 	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
 		return;
 
+	const isShiftKey = event.shiftKey;
+
 	if ( event.type == 'keydown' ) {
 		switch ( event.code ) {
 			case 'ArrowUp': 	// volume up
@@ -1800,7 +1833,10 @@ function keyboardControls( event ) {
 				changeVolume(-1);
 				break;
 			case 'ArrowLeft': 	// rewind
-				if ( isFastSearch ) {
+				if ( isShiftKey ) {
+					changeBalance(-1);
+				}
+				else if ( isFastSearch ) {
 					setCanvasMsg( 'Rewind', 1 );
 					fastSearch(-1);
 				}
@@ -1808,7 +1844,10 @@ function keyboardControls( event ) {
 					scheduleFastSearch('k', -1);
 				break;
 			case 'ArrowRight': 	// fast forward
-				if ( isFastSearch ) {
+				if ( isShiftKey ) {
+					changeBalance(1);
+				}
+				else if ( isFastSearch ) {
 					setCanvasMsg( 'Fast forward', 1 );
 					fastSearch();
 				}
@@ -1822,8 +1861,6 @@ function keyboardControls( event ) {
 	}
 	else {
 		// the keys below are handled on 'keyup' to avoid key repetition
-		const isShiftKey = event.shiftKey;
-
 		switch ( event.code ) {
 			case 'Delete': 		// delete selected songs from the playlist
 			case 'Backspace':	// for Mac
@@ -1852,7 +1889,7 @@ function keyboardControls( event ) {
 				break;
 			case 'ArrowLeft': 	// previous song
 			case 'KeyJ':
-				if ( ! finishFastSearch() ) {
+				if ( ! finishFastSearch() && ! isShiftKey ) {
 					setCanvasMsg( 'Previous track', 1 );
 					skipTrack(true);
 				}
@@ -1863,7 +1900,7 @@ function keyboardControls( event ) {
 				break;
 			case 'ArrowRight': 	// next song
 			case 'KeyK':
-				if ( ! finishFastSearch() ) {
+				if ( ! finishFastSearch() && ! isShiftKey ) {
 					setCanvasMsg( 'Next track', 1 );
 					skipTrack();
 				}
@@ -2253,6 +2290,19 @@ function setUIEventListeners() {
 		setTimeout( () => volumeUpdating = false, KNOB_DELAY );
 	});
 
+	elBalance.addEventListener( 'wheel', e => {
+		e.preventDefault();
+		if ( balanceUpdating )
+			return;
+		balanceUpdating = true;
+		changeBalance( Math.sign( e.deltaY || 0 ) );
+		setTimeout( () => balanceUpdating = false, KNOB_DELAY );
+	});
+
+	elBalance.addEventListener( 'dblclick', () => {
+		changeBalance(0);
+	});
+
 	[ elMode,
 	  elRandomMode,
 	  elFFTsize,
@@ -2618,7 +2668,9 @@ function isSwitchOn( el ) {
 		onCanvasResize: showCanvasInfo
 	});
 
-	consoleLog( `AudioContext sample rate is ${audioMotion.audioCtx.sampleRate}Hz` );
+	audioCtx = audioMotion.audioCtx;
+
+	panNode = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createGain(); // no support for StereoPannerNode on Safari < 14.1
 
 	// Initialize and connect audio elements
 
@@ -2633,8 +2685,10 @@ function isSwitchOn( el ) {
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-		audioMotion.connectInput( audioElement[ i ] );
+		audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
 	}
+
+	audioMotion.connectInput( panNode );
 
 	// Setup configuration panel
 	doConfigPanel();
@@ -2763,8 +2817,9 @@ function isSwitchOn( el ) {
 	// Set audio source to built-in player
 	setSource();
 
-	// Initialize volume button
+	// Initialize volume and balance
 	setVolume(1);
+	setBalance(0);
 
 	// Load saved playlists
 	loadSavedPlaylists();
@@ -2832,6 +2887,7 @@ function isSwitchOn( el ) {
 	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
+		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 	});
 
