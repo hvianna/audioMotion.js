@@ -276,6 +276,13 @@ table {
 	width: 100%;
 }
 
+.config-panel,
+.file-panel,
+.player-area,
+.settings {
+	user-select: none;
+}
+
 .config-panel {
 	background: #f5f5f5 !important;
 	font-size: 12px;
@@ -987,7 +994,6 @@ input.slider:not(:checked) + .slider .slider-on {
 	display: inline-block;
 	height: 35px;
 	position: relative;
-	user-select: none;
 	width: 35px;
 }
 .knob-vol {
