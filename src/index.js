@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.7-beta.2';
+const VERSION = '21.7-beta.3';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -100,7 +100,7 @@ let audioMotion, audioCtx, panNode;
 let playlist, playlistPos, currAudio, nextAudio;
 
 // audio sources
-let audioElement, micStream, isMicSource, wasMuted;
+let audioElement = [], micStream, isMicSource, wasMuted;
 
 // variables for on-screen info display
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
@@ -154,7 +154,9 @@ const presets = {
 		stereo      : 0,
 		splitGrad   : 0,
 		fsHeight    : 100,
-		mirror      : 0
+		mirror      : 0,
+		volume      : 1,
+		balance     : 0
 	},
 
 	fullres: {
@@ -357,6 +359,15 @@ const formatHHMMSS = time => {
 
 	return str;
 }
+
+// returns the text of the selected option in a `select` HTML element
+const getText = el => el[ el.selectedIndex ].text;
+
+// returns a string with the current status of an UI switch
+const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
+
+// returns a boolean with the current status of an UI switch
+const isSwitchOn = el => el.dataset.active == '1';
 
 
 /**
@@ -1582,6 +1593,7 @@ function changeBalance( incr ) {
 
 	setBalance( newVal );
 	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
+	updateLastConfig();
 }
 
 /**
@@ -1606,6 +1618,7 @@ function changeVolume( incr ) {
 
 	setVolume( newVal );
 	setCanvasMsg( `Volume: ${ newVal * 20 }` );
+	updateLastConfig();
 }
 
 /**
@@ -1674,44 +1687,45 @@ function loadPreset( name, alert, init ) {
 	const thisPreset = presets[ name ],
 		  defaults   = presets['default'];
 
-	if ( thisPreset.hasOwnProperty( 'randomMode' ) ) // convert legacy boolean value to integer (version =< 19.12)
+	if ( thisPreset.randomMode !== undefined ) // convert legacy boolean value to integer (version =< 19.12)
 		thisPreset.randomMode |= 0;
 
-	if ( thisPreset.hasOwnProperty( 'blackBg' ) ) // convert legacy blackBg property (version =< 20.4)
+	if ( thisPreset.blackBg !== undefined ) // convert legacy blackBg property (version =< 20.4)
 		thisPreset.background = thisPreset.blackBg | 0;
 
-	if ( thisPreset.hasOwnProperty( 'showScale' ) ) { // convert legacy showScale property (version =< 20.9)
+	if ( thisPreset.showScale !== undefined ) { // convert legacy showScale property (version =< 20.9)
 		thisPreset.showScaleX = thisPreset.showScale & 1;
 		thisPreset.showScaleY = thisPreset.showScale >> 1;
 	}
 
-	if ( thisPreset.hasOwnProperty( 'reflex' ) && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
+	if ( thisPreset.reflex !== undefined && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
 		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
 
-	if ( thisPreset.hasOwnProperty( 'bgImageFit') && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
+	if ( thisPreset.bgImageFit !== undefined && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
 		thisPreset.bgImageFit = ['adjust','center','repeat','pulse','zoom-in','zoom-out'].indexOf( thisPreset.bgImageFit );
 
 	$$('[data-prop]').forEach( el => {
-		if ( el.classList.contains('switch') ) {
-			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
-				el.dataset.active = thisPreset[ el.dataset.prop ] | 0;
-			else if ( init )
-				el.dataset.active = defaults[ el.dataset.prop ];
-		}
-		else {
-			if ( thisPreset.hasOwnProperty( el.dataset.prop ) )
-				el.value = thisPreset[ el.dataset.prop ];
-			else if ( init )
-				el.value = defaults[ el.dataset.prop ];
+		const prop = el.dataset.prop,
+			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
-			updateRangeValue( el );
+		if ( val !== undefined ) {
+			if ( el.classList.contains('switch') )
+				el.dataset.active = val | 0;
+			else if ( el == elVolume )
+				setVolume( val );
+			else if ( el == elBalance )
+				setBalance( val );
+			else {
+				el.value = val;
+				updateRangeValue( el );
+			}
 		}
 	});
 
-	if ( thisPreset.hasOwnProperty( 'highSens' ) ) // legacy option (version =< 19.5)
+	if ( thisPreset.highSens !== undefined ) // legacy option (version =< 19.5)
 		elSensitivity.value = thisPreset.highSens ? 2 : 1;
 
-	if ( thisPreset.hasOwnProperty( 'minDb' ) && thisPreset.hasOwnProperty( 'maxDb' ) ) { // legacy options (version =< 19.12)
+	if ( thisPreset.minDb !== undefined && thisPreset.maxDb !== undefined ) { // legacy options (version =< 19.12)
 		$('.min-db[data-preset="1"]').value = thisPreset.minDb;
 		$('.max-db[data-preset="1"]').value = thisPreset.maxDb;
 		savePreferences('sens');
@@ -1791,7 +1805,9 @@ function saveConfig( config ) {
 		showFPS     : elFPS.dataset.active,
 		radial      : elRadial.dataset.active,
 		stereo      : elStereo.dataset.active,
-		splitGrad   : elSplitGrad.dataset.active
+		splitGrad   : elSplitGrad.dataset.active,
+		volume      : elVolume.dataset.value,
+		balance     : elBalance.dataset.value
 	};
 
 	saveToStorage( config, settings );
@@ -2595,20 +2611,6 @@ function setInfoOptions( options ) {
 	elShowCover.checked  = options.covers;
 }
 
-/**
- * Helper functions
- */
-function getText( el ) {
-	return el[ el.selectedIndex ].text;
-}
-
-function onOff( el ) {
-	return isSwitchOn( el ) ? 'ON' : 'OFF';
-}
-
-function isSwitchOn( el ) {
-	return el.dataset.active == '1';
-}
 
 /**
  * Initialization function
@@ -2667,16 +2669,16 @@ function isSwitchOn( el ) {
 
 	audioCtx = audioMotion.audioCtx;
 
-	panNode = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createGain(); // no support for StereoPannerNode on Safari < 14.1
+	// create panNode for balance control - NOTE: no support on Safari < 14.1
+	panNode = audioCtx.createStereoPanner();
 
 	// Initialize and connect audio elements
-
-	audioElement = [ $('#player0'),	$('#player1') ];
 
 	currAudio = 0;
 	nextAudio = 1;
 
 	for ( const i of [0,1] ) {
+		audioElement[ i ] = $( `#player${i}` );
 		clearAudioElement( i );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
@@ -2813,10 +2815,6 @@ function isSwitchOn( el ) {
 
 	// Set audio source to built-in player
 	setSource();
-
-	// Initialize volume and balance
-	setVolume(1);
-	setBalance(0);
 
 	// Load saved playlists
 	loadSavedPlaylists();
