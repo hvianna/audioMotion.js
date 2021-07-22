@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.7-beta.3';
+const VERSION = '21.7-beta.4';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -106,7 +106,7 @@ let audioElement = [], micStream, isMicSource, wasMuted;
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
 // auxiliary variables for track skip, fast search and volume control
-let skipping = false, isFastSearch = false, volumeUpdating = false, balanceUpdating = false, fastSearchTimeout;
+let skipping = false, isFastSearch = false, knobUpdating = false, fastSearchTimeout;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -330,9 +330,6 @@ const infoDisplayDefaults = {
 
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
-
-// creates a more natural curve for volume control, for value between 0 and 1
-const exponentialVolume = value => ( Math.log10( 1 - value * .9 ) ** 2 ) ** .6;
 
 // return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
 const getIndex = node => {
@@ -1601,7 +1598,7 @@ function changeBalance( incr ) {
  */
 function setBalance( value ) {
 	elBalance.dataset.value = value;
-	panNode.pan.value = exponentialVolume( Math.abs( value ) ) * Math.sign( value );
+	panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
 	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
 }
 
@@ -1626,7 +1623,7 @@ function changeVolume( incr ) {
  */
 function setVolume( value ) {
 	elVolume.dataset.value = value;
-	audioMotion.volume = exponentialVolume( value );
+	audioMotion.volume = value ** 2.5; // creates a more natural volume curve
 	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
 }
 
@@ -2314,22 +2311,20 @@ function setUIEventListeners() {
 	elSource.addEventListener( 'change', setSource );
 	elMute.addEventListener( 'change', () => toggleMute() );
 
-	elVolume.addEventListener( 'wheel', e => {
-		e.preventDefault();
-		if ( volumeUpdating )
-			return;
-		volumeUpdating = true;
-		changeVolume( Math.sign( e.deltaY || 0 ) );
-		setTimeout( () => volumeUpdating = false, KNOB_DELAY );
-	});
-
-	elBalance.addEventListener( 'wheel', e => {
-		e.preventDefault();
-		if ( balanceUpdating )
-			return;
-		balanceUpdating = true;
-		changeBalance( Math.sign( e.deltaY || 0 ) );
-		setTimeout( () => balanceUpdating = false, KNOB_DELAY );
+	[ elVolume,
+	  elBalance ].forEach( el => {
+	  	el.addEventListener( 'wheel', e => {
+			e.preventDefault();
+			if ( knobUpdating )
+				return;
+			knobUpdating = true;
+			const incr = Math.sign( e.deltaY || 0 );
+			if ( el == elVolume )
+				changeVolume( incr );
+			else
+				changeBalance( incr );
+			setTimeout( () => knobUpdating = false, KNOB_DELAY );
+		});
 	});
 
 	elBalance.addEventListener( 'dblclick', () => {
@@ -2776,7 +2771,7 @@ function setInfoOptions( options ) {
 	]);
 
 	populateSelect( elMirror, [
-		[ '0',  'Disable' ],
+		[ '0',  'Off' ],
 		[ '-1', 'Left'    ],
 		[ '1',  'Right'   ]
 	]);
