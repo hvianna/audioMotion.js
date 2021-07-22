@@ -1631,6 +1631,20 @@ function setVolume( value ) {
 }
 
 /**
+ * Change fullscreen analyzer height
+ */
+function changeFsHeight( incr ) {
+	const val = +elFsHeight.value;
+
+	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
+		elFsHeight.value = val + elFsHeight.step * incr;
+		setProperty( elFsHeight, true );
+		updateRangeValue( elFsHeight );
+	}
+	setCanvasMsg( `Analyzer height: ${ elFsHeight.value }%` );
+}
+
+/**
  * Connect or disconnect audio output to the speakers
  */
 function toggleMute( mute ) {
@@ -1842,15 +1856,20 @@ function keyboardControls( event ) {
 	if ( event.type == 'keydown' ) {
 		switch ( event.code ) {
 			case 'ArrowUp': 	// volume up
-				changeVolume(1);
+				if ( isShiftKey )
+					changeFsHeight(1);
+				else
+					changeVolume(1);
 				break;
 			case 'ArrowDown': 	// volume down
-				changeVolume(-1);
+				if ( isShiftKey )
+					changeFsHeight(-1);
+				else
+					changeVolume(-1);
 				break;
 			case 'ArrowLeft': 	// rewind
-				if ( isShiftKey ) {
+				if ( isShiftKey )
 					changeBalance(-1);
-				}
 				else if ( isFastSearch ) {
 					setCanvasMsg( 'Rewind', 1 );
 					fastSearch(-1);
@@ -1859,9 +1878,8 @@ function keyboardControls( event ) {
 					scheduleFastSearch('k', -1);
 				break;
 			case 'ArrowRight': 	// fast forward
-				if ( isShiftKey ) {
+				if ( isShiftKey )
 					changeBalance(1);
-				}
 				else if ( isFastSearch ) {
 					setCanvasMsg( 'Fast forward', 1 );
 					fastSearch();
