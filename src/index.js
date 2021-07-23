@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.7-beta.4';
+const VERSION = '21.7-beta.5';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -40,6 +40,8 @@ import './styles.css';
 const BG_DIR = 'backgrounds'; // folder name for background images and videos (no slashes!)
 
 const KNOB_DELAY = 50; // for knob controls sensitivity (especially for mac touchpad/mouse)
+
+const MAX_METADATA_REQUESTS = 4;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -105,8 +107,8 @@ let audioElement = [], micStream, isMicSource, wasMuted;
 // variables for on-screen info display
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
-// auxiliary variables for track skip, fast search and volume control
-let skipping = false, isFastSearch = false, knobUpdating = false, fastSearchTimeout;
+// auxiliary variables for track skip/search, volume/balance control and metadata retrieval
+let skipping = false, isFastSearch = false, knobUpdating = false, waitingMetadata = 0, fastSearchTimeout;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -799,21 +801,42 @@ function addSongToPlayQueue( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
-	// try to retrieve metadata from audio file or stream
-	fetch( uri ).then( response => {
-		return response.body;
-	}).then( stream => {
-		mm.parseReadableStream( stream, '', { skipCovers: true } ).then( metadata => {
-			if ( metadata ) {
-				addMetadata( metadata, newEl ); // add metadata to play queue item
-				audioElement.forEach( el => {
-					if ( el.dataset.file == trackData.file )
-						addMetadata( newEl, el ); // transfer metadata to audio element
-				});
-			}
-			stream.cancel(); // release stream
-		}).catch( e => {} ); // fail silently
-	});
+	retrieveMetadata();
+}
+
+/**
+ * Retrieve metadata for files in the play queue
+ */
+function retrieveMetadata() {
+	// leave when we already have enough concurrent requests pending
+	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
+		return;
+
+	// find the first play queue item for which we haven't retrieved the metadata yet
+	const queueItem = Array.from( playlist.children ).find( el => el.dataset.album === undefined );
+
+	if ( queueItem ) {
+		waitingMetadata++;
+		queueItem.dataset.album = ''; // mark this item's metadata as being retrieved
+
+		const uri = queueItem.dataset.file;
+
+		mm.fetchFromUrl( uri, { skipCovers: true } )
+			.then( metadata => {
+				if ( metadata ) {
+					addMetadata( metadata, queueItem ); // add metadata to play queue item
+					audioElement.forEach( el => {
+						if ( el.dataset.file == uri )
+							addMetadata( queueItem, el ); // transfer metadata to audio element
+					});
+				}
+			})
+			.catch( e => {} ) // fail silently
+			.finally( () => {
+				waitingMetadata--;
+				retrieveMetadata(); // call back to continue processing the queue
+			});
+	}
 }
 
 /**
