@@ -756,9 +756,9 @@ function addMetadata( metadata, target ) {
 		trackData.codec    = format ? format.codec || format.container : trackData.codec;
 
 		if ( format && format.bitsPerSample )
-			trackData.quality = Math.floor( format.sampleRate / 1000 ) + 'KHz / ' + format.bitsPerSample + 'bits';
+			trackData.quality = ( format.sampleRate / 1000 | 0 ) + 'KHz / ' + format.bitsPerSample + 'bits';
 		else if ( format.bitrate )
-			trackData.quality = Math.floor( format.bitrate / 1000 ) + 'K ' + format.codecProfile || '';
+			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
 		else
 			trackData.quality = '';
 
@@ -1048,7 +1048,7 @@ function shufflePlayQueue() {
 	let temp, r;
 
 	for ( let i = playlist.children.length - 1; i > 0; i-- ) {
-		r = Math.floor( Math.random() * ( i + 1 ) );
+		r = Math.random() * ( i + 1 ) | 0;
 		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
 		playlist.insertBefore( temp, playlist.children[ r ] );
 	}
