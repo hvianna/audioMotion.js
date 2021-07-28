@@ -1193,16 +1193,20 @@ function skipTrack( back = false ) {
 }
 
 function playPreviousSong() {
+	let ret = true;
+
 	if ( isPlaying() ) {
 		if ( audioElement[ currAudio ].currentTime > 2 )
 			audioElement[ currAudio ].currentTime = 0;
 		else if ( playlistPos > 0 )
 			playSong( playlistPos - 1 );
 		else
-			return false;
+			ret = false;
 	}
 	else
-		return loadSong( playlistPos - 1 );
+		ret = loadSong( playlistPos - 1 );
+
+	return ret;
 }
 
 function playNextSong( play ) {
