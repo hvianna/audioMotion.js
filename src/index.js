@@ -44,6 +44,18 @@ const KNOB_DELAY = 50; // for knob controls sensitivity (especially for mac touc
 
 const MAX_METADATA_REQUESTS = 4;
 
+// dataset template for playqueue items and audio elements
+const DATASET_TEMPLATE = {
+	file: '',
+	artist: '',
+	title: '',
+	album: '',
+	codec: '',
+	quality: '',
+	duration: '',
+	cover: ''
+};
+
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
@@ -607,14 +619,7 @@ function clearAudioElement( n = currAudio ) {
 		  trackData = elAudio.dataset;
 
 	elAudio.removeAttribute('src');
-	trackData.file = '';
-	trackData.artist = '';
-	trackData.title = '';
-	trackData.album = '';
-	trackData.codec = '';
-	trackData.quality = '';
-	trackData.duration = '';
-
+	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	elAudio.load();
 
 	coverImage[ n ] = new Image();
@@ -752,19 +757,13 @@ function addMetadata( metadata, target ) {
 		  common     = metadata.common,
 		  format     = metadata.format;
 
-	if ( sourceData ) { 	// just copy metadata from element dataset (playlist item)
-		trackData.artist   = sourceData.artist || '';
-		trackData.title    = sourceData.title || '';
-		trackData.album    = sourceData.album || '';
-		trackData.codec    = sourceData.codec || '';
-		trackData.quality  = sourceData.quality || '';
-		trackData.duration = sourceData.duration || '';
-	}
-	else {						// parse metadata read from file
-		trackData.artist   = common.artist || trackData.artist;
-		trackData.title    = common.title || trackData.title;
-		trackData.album    = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
-		trackData.codec    = format ? format.codec || format.container : trackData.codec;
+	if ( sourceData ) 	// metadata is a dataset (playqueue item) - just copy the data to target element
+		Object.assign( trackData, sourceData );
+	else {				// parse metadata read from file
+		trackData.artist = common.artist || trackData.artist;
+		trackData.title  = common.title || trackData.title;
+		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
+		trackData.codec  = format ? format.codec || format.container : trackData.codec;
 
 		if ( format && format.bitsPerSample )
 			trackData.quality = ( format.sampleRate / 1000 | 0 ) + 'KHz / ' + format.bitsPerSample + 'bits';
@@ -796,6 +795,8 @@ function addSongToPlayQueue( uri, content = {} ) {
 	const newEl     = document.createElement('li'),
 		  trackData = newEl.dataset;
 
+	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+
 	trackData.artist = content.artist || '';
 	trackData.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
 	trackData.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
@@ -812,6 +813,7 @@ function addSongToPlayQueue( uri, content = {} ) {
 	if ( playlistPos > len - 3 )
 		loadNextSong();
 
+	trackData.retrieve = 1; // flag this item as needing metadata
 	retrieveMetadata();
 }
 
@@ -824,11 +826,11 @@ function retrieveMetadata() {
 		return;
 
 	// find the first play queue item for which we haven't retrieved the metadata yet
-	const queueItem = Array.from( playlist.children ).find( el => el.dataset.album === undefined );
+	const queueItem = Array.from( playlist.children ).find( el => el.dataset.retrieve );
 
 	if ( queueItem ) {
 		waitingMetadata++;
-		queueItem.dataset.album = ''; // mark this item's metadata as being retrieved
+		delete queueItem.dataset.retrieve;
 
 		const uri = queueItem.dataset.file;
 
@@ -1119,14 +1121,16 @@ function loadCover( uri ) {
  * Load a song into the currently active audio element
  */
 function loadSong( n ) {
+	const audioEl = audioElement[ currAudio ];
+
 	if ( playlist.children[ n ] ) {
 		playlistPos = n;
 		const song = playlist.children[ playlistPos ];
-		audioElement[ currAudio ].src = song.dataset.file;
-		audioElement[ currAudio ].dataset.file = song.dataset.file;
 		coverImage[ currAudio ] = new Image();
 		addMetadata( song, audioElement[ currAudio ] );
 		loadCover( song.dataset.file ).then( cover => setCurrentCover( cover ) );
+		audioEl.src = song.dataset.file;
+		addMetadata( song, audioEl );
 
 		updatePlaylistUI();
 		loadNextSong();
@@ -1147,7 +1151,6 @@ function loadNextSong() {
 	if ( song ) {
 		audioEl.src = song.dataset.file;
 		audioEl.load();
-		audioEl.dataset.file = song.dataset.file;
 		coverImage[ nextAudio ] = new Image();
 
 		addMetadata( song, audioEl );
