@@ -22,6 +22,16 @@ module.exports = {
   },
   optimization: {
     minimizer: [ `...`, new CssMinimizerPlugin() ],
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+//          test: /[\\/]node_modules[\\/]((?!(audiomotion-analyzer)).*)[\\/]/,
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
   },
   plugins: [
     new MiniCssExtractPlugin({
@@ -33,7 +43,9 @@ module.exports = {
     }),
   ],
   output: {
-    filename: 'audioMotion.js',
+    filename: pathData => {
+      return pathData.chunk.name === 'main' ? 'audioMotion.js' : '[name].js';
+    },
     path: path.resolve( __dirname, 'public' )
   }
 };
