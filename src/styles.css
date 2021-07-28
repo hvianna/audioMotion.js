@@ -250,6 +250,12 @@ table {
 	width: 100%;
 }
 
+.bg-dim {
+	height: 100%;
+	position: absolute;
+	width: 100%;
+}
+
 /**
  * The Safari-specific rules below MUST NOT be combined with :fullscreen selectors, otherwise they won't work!
  * See https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API/Guide#presentation_differences

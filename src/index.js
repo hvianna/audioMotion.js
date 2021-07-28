@@ -48,10 +48,16 @@ const MAX_METADATA_REQUESTS = 4;
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
-// UI HTML elements
-const elContainer   = $('#bg_container'),
-	  elAnalyzer    = $('#analyzer'),
-	  elFFTsize     = $('#fft_size'),
+// Analyzer elements
+const elContainer   = $('#bg_container'),		// outer container with background image
+	  elVideo       = $('#video'),				// background video
+	  elDim         = $('#bg_dim'),				// background image/video darkening layer
+	  elAnalyzer    = $('#analyzer'),			// analyzer canvas container
+	  elOSD         = $('#osd'),				// message canvas
+	  canvasCtx     = elOSD.getContext('2d');
+
+// UI controls HTML elements
+const elFFTsize     = $('#fft_size'),
 	  elRangeMin    = $('#freq_min'),
 	  elRangeMax    = $('#freq_max'),
 	  elSmoothing   = $('#smoothing'),
@@ -80,7 +86,6 @@ const elContainer   = $('#bg_container'),
 	  elBackground  = $('#background'),
 	  elBgImageDim  = $('#bg_img_dim'),
 	  elBgImageFit  = $('#bg_img_fit'),
-	  elVideo       = $('#video'),
 	  elRadial      = $('#radial'),
 	  elSpin		= $('#spin'),
 	  elStereo      = $('#stereo'),
@@ -92,9 +97,7 @@ const elContainer   = $('#bg_container'),
 	  elEndTimeout  = $('#end_timeout'),
 	  elShowCover   = $('#show_cover'),
 	  elFsHeight    = $('#fs_height'),
-	  elOSD         = $('#osd'),
-	  elMirror      = $('#mirror'),
-	  canvasCtx     = elOSD.getContext('2d');
+	  elMirror      = $('#mirror');
 
 // AudioMotionAnalyzer object, audio context and pan node
 let audioMotion, audioCtx, panNode;
@@ -391,22 +394,32 @@ function setProperty( elems, save ) {
 	for ( const el of elems ) {
 		switch ( el ) {
 			case elBackground:
-			case elBgImageFit:
-			case elBgImageDim:
 				const bgOption = elBackground.value[0],
-					  bgFit    = elBgImageFit.value,
 					  filename = elBackground.value.slice(1);
 
 				audioMotion.overlay = ( bgOption > 1 );
 				audioMotion.showBgColor = ( bgOption == 0 );
+
+				if ( bgOption == 7 ) {
+					elVideo.style.display = '';
+					if ( ! decodeURI( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file
+						elVideo.src = filename;
+				}
+				else {
+					elVideo.style.display = 'none';
+					setBackgroundImage();
+				}
+				break;
+
+			case elBgImageFit:
+				const bgFit = elBgImageFit.value;
 				elContainer.classList.toggle( 'repeat', bgFit == 2 );
 				elContainer.classList.toggle( 'cover', bgFit == 0 );
+				elContainer.style.backgroundSize = '';
+				break;
 
-				elVideo.style.display = bgOption == 7 ? '' : 'none';
-				if ( bgOption == 7 && ! decodeURI( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file
-					elVideo.src = filename;
-
-				setBackgroundImage();
+			case elBgImageDim:
+				elDim.style.background = `rgba(0,0,0,${ 1 - elBgImageDim.value })`;
 				break;
 
 			case elBarSpace:
@@ -579,14 +592,11 @@ function setBackgroundImage() {
 		  filename = elBackground.value.slice(1);
 
 	if ( bgOption > 1 && bgOption < 7 ) {
-		const alpha = 1 - elBgImageDim.value,
-			  imageUrl = filename || coverImage[ currAudio ].src.replace( /'/g, "\\'" ) ; // escape single quotes
-		elContainer.style.backgroundImage = `linear-gradient( rgba(0,0,0,${alpha}) 0%, rgba(0,0,0,${alpha}) 100% ), url('${imageUrl}')`;
+		const imageUrl = filename || coverImage[ currAudio ].src.replace( /'/g, "\\'" ) ; // escape single quotes
+		elContainer.style.backgroundImage = `url('${imageUrl}')`;
 	}
 	else
 		elContainer.style.backgroundImage = '';
-
-	elContainer.style.backgroundSize = '';
 }
 
 /**
@@ -1789,6 +1799,8 @@ function loadPreset( name, alert, init ) {
 	// settings that make additional changes are set by the setProperty() function
 	setProperty(
 		[ elBackground,
+		elBgImageFit,
+		elBgImageDim,
 		elSensitivity,
 		elReflex,
 		elGradient,
