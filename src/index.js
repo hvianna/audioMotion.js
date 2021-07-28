@@ -1694,6 +1694,7 @@ function loadLocalFile( obj ) {
 
 		audioEl.src = URL.createObjectURL( fileBlob );
 		audioEl.play();
+		audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
 
 		mm.parseBlob( fileBlob )
 			.then( metadata => {
