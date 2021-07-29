@@ -390,7 +390,7 @@ const isSwitchOn = el => el.dataset.active == '1';
  */
 function fullscreen() {
 	audioMotion.toggleFullscreen();
-	$('#btn_fullscreen').blur();
+	document.activeElement.blur(); // move keyboard focus to the document body
 }
 
 /**
