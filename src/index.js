@@ -44,6 +44,8 @@ const KNOB_DELAY = 50; // for knob controls sensitivity (especially for mac touc
 
 const MAX_METADATA_REQUESTS = 4;
 
+const MAX_QUEUED_SONGS = 1000;
+
 // dataset template for playqueue items and audio elements
 const DATASET_TEMPLATE = {
 	file: '',
@@ -384,6 +386,11 @@ const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 // returns a boolean with the current status of an UI switch
 const isSwitchOn = el => el.dataset.active == '1';
 
+// returns the extension of a file (lowercase, no dot)
+const getFileExt = filename => filename.slice( filename.lastIndexOf('.') + 1 ).toLowerCase();
+
+// returns the count of queued songs
+const queueLength = _ => playlist.children.length;
 
 /**
  * Display the canvas in full-screen mode
@@ -718,8 +725,9 @@ function loadSavedPlaylists( keyName ) {
 function addBatchToPlayQueue( files, autoplay = false ) {
 	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
 	Promise.all( promises ).then( added => {
-		const total = added.reduce( ( sum, val ) => sum + val, 0 );
-		notie.alert({ text: `${total} song${ total > 1 ? 's' : '' } added to the queue`, time: 5 });
+		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
+			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
+		notie.alert({ text, time: 5 });
 	});
 }
 
@@ -728,21 +736,17 @@ function addBatchToPlayQueue( files, autoplay = false ) {
  */
 function addToPlayQueue( file, autoplay = false ) {
 
-	const ext = file.slice( file.lastIndexOf('.') + 1 ).toLowerCase();
 	let ret;
 
-	if ( ['m3u','m3u8'].includes( ext ) )
+	if ( ['m3u','m3u8'].includes( getFileExt( file ) ) )
 		ret = loadPlaylist( file );
 	else
-		ret = new Promise( resolve => {
-			addSongToPlayQueue( file );
-			resolve(1);
-		});
+		ret = new Promise( resolve => resolve( addSongToPlayQueue( file ) ) );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
 		if ( autoplay && ! isPlaying() && n > 0 )
-			playSong( playlist.children.length - n );
+			playSong( queueLength() - n );
 	});
 
 	return ret;
@@ -781,8 +785,12 @@ function addMetadata( metadata, target ) {
 
 /**
  * Add a song to the play queue
+ * returns 1 if song added or 0 if queue is full
  */
 function addSongToPlayQueue( uri, content = {} ) {
+
+	if ( queueLength() >= MAX_QUEUED_SONGS )
+		return 0;
 
 	// normalize slashes in path
 	uri = uri.replace( /\\/g, '/' );
@@ -807,14 +815,14 @@ function addSongToPlayQueue( uri, content = {} ) {
 
 	playlist.appendChild( newEl );
 
-	const len = playlist.children.length;
-	if ( len == 1 && ! isPlaying() )
+	if ( queueLength() == 1 && ! isPlaying() )
 		loadSong(0);
-	if ( playlistPos > len - 3 )
+	if ( playlistPos > queueLength() - 3 )
 		loadNextSong();
 
 	trackData.retrieve = 1; // flag this item as needing metadata
 	retrieveMetadata();
+	return 1;
 }
 
 /**
@@ -860,17 +868,14 @@ function loadPlaylist( path ) {
 	// normalize slashes
 	path = path.replace( /\\/g, '/' );
 
-	// get file extension
-	const ext = path.slice( path.lastIndexOf('.') + 1 ).toLowerCase();
-
-	let	n = 0,
-		songInfo;
-
 	return new Promise( resolve => {
+		let	n = 0,
+			songInfo;
+
 		if ( ! path ) {
 			resolve( -1 );
 		}
-		else if ( ['m3u','m3u8'].includes( ext ) ) {
+		else if ( ['m3u','m3u8'].includes( getFileExt( path ) ) ) {
 			fetch( path )
 				.then( response => {
 					if ( response.status == 200 )
@@ -883,19 +888,18 @@ function loadPlaylist( path ) {
 					content.split(/[\r\n]+/).forEach( line => {
 						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
 							line = line.replace( /\\/g, '/' );
-							n++;
 							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
 								songInfo = line.slice( line.lastIndexOf('/') + 1 );
 								songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
 							}
 							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
 								line = path + line;
-							// extract artist name and song title off the info tag (format: ARTIST - SONG)
-							const sep = songInfo.indexOf(' - ');
-							if ( sep == -1 )
-								addSongToPlayQueue( line, { title: songInfo } );
-							else
-								addSongToPlayQueue( line, { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) } );
+
+							// try to extract artist name and song title off the info tag (format: ARTIST - SONG)
+							const sep  = songInfo.indexOf(' - '),
+								  data = sep == -1 ? { title: songInfo } : { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) };
+
+							n += addSongToPlayQueue( line, data );
 							songInfo = '';
 						}
 						else if ( line.slice( 0, 7 ) == '#EXTINF' )
@@ -913,11 +917,10 @@ function loadPlaylist( path ) {
 			if ( list ) {
 				list = JSON.parse( list );
 				list.forEach( item => {
-					n++;
 					item = item.replace( /\\/g, '/' );
 					songInfo = item.slice( item.lastIndexOf('/') + 1 );
 					songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
-					addSongToPlayQueue( item, { title: songInfo } )
+					n += addSongToPlayQueue( item, { title: songInfo } )
 				});
 			}
 			else
@@ -954,7 +957,7 @@ function savePlaylist( index ) {
  */
 function storePlaylist( name, update = true ) {
 
-	if ( playlist.children.length == 0 ) {
+	if ( queueLength() == 0 ) {
 		notie.alert({ text: 'Queue is empty!' });
 		return;
 	}
@@ -1060,7 +1063,7 @@ function shufflePlayQueue() {
 
 	let temp, r;
 
-	for ( let i = playlist.children.length - 1; i > 0; i-- ) {
+	for ( let i = queueLength() - 1; i > 0; i-- ) {
 		r = Math.random() * ( i + 1 ) | 0;
 		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
 		playlist.insertBefore( temp, playlist.children[ r ] );
@@ -1144,7 +1147,7 @@ function loadSong( n ) {
  * Loads next song into the audio element not currently in use
  */
 function loadNextSong() {
-	const next    = ( playlistPos < playlist.children.length - 1 ) ? playlistPos + 1 : 0,
+	const next    = ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0,
 		  song    = playlist.children[ next ],
 		  audioEl = audioElement[ nextAudio ];
 
@@ -1214,12 +1217,12 @@ function playPreviousSong() {
 
 function playNextSong( play ) {
 
-	if ( skipping || isMicSource || playlistPos > playlist.children.length - 1 )
+	if ( skipping || isMicSource || playlistPos > queueLength() - 1 )
 		return true;
 
 	skipping = true;
 
-	if ( playlistPos < playlist.children.length - 1 )
+	if ( playlistPos < queueLength() - 1 )
 		playlistPos++;
 	else if ( isSwitchOn( elRepeat ) )
 		playlistPos = 0;
@@ -1941,15 +1944,14 @@ function keyboardControls( event ) {
 				playlist.querySelectorAll('.selected').forEach( e => {
 					e.remove();
 				});
-				const current = getIndex( playlist.querySelector('.current') ),
-					  queueLength = playlist.children.length;
+				const current = getIndex( playlist.querySelector('.current') );
 				if ( current !== undefined )
 					playlistPos = current;	// update playlistPos if current song hasn't been deleted
-				else if ( playlistPos > queueLength - 1 )
-					playlistPos = queueLength - 1;
+				else if ( playlistPos > queueLength() - 1 )
+					playlistPos = queueLength() - 1;
 				else
 					playlistPos--;
-				if ( queueLength )
+				if ( queueLength() )
 					loadNextSong();
 				else {
 					clearAudioElement( nextAudio );
@@ -2011,7 +2013,7 @@ function keyboardControls( event ) {
 				toggleInfo();
 				break;
 			case 'KeyE': 		// shuffle queue
-				if ( playlist.children.length > 0 ) {
+				if ( queueLength() > 0 ) {
 					shufflePlayQueue();
 					setCanvasMsg( 'Shuffle' );
 				}
