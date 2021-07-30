@@ -473,7 +473,11 @@
 				Show for <input id="track_timeout" type="number" min="0"> seconds at song start
 				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song<br>
 				<div class="flex align-center">
-					<label><input type="checkbox" id="show_cover"> Show album covers in song info</label>
+					<div>
+						Show in song info:
+						<label><input type="checkbox" id="show_cover"> album cover</label>
+						<label><input type="checkbox" id="show_count"> track count</label>
+					</div>
 					<button id="reset_osd">Reset to defaults</button>
 				</div>
 			</div>

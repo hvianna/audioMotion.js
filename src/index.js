@@ -90,9 +90,6 @@ const elFFTsize     = $('#fft_size'),
 	  elNoShadow    = $('#no_shadow'),
 	  elLoRes       = $('#lo_res'),
 	  elFPS         = $('#fps'),
-	  elSource      = $('#source'),
-	  elMute        = $('#mute'),
-	  elPlaylists   = $('#playlists'),
 	  elLineWidth   = $('#line_width'),
 	  elFillAlpha   = $('#fill_alpha'),
 	  elBarSpace    = $('#bar_space'),
@@ -104,14 +101,20 @@ const elFFTsize     = $('#fft_size'),
 	  elSpin		= $('#spin'),
 	  elStereo      = $('#stereo'),
 	  elSplitGrad   = $('#split_grad'),
+	  elFsHeight    = $('#fs_height'),
+	  elMirror      = $('#mirror'),
+	  // player panel and playlists
+	  elSource      = $('#source'),
+	  elMute        = $('#mute'),
 	  elVolume      = $('#volume'),
 	  elBalance     = $('#balance'),
+	  elPlaylists   = $('#playlists'),
+	  // config panel
 	  elInfoTimeout = $('#info_timeout'),
 	  elTrackTimeout= $('#track_timeout'),
 	  elEndTimeout  = $('#end_timeout'),
 	  elShowCover   = $('#show_cover'),
-	  elFsHeight    = $('#fs_height'),
-	  elMirror      = $('#mirror');
+	  elShowCount   = $('#show_count');
 
 // AudioMotionAnalyzer object, audio context and pan node
 let audioMotion, audioCtx, panNode;
@@ -338,10 +341,11 @@ const sensitivityDefaults = [
 
 // On-screen information display options
 const infoDisplayDefaults = {
-	info  : 5,	 // display time (secs) when requested via click or keyboard shortcut
-	track : 10,  // display time (secs) on track change
-	end   : 0,   // display time (secs) at the end of the song
-	covers: true // show album covers in song information
+	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
+	track : 10,   // display time (secs) on track change
+	end   : 0,    // display time (secs) at the end of the song
+	covers: true, // show album covers in song information
+	count : true  // show song number and play queue count
 }
 
 /**
@@ -1450,6 +1454,14 @@ function displayCanvasMsg() {
 			outlineText( trackData.codec, rightPos, bottomLine1 );
 			outlineText( trackData.quality, rightPos, bottomLine1 + baseSize );
 
+			// song/queue count
+			const totalSongs = queueLength();
+			if ( totalSongs && elShowCount.checked ) {
+				const padDigits = ( '' + totalSongs ).length,
+					  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
+				outlineText( counter, rightPos, bottomLine1 - baseSize );
+			}
+
 			// artist name
 			canvasCtx.textAlign = 'left';
 			outlineText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
@@ -2547,7 +2559,7 @@ function doConfigPanel() {
 	});
 
 	// On-screen display options
-	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover ] )
+	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover, elShowCount ] )
 		el.addEventListener( 'change', () => savePreferences('osd') );
 
 	$('#reset_osd').addEventListener( 'click', () => {
@@ -2610,10 +2622,8 @@ function loadPreferences() {
 		elMaxSens[ index ].value = preset.max;
 	});
 
-	// On-screen display options
-	const displayOptions = Object.assign( {}, infoDisplayDefaults ); // clone defaults so they don't get modified
-	// merge saved options (if any) with defaults and set UI fields
-	setInfoOptions( Object.assign( displayOptions, JSON.parse( localStorage.getItem( 'display-options' ) ) || {} ) );
+	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
+	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( 'display-options' ) ) || {} ) } );
 
 	return isLastSession;
 }
@@ -2659,7 +2669,8 @@ function savePreferences( pref ) {
 			info  : elInfoTimeout.value,
 			track : elTrackTimeout.value,
 			end   : elEndTimeout.value,
-			covers: elShowCover.checked
+			covers: elShowCover.checked,
+			count : elShowCount.checked
 		}
 		saveToStorage( 'display-options', displayOptions );
 	}
@@ -2673,6 +2684,7 @@ function setInfoOptions( options ) {
 	elTrackTimeout.value = options.track;
 	elEndTimeout.value   = options.end;
 	elShowCover.checked  = options.covers;
+	elShowCount.checked  = options.count;
 }
 
 
