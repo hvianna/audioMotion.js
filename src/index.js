@@ -1181,8 +1181,11 @@ function playPause( play ) {
 		audioElement[ currAudio ].pause();
 	else
 		audioElement[ currAudio ].play().catch( err => {
-			consoleLog( err, true );
-			playNextSong( true );
+			// ignore AbortError - when play promise is interrupted by a new load request or call to pause()
+			if ( err.code != 20 ) {
+				consoleLog( err, true )
+				playNextSong( true );
+			}
 		});
 }
 
@@ -1242,9 +1245,11 @@ function playNextSong( play ) {
 			loadNextSong();
 		})
 		.catch( err => {
-			consoleLog( err, true );
-			loadNextSong();
-			playNextSong( true );
+			if ( err.code != 20 ) {
+				consoleLog( err, true );
+				loadNextSong();
+				playNextSong( true );
+			}
 		});
 	}
 	else
