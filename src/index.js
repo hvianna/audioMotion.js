@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.7-beta.6
+ * @version   21.8-beta.0
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.7-beta.6';
+const VERSION = '21.8-beta.0';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -40,7 +40,7 @@ import './styles.css';
 
 const BG_DIR = 'backgrounds'; // folder name for background images and videos (no slashes!)
 
-const KNOB_DELAY = 50; // for knob controls sensitivity (especially for mac touchpad/mouse)
+const KNOB_DELAY = 50; // delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
 
 const MAX_METADATA_REQUESTS = 4;
 
@@ -134,8 +134,8 @@ let skipping = false, isFastSearch = false, knobUpdating = false, waitingMetadat
 // interval for timed random mode
 let randomModeTimer;
 
-// cover images for current and next song
-let coverImage = [];
+// cover image for the currently playing song (for canvas rendering)
+let coverImage = new Image();
 
 // folder cover images for songs with no picture in the metadata
 let folderImages = {};
@@ -602,8 +602,8 @@ function setProperty( elems, save ) {
 /**
  * Set the cover image for the current audio element
  */
-function setCurrentCover( url ) {
-	coverImage[ currAudio ].src = url;
+function setCurrentCover() {
+	coverImage.src = audioElement[ currAudio ].dataset.cover;
 	setBackgroundImage();
 }
 
@@ -615,7 +615,7 @@ function setBackgroundImage() {
 		  filename = elBackground.value.slice(1);
 
 	if ( bgOption > 1 && bgOption < 7 ) {
-		const imageUrl = filename || coverImage[ currAudio ].src.replace( /'/g, "\\'" ) ; // escape single quotes
+		const imageUrl = filename || coverImage.src.replace( /'/g, "\\'" ) ; // escape single quotes
 		elContainer.style.backgroundImage = `url('${imageUrl}')`;
 	}
 	else
@@ -633,9 +633,8 @@ function clearAudioElement( n = currAudio ) {
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	elAudio.load();
 
-	coverImage[ n ] = new Image();
 	if ( n == currAudio )
-		setBackgroundImage(); // clear current background image
+		setCurrentCover(); // clear coverImage and background image if needed
 }
 
 /**
@@ -644,7 +643,7 @@ function clearAudioElement( n = currAudio ) {
 function clearPlayQueue() {
 
 	while ( playlist.hasChildNodes() )
-		playlist.removeChild( playlist.firstChild );
+		revokeBlobURL( playlist.removeChild( playlist.firstChild ) );
 
 	if ( ! isPlaying() ) {
 		playlistPos = 0;
@@ -784,7 +783,15 @@ function addMetadata( metadata, target ) {
 			trackData.duration = formatHHMMSS( format.duration );
 		else
 			trackData.duration = '';
+
+		if ( common.picture && common.picture.length ) {
+			const blob = new Blob( [ common.picture[0].data ], { type: common.picture[0].format } );
+			trackData.cover = URL.createObjectURL( blob );
+		}
 	}
+
+	if ( target == audioElement[ currAudio ] )
+		setCurrentCover();
 }
 
 /**
@@ -846,14 +853,17 @@ function retrieveMetadata() {
 
 		const uri = queueItem.dataset.file;
 
-		mm.fetchFromUrl( uri, { skipCovers: true } )
+		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
 			.then( metadata => {
 				if ( metadata ) {
 					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					audioElement.forEach( el => {
-						if ( el.dataset.file == uri )
-							addMetadata( queueItem, el ); // transfer metadata to audio element
-					});
+					syncMetadataToAudioElements( queueItem );
+					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+						loadCover( uri ).then( cover => {
+							queueItem.dataset.cover = cover;
+							syncMetadataToAudioElements( queueItem );
+						});
+					}
 				}
 			})
 			.catch( e => {} ) // fail silently
@@ -862,6 +872,25 @@ function retrieveMetadata() {
 				retrieveMetadata(); // call back to continue processing the queue
 			});
 	}
+}
+
+/**
+ * Sync a queue item metadata with any audio elements loaded with the same file
+ */
+function syncMetadataToAudioElements( source ) {
+	for ( const el of audioElement ) {
+		if ( el.dataset.file == source.dataset.file )
+			addMetadata( source, el ); // transfer metadata to audio element
+	}
+}
+
+/**
+ * Release URL objects created for image blobs
+ */
+function revokeBlobURL( item ) {
+	const cover = item.dataset.cover;
+	if ( cover.startsWith('blob:') )
+		URL.revokeObjectURL( cover );
 }
 
 /**
@@ -1077,50 +1106,38 @@ function shufflePlayQueue() {
 }
 
 /**
- * Get album cover from file metadata
+ * Try to get a cover image from the song's folder
  */
 function loadCover( uri ) {
 	return new Promise( resolve => {
-		mm.fetchFromUrl( uri )
-			.then( metadata => {
-				if ( metadata.common.picture && metadata.common.picture.length ) {
-					const blob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
-					resolve( URL.createObjectURL( blob ) );
-				}
-				else if ( serverMode == -1 ) { // in file mode there's nothing else we can do
-					resolve('');
-				}
-				else {
-					// no picture in the metadata - try to get a cover image from the song's folder
-					const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
+		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
 
-					if ( folderImages[ path ] !== undefined )
-						resolve( path + folderImages[ path ] );
-					else {
-						const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
+		if ( serverMode == -1 )
+			resolve(''); // nothing to do when in serverless mode
+		else if ( folderImages[ path ] !== undefined )
+			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
+		else {
+			const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
 
-						fetch( urlToFetch )
-							.then( response => {
-								return ( response.status == 200 ) ? response.text() : null;
-							})
-							.then( content => {
-								let imageUrl = '';
-								if ( content ) {
-									if ( serverMode == 1 )
-										imageUrl = content;
-									else {
-										const dirContents = fileExplorer.parseWebDirectory( content );
-										if ( dirContents.cover )
-											imageUrl = dirContents.cover;
-									}
-								}
-								folderImages[ path ] = imageUrl;
-								resolve( path + imageUrl );
-							});
+			fetch( urlToFetch )
+				.then( response => {
+					return ( response.status == 200 ) ? response.text() : null;
+				})
+				.then( content => {
+					let imageUrl = '';
+					if ( content ) {
+						if ( serverMode == 1 )
+							imageUrl = content;
+						else {
+							const dirContents = fileExplorer.parseWebDirectory( content );
+							if ( dirContents.cover )
+								imageUrl = dirContents.cover;
+						}
 					}
-				}
-			})
-			.catch( e => resolve('') ); // fail silently
+					folderImages[ path ] = imageUrl;
+					resolve( path + imageUrl );
+				});
+		}
 	});
 }
 
@@ -1133,9 +1150,6 @@ function loadSong( n ) {
 	if ( playlist.children[ n ] ) {
 		playlistPos = n;
 		const song = playlist.children[ playlistPos ];
-		coverImage[ currAudio ] = new Image();
-		addMetadata( song, audioElement[ currAudio ] );
-		loadCover( song.dataset.file ).then( cover => setCurrentCover( cover ) );
 		audioEl.src = song.dataset.file;
 		addMetadata( song, audioEl );
 
@@ -1158,10 +1172,7 @@ function loadNextSong() {
 	if ( song ) {
 		audioEl.src = song.dataset.file;
 		audioEl.load();
-		coverImage[ nextAudio ] = new Image();
-
 		addMetadata( song, audioEl );
-		loadCover( song.dataset.file ).then( cover => coverImage[ nextAudio ].src = cover );
 	}
 
 	skipping = false; // finished skipping track
@@ -1242,6 +1253,7 @@ function playNextSong( play ) {
 
 	currAudio = nextAudio;
 	nextAudio = ! currAudio | 0;
+	setCurrentCover();
 
 	if ( play ) {
 		audioElement[ currAudio ].play()
@@ -1489,8 +1501,8 @@ function displayCanvasMsg() {
 			}
 
 			// cover image
-			if ( coverImage[ currAudio ].width && elShowCover.checked )
-				canvasCtx.drawImage( coverImage[ currAudio ], baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+			if ( coverImage.width && elShowCover.checked )
+				canvasCtx.drawImage( coverImage, baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 		}
 
 		if ( --canvasMsg.timer < 1 )
@@ -1734,13 +1746,7 @@ function loadLocalFile( obj ) {
 		audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
 
 		mm.parseBlob( fileBlob )
-			.then( metadata => {
-				addMetadata( metadata, audioEl );
-				if ( metadata.common.picture && metadata.common.picture.length ) {
-					const imgBlob = new Blob( [ metadata.common.picture[0].data ], { type: metadata.common.picture[0].format } );
-					setCurrentCover( URL.createObjectURL( imgBlob ) );
-				}
-			})
+			.then( metadata => addMetadata( metadata, audioEl ) )
 			.catch( e => {} );
 	}
 }
@@ -1959,6 +1965,7 @@ function keyboardControls( event ) {
 			case 'Delete': 		// delete selected songs from the playlist
 			case 'Backspace':	// for Mac
 				playlist.querySelectorAll('.selected').forEach( e => {
+					revokeBlobURL( e );
 					e.remove();
 				});
 				const current = getIndex( playlist.querySelector('.current') );
