@@ -38,9 +38,11 @@ import './notie.css';
 
 import './styles.css';
 
-const BG_DIR = 'backgrounds'; // folder name for background images and videos (no slashes!)
+const BG_DIR = 'backgrounds'; 	// folder name for background images and videos (no slashes!)
 
-const KNOB_DELAY = 50; // delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
+const MAX_BG_SINGLE_MEDIA = 10; // max number of individual images and videos (each) selectable as background
+
+const KNOB_DELAY = 50; 			// delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
 
 const MAX_METADATA_REQUESTS = 4;
 
@@ -139,6 +141,9 @@ let coverImage = new Image();
 
 // folder cover images for songs with no picture in the metadata
 let folderImages = {};
+
+// background images and videos
+let bgImages = [], bgVideos = [];
 
 // server mode: 1 = custom server; 0 = standard web server; -1 = local (file://) mode
 let serverMode;
@@ -390,11 +395,18 @@ const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 // returns a boolean with the current status of an UI switch
 const isSwitchOn = el => el.dataset.active == '1';
 
+// returns only the name of a filename
+const getFileName = filename => filename.slice( 0, filename.lastIndexOf('.') );
+
 // returns the extension of a file (lowercase, no dot)
 const getFileExt = filename => filename.slice( filename.lastIndexOf('.') + 1 ).toLowerCase();
 
 // returns the count of queued songs
 const queueLength = _ => playlist.children.length;
+
+// returns a random integer in the range [ 0, n-1 ]
+const randomInt = ( n=2 ) => Math.random() * n | 0;
+
 
 /**
  * Display the canvas in full-screen mode
@@ -417,20 +429,34 @@ function setProperty( elems, save ) {
 	for ( const el of elems ) {
 		switch ( el ) {
 			case elBackground:
-				const bgOption = elBackground.value[0],
-					  filename = elBackground.value.slice(1);
+				let bgOption = elBackground.value[0],
+					filename = elBackground.value.slice(1);
 
 				audioMotion.overlay = ( bgOption > 1 );
 				audioMotion.showBgColor = ( bgOption == 0 );
 
 				if ( bgOption == 7 ) {
-					elVideo.style.display = '';
-					if ( ! decodeURI( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file
-						elVideo.src = filename;
+					elVideo.style.display = ''; // enable display of video layer
+					if ( ! filename )
+						filename = bgVideos[ randomInt( bgVideos.length ) ]; // pick a new random video from the list
+
+					if ( ! decodeURIComponent( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file already in use
+						elVideo.src = BG_DIR + '/' + encodeURIComponent( filename );
 				}
 				else {
-					elVideo.style.display = 'none';
-					setBackgroundImage();
+					elVideo.style.display = 'none'; // hide video layer
+					if ( bgOption > 1 ) {
+						if ( bgOption == 6 && ! filename )
+							filename = bgImages[ randomInt( bgImages.length ) ];
+
+						if ( filename )
+							filename = BG_DIR + '/' + encodeURIComponent( filename );
+
+						const imageUrl = filename || coverImage.src;
+						elContainer.style.backgroundImage = `url('${imageUrl}')`;
+					}
+					else
+						elContainer.style.backgroundImage = '';
 				}
 				break;
 
@@ -603,23 +629,9 @@ function setProperty( elems, save ) {
  * Set the cover image for the current audio element
  */
 function setCurrentCover() {
-	coverImage.src = audioElement[ currAudio ].dataset.cover;
-	setBackgroundImage();
-}
-
-/**
- * Set the canvas background image and opacity
- */
-function setBackgroundImage() {
-	const bgOption = elBackground.value[0],
-		  filename = elBackground.value.slice(1);
-
-	if ( bgOption > 1 && bgOption < 7 ) {
-		const imageUrl = filename || coverImage.src.replace( /'/g, "\\'" ) ; // escape single quotes
-		elContainer.style.backgroundImage = `url('${imageUrl}')`;
-	}
-	else
-		elContainer.style.backgroundImage = '';
+	coverImage.src = audioElement[ currAudio ].dataset.cover.replace( /'/g, "\\'" ); // escape single quotes to use in CSS attribute
+	if ( elBackground.value == 2 )
+		elContainer.style.backgroundImage = `url('${coverImage.src}')`;
 }
 
 /**
@@ -923,7 +935,7 @@ function loadPlaylist( path ) {
 							line = line.replace( /\\/g, '/' );
 							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
 								songInfo = line.slice( line.lastIndexOf('/') + 1 );
-								songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+								songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
 							}
 							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
 								line = path + line;
@@ -952,7 +964,7 @@ function loadPlaylist( path ) {
 				list.forEach( item => {
 					item = item.replace( /\\/g, '/' );
 					songInfo = item.slice( item.lastIndexOf('/') + 1 );
-					songInfo = songInfo.slice( 0, songInfo.lastIndexOf('.') ).replace( /_/g, ' ' );
+					songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
 					n += addSongToPlayQueue( item, { title: songInfo } )
 				});
 			}
@@ -2119,8 +2131,6 @@ function audioOnPlay() {
 			cycleElement( elGradient );
 	}
 
-	setBackgroundImage();
-
 	if ( isSwitchOn( elShowSong ) ) {
 		const timeout = elTrackTimeout.value | 0 || Infinity;
 		setCanvasMsg( 1, timeout );
@@ -2164,9 +2174,8 @@ function selectRandomMode( force = isMicSource ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
-	// helper functions
+	// helper function
 	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
-	const randomInt = ( n=2 ) => Math.random() * n | 0;
 
 	let props = []; // properties that need to be updated
 
@@ -2175,8 +2184,10 @@ function selectRandomMode( force = isMicSource ) {
 	if ( isEnabled('nobg') )
 		elBackground.selectedIndex = randomInt( elBackground.options.length );
 
-	if ( isEnabled('imgfit') )
+	if ( isEnabled('imgfit') ) {
 		elBgImageFit.selectedIndex = randomInt( elBgImageFit.options.length );
+		props.push( elBgImageFit );
+	}
 
 	if ( isEnabled('peaks') ) {
 		elShowPeaks.dataset.active = randomInt(); // 0 or 1
@@ -2853,19 +2864,31 @@ function setInfoOptions( options ) {
 			const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
 				  videoExtensions = /\.(mp4|webm|mov)$/i;
 
-			let images = [],
-				videos = [];
-
 			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
-				const path = `${BG_DIR}/${file}`,
-					  name = file.slice( 0, file.lastIndexOf('.') );
 				if ( file.match( imageExtensions ) )
-					images.push( [ `6${path}`, `🖼️ ${name}` ] );
+					bgImages.push( file );
 				else if ( file.match( videoExtensions ) )
-					images.push( [ `7${path}`, `🎬 ${name}` ] );
+					bgVideos.push( file );
 			}
 
-			populateSelect( elBackground, images.concat( videos ) );
+			const imageCount = bgImages.length,
+				  videoCount = bgVideos.length;
+
+			let bgOptions  = [];
+
+			if ( imageCount )
+				bgOptions.push( [ '6', 'Random image' ] );
+
+			if ( videoCount )
+				bgOptions.push( [ '7', 'Random video' ] );
+
+			if ( imageCount <= MAX_BG_SINGLE_MEDIA )
+				bgOptions = bgOptions.concat( bgImages.map( item => [ `6${item}`, `🖼️ ${ getFileName( item ) }` ] ) );
+
+			if ( videoCount <= MAX_BG_SINGLE_MEDIA )
+				bgOptions = bgOptions.concat( bgVideos.map( item => [ `7${item}`, `🎬 ${ getFileName( item ) }` ] ) );
+
+			populateSelect( elBackground, bgOptions );
 		})
 		.catch( e => {} ); // fail silently
 
