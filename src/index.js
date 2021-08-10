@@ -170,7 +170,7 @@ const presets = {
 		fillAlpha   : 0.1,
 		barSpace    : 0.1,
 		reflex      : 0,
-		bgImageDim  : 0.3,
+		bgImageDim  : 0.5,
 		bgImageFit  : 1, 	// center
 		radial      : 0,
 		spin        : 2,
