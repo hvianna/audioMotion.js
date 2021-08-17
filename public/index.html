@@ -48,6 +48,22 @@
 	<div class="player-area">
 
 		<div id="bg_container" class="bg-container">
+			<div id="warp" class="warp">
+				<div class="warp-block">
+					<div class="warp-wall warp-wall-right"></div>
+					<div class="warp-wall warp-wall-left"></div>
+					<div class="warp-wall warp-wall-top"></div>
+					<div class="warp-wall warp-wall-bottom"></div>
+					<div class="warp-wall warp-wall-back"></div>
+				</div>
+				<div class="warp-block">
+					<div class="warp-wall warp-wall-right"></div>
+					<div class="warp-wall warp-wall-left"></div>
+					<div class="warp-wall warp-wall-top"></div>
+					<div class="warp-wall warp-wall-bottom"></div>
+					<div class="warp-wall warp-wall-back"></div>
+				</div>
+			</div>
 			<video id="video" autoplay loop muted></video>
 			<div id="bg_dim" class="bg-dim"></div>
 			<div id="analyzer" class="analyzer"></div>
@@ -233,7 +249,7 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Image fit
+				<span class="config-label help">Bg image fit
 					<span class="tooltip">
 						Adjust the size and position of the background image | <kbd>Shift</kbd><kbd>B</kbd>
 					</span>
@@ -242,9 +258,9 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Image dim
+				<span class="config-label help">Background dim
 					<span class="tooltip">
-						Adjust the intensity of the background image
+						Adjust the intensity of the background image or video
 					</span>
 				</span>
 				<div class="value"></div>
@@ -310,9 +326,9 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Fullscreen height
+				<span class="config-label help">FS height
 					<span class="tooltip">
-					fullscreen analyzer height (%)<br><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd>
+					Fullscreen analyzer height (%)<br><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd>
 					</span>
 				</span>
 				<div class="value"></div>

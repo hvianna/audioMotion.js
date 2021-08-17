@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.8-beta.0
+ * @version   21.8-beta.1
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.8-beta.0';
+const VERSION = '21.8-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -38,11 +38,11 @@ import './notie.css';
 
 import './styles.css';
 
-const BG_DIR = 'backgrounds'; 	// folder name for background images and videos (no slashes!)
+const BG_DIRECTORY = 'backgrounds'; // folder name for background images and videos (no slashes!)
 
 const MAX_BG_SINGLE_MEDIA = 10; // max number of individual images and videos (each) selectable as background
 
-const KNOB_DELAY = 50; 			// delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
+const KNOB_DELAY = 50; // delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
 
 const MAX_METADATA_REQUESTS = 4;
 
@@ -67,6 +67,7 @@ const $  = document.querySelector.bind( document ),
 // Analyzer elements
 const elContainer   = $('#bg_container'),		// outer container with background image
 	  elVideo       = $('#video'),				// background video
+	  elWarp        = $('#warp'),				// warp tunnel effect layer
 	  elDim         = $('#bg_dim'),				// background image/video darkening layer
 	  elAnalyzer    = $('#analyzer'),			// analyzer canvas container
 	  elOSD         = $('#osd'),				// message canvas
@@ -353,6 +354,24 @@ const infoDisplayDefaults = {
 	count : true  // show song number and play queue count
 }
 
+// Background option values
+const BG_DEFAULT = 0,
+	  BG_BLACK   = 1,
+	  BG_COVER   = 2,
+	  BG_IMAGE   = 3,
+	  BG_VIDEO   = 4;
+
+// Background image fit option values
+const BGFIT_ADJUST   = 0,
+	  BGFIT_CENTER   = 1,
+	  BGFIT_REPEAT   = 2,
+	  BGFIT_PULSE    = 3,
+	  BGFIT_ZOOM_IN  = 4,
+	  BGFIT_ZOOM_OUT = 5,
+	  BGFIT_WARP     = 6,
+	  BGFIT_WARP_ANI = 7,
+	  BGFIT_WARP_ROT = 8;
+
 /**
  * Helper functions
  */
@@ -429,42 +448,47 @@ function setProperty( elems, save ) {
 	for ( const el of elems ) {
 		switch ( el ) {
 			case elBackground:
-				let bgOption = elBackground.value[0],
-					filename = elBackground.value.slice(1);
+				const bgOption  = +elBackground.value[0],
+					  isOverlay = bgOption == BG_COVER || bgOption == BG_IMAGE || bgOption == BG_VIDEO;
 
-				audioMotion.overlay = ( bgOption > 1 );
-				audioMotion.showBgColor = ( bgOption == 0 );
+				let filename = elBackground.value.slice(1);
 
-				if ( bgOption == 7 ) {
+				audioMotion.overlay = isOverlay;
+				audioMotion.showBgColor = bgOption == BG_DEFAULT;
+
+				if ( bgOption == BG_VIDEO ) {
 					elVideo.style.display = ''; // enable display of video layer
 					if ( ! filename )
 						filename = bgVideos[ randomInt( bgVideos.length ) ]; // pick a new random video from the list
 
 					if ( ! decodeURIComponent( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file already in use
-						elVideo.src = BG_DIR + '/' + encodeURIComponent( filename );
+						elVideo.src = BG_DIRECTORY + '/' + encodeURIComponent( filename );
 				}
 				else {
 					elVideo.style.display = 'none'; // hide video layer
-					if ( bgOption > 1 ) {
-						if ( bgOption == 6 && ! filename )
+					if ( isOverlay ) {
+						if ( bgOption == BG_IMAGE && ! filename )
 							filename = bgImages[ randomInt( bgImages.length ) ];
 
 						if ( filename )
-							filename = BG_DIR + '/' + encodeURIComponent( filename );
+							filename = BG_DIRECTORY + '/' + encodeURIComponent( filename );
 
-						const imageUrl = filename || coverImage.src;
-						elContainer.style.backgroundImage = `url('${imageUrl}')`;
+						setBackgroundImage( filename || coverImage.src );
 					}
 					else
-						elContainer.style.backgroundImage = '';
+						setBackgroundImage();
 				}
 				break;
 
 			case elBgImageFit:
-				const bgFit = elBgImageFit.value;
-				elContainer.classList.toggle( 'repeat', bgFit == 2 );
-				elContainer.classList.toggle( 'cover', bgFit == 0 );
+				const bgFit  = elBgImageFit.value,
+					  isWarp = bgFit == BGFIT_WARP || bgFit == BGFIT_WARP_ANI || bgFit == BGFIT_WARP_ROT;
+				elContainer.classList.toggle( 'repeat', bgFit == BGFIT_REPEAT );
+				elContainer.classList.toggle( 'cover', bgFit == BGFIT_ADJUST || isWarp );
 				elContainer.style.backgroundSize = '';
+				elWarp.style.display = isWarp ? '' : 'none';
+				elWarp.classList.toggle( 'rotating', bgFit == BGFIT_WARP_ROT );
+				elWarp.classList.toggle( 'paused', bgFit == BGFIT_WARP );
 				break;
 
 			case elBgImageDim:
@@ -629,9 +653,16 @@ function setProperty( elems, save ) {
  * Set the cover image for the current audio element
  */
 function setCurrentCover() {
-	coverImage.src = audioElement[ currAudio ].dataset.cover.replace( /'/g, "\\'" ); // escape single quotes to use in CSS attribute
-	if ( elBackground.value == 2 )
-		elContainer.style.backgroundImage = `url('${coverImage.src}')`;
+	coverImage.src = audioElement[ currAudio ].dataset.cover;
+	if ( elBackground.value == BG_COVER )
+		setBackgroundImage( coverImage.src );
+}
+
+/**
+ * Set the background image CSS variable
+ */
+function setBackgroundImage( url ) {
+	document.documentElement.style.setProperty( '--background-image', `url( ${ url.replace( /['()]/g, '\\$&' ) } )` );
 }
 
 /**
@@ -1398,7 +1429,8 @@ function displayCanvasMsg() {
 		  trackData  = audioEl.dataset,
 		  remaining  = audioEl.duration - audioEl.currentTime,
 		  endTimeout = elEndTimeout.value | 0,
-		  bgOption   = elBackground.value[0];
+		  bgOption   = elBackground.value[0],
+		  bgImageFit = elBgImageFit.value;
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	if ( remaining < .1 )
@@ -1408,15 +1440,18 @@ function displayCanvasMsg() {
 	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
 		setCanvasMsg( 1, remaining, -1 );
 
-	// update background image for pulse and zoom effects
-	if ( bgOption > 1 && bgOption < 7 && elBgImageFit.value > 2 ) {
+	// compute background image size for pulse and zoom in/out effects
+	if (
+		( bgImageFit == BGFIT_PULSE || bgImageFit == BGFIT_ZOOM_IN || bgImageFit == BGFIT_ZOOM_OUT ) &&
+		( bgOption == BG_COVER || bgOption == BG_IMAGE )
+	) {
 		let size;
 
-		if ( elBgImageFit.value == 3 )	// pulse
-			size = ( audioMotion.energy * 70 | 0 ) - 25;
+		if ( bgImageFit == BGFIT_PULSE )
+			size = ( audioMotion.getEnergy() * 70 | 0 ) - 25;
 		else {
 			const songProgress = audioEl.currentTime / audioEl.duration;
-			size = ( elBgImageFit.value == 4 ? songProgress : 1 - songProgress ) * 100;
+			size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
 		}
 
 		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
@@ -1808,6 +1843,12 @@ function loadPreset( name, alert, init ) {
 				setBalance( val );
 			else {
 				el.value = val;
+				if ( el.value != val ) { // handle invalid values
+					if ( el instanceof HTMLSelectElement )
+						el.selectedIndex = 0;
+					else
+						el.value = el.min || 0;
+				}
 				updateRangeValue( el );
 			}
 		}
@@ -2837,18 +2878,21 @@ function setInfoOptions( options ) {
 	]);
 
 	populateSelect(	elBackground, [
-		[ '0', 'Gradient default' ],
-		[ '1', 'Black'            ],
-		[ '2', 'Album cover'      ]
+		[ BG_DEFAULT, 'Gradient default' ],
+		[ BG_BLACK,   'Black'            ],
+		[ BG_COVER,   'Album cover'      ]
 	]);
 
 	populateSelect( elBgImageFit, [
-		[ '0', 'Adjust'   ],
-		[ '1', 'Center'   ],
-		[ '3', 'Pulse'    ],
-		[ '2', 'Repeat'   ],
-		[ '4', 'Zoom In'  ],
-		[ '5', 'Zoom Out' ]
+		[ BGFIT_ADJUST,   'Adjust'          ],
+		[ BGFIT_CENTER,   'Center'          ],
+		[ BGFIT_PULSE,    'Pulse'           ],
+		[ BGFIT_REPEAT,   'Repeat'          ],
+		[ BGFIT_ZOOM_IN,  'Zoom In'         ],
+		[ BGFIT_ZOOM_OUT, 'Zoom Out'        ],
+		[ BGFIT_WARP,     'Warp Tunnel'     ],
+		[ BGFIT_WARP_ANI, 'Warp (moving)'   ],
+		[ BGFIT_WARP_ROT, 'Warp (rotating)' ]
 	]);
 
 	populateSelect( elMirror, [
@@ -2857,8 +2901,8 @@ function setInfoOptions( options ) {
 		[ '1',  'Right'   ]
 	]);
 
-	// Load additional background options from the backgrounds directory
-	const bgDirPromise = fetch( BG_DIR )
+	// Check the backgrounds directory for additional background options (images and videos)
+	const bgDirPromise = fetch( BG_DIRECTORY )
 		.then( response => response.text() )
 		.then( content => {
 			const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,

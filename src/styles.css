@@ -5,6 +5,7 @@
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+	--background-image: url();
 }
 
 * {
@@ -212,19 +213,24 @@ table {
 }
 
 .analyzer {
+	left: 0;
 	overflow: hidden;
 	position: absolute;
+	top: 0;
 	width: 100%;
 }
 
 .bg-container {
 	background: #000;
+	background-image: var(--background-image);
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: auto 100%;
 	height: calc( 100vh - 570px );
 	min-height: 270px;
+	overflow: hidden;
 	position: relative;
+	text-align: center;
 }
 .bg-container.repeat {
 	background-repeat: repeat-x;
@@ -243,16 +249,13 @@ table {
 	height: 100% !important;
 }
 
-.bg-container video {
-	height: 100%;
-	object-fit: cover;
-	position: absolute;
-	width: 100%;
-}
-
+.bg-container video,
 .bg-dim {
 	height: 100%;
+	left: 0;
+	object-fit: cover;
 	position: absolute;
+	top: 0;
 	width: 100%;
 }
 
@@ -274,7 +277,9 @@ table {
 }
 
 .osd {
+	left: 0;
 	position: absolute;
+	top: 0;
 }
 
 #playlists {
@@ -928,8 +933,7 @@ input.slider:not(:checked) + .slider .slider-on {
 
 /**
  *  Pure CSS modal windows
- **/
-
+ */
 .modal-window {
 	background-color: #000d;
 	bottom: 0;
@@ -985,7 +989,7 @@ input.slider:not(:checked) + .slider .slider-on {
 }
 
 /**
- * volume knob
+ * Volume and balance knobs
  */
 .knob {
 	background: url(img/brushed-knob.png);
@@ -1062,6 +1066,113 @@ input.slider:not(:checked) + .slider .slider-on {
 	transition: all 200ms ease-in-out;
 	transform-origin: -100% 50%;
 	width: 25%;
+}
+
+/**
+ * Warp Tunnel effect
+ */
+:root {
+	--warp-duration: 12s;
+	--warp-size: 1000px;
+}
+
+.bg-container::before {
+	content: '';
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.warp {
+	display: inline-block;
+	perspective: 15px;
+	perspective-origin: 50% 50%;
+	position: relative;
+	vertical-align: middle;
+}
+.warp.rotating {
+	animation: warp-rotate 30s infinite linear;
+}
+
+.warp-block {
+	animation: warp-move var(--warp-duration) infinite linear;
+	animation-fill-mode: forwards;
+	height: var(--warp-size);
+	left: calc( var(--warp-size) / -2 );
+	position: absolute;
+	top: calc( var(--warp-size) / -2 );
+	transform-style: preserve-3d;
+	width: var(--warp-size);
+}
+.warp-block:nth-child(2) {
+	animation: warp-move var(--warp-duration) infinite linear;
+	animation-delay: calc( var(--warp-duration) / 2 );
+}
+
+.warp-wall {
+	animation: warp-fade var(--warp-duration) infinite linear;
+	background: var(--background-image);
+	background-size: cover;
+	height: 100%;
+	position: absolute;
+	opacity: 0;
+	width: 100%;
+}
+.warp-block:nth-child(2) .warp-wall {
+	animation-delay: calc( var(--warp-duration) / 2 );
+}
+.warp-wall-right {
+	transform: rotateY(90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-left {
+	transform: rotateY(-90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-top {
+	transform: rotateX(90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-bottom {
+	transform: rotateX(-90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-back {
+	transform: rotateX(180deg) scaleY(-1) translateZ( calc( var(--warp-size) / 2 ) );
+}
+
+.warp.paused,
+.paused .warp-block,
+.paused .warp-wall {
+	animation: none;
+	opacity: 1;
+}
+
+@keyframes warp-fade {
+	0% {
+		opacity: 0;
+	}
+	25% {
+		opacity: 1;
+	}
+	75% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes warp-move {
+	0% {
+		transform: translateZ( calc( var(--warp-size) / -2 ) ) rotate(0deg);
+	}
+	100% {
+		transform: translateZ( calc( var(--warp-size) / 2 ) ) rotate(0deg);
+	}
+}
+@keyframes warp-rotate {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
 /* Responsive layout */

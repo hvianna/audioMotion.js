@@ -137,6 +137,7 @@ Some of audioMotion's great features are provided by these awesome open-source l
 * [CSS slider switches](https://codepen.io/billyysea/pen/CHmiE) by Billy
 * Radial brushed metal texture taken from [this pen](https://codepen.io/GreenSock/pen/gnoDc) by GreenSock
 * Volume knob design based on [Dark dial](https://codepen.io/stormwarning/pen/yNGeMm) by Jeff
+* Warp Tunnel effect based on [this pen](https://codepen.io/trangthule/pen/vYmpNYR) by bytrangle
 
 ### Music files used in the demo site
 
