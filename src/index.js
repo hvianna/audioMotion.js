@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.8-beta.1
+ * @version   21.8-beta.2
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.8-beta.1';
+const VERSION = '21.8-beta.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -48,6 +48,24 @@ const MAX_METADATA_REQUESTS = 4;
 
 const MAX_QUEUED_SONGS = 1000;
 
+// Background option values
+const BG_DEFAULT = '0',
+	  BG_BLACK   = '1',
+	  BG_COVER   = '2',
+	  BG_IMAGE   = '3',
+	  BG_VIDEO   = '4';
+
+// Background image fit option values
+const BGFIT_ADJUST   = '0',
+	  BGFIT_CENTER   = '1',
+	  BGFIT_REPEAT   = '2',
+	  BGFIT_PULSE    = '3',
+	  BGFIT_ZOOM_IN  = '4',
+	  BGFIT_ZOOM_OUT = '5',
+	  BGFIT_WARP     = '6',
+	  BGFIT_WARP_ANI = '7',
+	  BGFIT_WARP_ROT = '8';
+
 // dataset template for playqueue items and audio elements
 const DATASET_TEMPLATE = {
 	file: '',
@@ -59,6 +77,16 @@ const DATASET_TEMPLATE = {
 	duration: '',
 	cover: ''
 };
+
+// localStorage keys
+const KEY_LAST_CONFIG    = 'last-config',
+	  KEY_CUSTOM_PRESET  = 'custom-preset',
+	  KEY_DISABLED_MODES = 'disabled-modes',
+	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
+	  KEY_DISABLED_GRADS = 'disabled-gradients',
+	  KEY_DISABLED_PROPS = 'disabled-properties',
+	  KEY_SENSITIVITY    = 'sensitivity-presets',
+	  KEY_DISPLAY_OPTS   = 'display-options';
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -354,23 +382,18 @@ const infoDisplayDefaults = {
 	count : true  // show song number and play queue count
 }
 
-// Background option values
-const BG_DEFAULT = 0,
-	  BG_BLACK   = 1,
-	  BG_COVER   = 2,
-	  BG_IMAGE   = 3,
-	  BG_VIDEO   = 4;
-
-// Background image fit option values
-const BGFIT_ADJUST   = 0,
-	  BGFIT_CENTER   = 1,
-	  BGFIT_REPEAT   = 2,
-	  BGFIT_PULSE    = 3,
-	  BGFIT_ZOOM_IN  = 4,
-	  BGFIT_ZOOM_OUT = 5,
-	  BGFIT_WARP     = 6,
-	  BGFIT_WARP_ANI = 7,
-	  BGFIT_WARP_ROT = 8;
+// Background Image Fit options
+const bgFitOptions = [
+	{ value: BGFIT_ADJUST,   text: 'Adjust',          disabled: false },
+	{ value: BGFIT_CENTER,   text: 'Center',          disabled: false },
+	{ value: BGFIT_PULSE,    text: 'Pulse',           disabled: false },
+	{ value: BGFIT_REPEAT,   text: 'Repeat',          disabled: false },
+	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',         disabled: false },
+	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',        disabled: false },
+	{ value: BGFIT_WARP,     text: 'Warp Tunnel',     disabled: false },
+	{ value: BGFIT_WARP_ANI, text: 'Warp (moving)',   disabled: false },
+	{ value: BGFIT_WARP_ROT, text: 'Warp (rotating)', disabled: false }
+];
 
 /**
  * Helper functions
@@ -448,8 +471,8 @@ function setProperty( elems, save ) {
 	for ( const el of elems ) {
 		switch ( el ) {
 			case elBackground:
-				const bgOption  = +elBackground.value[0],
-					  isOverlay = bgOption == BG_COVER || bgOption == BG_IMAGE || bgOption == BG_VIDEO;
+				const bgOption  = elBackground.value[0],
+					  isOverlay = bgOption != BG_DEFAULT && bgOption != BG_BLACK;
 
 				let filename = elBackground.value.slice(1);
 
@@ -543,9 +566,6 @@ function setProperty( elems, save ) {
 				break;
 
 			case elMode:
-				if ( elMode.value === '' ) // handle invalid setting
-					elMode.selectedIndex = 0;
-
 				const mode = elMode.value;
 				if ( mode < 10 )
 					audioMotion.mode = mode;
@@ -681,6 +701,14 @@ function clearAudioElement( n = currAudio ) {
 }
 
 /**
+ * Delete all child nodes of an element
+ */
+function deleteChildren( el ) {
+	while ( el.firstChild )
+		el.removeChild( el.firstChild );
+}
+
+/**
  * Clear the play queue
  */
 function clearPlayQueue() {
@@ -706,8 +734,7 @@ function loadSavedPlaylists( keyName ) {
 
 	// reset UI playlist selection box
 
-	while ( elPlaylists.hasChildNodes() )
-		elPlaylists.removeChild( elPlaylists.firstChild );
+	deleteChildren( elPlaylists );
 
 	const item = new Option( 'Select a playlist', '' );
 	item.disabled = true;
@@ -1843,12 +1870,8 @@ function loadPreset( name, alert, init ) {
 				setBalance( val );
 			else {
 				el.value = val;
-				if ( el.value != val ) { // handle invalid values
-					if ( el instanceof HTMLSelectElement )
-						el.selectedIndex = 0;
-					else
-						el.value = el.min || 0;
-				}
+				if ( el.selectedIndex == -1 ) // fix invalid values in select elements
+					el.selectedIndex = 0;
 				updateRangeValue( el );
 			}
 		}
@@ -1860,7 +1883,7 @@ function loadPreset( name, alert, init ) {
 	if ( thisPreset.minDb !== undefined && thisPreset.maxDb !== undefined ) { // legacy options (version =< 19.12)
 		$('.min-db[data-preset="1"]').value = thisPreset.minDb;
 		$('.max-db[data-preset="1"]').value = thisPreset.maxDb;
-		savePreferences('sens');
+		savePreferences( KEY_SENSITIVITY );
 	}
 
 	audioMotion.setOptions( {
@@ -1903,11 +1926,10 @@ function loadPreset( name, alert, init ) {
 }
 
 /**
- * Save / update a configuration
+ * Return an object with the current settings
  */
-function saveConfig( config ) {
-
-	const settings = {
+function getCurrentSettings() {
+	return {
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
@@ -1943,22 +1965,20 @@ function saveConfig( config ) {
 		volume      : elVolume.dataset.value,
 		balance     : elBalance.dataset.value
 	};
-
-	saveToStorage( config, settings );
 }
 
 /**
  * Update last used configuration
  */
 function updateLastConfig() {
-	saveConfig( 'last-config' );
+	saveToStorage( KEY_LAST_CONFIG, getCurrentSettings() );
 }
 
 /**
  * Update custom preset
  */
 function updateCustomPreset() {
-	saveConfig( 'custom-preset' );
+	saveToStorage( KEY_CUSTOM_PRESET, getCurrentSettings() );
 	$('#preset').value = 'custom';
 	notie.alert({ text: 'Custom preset saved!' });
 }
@@ -2344,23 +2364,26 @@ function cycleScale( prev ) {
 }
 
 /**
- * Populate UI visualization modes combo box
+ * Populate a select element
+ *
+ * @param element
+ * @param options - an array of arrays or objects
  */
-function populateVisualizationModes() {
-	const mode = elMode.value;
+function populateSelect( element, options ) {
+	const oldValue  = element.value,
+		  hasConfig = ! Array.isArray( options[0] );
 
-	while ( elMode.firstChild )
-		elMode.removeChild( elMode.firstChild );
+	if ( hasConfig )
+		deleteChildren( element );
 
-	for ( const item of modeOptions ) {
-		if ( ! item.disabled )
-			elMode[ elMode.options.length ] = new Option( item.text, item.value );
-	}
+	for ( const item of ( hasConfig ? options.filter( i => ! i.disabled ) : options ) )
+		element[ element.options.length ] = new Option( item.text || item[1], item.value || item[0] );
 
-	// restore previously selected mode
-	if ( mode !== '' ) {
-		elMode.value = mode;
-		setProperty( elMode, true );
+	if ( oldValue !== '' ) {
+		element.value = oldValue;
+		if ( element.selectedIndex == -1 ) // old value disabled
+			element.selectedIndex = 0;
+		setProperty( element, true );
 	}
 }
 
@@ -2369,9 +2392,7 @@ function populateVisualizationModes() {
  */
 function populateGradients() {
 	let grad = elGradient.value;
-
-	while ( elGradient.firstChild )
-		elGradient.removeChild( elGradient.firstChild );
+	deleteChildren( elGradient );
 
 	// add the option to the html select element for the user interface
 	for ( const key of Object.keys( gradients ) ) {
@@ -2534,29 +2555,36 @@ function setUIEventListeners() {
  */
 function doConfigPanel() {
 
-	// Enabled visualization modes
-
-	const elEnabledModes = $('#enabled_modes');
-
-	modeOptions.forEach( mode => {
-		elEnabledModes.innerHTML += `<label><input type="checkbox" class="enabledMode" data-mode="${mode.value}" ${mode.disabled ? '' : 'checked'}> ${mode.text}</label>`;
-	});
-
-	$$('.enabledMode').forEach( el => {
-		el.addEventListener( 'click', event => {
-			if ( ! el.checked ) {
-				const count = modeOptions.filter( item => ! item.disabled ).length;
-				if ( count < 2 ) {
-					notie.alert({ text: 'At least one Mode must be enabled!' });
-					event.preventDefault();
-					return false;
-				}
-			}
-			modeOptions.find( item => item.value == el.dataset.mode ).disabled = ! el.checked;
-			populateVisualizationModes();
-			savePreferences('mode');
+	// helper function
+	const buildOptions = ( container, cssClass, options, parent, cfgKey ) => {
+		// create checkboxes inside the container
+		options.forEach( item => {
+			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${item.disabled ? '' : 'checked'}> ${item.text}</label>`;
 		});
-	});
+
+		// add event listeners for enabling/disabling options
+		$$( `.${cssClass}` ).forEach( element => {
+			element.addEventListener( 'click', event => {
+				if ( ! element.checked ) {
+					const count = options.filter( item => ! item.disabled ).length;
+					if ( count < 2 ) {
+						notie.alert({ text: 'At least one item must be enabled!' });
+						event.preventDefault();
+						return false;
+					}
+				}
+				options.find( item => item.value == element.dataset.option ).disabled = ! element.checked;
+				populateSelect( parent, options );
+				savePreferences( cfgKey );
+			});
+		});
+	}
+
+	// Enabled visualization modes
+	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
+
+	// Enabled Background Image Fit options
+	buildOptions( $('#enabled_bgfit'), 'enabledMode', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
 	// Enabled gradients
 
@@ -2578,7 +2606,7 @@ function doConfigPanel() {
 			}
 			gradients[ el.dataset.grad ].disabled = ! el.checked;
 			populateGradients();
-			savePreferences('grad');
+			savePreferences( KEY_DISABLED_GRADS );
 		});
 	});
 
@@ -2593,7 +2621,7 @@ function doConfigPanel() {
 	$$('.randomProperty').forEach( el => {
 		el.addEventListener( 'click', event => {
 			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
-			savePreferences('prop');
+			savePreferences( KEY_DISABLED_PROPS );
 		});
 	});
 
@@ -2605,25 +2633,25 @@ function doConfigPanel() {
 				$(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
 				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
 					setProperty( elSensitivity );
-				savePreferences('sens');
+				savePreferences( KEY_SENSITIVITY );
 			});
 		}
 		else {
 			el.addEventListener( 'change', () => {
 				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
 					setProperty( elSensitivity );
-				savePreferences('sens');
+				savePreferences( KEY_SENSITIVITY );
 			});
 		}
 	});
 
 	// On-screen display options
 	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover, elShowCount ] )
-		el.addEventListener( 'change', () => savePreferences('osd') );
+		el.addEventListener( 'change', () => savePreferences( KEY_DISPLAY_OPTS ) );
 
 	$('#reset_osd').addEventListener( 'click', () => {
 		setInfoOptions( infoDisplayDefaults );
-		savePreferences('osd');
+		savePreferences( KEY_DISPLAY_OPTS );
 	});
 }
 
@@ -2631,26 +2659,33 @@ function doConfigPanel() {
  * Load preferences from localStorage
  */
 function loadPreferences() {
+	// helper function
+	const parseDisabled = ( jsonData, options ) => {
+		if ( jsonData !== null ) {
+			JSON.parse( jsonData ).forEach( option => {
+				options.find( item => item.value == option ).disabled = true;
+			});
+		}
+	}
+
 	// Load last used settings
-	const lastConfig    = localStorage.getItem( 'last-config' ),
+	const lastConfig    = localStorage.getItem( KEY_LAST_CONFIG ),
 		  isLastSession = ( lastConfig !== null );
 
 	// if no data found from last session, use the defaults (in the demo site use the demo preset)
 	presets['last'] = JSON.parse( lastConfig ) || { ...presets[ location.host.startsWith('demo.') ? 'demo' : 'default' ] };
 
 	// Load custom preset; if none found in storage, use the last settings
-	presets['custom'] = JSON.parse( localStorage.getItem( 'custom-preset' ) ) || { ...presets['last'] };
+	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) ) || { ...presets['last'] };
 
 	// Load disabled modes preference
-	const disabledModes = localStorage.getItem( 'disabled-modes' );
-	if ( disabledModes !== null ) {
-		JSON.parse( disabledModes ).forEach( mode => {
-			modeOptions.find( item => item.value == mode ).disabled = true;
-		});
-	}
+	parseDisabled( localStorage.getItem( KEY_DISABLED_MODES ), modeOptions );
+
+	// Load disabled background image fit options
+	parseDisabled( localStorage.getItem( KEY_DISABLED_BGFIT ), bgFitOptions );
 
 	// Load disabled gradients preference
-	const disabledGradients = localStorage.getItem( 'disabled-gradients' );
+	const disabledGradients = localStorage.getItem( KEY_DISABLED_GRADS );
 	if ( disabledGradients !== null ) {
 		JSON.parse( disabledGradients ).forEach( key => {
 			gradients[ key ].disabled = true;
@@ -2658,12 +2693,7 @@ function loadPreferences() {
 	}
 
 	// Load disabled random properties preference
-	const disabledProperties = localStorage.getItem( 'disabled-properties' );
-	if ( disabledProperties !== null ) {
-		JSON.parse( disabledProperties ).forEach( prop => {
-			randomProperties.find( item => item.value == prop ).disabled = true;
-		});
-	}
+	parseDisabled( localStorage.getItem( KEY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -2674,7 +2704,7 @@ function loadPreferences() {
 	for ( let i = 0; i >= -40; i -= 5 )
 		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
 
-	const sensitivityPresets = JSON.parse( localStorage.getItem( 'sensitivity-presets' ) ) || sensitivityDefaults;
+	const sensitivityPresets = JSON.parse( localStorage.getItem( KEY_SENSITIVITY ) ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -2682,7 +2712,7 @@ function loadPreferences() {
 	});
 
 	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( 'display-options' ) ) || {} ) } );
+	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( KEY_DISPLAY_OPTS ) ) || {} ) } );
 
 	return isLastSession;
 }
@@ -2700,19 +2730,25 @@ function saveToStorage( key, data ) {
 /**
  * Save Config Panel preferences to localStorage
  *
- * @param [pref] {string} preference to save; if undefined save all preferences (default)
+ * @param [key] {string} preference to save; if undefined save all preferences (default)
  */
-function savePreferences( pref ) {
-	if ( ! pref || pref == 'mode' )
-		saveToStorage( 'disabled-modes', modeOptions.filter( item => item.disabled ).map( item => item.value ) );
+function savePreferences( key ) {
+	// helper function
+	const getDisabledItems = items => items.filter( item => item.disabled ).map( item => item.value );
 
-	if ( ! pref || pref == 'grad' )
-		saveToStorage( 'disabled-gradients', Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
+	if ( ! key || key == KEY_DISABLED_MODES )
+		saveToStorage( KEY_DISABLED_MODES, getDisabledItems( modeOptions ) );
 
-	if ( ! pref || pref == 'prop' )
-		saveToStorage( 'disabled-properties', randomProperties.filter( item => item.disabled ).map( item => item.value ) );
+	if ( ! key || key == KEY_DISABLED_BGFIT )
+		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
 
-	if ( ! pref || pref == 'sens' ) {
+	if ( ! key || key == KEY_DISABLED_GRADS )
+		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
+
+	if ( ! key || key == KEY_DISABLED_PROPS )
+		saveToStorage( KEY_DISABLED_PROPS, getDisabledItems( randomProperties ) );
+
+	if ( ! key || key == KEY_SENSITIVITY ) {
 		let sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
@@ -2720,10 +2756,10 @@ function savePreferences( pref ) {
 				max: $(`.max-db[data-preset="${i}"]`).value
 			});
 		}
-		saveToStorage( 'sensitivity-presets', sensitivityPresets );
+		saveToStorage( KEY_SENSITIVITY, sensitivityPresets );
 	}
 
-	if ( ! pref || pref == 'osd' ) {
+	if ( ! key || key == KEY_DISPLAY_OPTS ) {
 		const displayOptions = {
 			info  : elInfoTimeout.value,
 			track : elTrackTimeout.value,
@@ -2731,7 +2767,7 @@ function savePreferences( pref ) {
 			covers: elShowCover.checked,
 			count : elShowCount.checked
 		}
-		saveToStorage( 'display-options', displayOptions );
+		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
 	}
 }
 
@@ -2829,7 +2865,7 @@ function setInfoOptions( options ) {
 
 	// Populate combo boxes
 
-	populateVisualizationModes();
+	populateSelect( elMode, modeOptions );
 
 	for ( let i = 9; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
@@ -2839,12 +2875,6 @@ function setInfoOptions( options ) {
 
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
-
-	// populate select elements
-	const populateSelect = ( element, options ) => {
-		for ( const item of options )
-			element[ element.options.length ] = new Option( item[1], item[0] );
-	}
 
 	populateSelect(	elSensitivity, [
 		[ '0', 'Low'    ],
@@ -2883,17 +2913,7 @@ function setInfoOptions( options ) {
 		[ BG_COVER,   'Album cover'      ]
 	]);
 
-	populateSelect( elBgImageFit, [
-		[ BGFIT_ADJUST,   'Adjust'          ],
-		[ BGFIT_CENTER,   'Center'          ],
-		[ BGFIT_PULSE,    'Pulse'           ],
-		[ BGFIT_REPEAT,   'Repeat'          ],
-		[ BGFIT_ZOOM_IN,  'Zoom In'         ],
-		[ BGFIT_ZOOM_OUT, 'Zoom Out'        ],
-		[ BGFIT_WARP,     'Warp Tunnel'     ],
-		[ BGFIT_WARP_ANI, 'Warp (moving)'   ],
-		[ BGFIT_WARP_ROT, 'Warp (rotating)' ]
-	]);
+	populateSelect( elBgImageFit, bgFitOptions );
 
 	populateSelect( elMirror, [
 		[ '0',  'Off' ],

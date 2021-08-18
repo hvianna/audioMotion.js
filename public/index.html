@@ -442,8 +442,8 @@
 	</div> <!-- #files_panel -->
 
 	<div id="config" class="modal-window">
-		<a href="#!" title="Close" class="modal-close"></a>
-		<div class="config-panel grid grid-3-cols">
+		<a href="#!" class="modal-close"></a>
+		<div class="config-panel grid grid-2-cols">
 			<a href="#!" class="modal-close-internal"></a>
 			<div>
 				<h3>Enabled Modes:</h3>
@@ -455,11 +455,17 @@
 				<div id="enabled_gradients" class="grid grid-2-cols">
 				</div>
 			</div>
-			<div class="rowspan-2">
+			<div>
+				<h3>Enabled Background Image Fit:</h3>
+				<div id="enabled_bgfit" class="grid grid-2-cols">
+				</div>
+			</div>
+			<div>
 				<h3>Options affected by Random Mode:</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
-
+			</div>
+			<div class="colspan-2">
 				<h3>Sensitivity presets:</h3>
 				<table>
 					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
@@ -507,24 +513,26 @@
 	</div>
 
 	<div id="about" class="modal-window">
-		<a href="#!" title="Close" class="modal-close"></a>
+		<a href="#!" class="modal-close"></a>
 		<div class="credits center">
-			<a href="#!" title="Close" class="modal-close-internal"></a>
-			<h1>audioMotion</h1>
-			<div>version <span id="version"></span></div>
-			<p>Copyright &copy; 2018-2021 Henrique Avila Vianna</p>
-			<ul>
-				<li><a href="https://audiomotion.me">Documentation website</a></li>
-				<li><a href="https://github.com/hvianna/audioMotion.js/">Source code available on GitHub</a></li>
-				<li><a href="https://audiomotion.me/#credits-and-acknowledgments">Credits and acknowledgments</a></li>
-			</ul>
+			<a href="#!" class="modal-close-internal"></a>
+			<div>
+				<h1>audioMotion</h1>
+				<div>version <span id="version"></span></div>
+				<p>Copyright &copy; 2018-2021 Henrique Avila Vianna</p>
+				<ul>
+					<li><a href="https://audiomotion.me">Documentation website</a></li>
+					<li><a href="https://github.com/hvianna/audioMotion.js/">Source code available on GitHub</a></li>
+					<li><a href="https://audiomotion.me/#credits-and-acknowledgments">Credits and acknowledgments</a></li>
+				</ul>
+			</div>
 		</div>
 	</div> <!-- #about -->
 
 	<div id="shortcuts" class="modal-window">
-		<a href="#!" title="Close" class="modal-close"></a>
+		<a href="#!" class="modal-close"></a>
 		<div class="shortcuts center">
-			<a href="#!" title="Close" class="modal-close-internal"></a>
+			<a href="#!" class="modal-close-internal"></a>
 			<h2>Keyboard shortcuts:</h2>
 			<table class="kbd-table">
 				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>volume up / down</td></tr>
