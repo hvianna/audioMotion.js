@@ -40,7 +40,7 @@ import './styles.css';
 
 const BG_DIRECTORY = 'backgrounds'; // folder name for background images and videos (no slashes!)
 
-const MAX_BG_SINGLE_MEDIA = 10; // max number of individual images and videos (each) selectable as background
+const MAX_BG_MEDIA_FILES = 20; // max number of media files (images and videos) selectable as background
 
 const KNOB_DELAY = 50; // delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
 
@@ -2916,21 +2916,16 @@ function setInfoOptions( options ) {
 			}
 
 			const imageCount = bgImages.length,
-				  videoCount = bgVideos.length;
-
-			let bgOptions  = [];
-
-			if ( imageCount )
-				bgOptions.push( [ '6', 'Random image' ] );
+				  videoCount = bgVideos.length,
+				  bgOptions  = bgImages.map( fn => [ BG_IMAGE + fn, '🖼️ ' + getFileName( fn ) ] ).concat(
+							   bgVideos.map( fn => [ BG_VIDEO + fn, '🎬 ' + getFileName( fn ) ] )
+							   ).slice( 0, MAX_BG_MEDIA_FILES );
 
 			if ( videoCount )
-				bgOptions.push( [ '7', 'Random video' ] );
+				bgOptions.splice( 0, 0, [ BG_VIDEO, 'Random video' ] );
 
-			if ( imageCount <= MAX_BG_SINGLE_MEDIA )
-				bgOptions = bgOptions.concat( bgImages.map( item => [ `6${item}`, `🖼️ ${ getFileName( item ) }` ] ) );
-
-			if ( videoCount <= MAX_BG_SINGLE_MEDIA )
-				bgOptions = bgOptions.concat( bgVideos.map( item => [ `7${item}`, `🎬 ${ getFileName( item ) }` ] ) );
+			if ( imageCount )
+				bgOptions.splice( 0, 0, [ BG_IMAGE, 'Random image' ] );
 
 			populateSelect( elBackground, bgOptions );
 		})
