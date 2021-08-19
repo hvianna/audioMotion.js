@@ -84,7 +84,7 @@
 
 			<ul>
 				<li id="btn_fullscreen" class="thin-button"><a href="#!"><u>F</u>ullscreen</a></li>
-				<li class="thin-button"><a href="#shortcuts">Controls</a></li>
+				<li class="thin-button"><a href="#shortcuts">Shortcuts</a></li>
 				<li class="thin-button"><a href="#about">About</a></li>
 			</ul>
 		</header>
@@ -447,61 +447,58 @@
 			<a href="#!" class="modal-close-internal"></a>
 			<div>
 				<h3>Enabled Modes:</h3>
-				<div id="enabled_modes" class="grid">
+				<div id="enabled_modes" class="grid grid-2-cols">
 				</div>
 			</div>
 			<div>
 				<h3>Enabled Gradients:</h3>
-				<div id="enabled_gradients" class="grid grid-2-cols">
+				<div id="enabled_gradients" class="grid grid-3-cols">
 				</div>
 			</div>
 			<div>
-				<h3>Enabled Background Image Fit:</h3>
+				<h3>Enabled BG Image Fit options:</h3>
 				<div id="enabled_bgfit" class="grid grid-2-cols">
 				</div>
 			</div>
 			<div>
-				<h3>Options affected by Random Mode:</h3>
+				<h3>Settings affected by Random Mode:</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
 			</div>
 			<div class="colspan-2">
 				<h3>Sensitivity presets:</h3>
 				<table>
-					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
+					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th></th></tr>
 					<tr>
 						<td>Low</td>
 						<td><select class="min-db" data-preset="0"></select></td>
 						<td><select class="max-db" data-preset="0"></select></td>
-						<td><button class="reset-sens" data-preset="0">Reset</button></td>
+						<td><button class="reset-sens" data-preset="0">Reset to defaults</button></td>
 					</tr>
 					<tr>
 						<td>Normal</td>
 						<td><select class="min-db" data-preset="1"></select></td>
 						<td><select class="max-db" data-preset="1"></select></td>
-						<td><button class="reset-sens" data-preset="1">Reset</button></td>
+						<td><button class="reset-sens" data-preset="1">Reset to defaults</button></td>
 					</tr>
 					<tr>
 						<td>High</td>
 						<td><select class="min-db" data-preset="2"></select></td>
 						<td><select class="max-db" data-preset="2"></select></td>
-						<td><button class="reset-sens" data-preset="2">Reset</button></td>
+						<td><button class="reset-sens" data-preset="2">Reset to defaults</button></td>
 					</tr>
 				</table>
 			</div>
 			<div class="colspan-2">
 				<h3>On-screen information display options:</h3>
-				Show for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for continuous display)</strong><br>
-				Show for <input id="track_timeout" type="number" min="0"> seconds at song start
-				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song<br>
-				<div class="flex align-center">
-					<div>
-						Show in song info:
-						<label><input type="checkbox" id="show_cover"> album cover</label>
-						<label><input type="checkbox" id="show_count"> track count</label>
-					</div>
-					<button id="reset_osd">Reset to defaults</button>
-				</div>
+				<p>Display info for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for continuous display)</strong></p>
+				<p>Display info for <input id="track_timeout" type="number" min="0"> seconds at song start
+				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song</p>
+				<p>Song info shows:
+					<label><input type="checkbox" id="show_cover"> album cover</label>
+					<label><input type="checkbox" id="show_count"> track count</label>
+				</p>
+				<p><br><button id="reset_osd">Reset to defaults</button></p>
 			</div>
 		</div>
 	</div> <!-- #config -->

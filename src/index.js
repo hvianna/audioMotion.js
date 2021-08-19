@@ -351,7 +351,7 @@ const modeOptions = [
 // Properties that may be changed by Random Mode
 const randomProperties = [
 	{ value: 'nobg',   text: 'Background',   disabled: false },
-	{ value: 'imgfit', text: 'Image Fit',    disabled: false },
+	{ value: 'imgfit', text: 'BG Image Fit', disabled: false },
 	{ value: 'reflex', text: 'Reflex',       disabled: false },
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },

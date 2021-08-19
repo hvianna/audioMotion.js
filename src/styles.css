@@ -295,10 +295,8 @@ table {
 }
 
 .config-panel {
-	background: #f5f5f5 !important;
 	font-size: 12px;
-	padding-top: 0 !important;
-	width: 600px;
+	width: 650px;
 }
 .config-panel table th,
 .config-panel table td {
@@ -310,6 +308,9 @@ table {
 .config-panel input[type="checkbox"] {
 	margin: 4px 0;
 	vertical-align: sub;
+}
+.config-panel p {
+	margin: .5em 0;
 }
 .config-panel > div:last-child {
 	padding-bottom: 2em;
@@ -825,7 +826,7 @@ kbd.wide {
 	background: var(--audioMotion-gradient);
 	background-clip: text;
 	display: inline;
-	font: 30px Orbitron, sans-serif;
+	font: 36px Orbitron, sans-serif;
 	margin: 0;
 	text-shadow: none;
 	-webkit-background-clip: text;
