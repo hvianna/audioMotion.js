@@ -480,7 +480,9 @@ function setProperty( elems, save ) {
 				audioMotion.showBgColor = bgOption == BG_DEFAULT;
 
 				if ( bgOption == BG_VIDEO ) {
+					setBackgroundImage(); // clear background image
 					elVideo.style.display = ''; // enable display of video layer
+
 					if ( ! filename )
 						filename = bgVideos[ randomInt( bgVideos.length ) ]; // pick a new random video from the list
 
@@ -682,7 +684,7 @@ function setCurrentCover() {
  * Set the background image CSS variable
  */
 function setBackgroundImage( url ) {
-	document.documentElement.style.setProperty( '--background-image', `url( ${ url.replace( /['()]/g, '\\$&' ) } )` );
+	document.documentElement.style.setProperty( '--background-image', url ? `url( ${ url.replace( /['()]/g, '\\$&' ) } )` : 'none' );
 }
 
 /**

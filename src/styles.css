@@ -5,7 +5,7 @@
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
-	--background-image: url();
+	--background-image: none;
 }
 
 * {
