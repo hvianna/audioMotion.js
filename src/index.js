@@ -256,7 +256,7 @@ const presets = {
 
 // Gradient definitions
 const gradients = {
-	apple:    { name: 'Apple ][', bgColor: '#111', colorStops: [
+	apple:    { name: 'Apple ][', colorStops: [
 				{ pos: .1667, color: '#61bb46' },
 				{ pos: .3333, color: '#fdb827' },
 				{ pos: .5, color: '#f5821f' },
@@ -324,7 +324,7 @@ const gradients = {
 				{ pos: .1, color: '#f56217' },
 				{ pos: 1, color: '#0b486b' }
 			  ], disabled: false },
-	tiedye:   { name: 'Tie Dye', bgColor: '#111', colorStops: [
+	tiedye:   { name: 'Tie Dye', colorStops: [
 				{ pos: .038, color: 'rgb( 15, 209, 165 )' },
 				{ pos: .208, color: 'rgb( 15, 157, 209 )' },
 				{ pos: .519, color: 'rgb( 133, 13, 230 )' },
@@ -2975,7 +2975,7 @@ function setInfoOptions( options ) {
 
 	// Register custom gradients
 	Object.keys( gradients ).forEach( key => {
-		if ( gradients[ key ].bgColor && gradients[ key ].colorStops )
+		if ( gradients[ key ].colorStops )
 			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
 	});
 	populateGradients();
