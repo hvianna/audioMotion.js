@@ -1418,11 +1418,8 @@ function isPlaying() {
 function toggleInfo() {
 	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
 		setCanvasMsg();
-	else {
-		const timeout = elInfoTimeout.value | 0 || Infinity;
-		// increase the information level (0 -> 1 -> 2)
-		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, timeout );
-	}
+	else // increase the information level (0 -> 1 -> 2) and reset the display timeout
+		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, +elInfoTimeout.value || Infinity ); // NOTE: canvasMsg.info may be undefined
 }
 
 /**
@@ -1458,7 +1455,7 @@ function displayCanvasMsg() {
 	const audioEl    = audioElement[ currAudio ],
 		  trackData  = audioEl.dataset,
 		  remaining  = audioEl.duration - audioEl.currentTime,
-		  endTimeout = elEndTimeout.value | 0,
+		  endTimeout = +elEndTimeout.value,
 		  bgOption   = elBackground.value[0],
 		  bgImageFit = elBgImageFit.value;
 
@@ -1847,7 +1844,7 @@ function loadPreset( name, alert, init ) {
 		thisPreset.randomMode |= 0;
 
 	if ( thisPreset.blackBg !== undefined ) // convert legacy blackBg property (version =< 20.4)
-		thisPreset.background = thisPreset.blackBg | 0;
+		thisPreset.background = +thisPreset.blackBg;
 
 	if ( thisPreset.showScale !== undefined ) { // convert legacy showScale property (version =< 20.9)
 		thisPreset.showScaleX = thisPreset.showScale & 1;
@@ -1866,7 +1863,7 @@ function loadPreset( name, alert, init ) {
 
 		if ( val !== undefined ) {
 			if ( el.classList.contains('switch') )
-				el.dataset.active = val | 0;
+				el.dataset.active = +val;
 			else if ( el == elVolume )
 				setVolume( val );
 			else if ( el == elBalance )
@@ -2196,7 +2193,7 @@ function audioOnPlay() {
 	}
 
 	if ( isSwitchOn( elShowSong ) ) {
-		const timeout = elTrackTimeout.value | 0 || Infinity;
+		const timeout = +elTrackTimeout.value || Infinity;
 		setCanvasMsg( 1, timeout );
 	}
 }
@@ -2352,7 +2349,7 @@ function cycleElement( el, prev ) {
  * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
  */
 function cycleScale( prev ) {
-	let scale = ( elScaleX.dataset.active | 0 ) + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
+	let scale = +elScaleX.dataset.active + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
 
 	if ( scale < 0 )
 		scale = 3;
@@ -2438,14 +2435,14 @@ function populatePresets( isLastSession, newValue ) {
  */
 function setUIEventListeners() {
 
-	// toggle settings
+	// open/close settings panel
 	const elToggleSettings = $('#toggle_settings');
 	elToggleSettings.addEventListener( 'click', () => {
 		$('#settings').classList.toggle('active', elToggleSettings.classList.toggle('active') );
 	});
 	$('.settings-close').addEventListener( 'click', () => elToggleSettings.click() );
 
-	// toggle console
+	// open/close console
 	const elToggleConsole = $('#toggle_console');
 	elToggleConsole.addEventListener( 'click', () => {
 		$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle('active') );
@@ -2455,32 +2452,27 @@ function setUIEventListeners() {
 	$('#console-close').addEventListener( 'click', () => elToggleConsole.click() );
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 
-	// Add event listeners to the custom checkboxes
+	// settings switches
 	$$('.switch').forEach( el => {
-		el.addEventListener( 'click', () => { el.dataset.active = ! ( el.dataset.active | 0 ) | 0 } );
+		el.addEventListener( 'click', () => {
+			el.dataset.active = +!+el.dataset.active;
+			setProperty( el, true );
+		});
 	});
 
-	[ elShowPeaks,
-	  elLedDisplay,
-	  elLumiBars,
-	  elLoRes,
-	  elFPS,
-  	  elScaleX,
-	  elScaleY,
-	  elRadial,
-	  elStereo,
-	  elSplitGrad ].forEach( el => el.addEventListener( 'click', () => setProperty( el, true ) ) );
+	// settings combo boxes and sliders ('change' event is only triggered for select and input elements)
+	$$('[data-prop]').forEach( el => {
+		el.addEventListener( 'change', () => {
+			setProperty( el, true );
+			updateRangeValue( el );
+		});
+	});
 
-	[ elCycleGrad,
-	  elRepeat,
-	  elShowSong,
-	  elNoShadow ].forEach( el => el.addEventListener( 'click', updateLastConfig ) );
-
-	// Add event listeners to UI config elements
-
+	// audio source selection and speakers mute
 	elSource.addEventListener( 'change', setSource );
 	elMute.addEventListener( 'change', () => toggleMute() );
 
+	// volume and balance knobs
 	[ elVolume,
 	  elBalance ].forEach( el => {
 	  	el.addEventListener( 'wheel', e => {
@@ -2500,28 +2492,6 @@ function setUIEventListeners() {
 	elBalance.addEventListener( 'dblclick', () => {
 		changeBalance(0);
 	});
-
-	[ elMode,
-	  elRandomMode,
-	  elFFTsize,
-	  elRangeMin,
-	  elRangeMax,
-	  elGradient,
-	  elSmoothing,
-	  elSensitivity,
-	  elLineWidth,
-	  elFillAlpha,
-	  elBarSpace,
-	  elReflex,
-	  elBackground,
-	  elBgImageDim,
-	  elBgImageFit,
-  	  elSpin,
-  	  elFsHeight,
-  	  elMirror ].forEach( el => el.addEventListener( 'change', () => setProperty( el, true ) ) );
-
-	// update range elements' value
-	$$('input[type="range"]').forEach( el => el.addEventListener( 'change', () => updateRangeValue( el ) ) );
 
 	// player controls
 	$('#btn_play').addEventListener( 'click', () => playPause() );
@@ -2561,7 +2531,7 @@ function setUIEventListeners() {
 	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
 
 	// clicks on canvas toggle info display on/off
-	elOSD.addEventListener( 'click', () =>	toggleInfo() );
+	elOSD.addEventListener( 'click', () => toggleInfo() );
 
 	// local file upload
 	$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
