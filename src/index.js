@@ -134,6 +134,7 @@ const elFFTsize     = $('#fft_size'),
 	  elSplitGrad   = $('#split_grad'),
 	  elFsHeight    = $('#fs_height'),
 	  elMirror      = $('#mirror'),
+	  elPreset      = $('#preset'),
 	  // player panel and playlists
 	  elSource      = $('#source'),
 	  elMute        = $('#mute'),
@@ -1963,9 +1964,7 @@ function getCurrentSettings() {
 		showFPS     : elFPS.dataset.active,
 		radial      : elRadial.dataset.active,
 		stereo      : elStereo.dataset.active,
-		splitGrad   : elSplitGrad.dataset.active,
-		volume      : elVolume.dataset.value,
-		balance     : elBalance.dataset.value
+		splitGrad   : elSplitGrad.dataset.active
 	};
 }
 
@@ -1973,16 +1972,18 @@ function getCurrentSettings() {
  * Update last used configuration
  */
 function updateLastConfig() {
-	saveToStorage( KEY_LAST_CONFIG, getCurrentSettings() );
+	saveToStorage( KEY_LAST_CONFIG, { ...getCurrentSettings(), volume: elVolume.dataset.value, balance: elBalance.dataset.value } );
 }
 
 /**
  * Update custom preset
  */
 function updateCustomPreset() {
-	saveToStorage( KEY_CUSTOM_PRESET, getCurrentSettings() );
-	$('#preset').value = 'custom';
+	const settings = getCurrentSettings();
+	presets['custom'] = settings;
+	saveToStorage( KEY_CUSTOM_PRESET, settings );
 	notie.alert({ text: 'Custom preset saved!' });
+	populatePresets( Array.from( elPreset.options, item => item.value ).includes('last'), 'custom' );
 }
 
 /**
@@ -2368,18 +2369,23 @@ function cycleScale( prev ) {
 /**
  * Populate a select element
  *
- * @param element
- * @param options - an array of arrays or objects
+ * @param element {object}
+ * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
+ * @param keep {boolean}  whether to keep existing content
  */
-function populateSelect( element, options ) {
-	const oldValue  = element.value,
-		  hasConfig = ! Array.isArray( options[0] );
+function populateSelect( element, options, keep ) {
+	const oldValue = element.value,
+		  isObject = ! Array.isArray( options[0] );
 
-	if ( hasConfig )
+	if ( ! keep )
 		deleteChildren( element );
 
-	for ( const item of ( hasConfig ? options.filter( i => ! i.disabled ) : options ) )
-		element[ element.options.length ] = new Option( item.text || item[1], item.value || item[0] );
+	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
+		const option = new Option( item.text || item[1], item.value || item[0] );
+		if ( option.value == '' )
+			option.disabled = true;
+		element[ element.options.length ] = option;
+	}
 
 	if ( oldValue !== '' ) {
 		element.value = oldValue;
@@ -2406,6 +2412,25 @@ function populateGradients() {
 		elGradient.value = grad;
 		setProperty( elGradient, true );
 	}
+}
+
+/**
+ * Populate presets combo box
+ */
+function populatePresets( isLastSession, newValue ) {
+	const presetOptions = [
+		[ '', 'Select preset' ],
+		[ 'demo', 'Demo (random)' ],
+		[ 'fullres', 'Full resolution' ],
+		[ 'ledbars', 'LED bars' ],
+		[ 'octave', 'Octave bands' ],
+		...( presets['custom'] ? [ [ 'custom', 'Custom' ] ] : [] ),
+		...( isLastSession ? [ [ 'last', 'Last session' ] ] : [] ),
+		[ 'default', 'Restore defaults' ]
+	];
+
+	populateSelect( elPreset, presetOptions );
+	elPreset.value = newValue || '';
 }
 
 /**
@@ -2517,7 +2542,6 @@ function setUIEventListeners() {
 
 	// action buttons
 	$('#load_preset').addEventListener( 'click', () => {
-		const elPreset = $('#preset');
 		if ( elPreset.value ) {
 			consoleLog( `Loading preset '${ getText( elPreset ) }'` );
 			loadPreset( elPreset.value, true );
@@ -2677,8 +2701,11 @@ function loadPreferences() {
 	// if no data found from last session, use the defaults (in the demo site use the demo preset)
 	presets['last'] = JSON.parse( lastConfig ) || { ...presets[ location.host.startsWith('demo.') ? 'demo' : 'default' ] };
 
-	// Load custom preset; if none found in storage, use the last settings
-	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) ) || { ...presets['last'] };
+	// Load custom preset
+	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) );
+
+	// Populate presets combo box
+	populatePresets( isLastSession );
 
 	// Load disabled modes preference
 	parseDisabled( localStorage.getItem( KEY_DISABLED_MODES ), modeOptions );
@@ -2949,7 +2976,7 @@ function setInfoOptions( options ) {
 			if ( imageCount )
 				bgOptions.splice( 0, 0, [ BG_IMAGE, 'Random image' ] );
 
-			populateSelect( elBackground, bgOptions );
+			populateSelect( elBackground, bgOptions, true ); // add more background options
 		})
 		.catch( e => {} ); // fail silently
 
