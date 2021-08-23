@@ -385,15 +385,15 @@ const infoDisplayDefaults = {
 
 // Background Image Fit options
 const bgFitOptions = [
-	{ value: BGFIT_ADJUST,   text: 'Adjust',          disabled: false },
-	{ value: BGFIT_CENTER,   text: 'Center',          disabled: false },
-	{ value: BGFIT_PULSE,    text: 'Pulse',           disabled: false },
-	{ value: BGFIT_REPEAT,   text: 'Repeat',          disabled: false },
-	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',         disabled: false },
-	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',        disabled: false },
-	{ value: BGFIT_WARP,     text: 'Warp Tunnel',     disabled: false },
-	{ value: BGFIT_WARP_ANI, text: 'Warp (moving)',   disabled: false },
-	{ value: BGFIT_WARP_ROT, text: 'Warp (rotating)', disabled: false }
+	{ value: BGFIT_ADJUST,   text: 'Adjust',      disabled: false },
+	{ value: BGFIT_CENTER,   text: 'Center',      disabled: false },
+	{ value: BGFIT_PULSE,    text: 'Pulse',       disabled: false },
+	{ value: BGFIT_REPEAT,   text: 'Repeat',      disabled: false },
+	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
+	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
+	{ value: BGFIT_WARP,     text: 'Warp Tunnel', disabled: false },
+	{ value: BGFIT_WARP_ANI, text: 'Warp Travel', disabled: false },
+	{ value: BGFIT_WARP_ROT, text: 'Warp Vortex', disabled: false }
 ];
 
 /**
