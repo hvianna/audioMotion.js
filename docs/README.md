@@ -33,7 +33,7 @@
 
 The demo site includes a few songs ([credits here](#music-files-used-in-the-demo-site)) and also allows you to play audio files from your PC, load remote files and streams via URL and use the microphone input.
 
-Also check out our [▶ **YouTube channel**](https://channel.audiomotion.io) for some cool songs visualized with audioMotion!
+Also check out our [▶ **YouTube channel**](https://audiomotion.me/yt) for some cool songs visualized with audioMotion!
 
 ## Getting started
 
