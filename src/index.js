@@ -355,22 +355,22 @@ const modeOptions = [
 
 // Properties that may be changed by Random Mode
 const randomProperties = [
+	{ value: 'alpha',  text: 'Alpha',        disabled: false },
 	{ value: 'nobg',   text: 'Background',   disabled: false },
-	{ value: 'imgfit', text: 'BG Image Fit', disabled: false },
-	{ value: 'reflex', text: 'Reflex',       disabled: false },
-	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
-	{ value: 'alpha',  text: 'ALPHA',        disabled: false },
-	{ value: 'leds',   text: 'LEDS',         disabled: false },
-	{ value: 'lumi',   text: 'LUMI',         disabled: false },
-	{ value: 'outline',text: 'OUTLINE',      disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
-	{ value: 'line',   text: 'Line Width',   disabled: false },
+	{ value: 'imgfit', text: 'BG Image Fit', disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
+	{ value: 'leds',   text: 'LEDs',         disabled: false },
+	{ value: 'line',   text: 'Line Width',   disabled: false },
+	{ value: 'lumi',   text: 'Lumi',         disabled: false },
+	{ value: 'mirror', text: 'Mirror',       disabled: false },
+	{ value: 'outline',text: 'Outline',      disabled: false },
+	{ value: 'peaks',  text: 'Peaks',        disabled: false },
 	{ value: 'radial', text: 'Radial',       disabled: false },
-	{ value: 'spin',   text: 'Spin',         disabled: false },
-	{ value: 'stereo', text: 'Stereo',       disabled: false },
+	{ value: 'spin',   text: 'Radial Spin',  disabled: false },
+	{ value: 'reflex', text: 'Reflex',       disabled: false },
 	{ value: 'split',  text: 'Split',        disabled: false },
-	{ value: 'mirror', text: 'Mirror',       disabled: false }
+	{ value: 'stereo', text: 'Stereo',       disabled: false },
 ];
 
 // Sensitivity presets
@@ -395,11 +395,11 @@ const bgFitOptions = [
 	{ value: BGFIT_CENTER,   text: 'Center',      disabled: false },
 	{ value: BGFIT_PULSE,    text: 'Pulse',       disabled: false },
 	{ value: BGFIT_REPEAT,   text: 'Repeat',      disabled: false },
-	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
-	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
 	{ value: BGFIT_WARP,     text: 'Warp Tunnel', disabled: false },
 	{ value: BGFIT_WARP_ANI, text: 'Warp Travel', disabled: false },
-	{ value: BGFIT_WARP_ROT, text: 'Warp Vortex', disabled: false }
+	{ value: BGFIT_WARP_ROT, text: 'Warp Vortex', disabled: false },
+	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
+	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
 ];
 
 /**
