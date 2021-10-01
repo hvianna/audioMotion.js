@@ -42,7 +42,7 @@ const BG_DIRECTORY = 'backgrounds'; // folder name for background images and vid
 
 const MAX_BG_MEDIA_FILES = 20; // max number of media files (images and videos) selectable as background
 
-const KNOB_DELAY = 50; // delay (ms) for knob controls (reduce mac mouse/touchpad sensitivity)
+const WHEEL_DELAY = 50; // delay (ms) for mouse wheel controls (reduce mac mouse/touchpad sensitivity)
 
 const MAX_METADATA_REQUESTS = 4;
 
@@ -162,8 +162,8 @@ let audioElement = [], micStream, isMicSource, wasMuted;
 // variables for on-screen info display
 let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
-// auxiliary variables for track skip/search, volume/balance control and metadata retrieval
-let skipping = false, isFastSearch = false, knobUpdating = false, waitingMetadata = 0, fastSearchTimeout;
+// auxiliary variables for track skip/search and metadata retrieval
+let skipping = false, isFastSearch = false, waitingMetadata = 0, fastSearchTimeout;
 
 // interval for timed random mode
 let randomModeTimer;
@@ -2487,19 +2487,20 @@ function setUIEventListeners() {
 	elMute.addEventListener( 'change', () => toggleMute() );
 
 	// volume and balance knobs
+	let wheelUpdating = false;
 	[ elVolume,
 	  elBalance ].forEach( el => {
 	  	el.addEventListener( 'wheel', e => {
 			e.preventDefault();
-			if ( knobUpdating )
+			if ( wheelUpdating )
 				return;
-			knobUpdating = true;
+			wheelUpdating = true;
 			const incr = Math.sign( e.deltaY || 0 );
 			if ( el == elVolume )
 				changeVolume( incr );
 			else
 				changeBalance( incr );
-			setTimeout( () => knobUpdating = false, KNOB_DELAY );
+			setTimeout( () => wheelUpdating = false, WHEEL_DELAY );
 		});
 	});
 
