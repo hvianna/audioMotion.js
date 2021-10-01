@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.8-beta.2
+ * @version   21.10-beta.0
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.8-beta.2';
+const VERSION = '21.10-beta.0';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -183,6 +183,7 @@ let serverMode;
 // Configuration presets
 const presets = {
 	default: {
+		alphaBars   : 0,
 		mode        : 0,	// discrete frequencies
 		fftSize     : 8192,
 		freqMin     : 20,
@@ -194,6 +195,7 @@ const presets = {
 		randomMode  : 0,
 		ledDisplay  : 0,
 		lumiBars    : 0,
+		outlineBars : 0,
 		sensitivity : 1,
 		showScaleX  : 1,
 		showScaleY  : 1,
@@ -357,8 +359,10 @@ const randomProperties = [
 	{ value: 'imgfit', text: 'BG Image Fit', disabled: false },
 	{ value: 'reflex', text: 'Reflex',       disabled: false },
 	{ value: 'peaks',  text: 'PEAKS',        disabled: false },
+	{ value: 'alpha',  text: 'ALPHA',        disabled: false },
 	{ value: 'leds',   text: 'LEDS',         disabled: false },
 	{ value: 'lumi',   text: 'LUMI',         disabled: false },
+	{ value: 'outline',text: 'OUTLINE',      disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
@@ -2256,6 +2260,11 @@ function selectRandomMode( force = isMicSource ) {
 
 	elMode.selectedIndex = randomInt( elMode.options.length );
 
+	if ( isEnabled('alpha') ) {
+		elAlphaBars.dataset.active = randomInt();
+		props.push( elAlphaBars );
+	}
+
 	if ( isEnabled('nobg') )
 		elBackground.selectedIndex = randomInt( elBackground.options.length );
 
@@ -2292,6 +2301,11 @@ function selectRandomMode( force = isMicSource ) {
 
 	if ( isEnabled('barSp') )
 		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
+
+	if ( isEnabled('outline') ) {
+		elOutline.dataset.active = randomInt();
+		props.push( elOutline );
+	}
 
 	if ( isEnabled('reflex') ) {
 		// exclude 'mirrored' reflex option for octave bands modes
