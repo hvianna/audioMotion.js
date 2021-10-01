@@ -135,6 +135,8 @@ const elFFTsize     = $('#fft_size'),
 	  elFsHeight    = $('#fs_height'),
 	  elMirror      = $('#mirror'),
 	  elPreset      = $('#preset'),
+	  elAlphaBars   = $('#alpha_bars'),
+	  elOutline     = $('#outline'),
 	  // player panel and playlists
 	  elSource      = $('#source'),
 	  elMute        = $('#mute'),
@@ -471,6 +473,10 @@ function setProperty( elems, save ) {
 
 	for ( const el of elems ) {
 		switch ( el ) {
+			case elAlphaBars:
+				audioMotion.alphaBars = isSwitchOn( elAlphaBars );
+				break;
+
 			case elBackground:
 				const bgOption  = elBackground.value[0],
 					  isOverlay = bgOption != BG_DEFAULT && bgOption != BG_BLACK;
@@ -552,7 +558,7 @@ function setProperty( elems, save ) {
 				break;
 
 			case elLedDisplay:
-				audioMotion.showLeds = isSwitchOn( elLedDisplay );
+				audioMotion.ledBars = isSwitchOn( elLedDisplay );
 				break;
 
 			case elLineWidth:
@@ -572,23 +578,27 @@ function setProperty( elems, save ) {
 				const mode = elMode.value;
 				if ( mode < 10 )
 					audioMotion.mode = mode;
-				else {
+				else
 					audioMotion.mode = 10;
 
-					if ( mode == 10 ) { // "Area graph" mode
-						audioMotion.lineWidth = 0;
-						audioMotion.fillAlpha = 1;
-					}
-					else { // "Line graph" mode with custom line width and fill opacity
-						audioMotion.lineWidth = elLineWidth.value;
-						audioMotion.fillAlpha = elFillAlpha.value;
-					}
+				if ( mode == 10 ) { // "Area graph" mode
+					audioMotion.lineWidth = 0;
+					audioMotion.fillAlpha = 1;
 				}
+				else {
+					audioMotion.lineWidth = elLineWidth.value;
+					audioMotion.fillAlpha = elFillAlpha.value;
+				}
+
 				setProperty( elBarSpace );
 				break;
 
 			case elMirror:
 				audioMotion.mirror = elMirror.value;
+				break;
+
+			case elOutline:
+				audioMotion.outlineBars = isSwitchOn( elOutline );
 				break;
 
 			case elRadial:
@@ -1423,7 +1433,7 @@ function toggleInfo() {
 }
 
 /**
- * Draws outlined text on canvas
+ * Draws outlined text on OSD canvas
  */
 function outlineText( text, x, y, maxWidth ) {
 	if ( isSwitchOn( elNoShadow ) ) {
@@ -1887,17 +1897,19 @@ function loadPreset( name, alert, init ) {
 	}
 
 	audioMotion.setOptions( {
+		alphaBars    : isSwitchOn( elAlphaBars ),
 		fftSize      : elFFTsize.value,
 		minFreq      : elRangeMin.value,
 		maxFreq      : elRangeMax.value,
 		smoothing    : elSmoothing.value,
 		showPeaks    : isSwitchOn( elShowPeaks ),
-		showLeds     : isSwitchOn( elLedDisplay ),
+		ledBars      : isSwitchOn( elLedDisplay ),
 		lumiBars     : isSwitchOn( elLumiBars ),
 		loRes        : isSwitchOn( elLoRes ),
 		showFPS      : isSwitchOn( elFPS ),
 		showScaleX   : isSwitchOn( elScaleX ),
 		showScaleY   : isSwitchOn( elScaleY ),
+		outlineBars  : isSwitchOn( elOutline ),
 		radial       : isSwitchOn( elRadial ),
 		spinSpeed    : elSpin.value,
 		stereo       : isSwitchOn( elStereo ),
@@ -1930,6 +1942,7 @@ function loadPreset( name, alert, init ) {
  */
 function getCurrentSettings() {
 	return {
+		alphaBars   : elAlphaBars.dataset.active,
 		fftSize		: elFFTsize.value,
 		freqMin		: elRangeMin.value,
 		freqMax		: elRangeMax.value,
@@ -1954,6 +1967,7 @@ function getCurrentSettings() {
 		cycleGrad   : elCycleGrad.dataset.active,
 		ledDisplay  : elLedDisplay.dataset.active,
 		lumiBars    : elLumiBars.dataset.active,
+		outlineBars : elOutline.dataset.active,
 		repeat      : elRepeat.dataset.active,
 		showSong    : elShowSong.dataset.active,
 		noShadow    : elNoShadow.dataset.active,

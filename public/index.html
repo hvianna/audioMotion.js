@@ -176,7 +176,7 @@
 			<div>
 				<span class="config-label help">Line width
 					<span class="tooltip">
-						Line graph mode only
+						Line width for Line Graph mode and Outline effect
 					</span>
 				</span>
 				<div class="value"></div>
@@ -186,7 +186,7 @@
 			<div>
 				<span class="config-label help">Fill opacity
 					<span class="tooltip">
-						Line graph mode only
+						Fill opacity for Line Graph mode and Outline effect
 					</span>
 				</span>
 				<div class="value"></div>
@@ -210,26 +210,24 @@
 				</ul>
 			</div>
 
-			<div>
+			<div class="rowspan-2">
 				<span class="config-label">Effects</span>
 				<ul class="switch-bar">
 					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 						<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-				</ul>
-			</div>
-
-			<div>
-				<span class="config-label">&nbsp;</span>
-				<ul class="switch-bar">
+					<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
+						<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
+					<li class="switch" id="outlineBars" data-prop="outlineBars">Outline
+						<span class="tooltip">Outlined bars <em>(octave bands modes only)</em></span>
 					<li class="switch" id="radial" data-prop="radial">RADIAL
 						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> | <kbd>C</kbd></span>
 				</ul>
 			</div>
 
 			<div>
-				<span class="config-label help">Spin
+				<span class="config-label help">Radial Spin
 					<span class="tooltip">
 						Radial spin speed
 					</span>
