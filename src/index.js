@@ -2130,6 +2130,67 @@ function populateGradients() {
 	}
 }
 
+function addNewGradient() {
+	const elNewGradientName = $('#new-gradient-name');
+	const elNewGradientColors = $('#new-gradient-colors');
+	const elNewGradientBkgd = $('#new-gradient-bkgd');
+
+	if (elNewGradientName.value && elNewGradientColors.value) {
+		// break down colors by line
+		const newColorsStrs = elNewGradientColors.value.split("\n");
+		const colors = [];
+
+		// parse each string
+		for (const str of newColorsStrs) {
+			let color = str
+			// add # if not present
+			if (!color.startsWith('#')) {
+				color = '#' + color;
+			}
+
+			// validate hex
+			if (color.match(/^#[0-9A-Fa-f]{3,6}$/) === null) {
+				consoleLog(`Ignored color '${str}': not a valid hexadecimal color`, true)
+				console.warn(`Ignored color '${str}': not a valid hexadecimal color`);
+			} else {
+				colors.push(color);
+			}
+		}
+
+		if (colors.length <= 1) {
+			consoleLog(`Not enough colors to make a gradient`, true)
+			console.warn(`Not enough colors to make a gradient`);
+			return;
+		}
+
+		const colorStops = [];
+
+		colors.forEach((color, i) => {
+			colorStops.push({
+				pos: 0.1 + i * (0.9 / (colors.length - 1)), // evenly space out positions between 0.1 - 1
+				color,
+			})
+		});
+
+		let bkgd = elNewGradientBkgd.value;
+
+		if (!bkgd.startsWith('#')) {
+			bkgd = '#' + bkgd;
+		}
+
+		// default background of #111
+		if (bkgd.match(/^#[0-9A-Fa-f]{3,6}$/) === null) {
+			bkgd = '#111';
+		}
+
+		const gradientObj = {name: elNewGradientName.value, colorStops, bgColor: bkgd, disabled: false};
+		gradients[elNewGradientName.value] = gradientObj;
+		audioMotion.registerGradient(elNewGradientName.value, gradientObj);
+		console.log(gradients);
+		populateGradients();
+	}
+}
+
 /**
  * Set event listeners for UI elements
  */
@@ -2254,6 +2315,9 @@ function setUIEventListeners() {
 			submitCallback: url => { if ( url.trim() ) addToPlayQueue( url, true ) }
 		});
 	});
+
+	// add custom gradient
+	$('#btn-add-gradient').addEventListener( 'click', addNewGradient );
 }
 
 /**

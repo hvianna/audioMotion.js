@@ -397,6 +397,7 @@
 				<h3>Enabled Gradients:</h3>
 				<div id="enabled_gradients" class="grid grid-2-cols">
 				</div>
+				<a href="#add-gradient">Add Gradient</a>
 			</div>
 			<div class="rowspan-2">
 				<h3>Options affected by Random Mode:</h3>
@@ -459,6 +460,30 @@
 			</ul>
 		</div>
 	</div> <!-- #about -->
+
+	<div id="add-gradient" class="modal-window">
+		<a href="#!" title="Close" class="modal-close"></a>
+		<div>
+			<a href="#!" title="Close" class="modal-close-internal"></a>
+			<div>
+				<span class="config-label"><label for="new-gradient-name">Name</label></span><br>
+				<input type="text" id="new-gradient-name">
+			</div>
+			<div>
+				<span class="config-label"><label for="new-gradient-colors">Colors</label></span><br>
+				<textarea id="new-gradient-colors" rows="6" cols="40"></textarea>
+				<p>Add hexadecimal colors on separate lines</p>
+			</div>
+			<div>
+				<span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span><br>
+				<input type="text" id="new-gradient-bkgd">
+			</div>
+			<div class="flex align-center">
+				<div></div>
+				<button id="btn-add-gradient">Add</button>
+			</div>
+		</div>
+	</div>
 
 	<div id="shortcuts" class="modal-window">
 		<a href="#!" title="Close" class="modal-close"></a>
