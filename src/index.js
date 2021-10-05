@@ -395,9 +395,9 @@ const bgFitOptions = [
 	{ value: BGFIT_CENTER,   text: 'Center',      disabled: false },
 	{ value: BGFIT_PULSE,    text: 'Pulse',       disabled: false },
 	{ value: BGFIT_REPEAT,   text: 'Repeat',      disabled: false },
-	{ value: BGFIT_WARP,     text: 'Warp Tunnel', disabled: false },
-	{ value: BGFIT_WARP_ANI, text: 'Warp Travel', disabled: false },
-	{ value: BGFIT_WARP_ROT, text: 'Warp Vortex', disabled: false },
+	{ value: BGFIT_WARP,     text: 'Warp',        disabled: false },
+	{ value: BGFIT_WARP_ANI, text: 'Warp Speed',  disabled: false },
+	{ value: BGFIT_WARP_ROT, text: 'Wormhole',    disabled: false },
 	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
 	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
 ];
@@ -2936,9 +2936,9 @@ function setInfoOptions( options ) {
 	]);
 
 	populateSelect(	elBackground, [
-		[ BG_DEFAULT, 'Gradient default' ],
+		[ BG_COVER,   'Album cover'      ],
 		[ BG_BLACK,   'Black'            ],
-		[ BG_COVER,   'Album cover'      ]
+		[ BG_DEFAULT, 'Gradient default' ]
 	]);
 
 	populateSelect( elBgImageFit, bgFitOptions );
@@ -2974,6 +2974,8 @@ function setInfoOptions( options ) {
 
 			if ( imageCount )
 				bgOptions.splice( 0, 0, [ BG_IMAGE, 'Random image' ] );
+
+			consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
 
 			populateSelect( elBackground, bgOptions, true ); // add more background options
 		})
