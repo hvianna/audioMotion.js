@@ -63,6 +63,10 @@ p ~ .table-wrapper table {
 	margin-top: 0;
 }
 
+.sidebar-nav ul ul ul li {
+	font-size: 80%;
+}
+
 /* Settings panel image highlight areas */
 
 .settings-panel {

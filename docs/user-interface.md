@@ -50,36 +50,6 @@ Balance can also be adjusted with **Shift** + **Left** and **Right** arrow keys,
 
 Your volume and balance settings will be automatically restored next time you open **audioMotion**.
 
-## Keyboard shortcuts
-
-The following keyboard shortcuts that can be used to control the player and change some visualization settings without leaving fullscreen:
-
-| key | action |
-|:----|:-------|
-**Up** / **Down** | volume up / down
-**Left** / **Right** | play previous / next song (hold for rewind / fast forward)
-**Space** | play / pause
-**Shift+A** / **A** | cycle through auto gradient and random mode options
-**B** | cycle through Background options
-**Shift+B** | cycle through background Image Fit options
-**C** | toggle Radial analyzer
-**D** | click on analyzer | display song information; press again for settings info and again to hide<br>(alternatively, click on the canvas)
-**E** | shuffle play queue
-**F** | toggle fullscreen mode
-**Shift+G** / **G** | select previous / next gradient
-**H** | toggle FPS display
-**I** | toggle info display at track start/end
-**L** | toggle LED effect on analyzer bars
-**Shift+M** / **M** | select previous / next visualization mode
-**Shift+N** / **N** | reduce / increase analyzer sensitivity
-**O** | toggle low-resolution mode
-**P** | toggle peaks display
-**R** | toggle play queue repeat
-**Shift+S** / **S** | toggle display of frequency and level scales
-**T** | toggle flat / shadowed text for on-screen display
-**U** | toggle luminance bars effect
-**Shift+X** / **X** | select previous / next reflex style
-
 ## File explorer and play queue
 
 ![files-panel](img/files-panel.png)
@@ -229,11 +199,12 @@ Selects the analyzer background.
 | **Random image** | selects a random image from the backgrounds folder<sup> (2)</sup> |
 | **Random video** | selects a random video from the backgrounds folder<sup> (2)</sup> |
 
-<sup>**(1)**</sup> Album covers are preferably retrieved from song metadata. When a picture is not found in the metadata, **audioMotion** will look for image files (jpg, png, gif, webp, avif or bmp)
+<sup>**( 1 )**</sup> Album covers will be preferably retrieved from song metadata. When a picture is not found in the metadata, **audioMotion** will look for image files (jpg, png, gif, webp, avif or bmp)
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
 
-<sup>**(2)**</sup> If you provide a backgrounds folder with the `-b` parameter when [starting **audioMotion**](/#getting-started), it can also display images and videos from the selected folder as background.
-The first 20 media files found in the folder will be listed in the selection box, along with the *Random image* and *Random video* options.
+<sup>**( 2 )**</sup> If you use the `-b` option when [starting **audioMotion**](/#getting-started), image and video files in the provided folder
+can also be used as background. All media files found in the first level folder (sorry, no subfolders) can be selected by the *Random image* or *Random video* options,
+and the first 20 files will also be directly available in the selection box.
 
 See also [BG Image Fit](#background-image-fit) and [Background Dim](#background-dim) settings for additional options for background images and videos.
 
@@ -388,3 +359,33 @@ Customize low, normal and high sensitivity presets (see [Sensitivity](#sensitivi
 ### On-screen information display options
 
 Customize how long song information is displayed on screen, on different events, and toggle display of albums covers and track count.
+
+## Keyboard shortcuts
+
+The following keyboard shortcuts that can be used to control the player and change some visualization settings without leaving fullscreen:
+
+| key | action |
+|:----|:-------|
+**Up** / **Down** | volume up / down
+**Left** / **Right** | play previous / next song (hold for rewind / fast forward)
+**Space** | play / pause
+**Shift+A** / **A** | cycle through auto gradient and random mode options
+**B** | cycle through Background options
+**Shift+B** | cycle through background Image Fit options
+**C** | toggle Radial analyzer
+**D** | click on analyzer | display song information; press again for settings info and again to hide<br>(alternatively, click on the canvas)
+**E** | shuffle play queue
+**F** | toggle fullscreen mode
+**Shift+G** / **G** | select previous / next gradient
+**H** | toggle FPS display
+**I** | toggle info display at track start/end
+**L** | toggle LED effect on analyzer bars
+**Shift+M** / **M** | select previous / next visualization mode
+**Shift+N** / **N** | reduce / increase analyzer sensitivity
+**O** | toggle low-resolution mode
+**P** | toggle peaks display
+**R** | toggle play queue repeat
+**Shift+S** / **S** | toggle display of frequency and level scales
+**T** | toggle flat / shadowed text for on-screen display
+**U** | toggle luminance bars effect
+**Shift+X** / **X** | select previous / next reflex style
