@@ -62,37 +62,10 @@ The complete command line options are:
 !> **WARNING:**<br>
 Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
 
-## Screenshots
-
-![screenshot1](img/screenshot1.png)
-*[Discrete frequencies](user-interface.md#mode) mode. User interface: [main function buttons](user-interface.md#main-function-buttons), [audio source](user-interface.md#audio-source) selector, [player controls](user-interface.md#player-controls), [volume control](user-interface.md#volume-control) and [file explorer](user-interface.md#file-explorer-and-play-queue).*
-
----
-
-![screenshot2](img/screenshot2.png)
-*1/4th-octave bands with LED effect, extra wide [bar spacing](user-interface.md#bar-spacing) and on-screen song information. User interface shows the [settings panel](user-interface.md#settings-panel) open.*
-
----
-
-![screenshot3](img/screenshot3.png)
-*Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](user-interface.md#reflex) effect and complete on-screen information.*
-
----
-
-![screenshot6](img/screenshot6.png)
-*Fullscreen view: [Stereo](user-interface.md#switches) Line graph, frequency and level scales on, "Rainbow" gradient.*
-
----
-
-![screenshot5](img/screenshot5.png)
-*Fullscreen view: 1/8th-octave bands, [LUMI effect](user-interface.md#effects) on, "Tie Dye" gradient.*
-
----
-
-![screenshot7](img/screenshot7.png)
-*Fullscreen view: 1/6th-octave bands, [Radial](user-interface.md#radial) analyzer, frequency scale on, "Apple ][" gradient.*
 
 ## Documentation
+
+[![screenshot2](img/screenshot2.png "audioMotion user interface")](user-interface.md)
 
 * [User Interface](user-interface.md)
 * [Server modes](server.md)
@@ -102,9 +75,11 @@ Please be aware that using the `-e` flag will expose the contents of the mounted
 
 ## Credits and acknowledgments
 
+I would like to thank my wife Virginia for her continued support and feedback! :kissing_heart:
+
 **audioMotion** was largely inspired by [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), by Yuji Koike.
 
-### JavaScript libraries
+### JavaScript libraries <!-- {docsify-ignore} -->
 
 Some of audioMotion's great features are provided by these awesome open-source libraries:
 
@@ -124,7 +99,7 @@ Some of audioMotion's great features are provided by these awesome open-source l
   * [css-minimizer-webpack-plugin](https://www.npmjs.com/package/css-minimizer-webpack-plugin) - cssnano plugin for Webpack
   * [mini-css-extract-plugin](https://www.npmjs.com/package/mini-css-extract-plugin) - extracts CSS into separate files
 
-### Graphic resources
+### Graphic resources <!-- {docsify-ignore} -->
 
 * The font used in audioMotion's logo is [Orbitron](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
 * Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
@@ -137,16 +112,16 @@ Some of audioMotion's great features are provided by these awesome open-source l
 * [CSS slider switches](https://codepen.io/billyysea/pen/CHmiE) by Billy
 * Radial brushed metal texture taken from [this pen](https://codepen.io/GreenSock/pen/gnoDc) by GreenSock
 * Volume knob design based on [Dark dial](https://codepen.io/stormwarning/pen/yNGeMm) by Jeff
-* Warp Tunnel effect based on [this pen](https://codepen.io/trangthule/pen/vYmpNYR) by bytrangle
+* Warp effects based on [this pen](https://codepen.io/trangthule/pen/vYmpNYR) by bytrangle
 
-### Music files used in the demo site
+### Music files used in the demo site <!-- {docsify-ignore} -->
 
 * ["Funky Chunk"](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1500054) by [Kevin MacLeod](https://incompetech.com) - Licensed under [Creative Commons: By Attribution 3.0 License](https://creativecommons.org/licenses/by/3.0/)
 * ["Spell"](https://archive.org/details/Straw_Fields-8753) by [Rolemusic](http://rolemusic.sawsquarenoise.com/) - Licensed under [Creative Commons: By Attribution NonCommercial ShareAlike 3.0 US License](https://creativecommons.org/licenses/by-nc-sa/3.0/us/)
 * ["The Factory"](https://archive.org/details/The_Factory-3613) by [Multifaros](http://multifaros.info.se/) - Licensed under [Creative Commons: By Attribution 3.0 US License](https://creativecommons.org/licenses/by/3.0/us/)
 * ["We Come Together"](https://archive.org/details/ShMusic-DigitalMemories) by [Lukhash](https://lukhash.com) - Licensed under [Creative Commons: By Attribution NonCommercial NoDerivatives 3.0 License](https://creativecommons.org/licenses/by-nc-nd/3.0/)
 
-### References
+### References <!-- {docsify-ignore} -->
 
 These online references were invaluable for the development and improvement of audioMotion:
 

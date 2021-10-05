@@ -75,12 +75,12 @@ Just copy the `public` folder to your server (you can rename it to **audioMotion
 
 * Assign a dedicated listening port to audioMotion so it can be accessed at the server's root and not from a subdirectory:<br>
   ✔️ `http://192.168.0.32:8000`<br>
-  ❌ `http://192.168.0.32/audioMotion` (this won't work properly)
+  ❌ `http://192.168.0.32/audioMotion` (won't work!)
 * Directory listing must be enabled for the file explorer to work;
 * Add your music files to the `music` folder or map the `/music` URL to another folder in your server (see examples below).
 
 
-### Configuration tips:
+### Configuration tips
 
 **Lighttpd:**
 

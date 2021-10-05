@@ -1,0 +1,204 @@
+:root {
+	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+	--cover-background-color: transparent;
+	--cover-background-image: none;
+	--cover-background-mask-color: #000;
+	--cover-background-mask-opacity: .5;
+	--cover-blockquote-color: #f0f0f0;
+	--cover-color: #ccc;
+	--cover-button-color: hsl( var(--theme-hue), var(--theme-saturation), 80% );
+	--cover-button-border: 1px solid var(--cover-button-color);
+	--cover-heading-font-size-max: 80;
+	--sidebar-name-font-family: Orbitron, var(--base-font-family);
+	--sidebar-name-font-weight: 900;
+}
+
+@media (min-width: 1200px) {
+	:root {
+		--cover-max-width: 1200px;
+		--content-max-width: 1200px;
+	}
+}
+
+h2 .emoji {
+	height: 1em;
+}
+
+h3 code {
+	font-size: inherit !important;
+}
+
+img {
+	max-width: 100%;
+}
+
+.cover h1 span {
+	background: var(--audioMotion-gradient);
+	background-clip: text;
+	filter: drop-shadow(.05em .05em 0 #0004);
+	font-family: Orbitron, var(--base-font-family);
+	font-weight: 900;
+	position: relative;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.cover ul {
+	margin: 2em 0;
+}
+
+.markdown-section h3 ~ h3 {
+	margin-top: 0;
+}
+
+.sidebar > h1 .app-name-link {
+	background: var(--audioMotion-gradient);
+	background-clip: text;
+	font-size: 140%;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+p ~ .table-wrapper table {
+	margin-top: 0;
+}
+
+/* Settings panel image highlight areas */
+
+.settings-panel {
+	background: url(img/settings-panel.png);
+	background-size: contain;
+	height: 280px;
+	line-height: 0;
+	margin: 0 auto;
+	position: relative;
+	width: 700px;
+}
+
+[class*="highlight-"] {
+	--top: -1px;
+	--left: -1px;
+	--height: 101%;
+	--width: 101%;
+}
+.active[class*="highlight-"] {
+	--width: 135px;
+}
+[class*="highlight-"]::before {
+	--top-left: var(--left) var(--top);
+	--top-right: calc( var(--left) + var(--width) ) var(--top);
+	--bot-right: calc( var(--left) + var(--width) ) calc( var(--top) + var(--height) );
+	--bot-left: var(--left) calc( var(--top) + var(--height) );
+
+	clip-path: polygon( 0 0, var(--top-left), var(--top-right), var(--bot-right), var(--bot-left), var(--top-left), 0 0, 0 100%, 100% 100%, 100% 0 );
+	content: '';
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	transition: all .3s;
+	width: 100%;
+}
+.active[class*="highlight-"]::before {
+	background: #fffa;
+}
+
+[class*="highlight-"]::after {
+	content: '';
+	height: var(--height);
+	left: var(--left);
+	outline: 2px solid transparent;
+	position: absolute;
+	top: var(--top);
+	transition: all .3s;
+	width: var(--width);
+}
+.active[class*="highlight-"]::after {
+	outline-color: #c00;
+}
+
+.active.highlight-mode {
+	--top: 1px;
+	--left: 10px;
+	--height: 55px;
+}
+.active.highlight-random-mode {
+	--top: 50px;
+	--left: 10px;
+	--height: 55px;
+}
+.active.highlight-bar-spacing {
+	--top: 105px;
+	--left: 10px;
+	--height: 55px;
+}
+.active.highlight-line-width-fill-opacity {
+	--top: 155px;
+	--left: 10px;
+	--height: 110px;
+}
+.active.highlight-gradient {
+	--top: 1px;
+	--left: 145px;
+	--height: 80px;
+}
+.active.highlight-effects {
+	--top: 105px;
+	--left: 145px;
+	--height: 80px;
+}
+.active.highlight-radial {
+	--top: 180px;
+	--left: 145px;
+	--height: 80px;
+}
+.active.highlight-background {
+	--top: 1px;
+	--left: 282px;
+	--height: 55px;
+}
+.active.highlight-bgimagefit {
+	--top: 50px;
+	--left: 282px;
+	--height: 55px;
+}
+.active.highlight-background-dim {
+	--top: 105px;
+	--left: 282px;
+	--height: 55px;
+}
+.active.highlight-reflex-mirror {
+	--top: 160px;
+	--left: 282px;
+	--height: 100px;
+}
+.active.highlight-sensitivity {
+	--top: 1px;
+	--left: 420px;
+	--height: 55px;
+}
+.active.highlight-frequency-range {
+	--top: 50px;
+	--left: 420px;
+	--height: 55px;
+}
+.active.highlight-fftsize-smoothing {
+	--top: 105px;
+	--left: 420px;
+	--height: 100px;
+}
+.active.highlight-fsheight {
+	--top: 205px;
+	--left: 420px;
+	--height: 55px;
+}
+.active.highlight-switches {
+	--top: 1px;
+	--left: 555px;
+	--height: 135px;
+}
+.active.highlight-preset {
+	--top: 160px;
+	--left: 555px;
+	--height: 80px;
+}

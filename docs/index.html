@@ -17,72 +17,7 @@
 	<!-- docsify-themeable -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
 	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-	<style>
-		:root {
-			--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
-			--cover-background-color: transparent;
-			--cover-background-image: none;
-			--cover-background-mask-color: #000;
-			--cover-background-mask-opacity: .5;
-			--cover-blockquote-color: #f0f0f0;
-			--cover-color: #ccc;
-			--cover-button-color: hsl( var(--theme-hue), var(--theme-saturation), 80% );
-			--cover-button-border: 1px solid var(--cover-button-color);
-			--cover-heading-font-size-max: 80;
-			--sidebar-name-font-family: Orbitron, var(--base-font-family);
-			--sidebar-name-font-weight: 900;
-		}
-
-		@media (min-width: 1200px) {
-			:root {
-				--cover-max-width: 1200px;
-				--content-max-width: 1200px;
-			}
-		}
-
-		h2 .emoji {
-			height: 1em;
-		}
-
-		h3 code {
-			font-size: inherit !important;
-		}
-
-		img {
-			max-width: 100%;
-		}
-
-		.cover h1 span {
-			background: var(--audioMotion-gradient);
-			background-clip: text;
-			filter: drop-shadow(.05em .05em 0 #0004);
-			font-family: Orbitron, var(--base-font-family);
-			font-weight: 900;
-			position: relative;
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-		}
-
-		.cover ul {
-			margin: 2em 0;
-		}
-
-		.markdown-section h3 ~ h3 {
-			margin-top: 0;
-		}
-
-		.sidebar > h1 .app-name-link {
-			background: var(--audioMotion-gradient);
-			background-clip: text;
-			font-size: 140%;
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-		}
-
-		p ~ .table-wrapper table {
-			margin-top: 0;
-		}
-	</style>
+	<link href="styles.css" rel="stylesheet">
 </head>
 <body>
 	<div id="app"></div>
@@ -93,7 +28,7 @@
 			auto2top: true,
 			coverpage: 'coverpage.md',
 			loadSidebar: 'sidebar.md',
-			subMaxLevel: 2,
+			subMaxLevel: 3,
 			plugins: [
 				function( hook ) {
 					const footer = [
@@ -108,6 +43,18 @@
 				}
 			]
 		}
+
+		// thanks https://www.dev-tips-and-tricks.com/animate-elements-scrolled-view-vanilla-js
+		function checkHighlights() {
+			const windowCenter = window.innerHeight / 2;
+			for ( const el of document.querySelectorAll('[class*="highlight-"]:not(.active)') ) {
+				const positionFromTop = el.getBoundingClientRect().top;
+
+				if ( positionFromTop <= windowCenter )
+					el.classList.add('active');
+			}
+		}
+		window.addEventListener( 'scroll', checkHighlights );
 	</script>
 	<script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
 	<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
