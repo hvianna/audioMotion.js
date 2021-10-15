@@ -302,6 +302,10 @@ a.button:visited {
 	grid-row: span 3;
 }
 
+.mt-1 {
+	margin-top: 1rem;
+}
+
 .config-label {
 	font-size: 10px;
 	text-transform: uppercase;
