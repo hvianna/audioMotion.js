@@ -93,6 +93,15 @@ table {
 	text-align: center;
 }
 
+a.button {
+	color: black;
+	text-decoration: none;
+}
+
+a.button:visited {
+	color: black;
+}
+
 .thin-button {
 	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
 	border: 1px solid #777;
