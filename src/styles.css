@@ -35,6 +35,7 @@ input[type="number"] {
 
 button,
 .button {
+	cursor: pointer;
 	background: #f3f3f3;
 	border: 1px solid #adadad;
 	border-radius: 999px;
