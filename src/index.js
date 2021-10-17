@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.10-beta.0
+ * @version   21.10-beta.1
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.10-beta.0';
+const VERSION = '21.10-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -38,15 +38,11 @@ import './notie.css';
 
 import './styles.css';
 
-const BG_DIRECTORY = 'backgrounds'; // folder name for background images and videos (no slashes!)
-
-const MAX_BG_MEDIA_FILES = 20; // max number of media files (images and videos) selectable as background
-
-const WHEEL_DELAY = 50; // delay (ms) for mouse wheel controls (reduce mac mouse/touchpad sensitivity)
-
-const MAX_METADATA_REQUESTS = 4;
-
-const MAX_QUEUED_SONGS = 1000;
+const BG_DIRECTORY          = 'backgrounds', // folder name for background images and videos (no slashes!)
+	  MAX_BG_MEDIA_FILES    = 20,			 // max number of media files (images and videos) selectable as background
+	  MAX_METADATA_REQUESTS = 4,
+	  MAX_QUEUED_SONGS      = 1000,
+	  WHEEL_DELAY           = 50;			 // delay (ms) for mouse wheel controls (reduce mac mouse/touchpad sensitivity)
 
 // Background option values
 const BG_DEFAULT = '0',
@@ -68,163 +64,129 @@ const BGFIT_ADJUST   = '0',
 
 // dataset template for playqueue items and audio elements
 const DATASET_TEMPLATE = {
-	file: '',
-	artist: '',
-	title: '',
 	album: '',
+	artist: '',
 	codec: '',
-	quality: '',
+	cover: '',
 	duration: '',
-	cover: ''
+	file: '',
+	quality: '',
+	title: ''
 };
 
 // localStorage keys
-const KEY_LAST_CONFIG    = 'last-config',
-	  KEY_CUSTOM_PRESET  = 'custom-preset',
-	  KEY_DISABLED_MODES = 'disabled-modes',
+const KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
 	  KEY_DISABLED_GRADS = 'disabled-gradients',
+	  KEY_DISABLED_MODES = 'disabled-modes',
 	  KEY_DISABLED_PROPS = 'disabled-properties',
-	  KEY_SENSITIVITY    = 'sensitivity-presets',
-	  KEY_DISPLAY_OPTS   = 'display-options';
+	  KEY_DISPLAY_OPTS   = 'display-options',
+	  KEY_LAST_CONFIG    = 'last-config',
+	  KEY_SENSITIVITY    = 'sensitivity-presets';
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
-// Analyzer elements
-const elContainer   = $('#bg_container'),		// outer container with background image
-	  elVideo       = $('#video'),				// background video
-	  elWarp        = $('#warp'),				// warp tunnel effect layer
-	  elDim         = $('#bg_dim'),				// background image/video darkening layer
+// UI HTML elements
+const elAlphaBars   = $('#alpha_bars'),
 	  elAnalyzer    = $('#analyzer'),			// analyzer canvas container
-	  elOSD         = $('#osd'),				// message canvas
-	  canvasCtx     = elOSD.getContext('2d');
-
-// UI controls HTML elements
-const elFFTsize     = $('#fft_size'),
-	  elRangeMin    = $('#freq_min'),
-	  elRangeMax    = $('#freq_max'),
-	  elSmoothing   = $('#smoothing'),
-	  elMode        = $('#mode'),
+	  elBackground  = $('#background'),
+	  elBalance     = $('#balance'),
+	  elBarSpace    = $('#bar_space'),
+	  elBgImageDim  = $('#bg_img_dim'),
+	  elBgImageFit  = $('#bg_img_fit'),
+	  elContainer   = $('#bg_container'),		// outer container with background image
+	  elCycleGrad   = $('#cycle_grad'),
+	  elDim         = $('#bg_dim'),				// background image/video darkening layer
+	  elEndTimeout  = $('#end_timeout'),
+	  elFFTsize     = $('#fft_size'),
+	  elFillAlpha   = $('#fill_alpha'),
+	  elFPS         = $('#fps'),
+	  elFsHeight    = $('#fs_height'),
 	  elGradient    = $('#gradient'),
+	  elInfoTimeout = $('#info_timeout'),
+	  elLedDisplay  = $('#led_display'),
+	  elLineWidth   = $('#line_width'),
+	  elLoRes       = $('#lo_res'),
+	  elLumiBars    = $('#lumi_bars'),
+	  elMirror      = $('#mirror'),
+	  elMode        = $('#mode'),
+	  elMute        = $('#mute'),
+	  elNoShadow    = $('#no_shadow'),
+	  elOutline     = $('#outline'),
+	  elOSD         = $('#osd'),				// message canvas
+	  elPlaylists   = $('#playlists'),
+	  elPreset      = $('#preset'),
+	  elRadial      = $('#radial'),
+	  elRandomMode  = $('#random_mode'),
+	  elRangeMax    = $('#freq_max'),
+	  elRangeMin    = $('#freq_min'),
+	  elReflex      = $('#reflex'),
+	  elRepeat      = $('#repeat'),
 	  elScaleX      = $('#scaleX'),
 	  elScaleY      = $('#scaleY'),
 	  elSensitivity = $('#sensitivity'),
-	  elShowPeaks   = $('#show_peaks'),
-	  elCycleGrad   = $('#cycle_grad'),
-	  elRandomMode  = $('#random_mode'),
-	  elLedDisplay  = $('#led_display'),
-	  elLumiBars    = $('#lumi_bars'),
-	  elRepeat      = $('#repeat'),
-	  elShowSong    = $('#show_song'),
-	  elNoShadow    = $('#no_shadow'),
-	  elLoRes       = $('#lo_res'),
-	  elFPS         = $('#fps'),
-	  elLineWidth   = $('#line_width'),
-	  elFillAlpha   = $('#fill_alpha'),
-	  elBarSpace    = $('#bar_space'),
-	  elReflex      = $('#reflex'),
-	  elBackground  = $('#background'),
-	  elBgImageDim  = $('#bg_img_dim'),
-	  elBgImageFit  = $('#bg_img_fit'),
-	  elRadial      = $('#radial'),
-	  elSpin		= $('#spin'),
-	  elStereo      = $('#stereo'),
-	  elSplitGrad   = $('#split_grad'),
-	  elFsHeight    = $('#fs_height'),
-	  elMirror      = $('#mirror'),
-	  elPreset      = $('#preset'),
-	  elAlphaBars   = $('#alpha_bars'),
-	  elOutline     = $('#outline'),
-	  // player panel and playlists
-	  elSource      = $('#source'),
-	  elMute        = $('#mute'),
-	  elVolume      = $('#volume'),
-	  elBalance     = $('#balance'),
-	  elPlaylists   = $('#playlists'),
-	  // config panel
-	  elInfoTimeout = $('#info_timeout'),
-	  elTrackTimeout= $('#track_timeout'),
-	  elEndTimeout  = $('#end_timeout'),
+	  elShowCount   = $('#show_count'),
 	  elShowCover   = $('#show_cover'),
-	  elShowCount   = $('#show_count');
-
-// AudioMotionAnalyzer object, audio context and pan node
-let audioMotion, audioCtx, panNode;
-
-// playlist, index to the current song, indexes to current and next audio elements
-let playlist, playlistPos, currAudio, nextAudio;
-
-// audio sources
-let audioElement = [], micStream, isMicSource, wasMuted;
-
-// variables for on-screen info display
-let canvasMsg, baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
-
-// auxiliary variables for track skip/search and metadata retrieval
-let skipping = false, isFastSearch = false, waitingMetadata = 0, fastSearchTimeout;
-
-// interval for timed random mode
-let randomModeTimer;
-
-// cover image for the currently playing song (for canvas rendering)
-let coverImage = new Image();
-
-// folder cover images for songs with no picture in the metadata
-let folderImages = {};
-
-// background images and videos
-let bgImages = [], bgVideos = [];
-
-// server mode: 1 = custom server; 0 = standard web server; -1 = local (file://) mode
-let serverMode;
+	  elShowPeaks   = $('#show_peaks'),
+	  elShowSong    = $('#show_song'),
+	  elSmoothing   = $('#smoothing'),
+	  elSource      = $('#source'),
+	  elSpin		= $('#spin'),
+	  elSplitGrad   = $('#split_grad'),
+	  elStereo      = $('#stereo'),
+	  elTrackTimeout= $('#track_timeout'),
+	  elVideo       = $('#video'),				// background video
+	  elVolume      = $('#volume'),
+ 	  elWarp        = $('#warp'),				// "warp" effect layer
+  	  canvasCtx     = elOSD.getContext('2d');
 
 // Configuration presets
 const presets = {
 	default: {
 		alphaBars   : 0,
-		mode        : 0,	// discrete frequencies
-		fftSize     : 8192,
-		freqMin     : 20,
-		freqMax     : 22000,
-		smoothing   : 0.5,
-		gradient    : 'prism',
 		background  : 0,	// gradient default
-		cycleGrad   : 1,
-		randomMode  : 0,
-		ledDisplay  : 0,
-		lumiBars    : 0,
-		outlineBars : 0,
-		sensitivity : 1,
-		showScaleX  : 1,
-		showScaleY  : 1,
-		showPeaks   : 1,
-		showSong    : 1,
-		repeat      : 0,
-		noShadow    : 1,
-		loRes       : 0,
-		showFPS     : 0,
-		lineWidth   : 2,
-		fillAlpha   : 0.1,
+		balance     : 0,
 		barSpace    : 0.1,
-		reflex      : 0,
 		bgImageDim  : 0.5,
 		bgImageFit  : 1, 	// center
-		radial      : 0,
-		spin        : 2,
-		stereo      : 0,
-		splitGrad   : 0,
+		cycleGrad   : 1,
+		fillAlpha   : 0.1,
+		fftSize     : 8192,
+		freqMax     : 22000,
+		freqMin     : 20,
 		fsHeight    : 100,
+		gradient    : 'prism',
+		ledDisplay  : 0,
+		lineWidth   : 2,
+		loRes       : 0,
+		lumiBars    : 0,
 		mirror      : 0,
-		volume      : 1,
-		balance     : 0
+		mode        : 0,	// discrete frequencies
+		noShadow    : 1,
+		outlineBars : 0,
+		radial      : 0,
+		randomMode  : 0,
+		reflex      : 0,
+		repeat      : 0,
+		sensitivity : 1,
+		showFPS     : 0,
+		showPeaks   : 1,
+		showScaleX  : 1,
+		showScaleY  : 1,
+		showSong    : 1,
+		smoothing   : 0.5,
+		spin        : 2,
+		splitGrad   : 0,
+		stereo      : 0,
+		volume      : 1
 	},
 
 	fullres: {
 		fftSize     : 8192,
-		freqMin     : 20,
 		freqMax     : 22000,
+		freqMin     : 20,
 		mode        : 0,
 		radial      : 0,
 		randomMode  : 0,
@@ -402,22 +364,38 @@ const bgFitOptions = [
 	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
 ];
 
-/**
- * Helper functions
- */
+// Global variables
+let audioCtx,
+	audioElement = [],
+	audioMotion,
+	bgImages = [],
+	bgVideos = [],
+	canvasMsg,
+	coverImage = new Image(),	// cover image for the currently playing song (for canvas rendering)
+	currAudio, 					// audio element currently in use
+	fastSearchTimeout,
+	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
+	isFastSearch = false,
+	isMicSource,				// flag for microphone input in use
+	micStream,
+	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
+	panNode,
+	playlist, 					// play queue
+	playlistPos, 				// index to the current song in the queue
+	randomModeTimer,
+	serverMode, 				// 1 = custom server; 0 = standard web server; -1 = local (file://) mode
+	skipping = false,
+	waitingMetadata = 0,
+	wasMuted;					// mute status before switching to microphone input
+
+// variables for on-screen info display
+let baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
+
+
+// HELPER FUNCTIONS
 
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
-
-// return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
-const getIndex = node => {
-	if ( ! node )
-		return;
-	let i = 0;
-	while ( node = node.previousElementSibling )
-		i++;
-	return i;
-}
 
 // format time in seconds to hh:mm:ss string
 const formatHHMMSS = time => {
@@ -435,27 +413,663 @@ const formatHHMMSS = time => {
 	return str;
 }
 
-// returns the text of the selected option in a `select` HTML element
-const getText = el => el[ el.selectedIndex ].text;
-
-// returns a string with the current status of an UI switch
-const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
-
-// returns a boolean with the current status of an UI switch
-const isSwitchOn = el => el.dataset.active == '1';
+// returns the extension of a file (lowercase, no dot)
+const getFileExt = filename => filename.slice( filename.lastIndexOf('.') + 1 ).toLowerCase();
 
 // returns only the name of a filename
 const getFileName = filename => filename.slice( 0, filename.lastIndexOf('.') );
 
-// returns the extension of a file (lowercase, no dot)
-const getFileExt = filename => filename.slice( filename.lastIndexOf('.') + 1 ).toLowerCase();
+// return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
+const getIndex = node => {
+	if ( ! node )
+		return;
+	let i = 0;
+	while ( node = node.previousElementSibling )
+		i++;
+	return i;
+}
+
+// returns the text of the selected option in a `select` HTML element
+const getText = el => el[ el.selectedIndex ].text;
+
+// returns a boolean with the current status of an UI switch
+const isSwitchOn = el => el.dataset.active == '1';
+
+// returns a string with the current status of an UI switch
+const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 
 // returns the count of queued songs
 const queueLength = _ => playlist.children.length;
 
 // returns a random integer in the range [ 0, n-1 ]
-const randomInt = ( n=2 ) => Math.random() * n | 0;
+const randomInt = ( n = 2 ) => Math.random() * n | 0;
 
+/* ------------------------------------------------------------------------------------------------ */
+
+/**
+ * Adds a batch of files to the queue and displays total songs added when finished
+ *
+ * @param files {array} array of objects with a 'file' property
+ * @param [autoplay] {boolean}
+ */
+function addBatchToPlayQueue( files, autoplay = false ) {
+	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
+	Promise.all( promises ).then( added => {
+		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
+			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
+		notie.alert({ text, time: 5 });
+	});
+}
+
+/**
+ * Add audio metadata to a playlist item or audio element
+ */
+function addMetadata( metadata, target ) {
+	const trackData  = target.dataset,
+		  sourceData = metadata.dataset,
+		  common     = metadata.common,
+		  format     = metadata.format;
+
+	if ( sourceData ) 	// metadata is a dataset (playqueue item) - just copy the data to target element
+		Object.assign( trackData, sourceData );
+	else {				// parse metadata read from file
+		trackData.artist = common.artist || trackData.artist;
+		trackData.title  = common.title || trackData.title;
+		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
+		trackData.codec  = format ? format.codec || format.container : trackData.codec;
+
+		if ( format && format.bitsPerSample )
+			trackData.quality = ( format.sampleRate / 1000 | 0 ) + 'KHz / ' + format.bitsPerSample + 'bits';
+		else if ( format.bitrate )
+			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
+		else
+			trackData.quality = '';
+
+		if ( format && format.duration )
+			trackData.duration = formatHHMMSS( format.duration );
+		else
+			trackData.duration = '';
+
+		if ( common.picture && common.picture.length ) {
+			const blob = new Blob( [ common.picture[0].data ], { type: common.picture[0].format } );
+			trackData.cover = URL.createObjectURL( blob );
+		}
+	}
+
+	if ( target == audioElement[ currAudio ] )
+		setCurrentCover();
+}
+
+/**
+ * Add a song to the play queue
+ * returns 1 if song added or 0 if queue is full
+ */
+function addSongToPlayQueue( uri, content = {} ) {
+
+	if ( queueLength() >= MAX_QUEUED_SONGS )
+		return 0;
+
+	// normalize slashes in path
+	uri = uri.replace( /\\/g, '/' );
+
+	// extract file name and extension
+	const file = uri.split('/').pop(),
+		  ext  = file.split('.').pop();
+
+	// create new list element
+	const newEl     = document.createElement('li'),
+		  trackData = newEl.dataset;
+
+	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+
+	trackData.artist = content.artist || '';
+	trackData.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
+
+	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
+	uri = uri.replace( /#/g, '%23' );
+	trackData.file = uri;
+
+	playlist.appendChild( newEl );
+
+	if ( queueLength() == 1 && ! isPlaying() )
+		loadSong(0);
+	if ( playlistPos > queueLength() - 3 )
+		loadNextSong();
+
+	trackData.retrieve = 1; // flag this item as needing metadata
+	retrieveMetadata();
+	return 1;
+}
+
+/**
+ * Add a song or playlist to the play queue
+ */
+function addToPlayQueue( file, autoplay = false ) {
+
+	let ret;
+
+	if ( ['m3u','m3u8'].includes( getFileExt( file ) ) )
+		ret = loadPlaylist( file );
+	else
+		ret = new Promise( resolve => resolve( addSongToPlayQueue( file ) ) );
+
+	// when promise resolved, if autoplay requested start playing the first added song
+	ret.then( n => {
+		if ( autoplay && ! isPlaying() && n > 0 )
+			playSong( queueLength() - n );
+	});
+
+	return ret;
+}
+
+/**
+ * Event handler for 'ended' on audio elements
+ */
+function audioOnEnded() {
+	if ( ! playNextSong( true ) ) {
+		loadSong( 0 );
+		setCanvasMsg( 'Queue ended', 10 );
+	}
+}
+
+/**
+ * Error event handler for audio elements
+ */
+function audioOnError( e ) {
+	if ( e.target.attributes.src )
+		consoleLog( 'Error loading ' + e.target.src, true );
+}
+
+/**
+ * Event handler for 'play' on audio elements
+ */
+function audioOnPlay() {
+	if ( ! audioElement[ currAudio ].attributes.src ) {
+		playSong( playlistPos );
+		return;
+	}
+
+	if ( audioElement[ currAudio ].currentTime < .1 ) {
+		if ( elRandomMode.value == '1' )
+			selectRandomMode( true );
+		else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
+			cycleElement( elGradient );
+	}
+
+	if ( isSwitchOn( elShowSong ) ) {
+		const timeout = +elTrackTimeout.value || Infinity;
+		setCanvasMsg( 1, timeout );
+	}
+}
+
+/**
+ * Increase or decrease balance
+ */
+function changeBalance( incr ) {
+	let newVal = incr ? fixFloating( ( +elBalance.dataset.value || 0 ) + incr * .1 ) : 0;
+
+	if ( newVal < -1 )
+		newVal = -1;
+	else if ( newVal > 1 )
+		newVal = 1;
+
+	setBalance( newVal );
+	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
+	updateLastConfig();
+}
+
+/**
+ * Change fullscreen analyzer height
+ */
+function changeFsHeight( incr ) {
+	const val = +elFsHeight.value;
+
+	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
+		elFsHeight.value = val + elFsHeight.step * incr;
+		setProperty( elFsHeight, true );
+		updateRangeValue( elFsHeight );
+	}
+	setCanvasMsg( `Analyzer height: ${ elFsHeight.value }%` );
+}
+
+/**
+ * Increase or decrease volume
+ */
+function changeVolume( incr ) {
+	let newVal = fixFloating( ( +elVolume.dataset.value || 0 ) + incr * .05 );
+
+	if ( newVal < 0 )
+		newVal = 0;
+	else if ( newVal > 1 )
+		newVal = 1;
+
+	setVolume( newVal );
+	setCanvasMsg( `Volume: ${ newVal * 20 }` );
+	updateLastConfig();
+}
+
+/**
+ * Clear audio element
+ */
+function clearAudioElement( n = currAudio ) {
+	const elAudio   = audioElement[ n ],
+		  trackData = elAudio.dataset;
+
+	elAudio.removeAttribute('src');
+	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
+	elAudio.load();
+
+	if ( n == currAudio )
+		setCurrentCover(); // clear coverImage and background image if needed
+}
+
+/**
+ * Clear the play queue
+ */
+function clearPlayQueue() {
+
+	while ( playlist.hasChildNodes() )
+		revokeBlobURL( playlist.removeChild( playlist.firstChild ) );
+
+	if ( ! isPlaying() ) {
+		playlistPos = 0;
+		clearAudioElement( currAudio );
+	}
+	else
+		playlistPos = -1;
+
+	clearAudioElement( nextAudio );
+	updatePlaylistUI();
+}
+
+/**
+ * Output messages to the UI "console"
+ */
+function consoleLog( msg, error, clear ) {
+	const content = $('#console-content'),
+	 	  dt = new Date(),
+		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
+
+	if ( clear )
+		content.innerHTML = '';
+
+	if ( error )
+		$('#toggle_console').classList.add('warning');
+
+	if ( msg )
+		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } ${msg}</div>`;
+
+	content.scrollTop = content.scrollHeight;
+}
+
+/**
+ * Select next or previous option in a `select` HTML element, cycling around when necessary
+ *
+ * @param el {object} HTML object
+ * @param [prev] {boolean} true to select previous option
+ */
+function cycleElement( el, prev ) {
+	const idx = el.selectedIndex + ( prev ? -1 : 1 );
+
+	if ( idx < 0 )
+		el.selectedIndex = el.options.length - 1;
+	else if ( idx >= el.options.length )
+		el.selectedIndex = 0;
+	else
+		el.selectedIndex = idx;
+
+	setProperty( el, true );
+}
+
+/**
+ * Cycle X and Y axis scales
+ *
+ * @param [prev] {boolean} true to select previous option
+ * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
+ */
+function cycleScale( prev ) {
+	let scale = +elScaleX.dataset.active + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
+
+	if ( scale < 0 )
+		scale = 3;
+	else if ( scale > 3 )
+		scale = 0;
+
+	elScaleX.dataset.active = scale & 1;
+	elScaleY.dataset.active = scale >> 1;
+
+	setProperty( [ elScaleX, elScaleY ], true );
+	return scale;
+}
+
+/**
+ * Display messages on canvas
+ *
+ * Uses global object canvasMsg
+ * canvasMsg = {
+ * 		info    : <number>, // 1 = song info; 2 = song + settings info
+ * 		timer   : <number>, // countdown timer (in frames) to display info
+ * 		fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
+ *		msg     : <string>, // custom message to be displayed at the top
+ * 		msgTimer: <number>  // countdown timer (in frames) to display custom message
+ * 		                    // (fade for custom message is always 60 frames)
+ * }
+ */
+function displayCanvasMsg() {
+
+	const audioEl    = audioElement[ currAudio ],
+		  trackData  = audioEl.dataset,
+		  remaining  = audioEl.duration - audioEl.currentTime,
+		  endTimeout = +elEndTimeout.value,
+		  bgOption   = elBackground.value[0],
+		  bgImageFit = elBgImageFit.value;
+
+	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
+	if ( remaining < .1 )
+		playNextSong( true );
+
+	// set song info display at the end of the song
+	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
+		setCanvasMsg( 1, remaining, -1 );
+
+	// compute background image size for pulse and zoom in/out effects
+	if (
+		( bgImageFit == BGFIT_PULSE || bgImageFit == BGFIT_ZOOM_IN || bgImageFit == BGFIT_ZOOM_OUT ) &&
+		( bgOption == BG_COVER || bgOption == BG_IMAGE )
+	) {
+		let size;
+
+		if ( bgImageFit == BGFIT_PULSE )
+			size = ( audioMotion.getEnergy() * 70 | 0 ) - 25;
+		else {
+			const songProgress = audioEl.currentTime / audioEl.duration;
+			size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
+		}
+
+		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
+	}
+
+	elOSD.width |= 0; // clear OSD canvas
+
+	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
+		return;
+
+	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
+	canvasCtx.lineJoin = 'round';
+	canvasCtx.font = normalFont;
+	canvasCtx.textAlign = 'center';
+
+	canvasCtx.fillStyle = '#fff';
+	canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
+
+	// Display custom message if any and info level 2 is not set
+	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
+		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
+		outlineText( canvasMsg.msg, centerPos, topLine1 );
+		canvasMsg.msgTimer--;
+	}
+
+	// Display song and config info
+	if ( canvasMsg.timer > 0 ) {
+		if ( canvasMsg.fade < 0 ) {
+			// fade-in
+			const fade     = Math.abs( canvasMsg.fade ),
+				  framesIn = fade * 3 - canvasMsg.timer;
+			canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
+		}
+		else // fade-out
+			canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
+
+		// display additional information (level 2) at the top
+		if ( canvasMsg.info == 2 ) {
+			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
+			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
+
+			canvasCtx.textAlign = 'left';
+			outlineText( getText( elMode ), baseSize, topLine1, maxWidthTop );
+			outlineText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
+
+			canvasCtx.textAlign = 'right';
+			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
+			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
+		}
+
+		if ( isMicSource ) {
+			canvasCtx.textAlign = 'left';
+			canvasCtx.font = largeFont;
+			outlineText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
+		}
+		else {
+			// codec and quality
+			canvasCtx.textAlign = 'right';
+			outlineText( trackData.codec, rightPos, bottomLine1 );
+			outlineText( trackData.quality, rightPos, bottomLine1 + baseSize );
+
+			// song/queue count
+			const totalSongs = queueLength();
+			if ( totalSongs && elShowCount.checked ) {
+				const padDigits = ( '' + totalSongs ).length,
+					  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
+				outlineText( counter, rightPos, bottomLine1 - baseSize );
+			}
+
+			// artist name
+			canvasCtx.textAlign = 'left';
+			outlineText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
+
+			// album title
+			canvasCtx.font = `italic ${normalFont}`;
+			outlineText( trackData.album, baseSize, bottomLine3, maxWidthBot );
+
+			// song title
+			canvasCtx.font = largeFont;
+			outlineText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
+
+			// time
+			if ( audioEl.duration || trackData.duration ) {
+				if ( ! trackData.duration ) {
+					trackData.duration =
+						audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
+
+					if ( playlist.children[ playlistPos ] )
+						playlist.children[ playlistPos ].dataset.duration = trackData.duration;
+				}
+				canvasCtx.textAlign = 'right';
+
+				outlineText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
+			}
+
+			// cover image
+			if ( coverImage.width && elShowCover.checked )
+				canvasCtx.drawImage( coverImage, baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+		}
+
+		if ( --canvasMsg.timer < 1 )
+			canvasMsg.info = canvasMsg.fade = 0;
+	}
+}
+
+/**
+ * Delete all child nodes of an element
+ */
+function deleteChildren( el ) {
+	while ( el.firstChild )
+		el.removeChild( el.firstChild );
+}
+
+/**
+ * Delete a playlist from localStorage
+ */
+function deletePlaylist( index ) {
+	if ( elPlaylists[ index ].dataset.isLocal ) {
+		notie.confirm({
+			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
+			submitText: 'Delete',
+			submitCallback: () => {
+				const keyName = elPlaylists[ index ].value;
+				let playlists = localStorage.getItem('playlists');
+
+				if ( playlists ) {
+					playlists = JSON.parse( playlists );
+					delete playlists[ keyName ];
+					saveToStorage( 'playlists', playlists );
+				}
+
+				localStorage.removeItem( `pl_${keyName}` );
+				notie.alert({ text: 'Playlist deleted' });
+				loadSavedPlaylists();
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' })
+			},
+		});
+	}
+	else if ( elPlaylists[ index ].value )
+		notie.alert({ text: 'Cannot delete a server playlist!' });
+}
+
+/**
+ * Populate Config Panel options
+ */
+function doConfigPanel() {
+
+	// helper function
+	const buildOptions = ( container, cssClass, options, parent, cfgKey ) => {
+		// create checkboxes inside the container
+		options.forEach( item => {
+			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${item.disabled ? '' : 'checked'}> ${item.text}</label>`;
+		});
+
+		// add event listeners for enabling/disabling options
+		$$( `.${cssClass}` ).forEach( element => {
+			element.addEventListener( 'click', event => {
+				if ( ! element.checked ) {
+					const count = options.filter( item => ! item.disabled ).length;
+					if ( count < 2 ) {
+						notie.alert({ text: 'At least one item must be enabled!' });
+						event.preventDefault();
+						return false;
+					}
+				}
+				options.find( item => item.value == element.dataset.option ).disabled = ! element.checked;
+				populateSelect( parent, options );
+				savePreferences( cfgKey );
+			});
+		});
+	}
+
+	// Enabled visualization modes
+	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
+
+	// Enabled Background Image Fit options
+	buildOptions( $('#enabled_bgfit'), 'enabledMode', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
+
+	// Enabled gradients
+
+	const elEnabledGradients = $('#enabled_gradients');
+
+	Object.keys( gradients ).forEach( key => {
+		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
+	});
+
+	$$('.enabledGradient').forEach( el => {
+		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
+			gradients[ el.dataset.grad ].disabled = ! el.checked;
+			populateGradients();
+			savePreferences( KEY_DISABLED_GRADS );
+		});
+	});
+
+	// Random Mode properties
+
+	const elProperties = $('#random_properties');
+
+	randomProperties.forEach( prop => {
+		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
+	});
+
+	$$('.randomProperty').forEach( el => {
+		el.addEventListener( 'click', event => {
+			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
+			savePreferences( KEY_DISABLED_PROPS );
+		});
+	});
+
+	// Sensitivity presets (already populated by loadPreferences())
+	$$( '[data-preset]' ).forEach( el => {
+		if ( el.className == 'reset-sens' ) {
+			el.addEventListener( 'click', () => {
+				$(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
+				$(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
+				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					setProperty( elSensitivity );
+				savePreferences( KEY_SENSITIVITY );
+			});
+		}
+		else {
+			el.addEventListener( 'change', () => {
+				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					setProperty( elSensitivity );
+				savePreferences( KEY_SENSITIVITY );
+			});
+		}
+	});
+
+	// On-screen display options
+	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover, elShowCount ] )
+		el.addEventListener( 'change', () => savePreferences( KEY_DISPLAY_OPTS ) );
+
+	$('#reset_osd').addEventListener( 'click', () => {
+		setInfoOptions( infoDisplayDefaults );
+		savePreferences( KEY_DISPLAY_OPTS );
+	});
+}
+
+/**
+ * Fast forward or rewind the current audio element
+ */
+function fastSearch( dir = 1 ) {
+	const audioEl = audioElement[ currAudio ];
+
+	if ( audioEl.duration > 0 && audioEl.duration < Infinity ) {
+		let newPos = audioEl.currentTime + dir * 5; // 5 seconds steps
+
+		if ( newPos < 0 )
+			newPos = 0;
+		else if ( newPos > audioEl.duration - 1 )
+			newPos = audioEl.duration - 1
+
+		setCanvasMsg(1); // display song info
+		audioEl.currentTime = newPos;
+	}
+
+	// 'keydown' keeps triggering while the key is pressed, but 'mousedown' triggers only once,
+	// so we need to schedule another call to keep this working when in mouse mode
+	if ( isFastSearch == 'm' )
+		scheduleFastSearch( 'm', dir );
+}
+
+/**
+ * Finish track fast search
+ */
+function finishFastSearch() {
+	window.clearTimeout( fastSearchTimeout );
+	if ( isFastSearch ) {
+		isFastSearch = false;
+		return true;
+	}
+	// fast search was never activated, return false to indicate a track skip
+	return false;
+}
 
 /**
  * Display the canvas in full-screen mode
@@ -463,6 +1077,1127 @@ const randomInt = ( n=2 ) => Math.random() * n | 0;
 function fullscreen() {
 	audioMotion.toggleFullscreen();
 	document.activeElement.blur(); // move keyboard focus to the document body
+}
+
+/**
+ * Return an object with the current settings
+ */
+function getCurrentSettings() {
+	return {
+		alphaBars   : elAlphaBars.dataset.active,
+		fftSize		: elFFTsize.value,
+		freqMin		: elRangeMin.value,
+		freqMax		: elRangeMax.value,
+		smoothing	: elSmoothing.value,
+		gradient	: elGradient.value,
+		mode        : elMode.value,
+		randomMode  : elRandomMode.value,
+		sensitivity : elSensitivity.value,
+		lineWidth   : elLineWidth.value,
+		fillAlpha   : elFillAlpha.value,
+		barSpace    : elBarSpace.value,
+		reflex      : elReflex.value,
+		background  : elBackground.value,
+		bgImageDim  : elBgImageDim.value,
+		bgImageFit  : elBgImageFit.value,
+		spin        : elSpin.value,
+		fsHeight    : elFsHeight.value,
+		mirror      : elMirror.value,
+		showScaleX 	: elScaleX.dataset.active,
+		showScaleY 	: elScaleY.dataset.active,
+		showPeaks 	: elShowPeaks.dataset.active,
+		cycleGrad   : elCycleGrad.dataset.active,
+		ledDisplay  : elLedDisplay.dataset.active,
+		lumiBars    : elLumiBars.dataset.active,
+		outlineBars : elOutline.dataset.active,
+		repeat      : elRepeat.dataset.active,
+		showSong    : elShowSong.dataset.active,
+		noShadow    : elNoShadow.dataset.active,
+		loRes       : elLoRes.dataset.active,
+		showFPS     : elFPS.dataset.active,
+		radial      : elRadial.dataset.active,
+		stereo      : elStereo.dataset.active,
+		splitGrad   : elSplitGrad.dataset.active
+	};
+}
+
+/**
+ * Check if audio is playing
+ */
+function isPlaying() {
+	const audioEl = audioElement[ currAudio ];
+
+	return audioEl
+		&& audioEl.currentTime > 0
+		&& ! audioEl.paused
+		&& ! audioEl.ended;
+//		&& audioEl.readyState > 2;
+}
+
+/**
+ * Process keyboard shortcuts
+ */
+function keyboardControls( event ) {
+
+	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
+		return;
+
+	const isShiftKey = event.shiftKey;
+
+	if ( event.type == 'keydown' ) {
+		switch ( event.code ) {
+			case 'ArrowUp': 	// volume up
+				if ( isShiftKey )
+					changeFsHeight(1);
+				else
+					changeVolume(1);
+				break;
+			case 'ArrowDown': 	// volume down
+				if ( isShiftKey )
+					changeFsHeight(-1);
+				else
+					changeVolume(-1);
+				break;
+			case 'ArrowLeft': 	// rewind
+				if ( isShiftKey )
+					changeBalance(-1);
+				else if ( isFastSearch ) {
+					setCanvasMsg( 'Rewind', 1 );
+					fastSearch(-1);
+				}
+				else
+					scheduleFastSearch('k', -1);
+				break;
+			case 'ArrowRight': 	// fast forward
+				if ( isShiftKey )
+					changeBalance(1);
+				else if ( isFastSearch ) {
+					setCanvasMsg( 'Fast forward', 1 );
+					fastSearch();
+				}
+				else
+					scheduleFastSearch('k');
+				break;
+			default:
+				// no key match - quit and keep default behavior
+				return;
+		}
+	}
+	else {
+		// the keys below are handled on 'keyup' to avoid key repetition
+		switch ( event.code ) {
+			case 'Delete': 		// delete selected songs from the playlist
+			case 'Backspace':	// for Mac
+				playlist.querySelectorAll('.selected').forEach( e => {
+					revokeBlobURL( e );
+					e.remove();
+				});
+				const current = getIndex( playlist.querySelector('.current') );
+				if ( current !== undefined )
+					playlistPos = current;	// update playlistPos if current song hasn't been deleted
+				else if ( playlistPos > queueLength() - 1 )
+					playlistPos = queueLength() - 1;
+				else
+					playlistPos--;
+				if ( queueLength() )
+					loadNextSong();
+				else {
+					clearAudioElement( nextAudio );
+					if ( ! isPlaying() )
+						clearAudioElement();
+				}
+				break;
+			case 'Space': 		// play / pause
+				setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
+				playPause();
+				break;
+			case 'ArrowLeft': 	// previous song
+			case 'KeyJ':
+				if ( ! finishFastSearch() && ! isShiftKey ) {
+					setCanvasMsg( 'Previous track', 1 );
+					skipTrack(true);
+				}
+				break;
+			case 'KeyG': 		// gradient
+				cycleElement( elGradient, isShiftKey );
+				setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
+				break;
+			case 'ArrowRight': 	// next song
+			case 'KeyK':
+				if ( ! finishFastSearch() && ! isShiftKey ) {
+					setCanvasMsg( 'Next track', 1 );
+					skipTrack();
+				}
+				break;
+			case 'KeyA': 		// cycle thru auto gradient / random mode options
+				if ( isSwitchOn( elCycleGrad ) || isShiftKey ) {
+					if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! isShiftKey ) ||
+					     ( elRandomMode.selectedIndex == 0 && isSwitchOn( elCycleGrad ) && isShiftKey ) ) {
+						elCycleGrad.dataset.active = '0';
+						elRandomMode.value = '0';
+						setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
+					}
+					else {
+						cycleElement( elRandomMode, isShiftKey );
+						setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
+					}
+				}
+				else {
+					elCycleGrad.dataset.active = '1';
+					setCanvasMsg( 'Auto gradient ON' );
+				}
+				setProperty( elRandomMode, true );
+				break;
+			case 'KeyB': 		// background or image fit (shift)
+				cycleElement( isShiftKey ? elBgImageFit : elBackground );
+				const bgOption = elBackground.value[0];
+				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
+				break;
+			case 'KeyC': 		// radial
+				elRadial.click();
+				setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+				break;
+			case 'KeyD': 		// display information
+				toggleInfo();
+				break;
+			case 'KeyE': 		// shuffle queue
+				if ( queueLength() > 0 ) {
+					shufflePlayQueue();
+					setCanvasMsg( 'Shuffle' );
+				}
+				break;
+			case 'KeyF': 		// toggle fullscreen
+				fullscreen();
+				break;
+			case 'KeyH': 		// toggle fps display
+				elFPS.click();
+				break;
+			case 'KeyI': 		// toggle info display on track change
+				elShowSong.click();
+				setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
+				break;
+			case 'KeyL': 		// toggle LED display effect
+				elLedDisplay.click();
+				setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
+				break;
+			case 'KeyM': 		// visualization mode
+			case 'KeyV':
+				cycleElement( elMode, isShiftKey );
+				setCanvasMsg( 'Mode: ' + getText( elMode ) );
+				break;
+			case 'KeyN': 		// increase or reduce sensitivity
+				cycleElement( elSensitivity, isShiftKey );
+				setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
+				break;
+			case 'KeyO': 		// toggle resolution
+				elLoRes.click();
+				setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
+				break;
+			case 'KeyP': 		// toggle peaks display
+				elShowPeaks.click();
+				setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+				break;
+			case 'KeyR': 		// toggle playlist repeat
+				elRepeat.click();
+				setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
+				break;
+			case 'KeyS': 		// toggle X and Y axis scales
+				setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
+				break;
+			case 'KeyT': 		// toggle text shadow
+				elNoShadow.click();
+				setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
+				break;
+			case 'KeyU': 		// toggle lumi bars
+				elLumiBars.click();
+				setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
+				break;
+			case 'KeyX':
+				cycleElement( elReflex, isShiftKey );
+				setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
+				break;
+			default:
+				// no key match - quit and keep default behavior
+				return;
+
+		} // switch
+	} // else
+
+	event.preventDefault();
+}
+
+/**
+ * Try to get a cover image from the song's folder
+ */
+function loadCover( uri ) {
+	return new Promise( resolve => {
+		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
+
+		if ( serverMode == -1 )
+			resolve(''); // nothing to do when in serverless mode
+		else if ( folderImages[ path ] !== undefined )
+			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
+		else {
+			const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
+
+			fetch( urlToFetch )
+				.then( response => {
+					return ( response.status == 200 ) ? response.text() : null;
+				})
+				.then( content => {
+					let imageUrl = '';
+					if ( content ) {
+						if ( serverMode == 1 )
+							imageUrl = content;
+						else {
+							const dirContents = fileExplorer.parseWebDirectory( content );
+							if ( dirContents.cover )
+								imageUrl = dirContents.cover;
+						}
+					}
+					folderImages[ path ] = imageUrl;
+					resolve( path + imageUrl );
+				});
+		}
+	});
+}
+
+/**
+ * Load a music file from the user's computer
+ */
+function loadLocalFile( obj ) {
+
+	const fileBlob = obj.files[0];
+
+	if ( fileBlob ) {
+		clearAudioElement();
+
+		const audioEl = audioElement[ currAudio ];
+
+		audioEl.src = URL.createObjectURL( fileBlob );
+		audioEl.play();
+		audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
+
+		mm.parseBlob( fileBlob )
+			.then( metadata => addMetadata( metadata, audioEl ) )
+			.catch( e => {} );
+	}
+}
+
+/**
+ * Loads next song into the audio element not currently in use
+ */
+function loadNextSong() {
+	const next    = ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0,
+		  song    = playlist.children[ next ],
+		  audioEl = audioElement[ nextAudio ];
+
+	if ( song ) {
+		audioEl.src = song.dataset.file;
+		audioEl.load();
+		addMetadata( song, audioEl );
+	}
+
+	skipping = false; // finished skipping track
+}
+
+/**
+ * Load a playlist file into the play queue
+ */
+function loadPlaylist( path ) {
+
+	// normalize slashes
+	path = path.replace( /\\/g, '/' );
+
+	return new Promise( resolve => {
+		let	n = 0,
+			songInfo;
+
+		if ( ! path ) {
+			resolve( -1 );
+		}
+		else if ( ['m3u','m3u8'].includes( getFileExt( path ) ) ) {
+			fetch( path )
+				.then( response => {
+					if ( response.status == 200 )
+						return response.text();
+					else
+						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+				})
+				.then( content => {
+					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
+					content.split(/[\r\n]+/).forEach( line => {
+						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+							line = line.replace( /\\/g, '/' );
+							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
+								songInfo = line.slice( line.lastIndexOf('/') + 1 );
+								songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
+							}
+							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
+								line = path + line;
+
+							// try to extract artist name and song title off the info tag (format: ARTIST - SONG)
+							const sep  = songInfo.indexOf(' - '),
+								  data = sep == -1 ? { title: songInfo } : { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) };
+
+							n += addSongToPlayQueue( line, data );
+							songInfo = '';
+						}
+						else if ( line.slice( 0, 7 ) == '#EXTINF' )
+							songInfo = line.slice( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+					});
+					resolve( n );
+				})
+				.catch( e => {
+					consoleLog( e, true );
+					resolve( n );
+				});
+		}
+		else { // try to load playlist from localStorage
+			let list = localStorage.getItem( 'pl_' + path );
+			if ( list ) {
+				list = JSON.parse( list );
+				list.forEach( item => {
+					item = item.replace( /\\/g, '/' );
+					songInfo = item.slice( item.lastIndexOf('/') + 1 );
+					songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
+					n += addSongToPlayQueue( item, { title: songInfo } )
+				});
+			}
+			else
+				consoleLog( `Unrecognized playlist file: ${path}`, true );
+
+			resolve( n );
+		}
+	});
+}
+
+/**
+ * Load preferences from localStorage
+ */
+function loadPreferences() {
+	// helper function
+	const parseDisabled = ( jsonData, options ) => {
+		if ( jsonData !== null ) {
+			JSON.parse( jsonData ).forEach( option => {
+				options.find( item => item.value == option ).disabled = true;
+			});
+		}
+	}
+
+	// Load last used settings
+	const lastConfig    = localStorage.getItem( KEY_LAST_CONFIG ),
+		  isLastSession = ( lastConfig !== null );
+
+	// if no data found from last session, use the defaults (in the demo site use the demo preset)
+	presets['last'] = JSON.parse( lastConfig ) || { ...presets[ location.host.startsWith('demo.') ? 'demo' : 'default' ] };
+
+	// Load custom preset
+	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) );
+
+	// Populate presets combo box
+	populatePresets( isLastSession );
+
+	// Load disabled modes preference
+	parseDisabled( localStorage.getItem( KEY_DISABLED_MODES ), modeOptions );
+
+	// Load disabled background image fit options
+	parseDisabled( localStorage.getItem( KEY_DISABLED_BGFIT ), bgFitOptions );
+
+	// Load disabled gradients preference
+	const disabledGradients = localStorage.getItem( KEY_DISABLED_GRADS );
+	if ( disabledGradients !== null ) {
+		JSON.parse( disabledGradients ).forEach( key => {
+			gradients[ key ].disabled = true;
+		});
+	}
+
+	// Load disabled random properties preference
+	parseDisabled( localStorage.getItem( KEY_DISABLED_PROPS ), randomProperties );
+
+	// Sensitivity presets
+	const elMinSens = $$('.min-db');
+	for ( let i = -60; i >= -110; i -= 5 )
+		elMinSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+
+	const elMaxSens = $$('.max-db');
+	for ( let i = 0; i >= -40; i -= 5 )
+		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+
+	const sensitivityPresets = JSON.parse( localStorage.getItem( KEY_SENSITIVITY ) ) || sensitivityDefaults;
+
+	sensitivityPresets.forEach( ( preset, index ) => {
+		elMinSens[ index ].value = preset.min;
+		elMaxSens[ index ].value = preset.max;
+	});
+
+	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
+	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( KEY_DISPLAY_OPTS ) ) || {} ) } );
+
+	return isLastSession;
+}
+
+/**
+ * Load a configuration preset
+ *
+ * @param name {string} desired preset name
+ * @param [alert] {boolean} true to display on-screen alert after loading
+ * @param [init] {boolean} true to use default values for missing properties
+ */
+function loadPreset( name, alert, init ) {
+
+	if ( ! presets[ name ] ) // check invalid preset name
+		return;
+
+	const thisPreset = presets[ name ],
+		  defaults   = presets['default'];
+
+	if ( thisPreset.randomMode !== undefined ) // convert legacy boolean value to integer (version =< 19.12)
+		thisPreset.randomMode |= 0;
+
+	if ( thisPreset.blackBg !== undefined ) // convert legacy blackBg property (version =< 20.4)
+		thisPreset.background = +thisPreset.blackBg;
+
+	if ( thisPreset.showScale !== undefined ) { // convert legacy showScale property (version =< 20.9)
+		thisPreset.showScaleX = thisPreset.showScale & 1;
+		thisPreset.showScaleY = thisPreset.showScale >> 1;
+	}
+
+	if ( thisPreset.reflex !== undefined && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
+		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
+
+	if ( thisPreset.bgImageFit !== undefined && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
+		thisPreset.bgImageFit = ['adjust','center','repeat','pulse','zoom-in','zoom-out'].indexOf( thisPreset.bgImageFit );
+
+	$$('[data-prop]').forEach( el => {
+		const prop = el.dataset.prop,
+			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
+
+		if ( val !== undefined ) {
+			if ( el.classList.contains('switch') )
+				el.dataset.active = +val;
+			else if ( el == elVolume )
+				setVolume( val );
+			else if ( el == elBalance )
+				setBalance( val );
+			else {
+				el.value = val;
+				if ( el.selectedIndex == -1 ) // fix invalid values in select elements
+					el.selectedIndex = 0;
+				updateRangeValue( el );
+			}
+		}
+	});
+
+	if ( thisPreset.highSens !== undefined ) // legacy option (version =< 19.5)
+		elSensitivity.value = thisPreset.highSens ? 2 : 1;
+
+	if ( thisPreset.minDb !== undefined && thisPreset.maxDb !== undefined ) { // legacy options (version =< 19.12)
+		$('.min-db[data-preset="1"]').value = thisPreset.minDb;
+		$('.max-db[data-preset="1"]').value = thisPreset.maxDb;
+		savePreferences( KEY_SENSITIVITY );
+	}
+
+	audioMotion.setOptions( {
+		alphaBars    : isSwitchOn( elAlphaBars ),
+		fftSize      : elFFTsize.value,
+		minFreq      : elRangeMin.value,
+		maxFreq      : elRangeMax.value,
+		smoothing    : elSmoothing.value,
+		showPeaks    : isSwitchOn( elShowPeaks ),
+		ledBars      : isSwitchOn( elLedDisplay ),
+		lumiBars     : isSwitchOn( elLumiBars ),
+		loRes        : isSwitchOn( elLoRes ),
+		showFPS      : isSwitchOn( elFPS ),
+		showScaleX   : isSwitchOn( elScaleX ),
+		showScaleY   : isSwitchOn( elScaleY ),
+		outlineBars  : isSwitchOn( elOutline ),
+		radial       : isSwitchOn( elRadial ),
+		spinSpeed    : elSpin.value,
+		stereo       : isSwitchOn( elStereo ),
+		splitGradient: isSwitchOn( elSplitGrad ),
+		mirror       : elMirror.value
+	} );
+
+	// settings that make additional changes are set by the setProperty() function
+	setProperty(
+		[ elBackground,
+		elBgImageFit,
+		elBgImageDim,
+		elSensitivity,
+		elReflex,
+		elGradient,
+		elRandomMode,
+		elBarSpace,
+		elFsHeight,
+		elMode ], true );
+
+	if ( name == 'demo' )
+		selectRandomMode( true );
+
+	if ( alert )
+		notie.alert({ text: 'Settings loaded!' });
+}
+
+/**
+ * Load playlists from localStorage and legacy playlists.cfg file
+ */
+function loadSavedPlaylists( keyName ) {
+
+	// reset UI playlist selection box
+
+	deleteChildren( elPlaylists );
+
+	const item = new Option( 'Select a playlist', '' );
+	item.disabled = true;
+	item.selected = true;
+	elPlaylists.options[ elPlaylists.options.length ] = item;
+
+	// load playlists from localStorage
+
+	let playlists = localStorage.getItem('playlists');
+
+	if ( playlists ) {
+		playlists = JSON.parse( playlists );
+
+		Object.keys( playlists ).forEach( key => {
+			const item = new Option( playlists[ key ], key );
+			item.dataset.isLocal = '1';
+			if ( key == keyName )
+				item.selected = true;
+			elPlaylists.options[ elPlaylists.options.length ] = item;
+		});
+	}
+
+	// try to load legacy playlists.cfg file
+
+	fetch( 'playlists.cfg' )
+		.then( response => {
+			if ( response.status == 200 ) {
+				consoleLog( 'Found legacy playlists.cfg file' );
+				return response.text();
+			}
+			else
+				return false;
+		})
+		.then( content => {
+			if ( content !== false ) {
+				let n = 0;
+				content.split(/[\r\n]+/).forEach( line => {
+					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+						let info = line.split(/\|/);
+						if ( info.length == 2 ) {
+							elPlaylists.options[ elPlaylists.options.length ] = new Option( info[0].trim(), info[1].trim() );
+							n++;
+						}
+					}
+				});
+				if ( n )
+					consoleLog( `${n} playlists loaded from playlists.cfg` );
+				else
+					consoleLog( 'No playlists found in playlists.cfg', true );
+			}
+		})
+		.catch( e => {} );
+}
+
+/**
+ * Load a song into the currently active audio element
+ */
+function loadSong( n ) {
+	const audioEl = audioElement[ currAudio ];
+
+	if ( playlist.children[ n ] ) {
+		playlistPos = n;
+		const song = playlist.children[ playlistPos ];
+		audioEl.src = song.dataset.file;
+		addMetadata( song, audioEl );
+
+		updatePlaylistUI();
+		loadNextSong();
+		return true;
+	}
+	else
+		return false;
+}
+
+/**
+ * Draws outlined text on OSD canvas
+ */
+function outlineText( text, x, y, maxWidth ) {
+	if ( isSwitchOn( elNoShadow ) ) {
+		canvasCtx.strokeText( text, x, y, maxWidth );
+		canvasCtx.fillText( text, x, y, maxWidth );
+	}
+	else {
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * audioMotion.pixelRatio;
+		canvasCtx.fillText( text, x, y, maxWidth );
+		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
+	}
+}
+
+/**
+ * Play next song on queue
+ */
+function playNextSong( play ) {
+
+	if ( skipping || isMicSource || playlistPos > queueLength() - 1 )
+		return true;
+
+	skipping = true;
+
+	if ( playlistPos < queueLength() - 1 )
+		playlistPos++;
+	else if ( isSwitchOn( elRepeat ) )
+		playlistPos = 0;
+	else {
+		skipping = false;
+		return false;
+	}
+
+	play |= isPlaying();
+
+	currAudio = nextAudio;
+	nextAudio = ! currAudio | 0;
+	setCurrentCover();
+
+	if ( play ) {
+		audioElement[ currAudio ].play()
+		.then( () => {
+			loadNextSong();
+		})
+		.catch( err => {
+			if ( err.code != 20 ) {
+				consoleLog( err, true );
+				loadNextSong();
+				playNextSong( true );
+			}
+		});
+	}
+	else
+		loadNextSong();
+
+	updatePlaylistUI();
+	return true;
+}
+
+/**
+ * Player play/pause control
+ */
+function playPause( play ) {
+	if ( isMicSource )
+		return;
+	if ( isPlaying() && ! play )
+		audioElement[ currAudio ].pause();
+	else
+		audioElement[ currAudio ].play().catch( err => {
+			// ignore AbortError - when play promise is interrupted by a new load request or call to pause()
+			if ( err.code != 20 ) {
+				consoleLog( err, true )
+				playNextSong( true );
+			}
+		});
+}
+
+/**
+ * Play previous song on queue
+ */
+function playPreviousSong() {
+	let ret = true;
+
+	if ( isPlaying() ) {
+		if ( audioElement[ currAudio ].currentTime > 2 )
+			audioElement[ currAudio ].currentTime = 0;
+		else if ( playlistPos > 0 )
+			playSong( playlistPos - 1 );
+		else
+			ret = false;
+	}
+	else
+		ret = loadSong( playlistPos - 1 );
+
+	return ret;
+}
+
+/**
+ * Play a song from the play queue
+ */
+function playSong( n ) {
+	if ( loadSong( n ) )
+		playPause( true );
+}
+
+/**
+ * Populate UI gradient selection combo box
+ */
+function populateGradients() {
+	let grad = elGradient.value;
+	deleteChildren( elGradient );
+
+	// add the option to the html select element for the user interface
+	for ( const key of Object.keys( gradients ) ) {
+		if ( ! gradients[ key ].disabled )
+			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
+	}
+
+	if ( grad !== '' ) {
+		elGradient.value = grad;
+		setProperty( elGradient, true );
+	}
+}
+
+/**
+ * Populate presets combo box
+ */
+function populatePresets( isLastSession, newValue ) {
+	const presetOptions = [
+		[ '', 'Select preset' ],
+		[ 'demo', 'Demo (random)' ],
+		[ 'fullres', 'Full resolution' ],
+		[ 'ledbars', 'LED bars' ],
+		[ 'octave', 'Octave bands' ],
+		...( presets['custom'] ? [ [ 'custom', 'Custom' ] ] : [] ),
+		...( isLastSession ? [ [ 'last', 'Last session' ] ] : [] ),
+		[ 'default', 'Restore defaults' ]
+	];
+
+	populateSelect( elPreset, presetOptions );
+	elPreset.value = newValue || '';
+}
+
+/**
+ * Populate a select element
+ *
+ * @param element {object}
+ * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
+ * @param keep {boolean}  whether to keep existing content
+ */
+function populateSelect( element, options, keep ) {
+	const oldValue = element.value,
+		  isObject = ! Array.isArray( options[0] );
+
+	if ( ! keep )
+		deleteChildren( element );
+
+	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
+		const option = new Option( item.text || item[1], item.value || item[0] );
+		if ( option.value == '' )
+			option.disabled = true;
+		element[ element.options.length ] = option;
+	}
+
+	if ( oldValue !== '' ) {
+		element.value = oldValue;
+		if ( element.selectedIndex == -1 ) // old value disabled
+			element.selectedIndex = 0;
+		setProperty( element, true );
+	}
+}
+
+/**
+ * Retrieve metadata for files in the play queue
+ */
+function retrieveMetadata() {
+	// leave when we already have enough concurrent requests pending
+	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
+		return;
+
+	// find the first play queue item for which we haven't retrieved the metadata yet
+	const queueItem = Array.from( playlist.children ).find( el => el.dataset.retrieve );
+
+	if ( queueItem ) {
+		waitingMetadata++;
+		delete queueItem.dataset.retrieve;
+
+		const uri = queueItem.dataset.file;
+
+		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
+			.then( metadata => {
+				if ( metadata ) {
+					addMetadata( metadata, queueItem ); // add metadata to play queue item
+					syncMetadataToAudioElements( queueItem );
+					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+						loadCover( uri ).then( cover => {
+							queueItem.dataset.cover = cover;
+							syncMetadataToAudioElements( queueItem );
+						});
+					}
+				}
+			})
+			.catch( e => {} ) // fail silently
+			.finally( () => {
+				waitingMetadata--;
+				retrieveMetadata(); // call back to continue processing the queue
+			});
+	}
+}
+
+/**
+ * Release URL objects created for image blobs
+ */
+function revokeBlobURL( item ) {
+	const cover = item.dataset.cover;
+	if ( cover.startsWith('blob:') )
+		URL.revokeObjectURL( cover );
+}
+
+/**
+ * Save/update an existing playlist
+ */
+function savePlaylist( index ) {
+
+	if ( elPlaylists[ index ].value == '' )
+		storePlaylist();
+	else if ( ! elPlaylists[ index ].dataset.isLocal )
+		notie.alert({ text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
+	else
+		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
+			submitText: 'Overwrite',
+			submitCallback: () => {
+				storePlaylist( elPlaylists[ index ].value );
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' });
+			}
+		});
+}
+
+/**
+ * Save Config Panel preferences to localStorage
+ *
+ * @param [key] {string} preference to save; if undefined save all preferences (default)
+ */
+function savePreferences( key ) {
+	// helper function
+	const getDisabledItems = items => items.filter( item => item.disabled ).map( item => item.value );
+
+	if ( ! key || key == KEY_DISABLED_MODES )
+		saveToStorage( KEY_DISABLED_MODES, getDisabledItems( modeOptions ) );
+
+	if ( ! key || key == KEY_DISABLED_BGFIT )
+		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
+
+	if ( ! key || key == KEY_DISABLED_GRADS )
+		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
+
+	if ( ! key || key == KEY_DISABLED_PROPS )
+		saveToStorage( KEY_DISABLED_PROPS, getDisabledItems( randomProperties ) );
+
+	if ( ! key || key == KEY_SENSITIVITY ) {
+		let sensitivityPresets = [];
+		for ( const i of [0,1,2] ) {
+			sensitivityPresets.push( {
+				min: $(`.min-db[data-preset="${i}"]`).value,
+				max: $(`.max-db[data-preset="${i}"]`).value
+			});
+		}
+		saveToStorage( KEY_SENSITIVITY, sensitivityPresets );
+	}
+
+	if ( ! key || key == KEY_DISPLAY_OPTS ) {
+		const displayOptions = {
+			info  : elInfoTimeout.value,
+			track : elTrackTimeout.value,
+			end   : elEndTimeout.value,
+			covers: elShowCover.checked,
+			count : elShowCount.checked
+		}
+		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
+	}
+}
+
+/**
+ * Save an object to localStorage in JSON format
+ *
+ * @param {string} item key
+ * @param {object} data object
+ */
+function saveToStorage( key, data ) {
+	localStorage.setItem( key, JSON.stringify( data ) );
+}
+
+/**
+ * Schedule start of track fast search
+ *
+ * @param mode {string} 'm' for mouse, 'k' for keyboard
+ * @param [dir] {number} 1 for FF, -1 for REW
+ */
+function scheduleFastSearch( mode, dir = 1 ) {
+	// set a 200ms timeout to start fast search (wait for 'click' or 'keyup' event)
+	fastSearchTimeout = window.setTimeout( () => {
+		isFastSearch = mode;
+		fastSearch( dir );
+	}, 200 );
+}
+
+/**
+ * Choose a random visualization mode
+ *
+ * @param [force] {boolean} force change even when not playing
+ *                (default true for microphone input, false otherwise )
+ */
+function selectRandomMode( force = isMicSource ) {
+	if ( ! isPlaying() && ! force )
+		return;
+
+	// helper function
+	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
+
+	let props = []; // properties that need to be updated
+
+	elMode.selectedIndex = randomInt( elMode.options.length );
+
+	if ( isEnabled('alpha') ) {
+		elAlphaBars.dataset.active = randomInt();
+		props.push( elAlphaBars );
+	}
+
+	if ( isEnabled('nobg') )
+		elBackground.selectedIndex = randomInt( elBackground.options.length );
+
+	if ( isEnabled('imgfit') ) {
+		elBgImageFit.selectedIndex = randomInt( elBgImageFit.options.length );
+		props.push( elBgImageFit );
+	}
+
+	if ( isEnabled('peaks') ) {
+		elShowPeaks.dataset.active = randomInt(); // 0 or 1
+		props.push( elShowPeaks );
+	}
+
+	if ( isEnabled('leds') ) {
+		elLedDisplay.dataset.active = randomInt();
+		props.push( elLedDisplay );
+	}
+
+	if ( isEnabled('lumi') ) {
+		// always disable lumi when leds are active and background is set to image or video
+		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
+		props.push( elLumiBars );
+	}
+
+	if ( isEnabled('line') ) {
+		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
+		updateRangeValue( elLineWidth );
+	}
+
+	if ( isEnabled('fill') ) {
+		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
+		updateRangeValue( elFillAlpha );
+	}
+
+	if ( isEnabled('barSp') )
+		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
+
+	if ( isEnabled('outline') ) {
+		elOutline.dataset.active = randomInt();
+		props.push( elOutline );
+	}
+
+	if ( isEnabled('reflex') ) {
+		// exclude 'mirrored' reflex option for octave bands modes
+		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
+		elReflex.selectedIndex = randomInt( options );
+	}
+
+	if ( isEnabled('radial') ) {
+		elRadial.dataset.active = randomInt();
+		props.push( elRadial );
+	}
+
+	if ( isEnabled('spin') ) {
+		elSpin.value = randomInt(4);
+		updateRangeValue( elSpin );
+		props.push( elSpin );
+	}
+
+	if ( isEnabled('split') ) {
+		elSplitGrad.dataset.active = randomInt();
+		props.push( elSplitGrad );
+	}
+
+	if ( isEnabled('stereo') ) {
+		elStereo.dataset.active = randomInt();
+		props.push( elStereo );
+	}
+
+	if ( isEnabled('mirror') ) {
+		elMirror.value = randomInt(3) - 1;
+		props.push( elMirror );
+	}
+
+	if ( isSwitchOn( elCycleGrad ) ) {
+		elGradient.selectedIndex = randomInt( elGradient.options.length );
+		props.push( elGradient );
+	}
+
+	// add properties that depend on other settings (mode also sets barspace)
+	props.push( elBackground, elReflex, elMode );
+
+	// effectively set the affected properties
+	setProperty( props, true );
+}
+
+/**
+ * Set the background image CSS variable
+ */
+function setBackgroundImage( url ) {
+	document.documentElement.style.setProperty( '--background-image', url ? `url( ${ url.replace( /['()]/g, '\\$&' ) } )` : 'none' );
+}
+
+/**
+ * Set balance
+ */
+function setBalance( value ) {
+	elBalance.dataset.value = value;
+	panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
+	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
+}
+
+/**
+ * Set message for on-screen display
+ *
+ * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
+ *                            string provides a custom message to be displayed at the top
+ * @param [timer] {number} time in seconds to display message (1/3rd of it will be used for fade in/out)
+ * @param [dir] {number} -1 for fade-in; 1 for fade-out (default)
+ */
+function setCanvasMsg( msg, timer = 2, dir = 1 ) {
+	if ( ! msg )
+		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
+	else {
+		if ( typeof msg == 'number' ) {
+			canvasMsg.info = msg; // set info level 1 or 2
+			canvasMsg.timer = Math.round( Math.max( timer * 60, canvasMsg.timer || 0 ) ); // note: Infinity | 0 == 0
+			canvasMsg.fade = Math.round( canvasMsg.timer / 3 ) * dir;
+		}
+		else {
+			canvasMsg.msg = msg;  // set custom message
+			if ( canvasMsg.info == 2 )
+				canvasMsg.info = 1;
+			canvasMsg.msgTimer = timer * 60 | 0;
+		}
+	}
+}
+
+/**
+ * Set the cover image for the current audio element
+ */
+function setCurrentCover() {
+	coverImage.src = audioElement[ currAudio ].dataset.cover;
+	if ( elBackground.value == BG_COVER )
+		setBackgroundImage( coverImage.src );
+}
+
+/**
+ * Set on-screen display options UI fields
+ */
+function setInfoOptions( options ) {
+	elInfoTimeout.value  = options.info;
+	elTrackTimeout.value = options.track;
+	elEndTimeout.value   = options.end;
+	elShowCover.checked  = options.covers;
+	elShowCount.checked  = options.count;
 }
 
 /**
@@ -687,1011 +2422,6 @@ function setProperty( elems, save ) {
 }
 
 /**
- * Set the cover image for the current audio element
- */
-function setCurrentCover() {
-	coverImage.src = audioElement[ currAudio ].dataset.cover;
-	if ( elBackground.value == BG_COVER )
-		setBackgroundImage( coverImage.src );
-}
-
-/**
- * Set the background image CSS variable
- */
-function setBackgroundImage( url ) {
-	document.documentElement.style.setProperty( '--background-image', url ? `url( ${ url.replace( /['()]/g, '\\$&' ) } )` : 'none' );
-}
-
-/**
- * Clear audio element
- */
-function clearAudioElement( n = currAudio ) {
-	const elAudio   = audioElement[ n ],
-		  trackData = elAudio.dataset;
-
-	elAudio.removeAttribute('src');
-	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
-	elAudio.load();
-
-	if ( n == currAudio )
-		setCurrentCover(); // clear coverImage and background image if needed
-}
-
-/**
- * Delete all child nodes of an element
- */
-function deleteChildren( el ) {
-	while ( el.firstChild )
-		el.removeChild( el.firstChild );
-}
-
-/**
- * Clear the play queue
- */
-function clearPlayQueue() {
-
-	while ( playlist.hasChildNodes() )
-		revokeBlobURL( playlist.removeChild( playlist.firstChild ) );
-
-	if ( ! isPlaying() ) {
-		playlistPos = 0;
-		clearAudioElement( currAudio );
-	}
-	else
-		playlistPos = -1;
-
-	clearAudioElement( nextAudio );
-	updatePlaylistUI();
-}
-
-/**
- * Load playlists from localStorage and legacy playlists.cfg file
- */
-function loadSavedPlaylists( keyName ) {
-
-	// reset UI playlist selection box
-
-	deleteChildren( elPlaylists );
-
-	const item = new Option( 'Select a playlist', '' );
-	item.disabled = true;
-	item.selected = true;
-	elPlaylists.options[ elPlaylists.options.length ] = item;
-
-	// load playlists from localStorage
-
-	let playlists = localStorage.getItem('playlists');
-
-	if ( playlists ) {
-		playlists = JSON.parse( playlists );
-
-		Object.keys( playlists ).forEach( key => {
-			const item = new Option( playlists[ key ], key );
-			item.dataset.isLocal = '1';
-			if ( key == keyName )
-				item.selected = true;
-			elPlaylists.options[ elPlaylists.options.length ] = item;
-		});
-	}
-
-	// try to load legacy playlists.cfg file
-
-	fetch( 'playlists.cfg' )
-		.then( response => {
-			if ( response.status == 200 ) {
-				consoleLog( 'Found legacy playlists.cfg file' );
-				return response.text();
-			}
-			else
-				return false;
-		})
-		.then( content => {
-			if ( content !== false ) {
-				let n = 0;
-				content.split(/[\r\n]+/).forEach( line => {
-					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-						let info = line.split(/\|/);
-						if ( info.length == 2 ) {
-							elPlaylists.options[ elPlaylists.options.length ] = new Option( info[0].trim(), info[1].trim() );
-							n++;
-						}
-					}
-				});
-				if ( n )
-					consoleLog( `${n} playlists loaded from playlists.cfg` );
-				else
-					consoleLog( 'No playlists found in playlists.cfg', true );
-			}
-		})
-		.catch( e => {} );
-}
-
-/**
- * Adds a batch of files to the queue and displays total songs added when finished
- *
- * @param files {array} array of objects with a 'file' property
- * @param [autoplay] {boolean}
- */
-function addBatchToPlayQueue( files, autoplay = false ) {
-	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
-	Promise.all( promises ).then( added => {
-		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
-			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
-		notie.alert({ text, time: 5 });
-	});
-}
-
-/**
- * Add a song or playlist to the play queue
- */
-function addToPlayQueue( file, autoplay = false ) {
-
-	let ret;
-
-	if ( ['m3u','m3u8'].includes( getFileExt( file ) ) )
-		ret = loadPlaylist( file );
-	else
-		ret = new Promise( resolve => resolve( addSongToPlayQueue( file ) ) );
-
-	// when promise resolved, if autoplay requested start playing the first added song
-	ret.then( n => {
-		if ( autoplay && ! isPlaying() && n > 0 )
-			playSong( queueLength() - n );
-	});
-
-	return ret;
-}
-
-/**
- * Add audio metadata to a playlist item or audio element
- */
-function addMetadata( metadata, target ) {
-	const trackData  = target.dataset,
-		  sourceData = metadata.dataset,
-		  common     = metadata.common,
-		  format     = metadata.format;
-
-	if ( sourceData ) 	// metadata is a dataset (playqueue item) - just copy the data to target element
-		Object.assign( trackData, sourceData );
-	else {				// parse metadata read from file
-		trackData.artist = common.artist || trackData.artist;
-		trackData.title  = common.title || trackData.title;
-		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
-		trackData.codec  = format ? format.codec || format.container : trackData.codec;
-
-		if ( format && format.bitsPerSample )
-			trackData.quality = ( format.sampleRate / 1000 | 0 ) + 'KHz / ' + format.bitsPerSample + 'bits';
-		else if ( format.bitrate )
-			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
-		else
-			trackData.quality = '';
-
-		if ( format && format.duration )
-			trackData.duration = formatHHMMSS( format.duration );
-		else
-			trackData.duration = '';
-
-		if ( common.picture && common.picture.length ) {
-			const blob = new Blob( [ common.picture[0].data ], { type: common.picture[0].format } );
-			trackData.cover = URL.createObjectURL( blob );
-		}
-	}
-
-	if ( target == audioElement[ currAudio ] )
-		setCurrentCover();
-}
-
-/**
- * Add a song to the play queue
- * returns 1 if song added or 0 if queue is full
- */
-function addSongToPlayQueue( uri, content = {} ) {
-
-	if ( queueLength() >= MAX_QUEUED_SONGS )
-		return 0;
-
-	// normalize slashes in path
-	uri = uri.replace( /\\/g, '/' );
-
-	// extract file name and extension
-	const file = uri.split('/').pop(),
-		  ext  = file.split('.').pop();
-
-	// create new list element
-	const newEl     = document.createElement('li'),
-		  trackData = newEl.dataset;
-
-	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
-
-	trackData.artist = content.artist || '';
-	trackData.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
-	trackData.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
-
-	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-	uri = uri.replace( /#/g, '%23' );
-	trackData.file = uri;
-
-	playlist.appendChild( newEl );
-
-	if ( queueLength() == 1 && ! isPlaying() )
-		loadSong(0);
-	if ( playlistPos > queueLength() - 3 )
-		loadNextSong();
-
-	trackData.retrieve = 1; // flag this item as needing metadata
-	retrieveMetadata();
-	return 1;
-}
-
-/**
- * Retrieve metadata for files in the play queue
- */
-function retrieveMetadata() {
-	// leave when we already have enough concurrent requests pending
-	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
-		return;
-
-	// find the first play queue item for which we haven't retrieved the metadata yet
-	const queueItem = Array.from( playlist.children ).find( el => el.dataset.retrieve );
-
-	if ( queueItem ) {
-		waitingMetadata++;
-		delete queueItem.dataset.retrieve;
-
-		const uri = queueItem.dataset.file;
-
-		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
-			.then( metadata => {
-				if ( metadata ) {
-					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					syncMetadataToAudioElements( queueItem );
-					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						loadCover( uri ).then( cover => {
-							queueItem.dataset.cover = cover;
-							syncMetadataToAudioElements( queueItem );
-						});
-					}
-				}
-			})
-			.catch( e => {} ) // fail silently
-			.finally( () => {
-				waitingMetadata--;
-				retrieveMetadata(); // call back to continue processing the queue
-			});
-	}
-}
-
-/**
- * Sync a queue item metadata with any audio elements loaded with the same file
- */
-function syncMetadataToAudioElements( source ) {
-	for ( const el of audioElement ) {
-		if ( el.dataset.file == source.dataset.file )
-			addMetadata( source, el ); // transfer metadata to audio element
-	}
-}
-
-/**
- * Release URL objects created for image blobs
- */
-function revokeBlobURL( item ) {
-	const cover = item.dataset.cover;
-	if ( cover.startsWith('blob:') )
-		URL.revokeObjectURL( cover );
-}
-
-/**
- * Load a playlist file into the play queue
- */
-function loadPlaylist( path ) {
-
-	// normalize slashes
-	path = path.replace( /\\/g, '/' );
-
-	return new Promise( resolve => {
-		let	n = 0,
-			songInfo;
-
-		if ( ! path ) {
-			resolve( -1 );
-		}
-		else if ( ['m3u','m3u8'].includes( getFileExt( path ) ) ) {
-			fetch( path )
-				.then( response => {
-					if ( response.status == 200 )
-						return response.text();
-					else
-						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
-				})
-				.then( content => {
-					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
-					content.split(/[\r\n]+/).forEach( line => {
-						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-							line = line.replace( /\\/g, '/' );
-							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-								songInfo = line.slice( line.lastIndexOf('/') + 1 );
-								songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
-							}
-							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
-								line = path + line;
-
-							// try to extract artist name and song title off the info tag (format: ARTIST - SONG)
-							const sep  = songInfo.indexOf(' - '),
-								  data = sep == -1 ? { title: songInfo } : { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) };
-
-							n += addSongToPlayQueue( line, data );
-							songInfo = '';
-						}
-						else if ( line.slice( 0, 7 ) == '#EXTINF' )
-							songInfo = line.slice( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
-					});
-					resolve( n );
-				})
-				.catch( e => {
-					consoleLog( e, true );
-					resolve( n );
-				});
-		}
-		else { // try to load playlist from localStorage
-			let list = localStorage.getItem( 'pl_' + path );
-			if ( list ) {
-				list = JSON.parse( list );
-				list.forEach( item => {
-					item = item.replace( /\\/g, '/' );
-					songInfo = item.slice( item.lastIndexOf('/') + 1 );
-					songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
-					n += addSongToPlayQueue( item, { title: songInfo } )
-				});
-			}
-			else
-				consoleLog( `Unrecognized playlist file: ${path}`, true );
-
-			resolve( n );
-		}
-	});
-}
-
-/**
- * Save/update an existing playlist
- */
-function savePlaylist( index ) {
-
-	if ( elPlaylists[ index ].value == '' )
-		storePlaylist();
-	else if ( ! elPlaylists[ index ].dataset.isLocal )
-		notie.alert({ text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
-	else
-		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
-			submitText: 'Overwrite',
-			submitCallback: () => {
-				storePlaylist( elPlaylists[ index ].value );
-			},
-			cancelCallback: () => {
-				notie.alert({ text: 'Canceled' });
-			}
-		});
-}
-
-/**
- * Store a playlist in localStorage
- */
-function storePlaylist( name, update = true ) {
-
-	if ( queueLength() == 0 ) {
-		notie.alert({ text: 'Queue is empty!' });
-		return;
-	}
-
-	if ( ! name ) {
-		notie.input({
-			text: 'Give this playlist a name:',
-			submitText: 'Save',
-			submitCallback: value => {
-				if ( value )
-					storePlaylist( value, false );
-			},
-			cancelCallback: () => {
-				notie.alert({ text: 'Canceled' });
-			}
-		});
-		return;
-	}
-
-	if ( name ) {
-		let safename = name;
-
-		if ( ! update ) {
-			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
-			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
-
-			let playlists = localStorage.getItem('playlists');
-
-			if ( playlists )
-				playlists = JSON.parse( playlists );
-			else
-				playlists = {};
-
-			while ( playlists.hasOwnProperty( safename ) )
-				safename += '_1';
-
-			playlists[ safename ] = name;
-
-			saveToStorage( 'playlists', playlists );
-			loadSavedPlaylists( safename );
-		}
-
-		let songs = [];
-		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
-
-		saveToStorage( 'pl_' + safename, songs );
-		notie.alert({ text: `Playlist saved!` });
-	}
-}
-
-/**
- * Delete a playlist from localStorage
- */
-function deletePlaylist( index ) {
-	if ( elPlaylists[ index ].dataset.isLocal ) {
-		notie.confirm({
-			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
-			submitText: 'Delete',
-			submitCallback: () => {
-				const keyName = elPlaylists[ index ].value;
-				let playlists = localStorage.getItem('playlists');
-
-				if ( playlists ) {
-					playlists = JSON.parse( playlists );
-					delete playlists[ keyName ];
-					saveToStorage( 'playlists', playlists );
-				}
-
-				localStorage.removeItem( `pl_${keyName}` );
-				notie.alert({ text: 'Playlist deleted' });
-				loadSavedPlaylists();
-			},
-			cancelCallback: () => {
-				notie.alert({ text: 'Canceled' })
-			},
-		});
-	}
-	else if ( elPlaylists[ index ].value )
-		notie.alert({ text: 'Cannot delete a server playlist!' });
-}
-
-/**
- * Update the playlist shown to the user
- */
-function updatePlaylistUI() {
-
-	const current = playlist.querySelector('.current'),
-		  newCurr = playlist.children[ playlistPos ];
-
-	if ( current )
-		current.classList.remove('current');
-
-	if ( newCurr ) {
-		newCurr.classList.add('current');
-		newCurr.scrollIntoViewIfNeeded();
-	}
-}
-
-/**
- * Shuffle the playlist
- */
-function shufflePlayQueue() {
-
-	let temp, r;
-
-	for ( let i = queueLength() - 1; i > 0; i-- ) {
-		r = Math.random() * ( i + 1 ) | 0;
-		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
-		playlist.insertBefore( temp, playlist.children[ r ] );
-	}
-
-	playSong(0);
-}
-
-/**
- * Try to get a cover image from the song's folder
- */
-function loadCover( uri ) {
-	return new Promise( resolve => {
-		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
-
-		if ( serverMode == -1 )
-			resolve(''); // nothing to do when in serverless mode
-		else if ( folderImages[ path ] !== undefined )
-			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
-		else {
-			const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
-
-			fetch( urlToFetch )
-				.then( response => {
-					return ( response.status == 200 ) ? response.text() : null;
-				})
-				.then( content => {
-					let imageUrl = '';
-					if ( content ) {
-						if ( serverMode == 1 )
-							imageUrl = content;
-						else {
-							const dirContents = fileExplorer.parseWebDirectory( content );
-							if ( dirContents.cover )
-								imageUrl = dirContents.cover;
-						}
-					}
-					folderImages[ path ] = imageUrl;
-					resolve( path + imageUrl );
-				});
-		}
-	});
-}
-
-/**
- * Load a song into the currently active audio element
- */
-function loadSong( n ) {
-	const audioEl = audioElement[ currAudio ];
-
-	if ( playlist.children[ n ] ) {
-		playlistPos = n;
-		const song = playlist.children[ playlistPos ];
-		audioEl.src = song.dataset.file;
-		addMetadata( song, audioEl );
-
-		updatePlaylistUI();
-		loadNextSong();
-		return true;
-	}
-	else
-		return false;
-}
-
-/**
- * Loads next song into the audio element not currently in use
- */
-function loadNextSong() {
-	const next    = ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0,
-		  song    = playlist.children[ next ],
-		  audioEl = audioElement[ nextAudio ];
-
-	if ( song ) {
-		audioEl.src = song.dataset.file;
-		audioEl.load();
-		addMetadata( song, audioEl );
-	}
-
-	skipping = false; // finished skipping track
-}
-
-/**
- * Play a song from the play queue
- */
-function playSong( n ) {
-	if ( loadSong( n ) )
-		playPause( true );
-}
-
-/**
- * Player controls
- */
-function playPause( play ) {
-	if ( isMicSource )
-		return;
-	if ( isPlaying() && ! play )
-		audioElement[ currAudio ].pause();
-	else
-		audioElement[ currAudio ].play().catch( err => {
-			// ignore AbortError - when play promise is interrupted by a new load request or call to pause()
-			if ( err.code != 20 ) {
-				consoleLog( err, true )
-				playNextSong( true );
-			}
-		});
-}
-
-function stop() {
-	audioElement[ currAudio ].pause();
-	setCanvasMsg();
-	loadSong( 0 );
-}
-
-function skipTrack( back = false ) {
-	const status = back ? playPreviousSong() : playNextSong();
-	if ( ! status )
-		setCanvasMsg( `Already at ${ back ? 'first' : 'last' } track` );
-}
-
-function playPreviousSong() {
-	let ret = true;
-
-	if ( isPlaying() ) {
-		if ( audioElement[ currAudio ].currentTime > 2 )
-			audioElement[ currAudio ].currentTime = 0;
-		else if ( playlistPos > 0 )
-			playSong( playlistPos - 1 );
-		else
-			ret = false;
-	}
-	else
-		ret = loadSong( playlistPos - 1 );
-
-	return ret;
-}
-
-function playNextSong( play ) {
-
-	if ( skipping || isMicSource || playlistPos > queueLength() - 1 )
-		return true;
-
-	skipping = true;
-
-	if ( playlistPos < queueLength() - 1 )
-		playlistPos++;
-	else if ( isSwitchOn( elRepeat ) )
-		playlistPos = 0;
-	else {
-		skipping = false;
-		return false;
-	}
-
-	play |= isPlaying();
-
-	currAudio = nextAudio;
-	nextAudio = ! currAudio | 0;
-	setCurrentCover();
-
-	if ( play ) {
-		audioElement[ currAudio ].play()
-		.then( () => {
-			loadNextSong();
-		})
-		.catch( err => {
-			if ( err.code != 20 ) {
-				consoleLog( err, true );
-				loadNextSong();
-				playNextSong( true );
-			}
-		});
-	}
-	else
-		loadNextSong();
-
-	updatePlaylistUI();
-	return true;
-}
-
-/**
- * Schedule start of track fast search
- *
- * @param mode {string} 'm' for mouse, 'k' for keyboard
- * @param [dir] {number} 1 for FF, -1 for REW
- */
-function scheduleFastSearch( mode, dir = 1 ) {
-	// set a 200ms timeout to start fast search (wait for 'click' or 'keyup' event)
-	fastSearchTimeout = window.setTimeout( () => {
-		isFastSearch = mode;
-		fastSearch( dir );
-	}, 200 );
-}
-
-/**
- * Fast forward or rewind the current audio element
- */
-function fastSearch( dir = 1 ) {
-	const audioEl = audioElement[ currAudio ];
-
-	if ( audioEl.duration > 0 && audioEl.duration < Infinity ) {
-		let newPos = audioEl.currentTime + dir * 5; // 5 seconds steps
-
-		if ( newPos < 0 )
-			newPos = 0;
-		else if ( newPos > audioEl.duration - 1 )
-			newPos = audioEl.duration - 1
-
-		setCanvasMsg(1); // display song info
-		audioEl.currentTime = newPos;
-	}
-
-	// 'keydown' keeps triggering while the key is pressed, but 'mousedown' triggers only once,
-	// so we need to schedule another call to keep this working when in mouse mode
-	if ( isFastSearch == 'm' )
-		scheduleFastSearch( 'm', dir );
-}
-
-/**
- * Finish track fast search
- */
-function finishFastSearch() {
-	window.clearTimeout( fastSearchTimeout );
-	if ( isFastSearch ) {
-		isFastSearch = false;
-		return true;
-	}
-	// fast search was never activated, return false to indicate a track skip
-	return false;
-}
-
-/**
- * Check if audio is playing
- */
-function isPlaying() {
-	const audioEl = audioElement[ currAudio ];
-
-	return audioEl
-		&& audioEl.currentTime > 0
-		&& ! audioEl.paused
-		&& ! audioEl.ended;
-//		&& audioEl.readyState > 2;
-}
-
-/**
- * Toggle display of song and settings information on canvas
- */
-function toggleInfo() {
-	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
-		setCanvasMsg();
-	else // increase the information level (0 -> 1 -> 2) and reset the display timeout
-		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, +elInfoTimeout.value || Infinity ); // NOTE: canvasMsg.info may be undefined
-}
-
-/**
- * Draws outlined text on OSD canvas
- */
-function outlineText( text, x, y, maxWidth ) {
-	if ( isSwitchOn( elNoShadow ) ) {
-		canvasCtx.strokeText( text, x, y, maxWidth );
-		canvasCtx.fillText( text, x, y, maxWidth );
-	}
-	else {
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * audioMotion.pixelRatio;
-		canvasCtx.fillText( text, x, y, maxWidth );
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
-	}
-}
-
-/**
- * Display messages on canvas
- *
- * Uses global object canvasMsg
- * canvasMsg = {
- * 		info    : <number>, // 1 = song info; 2 = song + settings info
- *      timer   : <number>, // countdown timer (in frames) to display info
- *      fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
- *		msg     : <string>, // custom message to be displayed at the top
- *      msgTimer: <number>  // countdown timer (in frames) to display custom message
- * 		                    // (fade for custom message is always 60 frames)
- * }
- */
-function displayCanvasMsg() {
-
-	const audioEl    = audioElement[ currAudio ],
-		  trackData  = audioEl.dataset,
-		  remaining  = audioEl.duration - audioEl.currentTime,
-		  endTimeout = +elEndTimeout.value,
-		  bgOption   = elBackground.value[0],
-		  bgImageFit = elBgImageFit.value;
-
-	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( remaining < .1 )
-		playNextSong( true );
-
-	// set song info display at the end of the song
-	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
-		setCanvasMsg( 1, remaining, -1 );
-
-	// compute background image size for pulse and zoom in/out effects
-	if (
-		( bgImageFit == BGFIT_PULSE || bgImageFit == BGFIT_ZOOM_IN || bgImageFit == BGFIT_ZOOM_OUT ) &&
-		( bgOption == BG_COVER || bgOption == BG_IMAGE )
-	) {
-		let size;
-
-		if ( bgImageFit == BGFIT_PULSE )
-			size = ( audioMotion.getEnergy() * 70 | 0 ) - 25;
-		else {
-			const songProgress = audioEl.currentTime / audioEl.duration;
-			size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
-		}
-
-		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
-	}
-
-	elOSD.width |= 0; // clear OSD canvas
-
-	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
-		return;
-
-	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
-	canvasCtx.lineJoin = 'round';
-	canvasCtx.font = normalFont;
-	canvasCtx.textAlign = 'center';
-
-	canvasCtx.fillStyle = '#fff';
-	canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
-
-	// Display custom message if any and info level 2 is not set
-	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
-		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
-		outlineText( canvasMsg.msg, centerPos, topLine1 );
-		canvasMsg.msgTimer--;
-	}
-
-	// Display song and config info
-	if ( canvasMsg.timer > 0 ) {
-		if ( canvasMsg.fade < 0 ) {
-			// fade-in
-			const fade     = Math.abs( canvasMsg.fade ),
-				  framesIn = fade * 3 - canvasMsg.timer;
-			canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
-		}
-		else // fade-out
-			canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
-
-		// display additional information (level 2) at the top
-		if ( canvasMsg.info == 2 ) {
-			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
-			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
-
-			canvasCtx.textAlign = 'left';
-			outlineText( getText( elMode ), baseSize, topLine1, maxWidthTop );
-			outlineText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
-
-			canvasCtx.textAlign = 'right';
-			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
-			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
-		}
-
-		if ( isMicSource ) {
-			canvasCtx.textAlign = 'left';
-			canvasCtx.font = largeFont;
-			outlineText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
-		}
-		else {
-			// codec and quality
-			canvasCtx.textAlign = 'right';
-			outlineText( trackData.codec, rightPos, bottomLine1 );
-			outlineText( trackData.quality, rightPos, bottomLine1 + baseSize );
-
-			// song/queue count
-			const totalSongs = queueLength();
-			if ( totalSongs && elShowCount.checked ) {
-				const padDigits = ( '' + totalSongs ).length,
-					  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
-				outlineText( counter, rightPos, bottomLine1 - baseSize );
-			}
-
-			// artist name
-			canvasCtx.textAlign = 'left';
-			outlineText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
-
-			// album title
-			canvasCtx.font = `italic ${normalFont}`;
-			outlineText( trackData.album, baseSize, bottomLine3, maxWidthBot );
-
-			// song title
-			canvasCtx.font = largeFont;
-			outlineText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
-
-			// time
-			if ( audioEl.duration || trackData.duration ) {
-				if ( ! trackData.duration ) {
-					trackData.duration =
-						audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
-
-					if ( playlist.children[ playlistPos ] )
-						playlist.children[ playlistPos ].dataset.duration = trackData.duration;
-				}
-				canvasCtx.textAlign = 'right';
-
-				outlineText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
-			}
-
-			// cover image
-			if ( coverImage.width && elShowCover.checked )
-				canvasCtx.drawImage( coverImage, baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
-		}
-
-		if ( --canvasMsg.timer < 1 )
-			canvasMsg.info = canvasMsg.fade = 0;
-	}
-}
-
-/**
- * Set message for on-screen display
- *
- * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
- *                            string provides a custom message to be displayed at the top
- * @param [timer] {number} time in seconds to display message (1/3rd of it will be used for fade in/out)
- * @param [dir] {number} -1 for fade-in; 1 for fade-out (default)
- */
-function setCanvasMsg( msg, timer = 2, dir = 1 ) {
-	if ( ! msg )
-		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
-	else {
-		if ( typeof msg == 'number' ) {
-			canvasMsg.info = msg; // set info level 1 or 2
-			canvasMsg.timer = Math.round( Math.max( timer * 60, canvasMsg.timer || 0 ) ); // note: Infinity | 0 == 0
-			canvasMsg.fade = Math.round( canvasMsg.timer / 3 ) * dir;
-		}
-		else {
-			canvasMsg.msg = msg;  // set custom message
-			if ( canvasMsg.info == 2 )
-				canvasMsg.info = 1;
-			canvasMsg.msgTimer = timer * 60 | 0;
-		}
-	}
-}
-
-/**
- * Display information about canvas size changes
- */
-function showCanvasInfo( reason, instance ) {
-
-	// resize OSD canvas
-	const dPR    = instance.pixelRatio,
-		  width  = elOSD.width  = elContainer.clientWidth * dPR,
-		  height = elOSD.height = elContainer.clientHeight * dPR;
-
-	let msg;
-
-	switch ( reason ) {
-		case 'create':
-			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
-			msg = 'Canvas created';
-			break;
-		case 'lores':
-			msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
-			break;
-		case 'fschange':
-			msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
-			break;
-		case 'resize':
-			msg = 'Window resized';
-			break;
-	}
-
-	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
-
-	// recalculate variables used for info display
-	baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
-	coverSize   = baseSize * 3;				// cover image size
-	centerPos   = width / 2;
-	rightPos    = width - baseSize;
-	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
-	topLine2    = topLine1 * 1.8;			// auto gradient, random mode & repeat status
-	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
-	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
-	bottomLine2 = height - baseSize * 2.8;	// song title
-	bottomLine3 = height - baseSize * 1.6;	// album title, time
-	maxWidthBot = width - baseSize * 7;		// maximum width for artist and song name
-
-	normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
-	largeFont   = `bold ${baseSize}px sans-serif`;
-}
-
-/**
- * Output messages to the UI "console"
- */
-function consoleLog( msg, error, clear ) {
-	const content = $('#console-content'),
-	 	  dt = new Date(),
-		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
-
-	if ( clear )
-		content.innerHTML = '';
-
-	if ( error )
-		$('#toggle_console').classList.add('warning');
-
-	if ( msg )
-		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } ${msg}</div>`;
-
-	content.scrollTop = content.scrollHeight;
-}
-
-/**
  * Change audio input source
  */
 function setSource() {
@@ -1739,723 +2469,12 @@ function setSource() {
 }
 
 /**
- * Increase or decrease balance
- */
-function changeBalance( incr ) {
-	let newVal = incr ? fixFloating( ( +elBalance.dataset.value || 0 ) + incr * .1 ) : 0;
-
-	if ( newVal < -1 )
-		newVal = -1;
-	else if ( newVal > 1 )
-		newVal = 1;
-
-	setBalance( newVal );
-	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
-	updateLastConfig();
-}
-
-/**
- * Set balance
- */
-function setBalance( value ) {
-	elBalance.dataset.value = value;
-	panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
-	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
-}
-
-/**
- * Increase or decrease volume
- */
-function changeVolume( incr ) {
-	let newVal = fixFloating( ( +elVolume.dataset.value || 0 ) + incr * .05 );
-
-	if ( newVal < 0 )
-		newVal = 0;
-	else if ( newVal > 1 )
-		newVal = 1;
-
-	setVolume( newVal );
-	setCanvasMsg( `Volume: ${ newVal * 20 }` );
-	updateLastConfig();
-}
-
-/**
  * Set volume
  */
 function setVolume( value ) {
 	elVolume.dataset.value = value;
 	audioMotion.volume = value ** 2.5; // creates a more natural volume curve
 	elVolume.querySelector('.marker').style.transform = `rotate( ${ 125 + 290 * value }deg )`;
-}
-
-/**
- * Change fullscreen analyzer height
- */
-function changeFsHeight( incr ) {
-	const val = +elFsHeight.value;
-
-	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
-		elFsHeight.value = val + elFsHeight.step * incr;
-		setProperty( elFsHeight, true );
-		updateRangeValue( elFsHeight );
-	}
-	setCanvasMsg( `Analyzer height: ${ elFsHeight.value }%` );
-}
-
-/**
- * Connect or disconnect audio output to the speakers
- */
-function toggleMute( mute ) {
-	if ( mute !== undefined )
-		elMute.checked = mute;
-	else
-		mute = elMute.checked;
-
-	if ( mute )
-		audioMotion.disconnectOutput();
-	else
-		audioMotion.connectOutput();
-}
-
-/**
- * Load a music file from the user's computer
- */
-function loadLocalFile( obj ) {
-
-	const fileBlob = obj.files[0];
-
-	if ( fileBlob ) {
-		clearAudioElement();
-
-		const audioEl = audioElement[ currAudio ];
-
-		audioEl.src = URL.createObjectURL( fileBlob );
-		audioEl.play();
-		audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
-
-		mm.parseBlob( fileBlob )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
-	}
-}
-
-/**
- * Load a configuration preset
- *
- * @param name {string} desired preset name
- * @param [alert] {boolean} true to display on-screen alert after loading
- * @param [init] {boolean} true to use default values for missing properties
- */
-function loadPreset( name, alert, init ) {
-
-	if ( ! presets[ name ] ) // check invalid preset name
-		return;
-
-	const thisPreset = presets[ name ],
-		  defaults   = presets['default'];
-
-	if ( thisPreset.randomMode !== undefined ) // convert legacy boolean value to integer (version =< 19.12)
-		thisPreset.randomMode |= 0;
-
-	if ( thisPreset.blackBg !== undefined ) // convert legacy blackBg property (version =< 20.4)
-		thisPreset.background = +thisPreset.blackBg;
-
-	if ( thisPreset.showScale !== undefined ) { // convert legacy showScale property (version =< 20.9)
-		thisPreset.showScaleX = thisPreset.showScale & 1;
-		thisPreset.showScaleY = thisPreset.showScale >> 1;
-	}
-
-	if ( thisPreset.reflex !== undefined && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
-		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
-
-	if ( thisPreset.bgImageFit !== undefined && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
-		thisPreset.bgImageFit = ['adjust','center','repeat','pulse','zoom-in','zoom-out'].indexOf( thisPreset.bgImageFit );
-
-	$$('[data-prop]').forEach( el => {
-		const prop = el.dataset.prop,
-			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
-
-		if ( val !== undefined ) {
-			if ( el.classList.contains('switch') )
-				el.dataset.active = +val;
-			else if ( el == elVolume )
-				setVolume( val );
-			else if ( el == elBalance )
-				setBalance( val );
-			else {
-				el.value = val;
-				if ( el.selectedIndex == -1 ) // fix invalid values in select elements
-					el.selectedIndex = 0;
-				updateRangeValue( el );
-			}
-		}
-	});
-
-	if ( thisPreset.highSens !== undefined ) // legacy option (version =< 19.5)
-		elSensitivity.value = thisPreset.highSens ? 2 : 1;
-
-	if ( thisPreset.minDb !== undefined && thisPreset.maxDb !== undefined ) { // legacy options (version =< 19.12)
-		$('.min-db[data-preset="1"]').value = thisPreset.minDb;
-		$('.max-db[data-preset="1"]').value = thisPreset.maxDb;
-		savePreferences( KEY_SENSITIVITY );
-	}
-
-	audioMotion.setOptions( {
-		alphaBars    : isSwitchOn( elAlphaBars ),
-		fftSize      : elFFTsize.value,
-		minFreq      : elRangeMin.value,
-		maxFreq      : elRangeMax.value,
-		smoothing    : elSmoothing.value,
-		showPeaks    : isSwitchOn( elShowPeaks ),
-		ledBars      : isSwitchOn( elLedDisplay ),
-		lumiBars     : isSwitchOn( elLumiBars ),
-		loRes        : isSwitchOn( elLoRes ),
-		showFPS      : isSwitchOn( elFPS ),
-		showScaleX   : isSwitchOn( elScaleX ),
-		showScaleY   : isSwitchOn( elScaleY ),
-		outlineBars  : isSwitchOn( elOutline ),
-		radial       : isSwitchOn( elRadial ),
-		spinSpeed    : elSpin.value,
-		stereo       : isSwitchOn( elStereo ),
-		splitGradient: isSwitchOn( elSplitGrad ),
-		mirror       : elMirror.value
-	} );
-
-	// settings that make additional changes are set by the setProperty() function
-	setProperty(
-		[ elBackground,
-		elBgImageFit,
-		elBgImageDim,
-		elSensitivity,
-		elReflex,
-		elGradient,
-		elRandomMode,
-		elBarSpace,
-		elFsHeight,
-		elMode ], true );
-
-	if ( name == 'demo' )
-		selectRandomMode( true );
-
-	if ( alert )
-		notie.alert({ text: 'Settings loaded!' });
-}
-
-/**
- * Return an object with the current settings
- */
-function getCurrentSettings() {
-	return {
-		alphaBars   : elAlphaBars.dataset.active,
-		fftSize		: elFFTsize.value,
-		freqMin		: elRangeMin.value,
-		freqMax		: elRangeMax.value,
-		smoothing	: elSmoothing.value,
-		gradient	: elGradient.value,
-		mode        : elMode.value,
-		randomMode  : elRandomMode.value,
-		sensitivity : elSensitivity.value,
-		lineWidth   : elLineWidth.value,
-		fillAlpha   : elFillAlpha.value,
-		barSpace    : elBarSpace.value,
-		reflex      : elReflex.value,
-		background  : elBackground.value,
-		bgImageDim  : elBgImageDim.value,
-		bgImageFit  : elBgImageFit.value,
-		spin        : elSpin.value,
-		fsHeight    : elFsHeight.value,
-		mirror      : elMirror.value,
-		showScaleX 	: elScaleX.dataset.active,
-		showScaleY 	: elScaleY.dataset.active,
-		showPeaks 	: elShowPeaks.dataset.active,
-		cycleGrad   : elCycleGrad.dataset.active,
-		ledDisplay  : elLedDisplay.dataset.active,
-		lumiBars    : elLumiBars.dataset.active,
-		outlineBars : elOutline.dataset.active,
-		repeat      : elRepeat.dataset.active,
-		showSong    : elShowSong.dataset.active,
-		noShadow    : elNoShadow.dataset.active,
-		loRes       : elLoRes.dataset.active,
-		showFPS     : elFPS.dataset.active,
-		radial      : elRadial.dataset.active,
-		stereo      : elStereo.dataset.active,
-		splitGrad   : elSplitGrad.dataset.active
-	};
-}
-
-/**
- * Update last used configuration
- */
-function updateLastConfig() {
-	saveToStorage( KEY_LAST_CONFIG, { ...getCurrentSettings(), volume: elVolume.dataset.value, balance: elBalance.dataset.value } );
-}
-
-/**
- * Update custom preset
- */
-function updateCustomPreset() {
-	const settings = getCurrentSettings();
-	presets['custom'] = settings;
-	saveToStorage( KEY_CUSTOM_PRESET, settings );
-	notie.alert({ text: 'Custom preset saved!' });
-	populatePresets( Array.from( elPreset.options, item => item.value ).includes('last'), 'custom' );
-}
-
-/**
- * Process keyboard shortcuts
- */
-function keyboardControls( event ) {
-
-	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
-		return;
-
-	const isShiftKey = event.shiftKey;
-
-	if ( event.type == 'keydown' ) {
-		switch ( event.code ) {
-			case 'ArrowUp': 	// volume up
-				if ( isShiftKey )
-					changeFsHeight(1);
-				else
-					changeVolume(1);
-				break;
-			case 'ArrowDown': 	// volume down
-				if ( isShiftKey )
-					changeFsHeight(-1);
-				else
-					changeVolume(-1);
-				break;
-			case 'ArrowLeft': 	// rewind
-				if ( isShiftKey )
-					changeBalance(-1);
-				else if ( isFastSearch ) {
-					setCanvasMsg( 'Rewind', 1 );
-					fastSearch(-1);
-				}
-				else
-					scheduleFastSearch('k', -1);
-				break;
-			case 'ArrowRight': 	// fast forward
-				if ( isShiftKey )
-					changeBalance(1);
-				else if ( isFastSearch ) {
-					setCanvasMsg( 'Fast forward', 1 );
-					fastSearch();
-				}
-				else
-					scheduleFastSearch('k');
-				break;
-			default:
-				// no key match - quit and keep default behavior
-				return;
-		}
-	}
-	else {
-		// the keys below are handled on 'keyup' to avoid key repetition
-		switch ( event.code ) {
-			case 'Delete': 		// delete selected songs from the playlist
-			case 'Backspace':	// for Mac
-				playlist.querySelectorAll('.selected').forEach( e => {
-					revokeBlobURL( e );
-					e.remove();
-				});
-				const current = getIndex( playlist.querySelector('.current') );
-				if ( current !== undefined )
-					playlistPos = current;	// update playlistPos if current song hasn't been deleted
-				else if ( playlistPos > queueLength() - 1 )
-					playlistPos = queueLength() - 1;
-				else
-					playlistPos--;
-				if ( queueLength() )
-					loadNextSong();
-				else {
-					clearAudioElement( nextAudio );
-					if ( ! isPlaying() )
-						clearAudioElement();
-				}
-				break;
-			case 'Space': 		// play / pause
-				setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
-				playPause();
-				break;
-			case 'ArrowLeft': 	// previous song
-			case 'KeyJ':
-				if ( ! finishFastSearch() && ! isShiftKey ) {
-					setCanvasMsg( 'Previous track', 1 );
-					skipTrack(true);
-				}
-				break;
-			case 'KeyG': 		// gradient
-				cycleElement( elGradient, isShiftKey );
-				setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
-				break;
-			case 'ArrowRight': 	// next song
-			case 'KeyK':
-				if ( ! finishFastSearch() && ! isShiftKey ) {
-					setCanvasMsg( 'Next track', 1 );
-					skipTrack();
-				}
-				break;
-			case 'KeyA': 		// cycle thru auto gradient / random mode options
-				if ( isSwitchOn( elCycleGrad ) || isShiftKey ) {
-					if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! isShiftKey ) ||
-					     ( elRandomMode.selectedIndex == 0 && isSwitchOn( elCycleGrad ) && isShiftKey ) ) {
-						elCycleGrad.dataset.active = '0';
-						elRandomMode.value = '0';
-						setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
-					}
-					else {
-						cycleElement( elRandomMode, isShiftKey );
-						setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
-					}
-				}
-				else {
-					elCycleGrad.dataset.active = '1';
-					setCanvasMsg( 'Auto gradient ON' );
-				}
-				setProperty( elRandomMode, true );
-				break;
-			case 'KeyB': 		// background or image fit (shift)
-				cycleElement( isShiftKey ? elBgImageFit : elBackground );
-				const bgOption = elBackground.value[0];
-				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
-				break;
-			case 'KeyC': 		// radial
-				elRadial.click();
-				setCanvasMsg( 'Radial ' + onOff( elRadial ) );
-				break;
-			case 'KeyD': 		// display information
-				toggleInfo();
-				break;
-			case 'KeyE': 		// shuffle queue
-				if ( queueLength() > 0 ) {
-					shufflePlayQueue();
-					setCanvasMsg( 'Shuffle' );
-				}
-				break;
-			case 'KeyF': 		// toggle fullscreen
-				fullscreen();
-				break;
-			case 'KeyH': 		// toggle fps display
-				elFPS.click();
-				break;
-			case 'KeyI': 		// toggle info display on track change
-				elShowSong.click();
-				setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
-				break;
-			case 'KeyL': 		// toggle LED display effect
-				elLedDisplay.click();
-				setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
-				break;
-			case 'KeyM': 		// visualization mode
-			case 'KeyV':
-				cycleElement( elMode, isShiftKey );
-				setCanvasMsg( 'Mode: ' + getText( elMode ) );
-				break;
-			case 'KeyN': 		// increase or reduce sensitivity
-				cycleElement( elSensitivity, isShiftKey );
-				setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
-				break;
-			case 'KeyO': 		// toggle resolution
-				elLoRes.click();
-				setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
-				break;
-			case 'KeyP': 		// toggle peaks display
-				elShowPeaks.click();
-				setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
-				break;
-			case 'KeyR': 		// toggle playlist repeat
-				elRepeat.click();
-				setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
-				break;
-			case 'KeyS': 		// toggle X and Y axis scales
-				setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
-				break;
-			case 'KeyT': 		// toggle text shadow
-				elNoShadow.click();
-				setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
-				break;
-			case 'KeyU': 		// toggle lumi bars
-				elLumiBars.click();
-				setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
-				break;
-			case 'KeyX':
-				cycleElement( elReflex, isShiftKey );
-				setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
-				break;
-			default:
-				// no key match - quit and keep default behavior
-				return;
-
-		} // switch
-	} // else
-
-	event.preventDefault();
-}
-
-
-/**
- * Event handler for 'play' on audio elements
- */
-function audioOnPlay() {
-	if ( ! audioElement[ currAudio ].attributes.src ) {
-		playSong( playlistPos );
-		return;
-	}
-
-	if ( audioElement[ currAudio ].currentTime < .1 ) {
-		if ( elRandomMode.value == '1' )
-			selectRandomMode( true );
-		else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
-			cycleElement( elGradient );
-	}
-
-	if ( isSwitchOn( elShowSong ) ) {
-		const timeout = +elTrackTimeout.value || Infinity;
-		setCanvasMsg( 1, timeout );
-	}
-}
-
-/**
- * Event handler for 'ended' on audio elements
- */
-function audioOnEnded() {
-	if ( ! playNextSong( true ) ) {
-		loadSong( 0 );
-		setCanvasMsg( 'Queue ended', 10 );
-	}
-}
-
-/**
- * Error event handler for audio elements
- */
-function audioOnError( e ) {
-	if ( e.target.attributes.src )
-		consoleLog( 'Error loading ' + e.target.src, true );
-}
-
-/**
- * Update range elements value div
- */
-function updateRangeValue( el ) {
-	const elVal = el.previousElementSibling;
-	if ( elVal && elVal.className == 'value' )
-		elVal.innerText = el.value;
-}
-
-/**
- * Choose a random visualization mode
- *
- * @param [force] {boolean} force change even when not playing
- *                (default true for microphone input, false otherwise )
- */
-function selectRandomMode( force = isMicSource ) {
-	if ( ! isPlaying() && ! force )
-		return;
-
-	// helper function
-	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
-
-	let props = []; // properties that need to be updated
-
-	elMode.selectedIndex = randomInt( elMode.options.length );
-
-	if ( isEnabled('alpha') ) {
-		elAlphaBars.dataset.active = randomInt();
-		props.push( elAlphaBars );
-	}
-
-	if ( isEnabled('nobg') )
-		elBackground.selectedIndex = randomInt( elBackground.options.length );
-
-	if ( isEnabled('imgfit') ) {
-		elBgImageFit.selectedIndex = randomInt( elBgImageFit.options.length );
-		props.push( elBgImageFit );
-	}
-
-	if ( isEnabled('peaks') ) {
-		elShowPeaks.dataset.active = randomInt(); // 0 or 1
-		props.push( elShowPeaks );
-	}
-
-	if ( isEnabled('leds') ) {
-		elLedDisplay.dataset.active = randomInt();
-		props.push( elLedDisplay );
-	}
-
-	if ( isEnabled('lumi') ) {
-		// always disable lumi when leds are active and background is set to image or video
-		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
-		props.push( elLumiBars );
-	}
-
-	if ( isEnabled('line') ) {
-		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
-		updateRangeValue( elLineWidth );
-	}
-
-	if ( isEnabled('fill') ) {
-		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
-		updateRangeValue( elFillAlpha );
-	}
-
-	if ( isEnabled('barSp') )
-		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
-
-	if ( isEnabled('outline') ) {
-		elOutline.dataset.active = randomInt();
-		props.push( elOutline );
-	}
-
-	if ( isEnabled('reflex') ) {
-		// exclude 'mirrored' reflex option for octave bands modes
-		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
-		elReflex.selectedIndex = randomInt( options );
-	}
-
-	if ( isEnabled('radial') ) {
-		elRadial.dataset.active = randomInt();
-		props.push( elRadial );
-	}
-
-	if ( isEnabled('spin') ) {
-		elSpin.value = randomInt(4);
-		updateRangeValue( elSpin );
-		props.push( elSpin );
-	}
-
-	if ( isEnabled('split') ) {
-		elSplitGrad.dataset.active = randomInt();
-		props.push( elSplitGrad );
-	}
-
-	if ( isEnabled('stereo') ) {
-		elStereo.dataset.active = randomInt();
-		props.push( elStereo );
-	}
-
-	if ( isEnabled('mirror') ) {
-		elMirror.value = randomInt(3) - 1;
-		props.push( elMirror );
-	}
-
-	if ( isSwitchOn( elCycleGrad ) ) {
-		elGradient.selectedIndex = randomInt( elGradient.options.length );
-		props.push( elGradient );
-	}
-
-	// add properties that depend on other settings (mode also sets barspace)
-	props.push( elBackground, elReflex, elMode );
-
-	// effectively set the affected properties
-	setProperty( props, true );
-}
-
-/**
- * Select next or previous option in a `select` HTML element, cycling around when necessary
- *
- * @param el {object} HTML object
- * @param [prev] {boolean} true to select previous option
- */
-function cycleElement( el, prev ) {
-	const idx = el.selectedIndex + ( prev ? -1 : 1 );
-
-	if ( idx < 0 )
-		el.selectedIndex = el.options.length - 1;
-	else if ( idx >= el.options.length )
-		el.selectedIndex = 0;
-	else
-		el.selectedIndex = idx;
-
-	setProperty( el, true );
-}
-
-/**
- * Cycle X and Y axis scales
- *
- * @param [prev] {boolean} true to select previous option
- * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
- */
-function cycleScale( prev ) {
-	let scale = +elScaleX.dataset.active + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
-
-	if ( scale < 0 )
-		scale = 3;
-	else if ( scale > 3 )
-		scale = 0;
-
-	elScaleX.dataset.active = scale & 1;
-	elScaleY.dataset.active = scale >> 1;
-
-	setProperty( [ elScaleX, elScaleY ], true );
-	return scale;
-}
-
-/**
- * Populate a select element
- *
- * @param element {object}
- * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
- * @param keep {boolean}  whether to keep existing content
- */
-function populateSelect( element, options, keep ) {
-	const oldValue = element.value,
-		  isObject = ! Array.isArray( options[0] );
-
-	if ( ! keep )
-		deleteChildren( element );
-
-	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
-		const option = new Option( item.text || item[1], item.value || item[0] );
-		if ( option.value == '' )
-			option.disabled = true;
-		element[ element.options.length ] = option;
-	}
-
-	if ( oldValue !== '' ) {
-		element.value = oldValue;
-		if ( element.selectedIndex == -1 ) // old value disabled
-			element.selectedIndex = 0;
-		setProperty( element, true );
-	}
-}
-
-/**
- * Populate UI gradient selection combo box
- */
-function populateGradients() {
-	let grad = elGradient.value;
-	deleteChildren( elGradient );
-
-	// add the option to the html select element for the user interface
-	for ( const key of Object.keys( gradients ) ) {
-		if ( ! gradients[ key ].disabled )
-			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
-	}
-
-	if ( grad !== '' ) {
-		elGradient.value = grad;
-		setProperty( elGradient, true );
-	}
-}
-
-/**
- * Populate presets combo box
- */
-function populatePresets( isLastSession, newValue ) {
-	const presetOptions = [
-		[ '', 'Select preset' ],
-		[ 'demo', 'Demo (random)' ],
-		[ 'fullres', 'Full resolution' ],
-		[ 'ledbars', 'LED bars' ],
-		[ 'octave', 'Octave bands' ],
-		...( presets['custom'] ? [ [ 'custom', 'Custom' ] ] : [] ),
-		...( isLastSession ? [ [ 'last', 'Last session' ] ] : [] ),
-		[ 'default', 'Restore defaults' ]
-	];
-
-	populateSelect( elPreset, presetOptions );
-	elPreset.value = newValue || '';
 }
 
 /**
@@ -2576,243 +2595,225 @@ function setUIEventListeners() {
 }
 
 /**
- * Populate Config Panel options
+ * Display information about canvas size changes
  */
-function doConfigPanel() {
+function showCanvasInfo( reason, instance ) {
 
-	// helper function
-	const buildOptions = ( container, cssClass, options, parent, cfgKey ) => {
-		// create checkboxes inside the container
-		options.forEach( item => {
-			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${item.disabled ? '' : 'checked'}> ${item.text}</label>`;
-		});
+	// resize OSD canvas
+	const dPR    = instance.pixelRatio,
+		  width  = elOSD.width  = elContainer.clientWidth * dPR,
+		  height = elOSD.height = elContainer.clientHeight * dPR;
 
-		// add event listeners for enabling/disabling options
-		$$( `.${cssClass}` ).forEach( element => {
-			element.addEventListener( 'click', event => {
-				if ( ! element.checked ) {
-					const count = options.filter( item => ! item.disabled ).length;
-					if ( count < 2 ) {
-						notie.alert({ text: 'At least one item must be enabled!' });
-						event.preventDefault();
-						return false;
-					}
-				}
-				options.find( item => item.value == element.dataset.option ).disabled = ! element.checked;
-				populateSelect( parent, options );
-				savePreferences( cfgKey );
-			});
-		});
+	let msg;
+
+	switch ( reason ) {
+		case 'create':
+			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
+			msg = 'Canvas created';
+			break;
+		case 'lores':
+			msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
+			break;
+		case 'fschange':
+			msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
+			break;
+		case 'resize':
+			msg = 'Window resized';
+			break;
 	}
 
-	// Enabled visualization modes
-	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
+	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
 
-	// Enabled Background Image Fit options
-	buildOptions( $('#enabled_bgfit'), 'enabledMode', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
+	// recalculate variables used for info display
+	baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
+	coverSize   = baseSize * 3;				// cover image size
+	centerPos   = width / 2;
+	rightPos    = width - baseSize;
+	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
+	topLine2    = topLine1 * 1.8;			// auto gradient, random mode & repeat status
+	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
+	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
+	bottomLine2 = height - baseSize * 2.8;	// song title
+	bottomLine3 = height - baseSize * 1.6;	// album title, time
+	maxWidthBot = width - baseSize * 7;		// maximum width for artist and song name
 
-	// Enabled gradients
+	normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
+	largeFont   = `bold ${baseSize}px sans-serif`;
+}
 
-	const elEnabledGradients = $('#enabled_gradients');
+/**
+ * Shuffle the playlist
+ */
+function shufflePlayQueue() {
 
-	Object.keys( gradients ).forEach( key => {
-		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
-	});
+	let temp, r;
 
-	$$('.enabledGradient').forEach( el => {
-		el.addEventListener( 'click', event => {
-			if ( ! el.checked ) {
-				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
-				if ( count < 2 ) {
-					notie.alert({ text: 'At least one Gradient must be enabled!' });
-					event.preventDefault();
-					return false;
-				}
+	for ( let i = queueLength() - 1; i > 0; i-- ) {
+		r = Math.random() * ( i + 1 ) | 0;
+		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
+		playlist.insertBefore( temp, playlist.children[ r ] );
+	}
+
+	playSong(0);
+}
+
+/**
+ * Player previous/next buttons
+ */
+function skipTrack( back = false ) {
+	const status = back ? playPreviousSong() : playNextSong();
+	if ( ! status )
+		setCanvasMsg( `Already at ${ back ? 'first' : 'last' } track` );
+}
+
+/**
+ * Player stop button
+ */
+function stop() {
+	audioElement[ currAudio ].pause();
+	setCanvasMsg();
+	loadSong( 0 );
+}
+
+/**
+ * Store a playlist in localStorage
+ */
+function storePlaylist( name, update = true ) {
+
+	if ( queueLength() == 0 ) {
+		notie.alert({ text: 'Queue is empty!' });
+		return;
+	}
+
+	if ( ! name ) {
+		notie.input({
+			text: 'Give this playlist a name:',
+			submitText: 'Save',
+			submitCallback: value => {
+				if ( value )
+					storePlaylist( value, false );
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' });
 			}
-			gradients[ el.dataset.grad ].disabled = ! el.checked;
-			populateGradients();
-			savePreferences( KEY_DISABLED_GRADS );
 		});
-	});
-
-	// Random Mode properties
-
-	const elProperties = $('#random_properties');
-
-	randomProperties.forEach( prop => {
-		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
-	});
-
-	$$('.randomProperty').forEach( el => {
-		el.addEventListener( 'click', event => {
-			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
-			savePreferences( KEY_DISABLED_PROPS );
-		});
-	});
-
-	// Sensitivity presets (already populated by loadPreferences())
-	$$( '[data-preset]' ).forEach( el => {
-		if ( el.className == 'reset-sens' ) {
-			el.addEventListener( 'click', () => {
-				$(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
-				$(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
-				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-					setProperty( elSensitivity );
-				savePreferences( KEY_SENSITIVITY );
-			});
-		}
-		else {
-			el.addEventListener( 'change', () => {
-				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-					setProperty( elSensitivity );
-				savePreferences( KEY_SENSITIVITY );
-			});
-		}
-	});
-
-	// On-screen display options
-	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover, elShowCount ] )
-		el.addEventListener( 'change', () => savePreferences( KEY_DISPLAY_OPTS ) );
-
-	$('#reset_osd').addEventListener( 'click', () => {
-		setInfoOptions( infoDisplayDefaults );
-		savePreferences( KEY_DISPLAY_OPTS );
-	});
-}
-
-/**
- * Load preferences from localStorage
- */
-function loadPreferences() {
-	// helper function
-	const parseDisabled = ( jsonData, options ) => {
-		if ( jsonData !== null ) {
-			JSON.parse( jsonData ).forEach( option => {
-				options.find( item => item.value == option ).disabled = true;
-			});
-		}
+		return;
 	}
 
-	// Load last used settings
-	const lastConfig    = localStorage.getItem( KEY_LAST_CONFIG ),
-		  isLastSession = ( lastConfig !== null );
+	if ( name ) {
+		let safename = name;
 
-	// if no data found from last session, use the defaults (in the demo site use the demo preset)
-	presets['last'] = JSON.parse( lastConfig ) || { ...presets[ location.host.startsWith('demo.') ? 'demo' : 'default' ] };
+		if ( ! update ) {
+			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
+			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-	// Load custom preset
-	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) );
+			let playlists = localStorage.getItem('playlists');
 
-	// Populate presets combo box
-	populatePresets( isLastSession );
+			if ( playlists )
+				playlists = JSON.parse( playlists );
+			else
+				playlists = {};
 
-	// Load disabled modes preference
-	parseDisabled( localStorage.getItem( KEY_DISABLED_MODES ), modeOptions );
+			while ( playlists.hasOwnProperty( safename ) )
+				safename += '_1';
 
-	// Load disabled background image fit options
-	parseDisabled( localStorage.getItem( KEY_DISABLED_BGFIT ), bgFitOptions );
+			playlists[ safename ] = name;
 
-	// Load disabled gradients preference
-	const disabledGradients = localStorage.getItem( KEY_DISABLED_GRADS );
-	if ( disabledGradients !== null ) {
-		JSON.parse( disabledGradients ).forEach( key => {
-			gradients[ key ].disabled = true;
-		});
-	}
-
-	// Load disabled random properties preference
-	parseDisabled( localStorage.getItem( KEY_DISABLED_PROPS ), randomProperties );
-
-	// Sensitivity presets
-	const elMinSens = $$('.min-db');
-	for ( let i = -60; i >= -110; i -= 5 )
-		elMinSens.forEach( el => el[ el.options.length ] = new Option( i ) );
-
-	const elMaxSens = $$('.max-db');
-	for ( let i = 0; i >= -40; i -= 5 )
-		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
-
-	const sensitivityPresets = JSON.parse( localStorage.getItem( KEY_SENSITIVITY ) ) || sensitivityDefaults;
-
-	sensitivityPresets.forEach( ( preset, index ) => {
-		elMinSens[ index ].value = preset.min;
-		elMaxSens[ index ].value = preset.max;
-	});
-
-	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( KEY_DISPLAY_OPTS ) ) || {} ) } );
-
-	return isLastSession;
-}
-
-/**
- * Save an object to localStorage in JSON format
- *
- * @param {string} item key
- * @param {object} data object
- */
-function saveToStorage( key, data ) {
-	localStorage.setItem( key, JSON.stringify( data ) );
-}
-
-/**
- * Save Config Panel preferences to localStorage
- *
- * @param [key] {string} preference to save; if undefined save all preferences (default)
- */
-function savePreferences( key ) {
-	// helper function
-	const getDisabledItems = items => items.filter( item => item.disabled ).map( item => item.value );
-
-	if ( ! key || key == KEY_DISABLED_MODES )
-		saveToStorage( KEY_DISABLED_MODES, getDisabledItems( modeOptions ) );
-
-	if ( ! key || key == KEY_DISABLED_BGFIT )
-		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
-
-	if ( ! key || key == KEY_DISABLED_GRADS )
-		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
-
-	if ( ! key || key == KEY_DISABLED_PROPS )
-		saveToStorage( KEY_DISABLED_PROPS, getDisabledItems( randomProperties ) );
-
-	if ( ! key || key == KEY_SENSITIVITY ) {
-		let sensitivityPresets = [];
-		for ( const i of [0,1,2] ) {
-			sensitivityPresets.push( {
-				min: $(`.min-db[data-preset="${i}"]`).value,
-				max: $(`.max-db[data-preset="${i}"]`).value
-			});
+			saveToStorage( 'playlists', playlists );
+			loadSavedPlaylists( safename );
 		}
-		saveToStorage( KEY_SENSITIVITY, sensitivityPresets );
-	}
 
-	if ( ! key || key == KEY_DISPLAY_OPTS ) {
-		const displayOptions = {
-			info  : elInfoTimeout.value,
-			track : elTrackTimeout.value,
-			end   : elEndTimeout.value,
-			covers: elShowCover.checked,
-			count : elShowCount.checked
-		}
-		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
+		let songs = [];
+		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
+
+		saveToStorage( 'pl_' + safename, songs );
+		notie.alert({ text: `Playlist saved!` });
 	}
 }
 
 /**
- * Set on-screen display options UI fields
+ * Sync a queue item metadata with any audio elements loaded with the same file
  */
-function setInfoOptions( options ) {
-	elInfoTimeout.value  = options.info;
-	elTrackTimeout.value = options.track;
-	elEndTimeout.value   = options.end;
-	elShowCover.checked  = options.covers;
-	elShowCount.checked  = options.count;
+function syncMetadataToAudioElements( source ) {
+	for ( const el of audioElement ) {
+		if ( el.dataset.file == source.dataset.file )
+			addMetadata( source, el ); // transfer metadata to audio element
+	}
+}
+
+/**
+ * Toggle display of song and settings information on canvas
+ */
+function toggleInfo() {
+	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
+		setCanvasMsg();
+	else // increase the information level (0 -> 1 -> 2) and reset the display timeout
+		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, +elInfoTimeout.value || Infinity ); // NOTE: canvasMsg.info may be undefined
+}
+
+/**
+ * Update the playlist shown to the user
+ */
+function updatePlaylistUI() {
+
+	const current = playlist.querySelector('.current'),
+		  newCurr = playlist.children[ playlistPos ];
+
+	if ( current )
+		current.classList.remove('current');
+
+	if ( newCurr ) {
+		newCurr.classList.add('current');
+		newCurr.scrollIntoViewIfNeeded();
+	}
+}
+
+/**
+ * Connect or disconnect audio output to the speakers
+ */
+function toggleMute( mute ) {
+	if ( mute !== undefined )
+		elMute.checked = mute;
+	else
+		mute = elMute.checked;
+
+	if ( mute )
+		audioMotion.disconnectOutput();
+	else
+		audioMotion.connectOutput();
+}
+
+/**
+ * Update custom preset
+ */
+function updateCustomPreset() {
+	const settings = getCurrentSettings();
+	presets['custom'] = settings;
+	saveToStorage( KEY_CUSTOM_PRESET, settings );
+	notie.alert({ text: 'Custom preset saved!' });
+	populatePresets( Array.from( elPreset.options, item => item.value ).includes('last'), 'custom' );
+}
+
+/**
+ * Update last used configuration
+ */
+function updateLastConfig() {
+	saveToStorage( KEY_LAST_CONFIG, { ...getCurrentSettings(), volume: elVolume.dataset.value, balance: elBalance.dataset.value } );
+}
+
+/**
+ * Update range elements value div
+ */
+function updateRangeValue( el ) {
+	const elVal = el.previousElementSibling;
+	if ( elVal && elVal.className == 'value' )
+		elVal.innerText = el.value;
 }
 
 
 /**
- * Initialization function
+ *  MAIN FUNCTION
+ * ------------------------------------------------------------------------------------------------
  */
 (function() {
 
