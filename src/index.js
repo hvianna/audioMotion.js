@@ -432,6 +432,47 @@ const getIndex = node => {
 // returns the text of the selected option in a `select` HTML element
 const getText = el => el[ el.selectedIndex ].text;
 
+// returns an object with the current settings
+const getCurrentSettings = _ => ({
+	alphaBars   : elAlphaBars.dataset.active,
+	background  : elBackground.value,
+	barSpace    : elBarSpace.value,
+	bgImageDim  : elBgImageDim.value,
+	bgImageFit  : elBgImageFit.value,
+	cycleGrad   : elCycleGrad.dataset.active,
+	fftSize		: elFFTsize.value,
+	fillAlpha   : elFillAlpha.value,
+	freqMax		: elRangeMax.value,
+	freqMin		: elRangeMin.value,
+	fsHeight    : elFsHeight.value,
+	gradient	: elGradient.value,
+	ledDisplay  : elLedDisplay.dataset.active,
+	lineWidth   : elLineWidth.value,
+	loRes       : elLoRes.dataset.active,
+	lumiBars    : elLumiBars.dataset.active,
+	mirror      : elMirror.value,
+	mode        : elMode.value,
+	noShadow    : elNoShadow.dataset.active,
+	outlineBars : elOutline.dataset.active,
+	radial      : elRadial.dataset.active,
+	randomMode  : elRandomMode.value,
+	reflex      : elReflex.value,
+	repeat      : elRepeat.dataset.active,
+	sensitivity : elSensitivity.value,
+	showFPS     : elFPS.dataset.active,
+	showPeaks 	: elShowPeaks.dataset.active,
+	showScaleX 	: elScaleX.dataset.active,
+	showScaleY 	: elScaleY.dataset.active,
+	showSong    : elShowSong.dataset.active,
+	smoothing	: elSmoothing.value,
+	spin        : elSpin.value,
+	splitGrad   : elSplitGrad.dataset.active,
+	stereo      : elStereo.dataset.active
+});
+
+// check if audio is playing
+const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
+
 // returns a boolean with the current status of an UI switch
 const isSwitchOn = el => el.dataset.active == '1';
 
@@ -763,7 +804,9 @@ function displayCanvasMsg() {
 		  remaining  = audioEl.duration - audioEl.currentTime,
 		  endTimeout = +elEndTimeout.value,
 		  bgOption   = elBackground.value[0],
-		  bgImageFit = elBgImageFit.value;
+		  bgImageFit = elBgImageFit.value,
+		  noShadow   = isSwitchOn( elNoShadow ),
+		  pixelRatio = audioMotion.pixelRatio;
 
 	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 	if ( remaining < .1 )
@@ -795,7 +838,20 @@ function displayCanvasMsg() {
 	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
 		return;
 
-	canvasCtx.lineWidth = 4 * audioMotion.pixelRatio;
+	// helper function
+	const drawText = ( text, x, y, maxWidth ) => {
+		if ( noShadow ) {
+			canvasCtx.strokeText( text, x, y, maxWidth );
+			canvasCtx.fillText( text, x, y, maxWidth );
+		}
+		else {
+			canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * pixelRatio;
+			canvasCtx.fillText( text, x, y, maxWidth );
+			canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
+		}
+	}
+
+	canvasCtx.lineWidth = 4 * pixelRatio;
 	canvasCtx.lineJoin = 'round';
 	canvasCtx.font = normalFont;
 	canvasCtx.textAlign = 'center';
@@ -806,7 +862,7 @@ function displayCanvasMsg() {
 	// Display custom message if any and info level 2 is not set
 	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
 		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
-		outlineText( canvasMsg.msg, centerPos, topLine1 );
+		drawText( canvasMsg.msg, centerPos, topLine1 );
 		canvasMsg.msgTimer--;
 	}
 
@@ -823,48 +879,48 @@ function displayCanvasMsg() {
 
 		// display additional information (level 2) at the top
 		if ( canvasMsg.info == 2 ) {
-			outlineText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
-			outlineText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
+			drawText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
+			drawText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
 
 			canvasCtx.textAlign = 'left';
-			outlineText( getText( elMode ), baseSize, topLine1, maxWidthTop );
-			outlineText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
+			drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
+			drawText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
 
 			canvasCtx.textAlign = 'right';
-			outlineText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
-			outlineText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
+			drawText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
+			drawText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
 		}
 
 		if ( isMicSource ) {
 			canvasCtx.textAlign = 'left';
 			canvasCtx.font = largeFont;
-			outlineText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
+			drawText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
 		}
 		else {
 			// codec and quality
 			canvasCtx.textAlign = 'right';
-			outlineText( trackData.codec, rightPos, bottomLine1 );
-			outlineText( trackData.quality, rightPos, bottomLine1 + baseSize );
+			drawText( trackData.codec, rightPos, bottomLine1 );
+			drawText( trackData.quality, rightPos, bottomLine1 + baseSize );
 
 			// song/queue count
 			const totalSongs = queueLength();
 			if ( totalSongs && elShowCount.checked ) {
 				const padDigits = ( '' + totalSongs ).length,
 					  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
-				outlineText( counter, rightPos, bottomLine1 - baseSize );
+				drawText( counter, rightPos, bottomLine1 - baseSize );
 			}
 
 			// artist name
 			canvasCtx.textAlign = 'left';
-			outlineText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
+			drawText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
 
 			// album title
 			canvasCtx.font = `italic ${normalFont}`;
-			outlineText( trackData.album, baseSize, bottomLine3, maxWidthBot );
+			drawText( trackData.album, baseSize, bottomLine3, maxWidthBot );
 
 			// song title
 			canvasCtx.font = largeFont;
-			outlineText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
+			drawText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
 
 			// time
 			if ( audioEl.duration || trackData.duration ) {
@@ -877,7 +933,7 @@ function displayCanvasMsg() {
 				}
 				canvasCtx.textAlign = 'right';
 
-				outlineText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
+				drawText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
 			}
 
 			// cover image
@@ -1077,61 +1133,6 @@ function finishFastSearch() {
 function fullscreen() {
 	audioMotion.toggleFullscreen();
 	document.activeElement.blur(); // move keyboard focus to the document body
-}
-
-/**
- * Return an object with the current settings
- */
-function getCurrentSettings() {
-	return {
-		alphaBars   : elAlphaBars.dataset.active,
-		fftSize		: elFFTsize.value,
-		freqMin		: elRangeMin.value,
-		freqMax		: elRangeMax.value,
-		smoothing	: elSmoothing.value,
-		gradient	: elGradient.value,
-		mode        : elMode.value,
-		randomMode  : elRandomMode.value,
-		sensitivity : elSensitivity.value,
-		lineWidth   : elLineWidth.value,
-		fillAlpha   : elFillAlpha.value,
-		barSpace    : elBarSpace.value,
-		reflex      : elReflex.value,
-		background  : elBackground.value,
-		bgImageDim  : elBgImageDim.value,
-		bgImageFit  : elBgImageFit.value,
-		spin        : elSpin.value,
-		fsHeight    : elFsHeight.value,
-		mirror      : elMirror.value,
-		showScaleX 	: elScaleX.dataset.active,
-		showScaleY 	: elScaleY.dataset.active,
-		showPeaks 	: elShowPeaks.dataset.active,
-		cycleGrad   : elCycleGrad.dataset.active,
-		ledDisplay  : elLedDisplay.dataset.active,
-		lumiBars    : elLumiBars.dataset.active,
-		outlineBars : elOutline.dataset.active,
-		repeat      : elRepeat.dataset.active,
-		showSong    : elShowSong.dataset.active,
-		noShadow    : elNoShadow.dataset.active,
-		loRes       : elLoRes.dataset.active,
-		showFPS     : elFPS.dataset.active,
-		radial      : elRadial.dataset.active,
-		stereo      : elStereo.dataset.active,
-		splitGrad   : elSplitGrad.dataset.active
-	};
-}
-
-/**
- * Check if audio is playing
- */
-function isPlaying() {
-	const audioEl = audioElement[ currAudio ];
-
-	return audioEl
-		&& audioEl.currentTime > 0
-		&& ! audioEl.paused
-		&& ! audioEl.ended;
-//		&& audioEl.readyState > 2;
 }
 
 /**
@@ -1719,21 +1720,6 @@ function loadSong( n ) {
 	}
 	else
 		return false;
-}
-
-/**
- * Draws outlined text on OSD canvas
- */
-function outlineText( text, x, y, maxWidth ) {
-	if ( isSwitchOn( elNoShadow ) ) {
-		canvasCtx.strokeText( text, x, y, maxWidth );
-		canvasCtx.fillText( text, x, y, maxWidth );
-	}
-	else {
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * audioMotion.pixelRatio;
-		canvasCtx.fillText( text, x, y, maxWidth );
-		canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
-	}
 }
 
 /**
