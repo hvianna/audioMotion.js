@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.10-beta.1
+ * @version   21.10-beta.2
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.10-beta.1';
+const VERSION = '21.10-beta.2';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -365,8 +365,7 @@ const bgFitOptions = [
 ];
 
 // Global variables
-let audioCtx,
-	audioElement = [],
+let audioElement = [],
 	audioMotion,
 	bgImages = [],
 	bgVideos = [],
@@ -388,11 +387,8 @@ let audioCtx,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
 
-// variables for on-screen info display
-let baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
-
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS -------------------------------------------------------------------------------
 
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
@@ -485,7 +481,6 @@ const queueLength = _ => playlist.children.length;
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
 
-/* ------------------------------------------------------------------------------------------------ */
 
 /**
  * Adds a batch of files to the queue and displays total songs added when finished
@@ -501,6 +496,7 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 		notie.alert({ text, time: 5 });
 	});
 }
+// GENERAL FUNCTIONS ------------------------------------------------------------------------------
 
 /**
  * Add audio metadata to a playlist item or audio element
@@ -602,46 +598,6 @@ function addToPlayQueue( file, autoplay = false ) {
 	});
 
 	return ret;
-}
-
-/**
- * Event handler for 'ended' on audio elements
- */
-function audioOnEnded() {
-	if ( ! playNextSong( true ) ) {
-		loadSong( 0 );
-		setCanvasMsg( 'Queue ended', 10 );
-	}
-}
-
-/**
- * Error event handler for audio elements
- */
-function audioOnError( e ) {
-	if ( e.target.attributes.src )
-		consoleLog( 'Error loading ' + e.target.src, true );
-}
-
-/**
- * Event handler for 'play' on audio elements
- */
-function audioOnPlay() {
-	if ( ! audioElement[ currAudio ].attributes.src ) {
-		playSong( playlistPos );
-		return;
-	}
-
-	if ( audioElement[ currAudio ].currentTime < .1 ) {
-		if ( elRandomMode.value == '1' )
-			selectRandomMode( true );
-		else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
-			cycleElement( elGradient );
-	}
-
-	if ( isSwitchOn( elShowSong ) ) {
-		const timeout = +elTrackTimeout.value || Infinity;
-		setCanvasMsg( 1, timeout );
-	}
 }
 
 /**
@@ -782,168 +738,6 @@ function cycleScale( prev ) {
 
 	setProperty( [ elScaleX, elScaleY ], true );
 	return scale;
-}
-
-/**
- * Display messages on canvas
- *
- * Uses global object canvasMsg
- * canvasMsg = {
- * 		info    : <number>, // 1 = song info; 2 = song + settings info
- * 		timer   : <number>, // countdown timer (in frames) to display info
- * 		fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
- *		msg     : <string>, // custom message to be displayed at the top
- * 		msgTimer: <number>  // countdown timer (in frames) to display custom message
- * 		                    // (fade for custom message is always 60 frames)
- * }
- */
-function displayCanvasMsg() {
-
-	const audioEl    = audioElement[ currAudio ],
-		  trackData  = audioEl.dataset,
-		  remaining  = audioEl.duration - audioEl.currentTime,
-		  endTimeout = +elEndTimeout.value,
-		  bgOption   = elBackground.value[0],
-		  bgImageFit = elBgImageFit.value,
-		  noShadow   = isSwitchOn( elNoShadow ),
-		  pixelRatio = audioMotion.pixelRatio;
-
-	// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-	if ( remaining < .1 )
-		playNextSong( true );
-
-	// set song info display at the end of the song
-	if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
-		setCanvasMsg( 1, remaining, -1 );
-
-	// compute background image size for pulse and zoom in/out effects
-	if (
-		( bgImageFit == BGFIT_PULSE || bgImageFit == BGFIT_ZOOM_IN || bgImageFit == BGFIT_ZOOM_OUT ) &&
-		( bgOption == BG_COVER || bgOption == BG_IMAGE )
-	) {
-		let size;
-
-		if ( bgImageFit == BGFIT_PULSE )
-			size = ( audioMotion.getEnergy() * 70 | 0 ) - 25;
-		else {
-			const songProgress = audioEl.currentTime / audioEl.duration;
-			size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
-		}
-
-		elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
-	}
-
-	elOSD.width |= 0; // clear OSD canvas
-
-	if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
-		return;
-
-	// helper function
-	const drawText = ( text, x, y, maxWidth ) => {
-		if ( noShadow ) {
-			canvasCtx.strokeText( text, x, y, maxWidth );
-			canvasCtx.fillText( text, x, y, maxWidth );
-		}
-		else {
-			canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * pixelRatio;
-			canvasCtx.fillText( text, x, y, maxWidth );
-			canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
-		}
-	}
-
-	canvasCtx.lineWidth = 4 * pixelRatio;
-	canvasCtx.lineJoin = 'round';
-	canvasCtx.font = normalFont;
-	canvasCtx.textAlign = 'center';
-
-	canvasCtx.fillStyle = '#fff';
-	canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
-
-	// Display custom message if any and info level 2 is not set
-	if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
-		canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
-		drawText( canvasMsg.msg, centerPos, topLine1 );
-		canvasMsg.msgTimer--;
-	}
-
-	// Display song and config info
-	if ( canvasMsg.timer > 0 ) {
-		if ( canvasMsg.fade < 0 ) {
-			// fade-in
-			const fade     = Math.abs( canvasMsg.fade ),
-				  framesIn = fade * 3 - canvasMsg.timer;
-			canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
-		}
-		else // fade-out
-			canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
-
-		// display additional information (level 2) at the top
-		if ( canvasMsg.info == 2 ) {
-			drawText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
-			drawText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
-
-			canvasCtx.textAlign = 'left';
-			drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
-			drawText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
-
-			canvasCtx.textAlign = 'right';
-			drawText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
-			drawText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
-		}
-
-		if ( isMicSource ) {
-			canvasCtx.textAlign = 'left';
-			canvasCtx.font = largeFont;
-			drawText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
-		}
-		else {
-			// codec and quality
-			canvasCtx.textAlign = 'right';
-			drawText( trackData.codec, rightPos, bottomLine1 );
-			drawText( trackData.quality, rightPos, bottomLine1 + baseSize );
-
-			// song/queue count
-			const totalSongs = queueLength();
-			if ( totalSongs && elShowCount.checked ) {
-				const padDigits = ( '' + totalSongs ).length,
-					  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
-				drawText( counter, rightPos, bottomLine1 - baseSize );
-			}
-
-			// artist name
-			canvasCtx.textAlign = 'left';
-			drawText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
-
-			// album title
-			canvasCtx.font = `italic ${normalFont}`;
-			drawText( trackData.album, baseSize, bottomLine3, maxWidthBot );
-
-			// song title
-			canvasCtx.font = largeFont;
-			drawText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
-
-			// time
-			if ( audioEl.duration || trackData.duration ) {
-				if ( ! trackData.duration ) {
-					trackData.duration =
-						audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
-
-					if ( playlist.children[ playlistPos ] )
-						playlist.children[ playlistPos ].dataset.duration = trackData.duration;
-				}
-				canvasCtx.textAlign = 'right';
-
-				drawText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
-			}
-
-			// cover image
-			if ( coverImage.width && elShowCover.checked )
-				canvasCtx.drawImage( coverImage, baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
-		}
-
-		if ( --canvasMsg.timer < 1 )
-			canvasMsg.info = canvasMsg.fade = 0;
-	}
 }
 
 /**
@@ -2421,7 +2215,7 @@ function setSource() {
 			if ( navigator.mediaDevices ) {
 				navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
 				.then( stream => {
-					micStream = audioCtx.createMediaStreamSource( stream );
+					micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
 					setSource(); // recursive call, micStream should now be set
 				})
 				.catch( err => {
@@ -2581,63 +2375,14 @@ function setUIEventListeners() {
 }
 
 /**
- * Display information about canvas size changes
- */
-function showCanvasInfo( reason, instance ) {
-
-	// resize OSD canvas
-	const dPR    = instance.pixelRatio,
-		  width  = elOSD.width  = elContainer.clientWidth * dPR,
-		  height = elOSD.height = elContainer.clientHeight * dPR;
-
-	let msg;
-
-	switch ( reason ) {
-		case 'create':
-			consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
-			msg = 'Canvas created';
-			break;
-		case 'lores':
-			msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
-			break;
-		case 'fschange':
-			msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
-			break;
-		case 'resize':
-			msg = 'Window resized';
-			break;
-	}
-
-	consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
-
-	// recalculate variables used for info display
-	baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
-	coverSize   = baseSize * 3;				// cover image size
-	centerPos   = width / 2;
-	rightPos    = width - baseSize;
-	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
-	topLine2    = topLine1 * 1.8;			// auto gradient, random mode & repeat status
-	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
-	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
-	bottomLine2 = height - baseSize * 2.8;	// song title
-	bottomLine3 = height - baseSize * 1.6;	// album title, time
-	maxWidthBot = width - baseSize * 7;		// maximum width for artist and song name
-
-	normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
-	largeFont   = `bold ${baseSize}px sans-serif`;
-}
-
-/**
  * Shuffle the playlist
  */
 function shufflePlayQueue() {
 
-	let temp, r;
-
 	for ( let i = queueLength() - 1; i > 0; i-- ) {
-		r = Math.random() * ( i + 1 ) | 0;
-		temp = playlist.replaceChild( playlist.children[ r ], playlist.children[ i ] );
-		playlist.insertBefore( temp, playlist.children[ r ] );
+		const randIndex = Math.random() * ( i + 1 ) | 0,
+			  oldChild  = playlist.replaceChild( playlist.children[ randIndex ], playlist.children[ i ] );
+		playlist.insertBefore( oldChild, playlist.children[ randIndex ] );
 	}
 
 	playSong(0);
@@ -2802,6 +2547,248 @@ function updateRangeValue( el ) {
  * ------------------------------------------------------------------------------------------------
  */
 (function() {
+	// variables for on-screen info display
+	let baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
+
+	// Callback function to handle canvas size changes (onCanvasResize)
+	const showCanvasInfo = ( reason, instance ) => {
+		let msg;
+
+		// resize OSD canvas
+		const dPR    = instance.pixelRatio,
+			  width  = elOSD.width  = elContainer.clientWidth * dPR,
+			  height = elOSD.height = elContainer.clientHeight * dPR;
+
+		switch ( reason ) {
+			case 'create':
+				consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
+				msg = 'Canvas created';
+				break;
+			case 'lores':
+				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
+				break;
+			case 'fschange':
+				msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
+				break;
+			case 'resize':
+				msg = 'Window resized';
+				break;
+		}
+
+		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
+
+		// recalculate variables used for info display
+		baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
+		coverSize   = baseSize * 3;				// cover image size
+		centerPos   = width / 2;
+		rightPos    = width - baseSize;
+		topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
+		topLine2    = topLine1 * 1.8;			// auto gradient, random mode & repeat status
+		maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
+		bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
+		bottomLine2 = height - baseSize * 2.8;	// song title
+		bottomLine3 = height - baseSize * 1.6;	// album title, time
+		maxWidthBot = width - baseSize * 7;		// maximum width for artist and song name
+
+		normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
+		largeFont   = `bold ${baseSize}px sans-serif`;
+	}
+
+	/**
+	 * Callback function to display on-screen messages (onCanvasDraw)
+	 *
+	 * Uses global object canvasMsg
+	 * canvasMsg = {
+	 * 		info    : <number>, // 1 = song info; 2 = song & settings info
+	 * 		timer   : <number>, // countdown timer (in frames) to display info
+	 * 		fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
+	 *		msg     : <string>, // custom message to be displayed at the top
+	 * 		msgTimer: <number>  // countdown timer (in frames) to display custom message
+	 * }	                    // (fade for custom message is always 60 frames)
+	 */
+	const displayCanvasMsg = _ => {
+
+		const audioEl    = audioElement[ currAudio ],
+			  trackData  = audioEl.dataset,
+			  remaining  = audioEl.duration - audioEl.currentTime,
+			  endTimeout = +elEndTimeout.value,
+			  bgOption   = elBackground.value[0],
+			  bgImageFit = elBgImageFit.value,
+			  noShadow   = isSwitchOn( elNoShadow ),
+			  pixelRatio = audioMotion.pixelRatio;
+
+		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
+		if ( remaining < .1 )
+			playNextSong( true );
+
+		// set song info display at the end of the song
+		if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
+			setCanvasMsg( 1, remaining, -1 );
+
+		// compute background image size for pulse and zoom in/out effects
+		if (
+			( bgImageFit == BGFIT_PULSE || bgImageFit == BGFIT_ZOOM_IN || bgImageFit == BGFIT_ZOOM_OUT ) &&
+			( bgOption == BG_COVER || bgOption == BG_IMAGE )
+		) {
+			let size;
+
+			if ( bgImageFit == BGFIT_PULSE )
+				size = ( audioMotion.getEnergy() * 70 | 0 ) - 25;
+			else {
+				const songProgress = audioEl.currentTime / audioEl.duration;
+				size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
+			}
+
+			elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
+		}
+
+		elOSD.width |= 0; // clear OSD canvas
+
+		if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
+			return;
+
+		// helper function
+		const drawText = ( text, x, y, maxWidth ) => {
+			if ( noShadow ) {
+				canvasCtx.strokeText( text, x, y, maxWidth );
+				canvasCtx.fillText( text, x, y, maxWidth );
+			}
+			else {
+				canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 3 * pixelRatio;
+				canvasCtx.fillText( text, x, y, maxWidth );
+				canvasCtx.shadowOffsetX = canvasCtx.shadowOffsetY = 0;
+			}
+		}
+
+		canvasCtx.lineWidth = 4 * pixelRatio;
+		canvasCtx.lineJoin = 'round';
+		canvasCtx.font = normalFont;
+		canvasCtx.textAlign = 'center';
+
+		canvasCtx.fillStyle = '#fff';
+		canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
+
+		// Display custom message if any and info level 2 is not set
+		if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
+			canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
+			drawText( canvasMsg.msg, centerPos, topLine1 );
+			canvasMsg.msgTimer--;
+		}
+
+		// Display song and config info
+		if ( canvasMsg.timer > 0 ) {
+			if ( canvasMsg.fade < 0 ) {
+				// fade-in
+				const fade     = Math.abs( canvasMsg.fade ),
+					  framesIn = fade * 3 - canvasMsg.timer;
+				canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
+			}
+			else // fade-out
+				canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
+
+			// display additional information (level 2) at the top
+			if ( canvasMsg.info == 2 ) {
+				drawText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
+				drawText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
+
+				canvasCtx.textAlign = 'left';
+				drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
+				drawText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
+
+				canvasCtx.textAlign = 'right';
+				drawText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
+				drawText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
+			}
+
+			if ( isMicSource ) {
+				canvasCtx.textAlign = 'left';
+				canvasCtx.font = largeFont;
+				drawText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
+			}
+			else {
+				// codec and quality
+				canvasCtx.textAlign = 'right';
+				drawText( trackData.codec, rightPos, bottomLine1 );
+				drawText( trackData.quality, rightPos, bottomLine1 + baseSize );
+
+				// song/queue count
+				const totalSongs = queueLength();
+				if ( totalSongs && elShowCount.checked ) {
+					const padDigits = ( '' + totalSongs ).length,
+						  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
+					drawText( counter, rightPos, bottomLine1 - baseSize );
+				}
+
+				// artist name
+				canvasCtx.textAlign = 'left';
+				drawText( trackData.artist.toUpperCase(), baseSize, bottomLine1, maxWidthBot );
+
+				// album title
+				canvasCtx.font = `italic ${normalFont}`;
+				drawText( trackData.album, baseSize, bottomLine3, maxWidthBot );
+
+				// song title
+				canvasCtx.font = largeFont;
+				drawText( audioEl.src ? trackData.title : 'No song loaded', baseSize, bottomLine2, maxWidthBot );
+
+				// time
+				if ( audioEl.duration || trackData.duration ) {
+					if ( ! trackData.duration ) {
+						trackData.duration =
+							audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
+
+						if ( playlist.children[ playlistPos ] )
+							playlist.children[ playlistPos ].dataset.duration = trackData.duration;
+					}
+					canvasCtx.textAlign = 'right';
+
+					drawText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
+				}
+
+				// cover image
+				if ( coverImage.width && elShowCover.checked )
+					canvasCtx.drawImage( coverImage, baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
+			}
+
+			if ( --canvasMsg.timer < 1 )
+				canvasMsg.info = canvasMsg.fade = 0;
+		}
+	}
+
+	// event handlers for audio elements
+
+	const audioOnEnded = _ => {
+		if ( ! playNextSong( true ) ) {
+			loadSong( 0 );
+			setCanvasMsg( 'Queue ended', 10 );
+		}
+	}
+
+	const audioOnError = e => {
+		if ( e.target.attributes.src )
+			consoleLog( 'Error loading ' + e.target.src, true );
+	}
+
+	const audioOnPlay = _ => {
+		if ( ! audioElement[ currAudio ].attributes.src ) {
+			playSong( playlistPos );
+			return;
+		}
+
+		if ( audioElement[ currAudio ].currentTime < .1 ) {
+			if ( elRandomMode.value == '1' )
+				selectRandomMode( true );
+			else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
+				cycleElement( elGradient );
+		}
+
+		if ( isSwitchOn( elShowSong ) ) {
+			const timeout = +elTrackTimeout.value || Infinity;
+			setCanvasMsg( 1, timeout );
+		}
+	}
+
+	// BEGIN INITIALIZATION -----------------------------------------------------------------------
 
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
@@ -2853,7 +2840,7 @@ function updateRangeValue( el ) {
 		onCanvasResize: showCanvasInfo
 	});
 
-	audioCtx = audioMotion.audioCtx;
+	const audioCtx = audioMotion.audioCtx;
 
 	// create panNode for balance control - NOTE: no support on Safari < 14.1
 	panNode = audioCtx.createStereoPanner();
