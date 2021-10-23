@@ -430,40 +430,40 @@ const getText = el => el[ el.selectedIndex ].text;
 
 // returns an object with the current settings
 const getCurrentSettings = _ => ({
-	alphaBars   : elAlphaBars.dataset.active,
+	alphaBars   : +isSwitchOn( elAlphaBars ),
 	background  : elBackground.value,
 	barSpace    : elBarSpace.value,
 	bgImageDim  : elBgImageDim.value,
 	bgImageFit  : elBgImageFit.value,
-	cycleGrad   : elCycleGrad.dataset.active,
+	cycleGrad   : +isSwitchOn( elCycleGrad ),
 	fftSize		: elFFTsize.value,
 	fillAlpha   : elFillAlpha.value,
 	freqMax		: elRangeMax.value,
 	freqMin		: elRangeMin.value,
 	fsHeight    : elFsHeight.value,
 	gradient	: elGradient.value,
-	ledDisplay  : elLedDisplay.dataset.active,
+	ledDisplay  : +isSwitchOn( elLedDisplay ),
 	lineWidth   : elLineWidth.value,
-	loRes       : elLoRes.dataset.active,
-	lumiBars    : elLumiBars.dataset.active,
+	loRes       : +isSwitchOn( elLoRes ),
+	lumiBars    : +isSwitchOn( elLumiBars ),
 	mirror      : elMirror.value,
 	mode        : elMode.value,
-	noShadow    : elNoShadow.dataset.active,
-	outlineBars : elOutline.dataset.active,
-	radial      : elRadial.dataset.active,
+	noShadow    : +isSwitchOn( elNoShadow ),
+	outlineBars : +isSwitchOn( elOutline ),
+	radial      : +isSwitchOn( elRadial ),
 	randomMode  : elRandomMode.value,
 	reflex      : elReflex.value,
-	repeat      : elRepeat.dataset.active,
+	repeat      : +isSwitchOn( elRepeat ),
 	sensitivity : elSensitivity.value,
-	showFPS     : elFPS.dataset.active,
-	showPeaks 	: elShowPeaks.dataset.active,
-	showScaleX 	: elScaleX.dataset.active,
-	showScaleY 	: elScaleY.dataset.active,
-	showSong    : elShowSong.dataset.active,
+	showFPS     : +isSwitchOn( elFPS ),
+	showPeaks 	: +isSwitchOn( elShowPeaks ),
+	showScaleX 	: +isSwitchOn( elScaleX ),
+	showScaleY 	: +isSwitchOn( elScaleY ),
+	showSong    : +isSwitchOn( elShowSong ),
 	smoothing	: elSmoothing.value,
 	spin        : elSpin.value,
-	splitGrad   : elSplitGrad.dataset.active,
-	stereo      : elStereo.dataset.active
+	splitGrad   : +isSwitchOn( elSplitGrad ),
+	stereo      : +isSwitchOn( elStereo )
 });
 
 // check if audio is playing
@@ -1820,17 +1820,20 @@ function selectRandomMode( force = isMicSource ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
-	// helper function
-	const isEnabled = ( prop ) => ! randomProperties.find( item => item.value == prop ).disabled;
+	// helper functions
+	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
+
+	const randomizeSwitch = el => {
+		el.dataset.active = randomInt();
+		props.push( el );
+	}
 
 	let props = []; // properties that need to be updated
 
 	elMode.selectedIndex = randomInt( elMode.options.length );
 
-	if ( isEnabled('alpha') ) {
-		elAlphaBars.dataset.active = randomInt();
-		props.push( elAlphaBars );
-	}
+	if ( isEnabled('alpha') )
+		randomizeSwitch( elAlphaBars );
 
 	if ( isEnabled('nobg') )
 		elBackground.selectedIndex = randomInt( elBackground.options.length );
@@ -1840,15 +1843,11 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elBgImageFit );
 	}
 
-	if ( isEnabled('peaks') ) {
-		elShowPeaks.dataset.active = randomInt(); // 0 or 1
-		props.push( elShowPeaks );
-	}
+	if ( isEnabled('peaks') )
+		randomizeSwitch( elShowPeaks );
 
-	if ( isEnabled('leds') ) {
-		elLedDisplay.dataset.active = randomInt();
-		props.push( elLedDisplay );
-	}
+	if ( isEnabled('leds') )
+		randomizeSwitch( elLedDisplay );
 
 	if ( isEnabled('lumi') ) {
 		// always disable lumi when leds are active and background is set to image or video
@@ -1869,10 +1868,8 @@ function selectRandomMode( force = isMicSource ) {
 	if ( isEnabled('barSp') )
 		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
 
-	if ( isEnabled('outline') ) {
-		elOutline.dataset.active = randomInt();
-		props.push( elOutline );
-	}
+	if ( isEnabled('outline') )
+		randomizeSwitch( elOutline );
 
 	if ( isEnabled('reflex') ) {
 		// exclude 'mirrored' reflex option for octave bands modes
@@ -1880,10 +1877,8 @@ function selectRandomMode( force = isMicSource ) {
 		elReflex.selectedIndex = randomInt( options );
 	}
 
-	if ( isEnabled('radial') ) {
-		elRadial.dataset.active = randomInt();
-		props.push( elRadial );
-	}
+	if ( isEnabled('radial') )
+		randomizeSwitch( elRadial );
 
 	if ( isEnabled('spin') ) {
 		elSpin.value = randomInt(4);
@@ -1891,15 +1886,11 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elSpin );
 	}
 
-	if ( isEnabled('split') ) {
-		elSplitGrad.dataset.active = randomInt();
-		props.push( elSplitGrad );
-	}
+	if ( isEnabled('split') )
+		randomizeSwitch( elSplitGrad );
 
-	if ( isEnabled('stereo') ) {
-		elStereo.dataset.active = randomInt();
-		props.push( elStereo );
-	}
+	if ( isEnabled('stereo') )
+		randomizeSwitch( elStereo );
 
 	if ( isEnabled('mirror') ) {
 		elMirror.value = randomInt(3) - 1;
