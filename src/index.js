@@ -1275,7 +1275,9 @@ function loadPreferences() {
 	const parseDisabled = ( jsonData, options ) => {
 		if ( jsonData !== null ) {
 			JSON.parse( jsonData ).forEach( option => {
-				options.find( item => item.value == option ).disabled = true;
+				const opt = options.find( item => item.value == option );
+				if ( opt )
+					opt.disabled = true;
 			});
 		}
 	}
