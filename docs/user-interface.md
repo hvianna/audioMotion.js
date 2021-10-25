@@ -223,14 +223,14 @@ When [Background](#background) is set to **Album cover** or an image, this optio
 **Pulse** | Makes the image pulsate to the beat of the song
 **Repeat** | Repeats the image horizontally to fill the canvas
 **Warp** | Applies a 3D "warp" effect to the background image
-**Warp Speed** | *Warp* effect with motion animation
-**Wormhole** | *Warp Speed* effect with additional rotation
+**Warp Drive** | Animated *Warp* effect
+**Wormhole** | *Warp Drive* effect with additional rotation
 **Zoom In** | Image is initially centered on the canvas and slowly zooms in as the song plays
 **Zoom Out** | Image is initially enlarged at 200% and slowly zooms out as the song plays
 
 You can cycle through the available options using the **Shift + B** keyboard shortcut.
 
-⚠ The **Warp Speed** and **Wormhole** effects may be slow on some browsers or graphics cards.
+⚠ The **Warp Drive** and **Wormhole** effects may be slow on some browsers or graphics cards.
 
 Undesired options can be disabled in the [Config panel](#config-panel).
 

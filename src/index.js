@@ -358,7 +358,7 @@ const bgFitOptions = [
 	{ value: BGFIT_PULSE,    text: 'Pulse',       disabled: false },
 	{ value: BGFIT_REPEAT,   text: 'Repeat',      disabled: false },
 	{ value: BGFIT_WARP,     text: 'Warp',        disabled: false },
-	{ value: BGFIT_WARP_ANI, text: 'Warp Speed',  disabled: false },
+	{ value: BGFIT_WARP_ANI, text: 'Warp Drive',  disabled: false },
 	{ value: BGFIT_WARP_ROT, text: 'Wormhole',    disabled: false },
 	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
 	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
