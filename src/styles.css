@@ -261,6 +261,20 @@ table {
 	width: 100%;
 }
 
+.bg-container.pip {
+	background-image: none;
+}
+.bg-container.pip::after {
+	content: 'Showing in PIP';
+	color: #fff;
+}
+.bg-container.pip .analyzer,
+.bg-container.pip .bg-dim,
+.bg-container.pip .warp,
+.bg-container.pip video {
+	display: none;
+}
+
 /**
  * The Safari-specific rules below MUST NOT be combined with :fullscreen selectors, otherwise they won't work!
  * See https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API/Guide#presentation_differences

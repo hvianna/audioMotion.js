@@ -378,7 +378,7 @@ let audioElement = [],
 	isMicSource,				// flag for microphone input in use
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
-	panNode,
+	panNode,					// stereoPanner node for balance control
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -2252,6 +2252,7 @@ function setVolume( value ) {
 
 /**
  * Set event listeners for UI elements
+ * NOTE: this is called only once during initialization
  */
 function setUIEventListeners() {
 
@@ -2291,6 +2292,15 @@ function setUIEventListeners() {
 	// audio source selection and speakers mute
 	elSource.addEventListener( 'change', setSource );
 	elMute.addEventListener( 'change', () => toggleMute() );
+
+	// helper function
+	const debounce = ( func, timeout = 300 ) => {
+		let timer;
+		return ( ...args ) => {
+			clearTimeout( timer );
+			timer = setTimeout( () => {	func.apply( this, args ); }, timeout );
+		};
+	}
 
 	// volume and balance knobs
 	let wheelUpdating = false;
@@ -2339,7 +2349,9 @@ function setUIEventListeners() {
 		}
 	});
 	$('#btn_save').addEventListener( 'click', updateCustomPreset );
+
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
+
 	$('#load_playlist').addEventListener( 'click', () => {
 		loadPlaylist( elPlaylists.value ).then( n => {
 			const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
@@ -2365,6 +2377,47 @@ function setUIEventListeners() {
 			submitCallback: url => { if ( url.trim() ) addToPlayQueue( url, true ) }
 		});
 	});
+
+	// Picture-In-Picture functionality
+
+	const pipVideo = document.createElement('video');
+	pipVideo.muted = true;
+	pipVideo.srcObject = audioMotion.canvas.captureStream();
+
+	const pipButton = $('#btn_pip');
+	if ( document.pictureInPictureEnabled ) {
+		pipButton.addEventListener( 'click', async () => {
+			if ( pipVideo !== document.pictureInPictureElement )
+				await pipVideo.requestPictureInPicture();
+			else
+				await document.exitPictureInPicture();
+		});
+	}
+	else
+		pipButton.style.display = 'none';
+
+	let pipWindow;
+
+	const onPipWindowResize = debounce( () => audioMotion.setCanvasSize( pipWindow.width, pipWindow.height ) );
+
+	pipVideo.addEventListener( 'enterpictureinpicture', event => {
+		pipWindow = event.pictureInPictureWindow;
+		elContainer.classList.add('pip');
+		pipButton.classList.add('active');
+		// resize analyzer canvas for best quality (use a 2.35:1 aspect ratio)
+		audioMotion.setCanvasSize( pipWindow.height * 2.35, pipWindow.height );
+		pipVideo.play();
+		pipWindow.addEventListener( 'resize', onPipWindowResize );
+	});
+
+	pipVideo.addEventListener( 'leavepictureinpicture', () => {
+		pipWindow.removeEventListener( 'resize', onPipWindowResize );
+		pipVideo.pause();
+		pipButton.classList.remove('active');
+		elContainer.classList.remove('pip');
+		audioMotion.setCanvasSize(); // restore fluid canvas
+	});
+
 }
 
 /**
@@ -2566,6 +2619,8 @@ function updateRangeValue( el ) {
 			case 'resize':
 				msg = 'Window resized';
 				break;
+			case 'user' :
+				msg = `${ elContainer.classList.contains('pip') ? 'Resized for' : 'Closed' } PIP`;
 		}
 
 		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
