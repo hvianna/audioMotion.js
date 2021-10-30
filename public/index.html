@@ -397,7 +397,7 @@
 				<h3>Enabled Gradients:</h3>
 				<div id="enabled_gradients" class="grid grid-2-cols">
 				</div>
-				<a class="button mt-1" href="#add-gradient">Add Gradient</a>
+				<button class="button mt-1" id="add-gradient">Add Gradient</button>
 			</div>
 			<div class="rowspan-2">
 				<h3>Options affected by Random Mode:</h3>
@@ -461,7 +461,7 @@
 		</div>
 	</div> <!-- #about -->
 
-	<div id="add-gradient" class="modal-window">
+	<div id="gradient-editor" class="modal-window">
 		<a href="#!" title="Close" class="modal-close"></a>
 		<div>
 			<a href="#!" title="Close" class="modal-close-internal"></a>
@@ -469,21 +469,30 @@
 				<span class="config-label"><label for="new-gradient-name">Name</label></span><br>
 				<input type="text" id="new-gradient-name">
 			</div>
-			<div>
+			<div class="mt-1">
 				<span class="config-label"><label for="new-gradient-colors">Colors</label></span><br>
-				<textarea id="new-gradient-colors" rows="6" cols="40"></textarea>
-				<p>Add hexadecimal colors on separate lines</p>
+				<table id="grad-color-table">
+				</table>
+				<table id="grad-color-table-template">
+					<tr id="grad-row-template" class="grad-color-row">
+						<td><input class="grad-color-picker" type="color"></td>
+						<td><input class="grad-color-value" type="text" size="10" pattern="^#[0-9A-Fa-f]{0,6}$"></td>
+						<td><input class="grad-color-stop" type="text" size="5"></td>
+						<td><button class="grad-remove-stop"></button></td>
+						<td><button class="grad-add-stop"></button></td>
+					</tr>
+				</table>
 			</div>
-			<div>
+			<div class="mt-1">
 				<span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span><br>
-				<input type="text" id="new-gradient-bkgd">
+				<input type="color" id="new-gradient-bkgd">
 			</div>
 			<div class="flex align-center mt-1">
 				<div></div>
-				<button id="btn-add-gradient">Add</button>
+				<button id="btn-save-gradient">Add</button>
 			</div>
 		</div>
-	</div> <!-- #add_gradient -->
+	</div> <!-- #gradient-editor -->
 
 	<div id="shortcuts" class="modal-window">
 		<a href="#!" title="Close" class="modal-close"></a>

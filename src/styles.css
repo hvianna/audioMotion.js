@@ -25,7 +25,7 @@ audio {
 
 select,
 input[type="text"] {
-	padding: 4px 0;
+	padding: 4px;
 }
 input[type="number"] {
 	margin: 2px 0;
@@ -981,6 +981,56 @@ input.slider:not(:checked) + .slider .slider-off {
 	transition: all 200ms ease-in-out;
 	transform-origin: -100% 50%;
 	width: 25%;
+}
+
+/* Color gradient editor */
+.grad-color-row td {
+	padding: 5px 10px 5px 0
+}
+
+.grad-color-row td:last-child {
+	padding: 5px 0 5px;
+}
+
+.grad-add-stop, .grad-remove-stop {
+	border: none;
+	background: #444;
+	color: #fff;
+	padding: 0;
+	border-radius: 10px;
+	text-align: center;
+	height: 35px;
+	width: 35px;
+}
+
+button.grad-remove-stop[disabled] {
+	opacity: 0.8;
+}
+
+button.grad-remove-stop:hover:not([disabled]) {
+	border: none;
+	background-color: #c00 !important;
+}
+
+button.grad-add-stop:hover {
+	border: none;
+	background-color: #34a800 !important;
+}
+
+.grad-add-stop::before {
+	content: '\FF0B';
+}
+
+.grad-remove-stop::before {
+	content: '\2212';
+}
+
+.grad-color-value, .grad-color-stop {
+	text-align: center;
+}
+
+#grad-color-table-template {
+	display: none;
 }
 
 /* Responsive layout */

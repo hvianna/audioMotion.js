@@ -2130,65 +2130,126 @@ function populateGradients() {
 	}
 }
 
-function addNewGradient() {
-	const elNewGradientName = $('#new-gradient-name');
-	const elNewGradientColors = $('#new-gradient-colors');
-	const elNewGradientBkgd = $('#new-gradient-bkgd');
+let currentGradient = null;
 
-	if (elNewGradientName.value && elNewGradientColors.value) {
-		// break down colors by line
-		const newColorsStrs = elNewGradientColors.value.split("\n");
-		const colors = [];
+function renderGradientEditor(gradient = null, gradientKey = null) {
+	const editor = $('#gradient-editor');
 
-		// parse each string
-		for (const str of newColorsStrs) {
-			let color = str
-			// add # if not present
-			if (!color.startsWith('#')) {
-				color = '#' + color;
-			}
-
-			// validate hex
-			if (color.match(/^#[0-9A-Fa-f]{3,6}$/) === null) {
-				consoleLog(`Ignored color '${str}': not a valid hexadecimal color`, true)
-				console.warn(`Ignored color '${str}': not a valid hexadecimal color`);
-			} else {
-				colors.push(color);
-			}
-		}
-
-		if (colors.length <= 1) {
-			consoleLog(`Not enough colors to make a gradient`, true)
-			console.warn(`Not enough colors to make a gradient`);
-			return;
-		}
-
-		const colorStops = [];
-
-		colors.forEach((color, i) => {
-			colorStops.push({
-				pos: 0.1 + i * (0.9 / (colors.length - 1)), // evenly space out positions between 0.1 - 1
-				color,
-			})
-		});
-
-		let bkgd = elNewGradientBkgd.value;
-
-		if (!bkgd.startsWith('#')) {
-			bkgd = '#' + bkgd;
-		}
-
-		// default background of #111
-		if (bkgd.match(/^#[0-9A-Fa-f]{3,6}$/) === null) {
-			bkgd = '#111';
-		}
-
-		const gradientObj = {name: elNewGradientName.value, colorStops, bgColor: bkgd, disabled: false};
-		gradients[elNewGradientName.value] = gradientObj;
-		audioMotion.registerGradient(elNewGradientName.value, gradientObj);
-		console.log(gradients);
-		populateGradients();
+	// if gradient or key is set, we're opening either a different gradient or a new gradient
+	// if gradient or key is null, we're just re-rendering the current gradient
+	if (gradient !== null) {
+		currentGradient = gradient;
 	}
+
+	if (gradientKey !== null) {
+		editor.setAttribute('data-gradient-key', gradientKey);
+	}
+
+	// empty table
+	const table = $('#grad-color-table');
+	table.innerHTML = '';
+
+	// set name
+	$('#new-gradient-name').value = currentGradient.name;
+
+	// build row for each stop in the gradient
+	currentGradient.colorStops.forEach((stop, i) => {
+		renderColorRow(i, currentGradient.colorStops[i]);
+	});
+
+	// set up background color
+	const bgColorPicker = $('#new-gradient-bkgd');
+	bgColorPicker.value = currentGradient.bgColor;
+	bgColorPicker.addEventListener('input', (e) => {
+		currentGradient.bgColor = e.target.value;
+	});
+}
+
+function renderColorRow(index, stop) {
+	const table = $('#grad-color-table');
+
+	const template = $('#grad-row-template').cloneNode(true);
+	const colorPicker = template.querySelector('.grad-color-picker');
+	const colorValue = template.querySelector('.grad-color-value');
+	const colorStop = template.querySelector('.grad-color-stop');
+	const addColorButton = template.querySelector('.grad-add-stop');
+	const removeColorButton = template.querySelector('.grad-remove-stop');
+
+	colorPicker.value = stop.color;
+	colorValue.value = stop.color;
+	colorStop.value = stop.pos;
+
+	colorPicker.addEventListener('input', (e) => {
+		colorValue.value = e.target.value;
+		currentGradient.colorStops[index].color = colorPicker.value;
+	});
+
+	colorValue.addEventListener('input', (e) => {
+		colorPicker.value = e.target.value;
+		currentGradient.colorStops[index].color = colorPicker.value;
+	});
+
+	colorStop.addEventListener('input', (e) => {
+		currentGradient.colorStops[index].pos = parseFloat(e.target.value);
+	});
+
+	addColorButton.addEventListener('click', () => {
+		const idealColorPos = () => {
+			// if this is the last color stop, set the second to last stop's position as the midpoint between the last
+			// and the second to last, then return this stop's position
+			// if not, return the midpoint between this and the next stop
+			if (index === currentGradient.colorStops.length - 1) {
+				const lastPos = currentGradient.colorStops[currentGradient.colorStops.length - 1].pos
+				currentGradient.colorStops[currentGradient.colorStops.length - 1].pos =
+					(currentGradient.colorStops[currentGradient.colorStops.length - 2].pos + lastPos) / 2;
+				return lastPos;
+			} else {
+				return (currentGradient.colorStops[index].pos + currentGradient.colorStops[index + 1].pos) / 2;
+			}
+		}
+
+		currentGradient.colorStops.splice(index + 1, 0, {
+			pos: idealColorPos(),
+			color: '#111111',
+		});
+		renderGradientEditor();
+	});
+
+	// prevent from being able to delete stops if there are two stops
+	if (currentGradient.colorStops.length === 2) {
+		removeColorButton.setAttribute('disabled', 'true');
+	} else {
+		removeColorButton.addEventListener('click', () => {
+			currentGradient.colorStops.splice(index, 1);
+			renderGradientEditor();
+		});
+	}
+
+	template.removeAttribute("id");
+	table.appendChild(template);
+}
+
+function openGradientEditorNew() {
+	currentGradient = { name: 'New Gradient', bgColor: '#111111', colorStops: [
+			{ pos: .1, color: '#222222' },
+			{ pos: 1, color: '#eeeeee' }
+		], disabled: false };
+
+	renderGradientEditor();
+	$('#btn-save-gradient').innerText = 'Add';
+
+	location.href = '/#gradient-editor';
+}
+
+function saveGradient() {
+	if (currentGradient === null) return;
+
+	gradients[currentGradient.name] = currentGradient;
+	audioMotion.registerGradient(currentGradient.name, currentGradient);
+	console.log(gradients);
+	populateGradients();
+
+	location.href = "/#!";
 }
 
 /**
@@ -2317,7 +2378,8 @@ function setUIEventListeners() {
 	});
 
 	// add custom gradient
-	$('#btn-add-gradient').addEventListener( 'click', addNewGradient );
+	$('#add-gradient').addEventListener('click', openGradientEditorNew);
+	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
 }
 
 /**
