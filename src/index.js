@@ -81,6 +81,7 @@ const KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_MODES = 'disabled-modes',
 	  KEY_DISABLED_PROPS = 'disabled-properties',
 	  KEY_DISPLAY_OPTS   = 'display-options',
+	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_SENSITIVITY    = 'sensitivity-presets';
 
@@ -116,6 +117,7 @@ const elAlphaBars   = $('#alpha_bars'),
 	  elNoShadow    = $('#no_shadow'),
 	  elOutline     = $('#outline'),
 	  elOSD         = $('#osd'),				// message canvas
+	  elPIPRatio    = $('#pip_ratio'),
 	  elPlaylists   = $('#playlists'),
 	  elPreset      = $('#preset'),
 	  elRadial      = $('#radial'),
@@ -362,6 +364,20 @@ const bgFitOptions = [
 	{ value: BGFIT_WARP_ROT, text: 'Wormhole',    disabled: false },
 	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
 	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
+];
+
+// General settings
+const generalOptionsDefaults = {
+	pipRatio: 2.35
+}
+
+// PIP window aspect ratio options
+const pipRatioOptions = [
+	[ 1, '1:1' ],
+	[ 1.33, '4:3' ],
+	[ 1.78, '16:9' ],
+	[ 2.35, '2.35:1' ],
+	[ 4.5, '4.5:1' ]
 ];
 
 // Global variables
@@ -885,6 +901,13 @@ function doConfigPanel() {
 		setInfoOptions( infoDisplayDefaults );
 		savePreferences( KEY_DISPLAY_OPTS );
 	});
+
+	// PIP window aspect ratio
+	elPIPRatio.addEventListener( 'change', () => {
+		if ( isPIP() )
+			audioMotion.width = audioMotion.height * elPIPRatio.value;
+		savePreferences( KEY_GENERAL_OPTS );
+	});
 }
 
 /**
@@ -1335,6 +1358,10 @@ function loadPreferences() {
 
 	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
 	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( KEY_DISPLAY_OPTS ) ) || {} ) } );
+
+	// General settings
+	populateSelect( elPIPRatio, pipRatioOptions );
+	setGeneralOptions( { ...generalOptionsDefaults, ...( JSON.parse( localStorage.getItem( KEY_GENERAL_OPTS ) ) || {} ) } );
 
 	return isLastSession;
 }
@@ -1791,6 +1818,13 @@ function savePreferences( key ) {
 		}
 		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
 	}
+
+	if ( ! key || key == KEY_GENERAL_OPTS ) {
+		const generalOptions = {
+			pipRatio: elPIPRatio.value
+		}
+		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
+	}
 }
 
 /**
@@ -1965,6 +1999,13 @@ function setCurrentCover() {
 	coverImage.src = audioElement[ currAudio ].dataset.cover;
 	if ( elBackground.value == BG_COVER )
 		setBackgroundImage( coverImage.src );
+}
+
+/**
+ * Set general configuration options
+ */
+function setGeneralOptions( options ) {
+	elPIPRatio.value = options.pipRatio;
 }
 
 /**
@@ -2406,12 +2447,12 @@ function setUIEventListeners() {
 	const onPipWindowResize = debounce( () => audioMotion.setCanvasSize( pipWindow.width, pipWindow.height ) );
 
 	pipVideo.addEventListener( 'enterpictureinpicture', event => {
+		pipVideo.play();
 		pipWindow = event.pictureInPictureWindow;
 		elContainer.classList.add('pip');
 		pipButton.classList.add('active');
-		// resize analyzer canvas for best quality (use a 2.35:1 aspect ratio)
-		audioMotion.setCanvasSize( pipWindow.height * 2.35, pipWindow.height );
-		pipVideo.play();
+		// resize analyzer canvas for best quality
+		audioMotion.setCanvasSize( pipWindow.height * elPIPRatio.value, pipWindow.height );
 		pipWindow.addEventListener( 'resize', onPipWindowResize );
 	});
 

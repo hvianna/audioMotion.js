@@ -455,27 +455,33 @@
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
 			</div>
-			<div class="colspan-2">
+			<div>
+				<h3>General settings:</h3>
+				<p>PIP window aspect ratio:
+					<select id="pip_ratio"></select>
+				</p>
+			</div>
+			<div>
 				<h3>Sensitivity presets:</h3>
 				<table>
-					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th></th></tr>
+					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
 					<tr>
 						<td>Low</td>
 						<td><select class="min-db" data-preset="0"></select></td>
 						<td><select class="max-db" data-preset="0"></select></td>
-						<td><button class="reset-sens" data-preset="0">Reset to defaults</button></td>
+						<td><button class="reset-sens" data-preset="0">Reset</button></td>
 					</tr>
 					<tr>
 						<td>Normal</td>
 						<td><select class="min-db" data-preset="1"></select></td>
 						<td><select class="max-db" data-preset="1"></select></td>
-						<td><button class="reset-sens" data-preset="1">Reset to defaults</button></td>
+						<td><button class="reset-sens" data-preset="1">Reset</button></td>
 					</tr>
 					<tr>
 						<td>High</td>
 						<td><select class="min-db" data-preset="2"></select></td>
 						<td><select class="max-db" data-preset="2"></select></td>
-						<td><button class="reset-sens" data-preset="2">Reset to defaults</button></td>
+						<td><button class="reset-sens" data-preset="2">Reset</button></td>
 					</tr>
 				</table>
 			</div>
