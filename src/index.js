@@ -466,6 +466,9 @@ const getCurrentSettings = _ => ({
 	stereo      : +isSwitchOn( elStereo )
 });
 
+// check if PIP is active
+const isPIP = _ => elContainer.classList.contains('pip');
+
 // check if audio is playing
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
 
@@ -924,7 +927,9 @@ function finishFastSearch() {
 /**
  * Display the canvas in full-screen mode
  */
-function fullscreen() {
+async function fullscreen() {
+	if ( isPIP() )
+		await document.exitPictureInPicture();
 	audioMotion.toggleFullscreen();
 	document.activeElement.blur(); // move keyboard focus to the document body
 }
