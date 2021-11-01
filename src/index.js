@@ -155,7 +155,6 @@ const presets = {
 		bgImageFit  : 1, 	// center
 		cycleGrad   : 1,
 		fillAlpha   : 0.1,
-		fftSize     : 8192,
 		freqMax     : 22000,
 		freqMin     : 20,
 		fsHeight    : 100,
@@ -186,7 +185,6 @@ const presets = {
 	},
 
 	fullres: {
-		fftSize     : 8192,
 		freqMax     : 22000,
 		freqMin     : 20,
 		mode        : 0,
@@ -368,6 +366,7 @@ const bgFitOptions = [
 
 // General settings
 const generalOptionsDefaults = {
+	fftSize : 8192,
 	pipRatio: 2.35
 }
 
@@ -377,7 +376,7 @@ const pipRatioOptions = [
 	[ 1.33, '4:3' ],
 	[ 1.78, '16:9' ],
 	[ 2.35, '2.35:1' ],
-	[ 4.5, '4.5:1' ]
+	[ 3.55, '32:9' ]
 ];
 
 // Global variables
@@ -453,7 +452,6 @@ const getCurrentSettings = _ => ({
 	bgImageDim  : elBgImageDim.value,
 	bgImageFit  : elBgImageFit.value,
 	cycleGrad   : +isSwitchOn( elCycleGrad ),
-	fftSize		: elFFTsize.value,
 	fillAlpha   : elFillAlpha.value,
 	freqMax		: elRangeMax.value,
 	freqMin		: elRangeMin.value,
@@ -903,11 +901,17 @@ function doConfigPanel() {
 		savePreferences( KEY_DISPLAY_OPTS );
 	});
 
-	// PIP window aspect ratio
-	elPIPRatio.addEventListener( 'change', () => {
-		if ( isPIP() )
-			audioMotion.width = audioMotion.height * elPIPRatio.value;
-		savePreferences( KEY_GENERAL_OPTS );
+	// General settings
+	[ elFFTsize, elPIPRatio ].forEach( el => {
+		el.addEventListener( 'change', () => {
+			if ( el == elPIPRatio && isPIP() )
+				audioMotion.width = audioMotion.height * elPIPRatio.value;
+			if ( el == elFFTsize ) {
+				audioMotion.fftSize = elFFTsize.value;
+				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+			}
+			savePreferences( KEY_GENERAL_OPTS );
+		});
 	});
 }
 
@@ -1361,7 +1365,11 @@ function loadPreferences() {
 	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( KEY_DISPLAY_OPTS ) ) || {} ) } );
 
 	// General settings
+	for ( let i = 10; i < 16; i++ )
+		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i + ( i == 13 ? ' (Recommended)' : '' ), 2**i );
+
 	populateSelect( elPIPRatio, pipRatioOptions );
+
 	setGeneralOptions( { ...generalOptionsDefaults, ...( JSON.parse( localStorage.getItem( KEY_GENERAL_OPTS ) ) || {} ) } );
 
 	return isLastSession;
@@ -1799,6 +1807,7 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
+			fftSize : elFFTsize.value,
 			pipRatio: elPIPRatio.value
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
@@ -1983,6 +1992,7 @@ function setCurrentCover() {
  * Set general configuration options
  */
 function setGeneralOptions( options ) {
+	elFFTsize.value  = options.fftSize;
 	elPIPRatio.value = options.pipRatio;
 }
 
@@ -2065,11 +2075,6 @@ function setProperty( elems, save ) {
 
 			case elBarSpace:
 				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : elBarSpace.value;
-				break;
-
-			case elFFTsize:
-				audioMotion.fftSize = elFFTsize.value;
-				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 				break;
 
 			case elFillAlpha:
@@ -2950,9 +2955,6 @@ function updateRangeValue( el ) {
 	// Populate combo boxes
 
 	populateSelect( elMode, modeOptions );
-
-	for ( let i = 9; i < 16; i++ )
-		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
 	for ( const i of [20,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
