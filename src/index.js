@@ -395,6 +395,7 @@ let audioElement = [],
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	panNode,					// stereoPanner node for balance control
+	pipVideo,
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -1601,8 +1602,11 @@ function playNextSong( play ) {
 function playPause( play ) {
 	if ( isMicSource )
 		return;
-	if ( isPlaying() && ! play )
+	if ( isPlaying() && ! play ) {
 		audioElement[ currAudio ].pause();
+		if ( isPIP() )
+			pipVideo.pause();
+	}
 	else
 		audioElement[ currAudio ].play().catch( err => {
 			// ignore AbortError - when play promise is interrupted by a new load request or call to pause()
@@ -2426,7 +2430,7 @@ function setUIEventListeners() {
 
 	// Picture-In-Picture functionality
 
-	const pipVideo = document.createElement('video');
+	pipVideo = document.createElement('video');
 	pipVideo.muted = true;
 	pipVideo.srcObject = audioMotion.canvas.captureStream();
 
@@ -2464,6 +2468,11 @@ function setUIEventListeners() {
 		audioMotion.setCanvasSize(); // restore fluid canvas
 	});
 
+	// Show player controls in the PIP window
+	navigator.mediaSession.setActionHandler( 'play', () => playPause() );
+	navigator.mediaSession.setActionHandler( 'pause', () => playPause() );
+	navigator.mediaSession.setActionHandler( 'previoustrack', () => playPreviousSong() );
+	navigator.mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
 }
 
 /**
@@ -2666,7 +2675,7 @@ function updateRangeValue( el ) {
 				msg = 'Window resized';
 				break;
 			case 'user' :
-				msg = `${ elContainer.classList.contains('pip') ? 'Resized for' : 'Closed' } PIP`;
+				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
 		}
 
 		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
@@ -2855,6 +2864,8 @@ function updateRangeValue( el ) {
 		if ( ! playNextSong( true ) ) {
 			loadSong( 0 );
 			setCanvasMsg( 'Queue ended', 10 );
+			if ( isPIP() )
+				pipVideo.pause();
 		}
 	}
 
@@ -2868,6 +2879,9 @@ function updateRangeValue( el ) {
 			playSong( playlistPos );
 			return;
 		}
+
+		if ( isPIP() )
+			pipVideo.play();
 
 		if ( audioElement[ currAudio ].currentTime < .1 ) {
 			if ( elRandomMode.value == '1' )
