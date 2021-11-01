@@ -1382,23 +1382,6 @@ function loadPreset( name, alert, init ) {
 	const thisPreset = presets[ name ],
 		  defaults   = presets['default'];
 
-	if ( thisPreset.randomMode !== undefined ) // convert legacy boolean value to integer (version =< 19.12)
-		thisPreset.randomMode |= 0;
-
-	if ( thisPreset.blackBg !== undefined ) // convert legacy blackBg property (version =< 20.4)
-		thisPreset.background = +thisPreset.blackBg;
-
-	if ( thisPreset.showScale !== undefined ) { // convert legacy showScale property (version =< 20.9)
-		thisPreset.showScaleX = thisPreset.showScale & 1;
-		thisPreset.showScaleY = thisPreset.showScale >> 1;
-	}
-
-	if ( thisPreset.reflex !== undefined && isNaN( thisPreset.reflex ) ) // convert legacy string value to integer (version =< 20.6)
-		thisPreset.reflex = ['off','on','mirror'].indexOf( thisPreset.reflex );
-
-	if ( thisPreset.bgImageFit !== undefined && isNaN( thisPreset.bgImageFit ) ) // convert legacy string value to integer (version =< 20.6)
-		thisPreset.bgImageFit = ['adjust','center','repeat','pulse','zoom-in','zoom-out'].indexOf( thisPreset.bgImageFit );
-
 	$$('[data-prop]').forEach( el => {
 		const prop = el.dataset.prop,
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
@@ -1418,15 +1401,6 @@ function loadPreset( name, alert, init ) {
 			}
 		}
 	});
-
-	if ( thisPreset.highSens !== undefined ) // legacy option (version =< 19.5)
-		elSensitivity.value = thisPreset.highSens ? 2 : 1;
-
-	if ( thisPreset.minDb !== undefined && thisPreset.maxDb !== undefined ) { // legacy options (version =< 19.12)
-		$('.min-db[data-preset="1"]').value = thisPreset.minDb;
-		$('.max-db[data-preset="1"]').value = thisPreset.maxDb;
-		savePreferences( KEY_SENSITIVITY );
-	}
 
 	audioMotion.setOptions( {
 		alphaBars    : isSwitchOn( elAlphaBars ),
