@@ -827,14 +827,7 @@ kbd.wide {
 }
 
 .credits {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	width: 400px;
-}
-.credits p,
-.credits li {
-	line-height: 2;
+	margin-bottom: 2em;
 }
 .credits a:not([class]) {
 	color: #090;
@@ -848,6 +841,18 @@ kbd.wide {
 	text-shadow: none;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
+}
+.credits p,
+.credits li {
+	line-height: 2;
+}
+.credits li {
+	display: inline-block;
+	margin: 0 .5em;
+}
+.credits li:not(:last-child)::after {
+	content: '\22c5';
+	margin-left: 1em;
 }
 
 /**
