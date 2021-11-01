@@ -44,7 +44,7 @@ button,
 }
 button:not([disabled]):hover,
 .button:not([data-active="1"]):hover,
-.thin-button:not(.active):hover {
+.thin-button:not(.active):not(.disabled):hover {
 	background: #f2ffd3 !important;
 	border: 1px solid #72aa00;
 }
@@ -126,6 +126,9 @@ table {
 	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3);
 	color: var(--light-color);
 	text-shadow: 0 0 6px;
+}
+.thin-button.disabled {
+	opacity: .5;
 }
 .thin-button.warning::before {
 	background: #c00;

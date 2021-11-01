@@ -2423,7 +2423,7 @@ function setUIEventListeners() {
 		});
 	}
 	else
-		pipButton.style.display = 'none';
+		pipButton.classList.add('disabled');
 
 	let pipWindow;
 
