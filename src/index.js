@@ -1949,7 +1949,8 @@ function setBackgroundImage( url ) {
  */
 function setBalance( value ) {
 	elBalance.dataset.value = value;
-	panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
+	if ( panNode )
+		panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
 	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
 }
 
@@ -2448,10 +2449,13 @@ function setUIEventListeners() {
 	});
 
 	// Show player controls in the PIP window
-	navigator.mediaSession.setActionHandler( 'play', () => playPause() );
-	navigator.mediaSession.setActionHandler( 'pause', () => playPause() );
-	navigator.mediaSession.setActionHandler( 'previoustrack', () => playPreviousSong() );
-	navigator.mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
+	const mediaSession = navigator.mediaSession;
+	if ( mediaSession ) {
+		mediaSession.setActionHandler( 'play', () => playPause() );
+		mediaSession.setActionHandler( 'pause', () => playPause() );
+		mediaSession.setActionHandler( 'previoustrack', () => playPreviousSong() );
+		mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
+	}
 }
 
 /**
@@ -2930,7 +2934,10 @@ function updateRangeValue( el ) {
 	const audioCtx = audioMotion.audioCtx;
 
 	// create panNode for balance control - NOTE: no support on Safari < 14.1
-	panNode = audioCtx.createStereoPanner();
+	if ( audioCtx.createStereoPanner ) {
+		panNode = audioCtx.createStereoPanner();
+		audioMotion.connectInput( panNode );
+	}
 
 	// Initialize and connect audio elements
 
@@ -2944,10 +2951,11 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 
-		audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
+		if ( panNode )
+			audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
+		else
+			audioMotion.connectInput( audioElement[ i ] );
 	}
-
-	audioMotion.connectInput( panNode );
 
 	// Setup configuration panel
 	doConfigPanel();
