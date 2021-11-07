@@ -2133,6 +2133,7 @@ function populateGradients() {
 let currentGradient = null;
 
 function renderGradientEditor(gradient = null, gradientKey = null) {
+	if (currentGradient == null) throw new Error("Current gradient must be set before editing gradient")
 	const editor = $('#gradient-editor');
 
 	// if gradient or key is set, we're opening either a different gradient or a new gradient
@@ -2157,12 +2158,7 @@ function renderGradientEditor(gradient = null, gradientKey = null) {
 		renderColorRow(i, currentGradient.colorStops[i]);
 	});
 
-	// set up background color
-	const bgColorPicker = $('#new-gradient-bkgd');
-	bgColorPicker.value = currentGradient.bgColor;
-	bgColorPicker.addEventListener('input', (e) => {
-		currentGradient.bgColor = e.target.value;
-	});
+	$('#new-gradient-bkgd').value = currentGradient.bgColor;
 }
 
 function renderColorRow(index, stop) {
@@ -2249,6 +2245,7 @@ function saveGradient() {
 	console.log(gradients);
 	populateGradients();
 
+	currentGradient = null;
 	location.href = "/#!";
 }
 
@@ -2380,6 +2377,14 @@ function setUIEventListeners() {
 	// add custom gradient
 	$('#add-gradient').addEventListener('click', openGradientEditorNew);
 	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
+
+	$('#new-gradient-bkgd').addEventListener('input', (e) => {
+		currentGradient.bgColor = e.target.value;
+	});
+
+	$('#new-gradient-name').addEventListener('input', (e) => {
+		currentGradient.name = e.target.value;
+	})
 }
 
 /**
