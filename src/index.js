@@ -2132,19 +2132,8 @@ function populateGradients() {
 
 let currentGradient = null;
 
-function renderGradientEditor(gradient = null, gradientKey = null) {
+function renderGradientEditor() {
 	if (currentGradient == null) throw new Error("Current gradient must be set before editing gradient")
-	const editor = $('#gradient-editor');
-
-	// if gradient or key is set, we're opening either a different gradient or a new gradient
-	// if gradient or key is null, we're just re-rendering the current gradient
-	if (gradient !== null) {
-		currentGradient = gradient;
-	}
-
-	if (gradientKey !== null) {
-		editor.setAttribute('data-gradient-key', gradientKey);
-	}
 
 	// empty table
 	const table = $('#grad-color-table');
@@ -2226,10 +2215,28 @@ function renderColorRow(index, stop) {
 }
 
 function openGradientEditorNew() {
-	currentGradient = { name: 'New Gradient', bgColor: '#111111', colorStops: [
-			{ pos: .1, color: '#222222' },
-			{ pos: 1, color: '#eeeeee' }
-		], disabled: false };
+	currentGradient = {
+		name: 'New Gradient',
+		bgColor: '#111111',
+		colorStops: [
+				{ pos: .1, color: '#222222' },
+				{ pos: 1, color: '#eeeeee' }
+			],
+		disabled: false,
+		key: 'custom-gradient-1'  // using this to keep track of the key of the gradient object in the gradient list
+	};
+
+	// To prevent accidental overwriting of gradients and to allow duplicate names, a unique internal key is chosen
+	// instead of simply using the name the user chooses for the new gradient.
+
+	// find unique key for new gradient
+	let modifier = 2;
+	while (Object.keys(gradients).some(key => key === currentGradient.key) && modifier < 10) {
+		currentGradient.key = `custom-gradient-${modifier}`;
+		modifier++;
+	}
+
+	console.log(`Gradient key: ${currentGradient.key}`);
 
 	renderGradientEditor();
 	$('#btn-save-gradient').innerText = 'Add';
@@ -2240,8 +2247,8 @@ function openGradientEditorNew() {
 function saveGradient() {
 	if (currentGradient === null) return;
 
-	gradients[currentGradient.name] = currentGradient;
-	audioMotion.registerGradient(currentGradient.name, currentGradient);
+	gradients[currentGradient.key] = currentGradient;
+	audioMotion.registerGradient(currentGradient.key, currentGradient);
 	console.log(gradients);
 	populateGradients();
 
