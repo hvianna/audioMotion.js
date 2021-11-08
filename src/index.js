@@ -2130,6 +2130,38 @@ function populateGradients() {
 	}
 }
 
+/**
+ * Build checkboxes in #config that enables gradients in the combo box of the settings panel
+ */
+function populateEnabledGradients() {
+	// Enabled gradients
+	const elEnabledGradients = $('#enabled_gradients');
+
+	// reset
+	while ( elEnabledGradients.firstChild )
+		elEnabledGradients.removeChild( elEnabledGradients.firstChild );
+
+	Object.keys( gradients ).forEach( key => {
+		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
+	});
+
+	$$('.enabledGradient').forEach( el => {
+		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
+			gradients[ el.dataset.grad ].disabled = ! el.checked;
+			populateGradients();
+			savePreferences('grad');
+		});
+	});
+}
+
 let currentGradient = null;
 
 function renderGradientEditor() {
@@ -2251,6 +2283,7 @@ function saveGradient() {
 	audioMotion.registerGradient(currentGradient.key, currentGradient);
 	console.log(gradients);
 	populateGradients();
+	populateEnabledGradients();
 
 	currentGradient = null;
 	location.href = "/#!";
@@ -2423,29 +2456,7 @@ function doConfigPanel() {
 		});
 	});
 
-	// Enabled gradients
-
-	const elEnabledGradients = $('#enabled_gradients');
-
-	Object.keys( gradients ).forEach( key => {
-		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
-	});
-
-	$$('.enabledGradient').forEach( el => {
-		el.addEventListener( 'click', event => {
-			if ( ! el.checked ) {
-				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
-				if ( count < 2 ) {
-					notie.alert({ text: 'At least one Gradient must be enabled!' });
-					event.preventDefault();
-					return false;
-				}
-			}
-			gradients[ el.dataset.grad ].disabled = ! el.checked;
-			populateGradients();
-			savePreferences('grad');
-		});
-	});
+	populateEnabledGradients();
 
 	// Random Mode properties
 
