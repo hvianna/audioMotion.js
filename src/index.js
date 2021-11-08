@@ -2233,37 +2233,34 @@ function setSource() {
 	isMicSource = elSource.checked;
 
 	if ( isMicSource ) {
-		if ( ! micStream ) {
-			// if micStream is not set yet, try to get access to user's microphone
-			if ( navigator.mediaDevices ) {
-				navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
-				.then( stream => {
-					micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
-					setSource(); // recursive call, micStream should now be set
-				})
-				.catch( err => {
-					consoleLog( `Could not change audio source - ${err}`, true );
-					elSource.checked = isMicSource = false;
-				});
-			}
-			else {
-				consoleLog( 'Cannot access user microphone', true );
+		// try to get access to user's microphone
+		if ( navigator.mediaDevices ) {
+			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
+			.then( stream => {
+				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
+				if ( isPlaying() )
+					audioElement[ currAudio ].pause();
+				// mute the output to avoid feedback loop from the microphone
+				wasMuted = elMute.checked;
+				toggleMute( true );
+				audioMotion.connectInput( micStream );
+				consoleLog( 'Audio source set to microphone' );
+			})
+			.catch( err => {
+				consoleLog( `Could not change audio source - ${err}`, true );
 				elSource.checked = isMicSource = false;
-			}
+			});
 		}
 		else {
-			if ( isPlaying() )
-				audioElement[ currAudio ].pause();
-			// mute the output to avoid feedback loop from the microphone
-			wasMuted = elMute.checked;
-			toggleMute( true );
-			audioMotion.connectInput( micStream );
-			consoleLog( 'Audio source set to microphone' );
+			consoleLog( 'Cannot access user microphone', true );
+			elSource.checked = isMicSource = false;
 		}
 	}
 	else {
 		if ( micStream ) {
 			audioMotion.disconnectInput( micStream );
+			micStream.mediaStream.getTracks()[0].stop(); // stop (release) stream
+			micStream = null;
 			toggleMute( wasMuted );
 		}
 		consoleLog( 'Audio source set to built-in player' );
