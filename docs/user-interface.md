@@ -10,9 +10,9 @@
 - **Config** - open the [Config](#config-panel) panel
 - **Console** - open / close the message [Console](#console)
 
+- **PIP** - display the spectrum analyzer in a Picture-In-Picture window (disabled on unsupported browsers)
 - **Fullscreen** - display the spectrum analyzer in fullscreen
-- **Shortcuts** - show the [keyboard shortcuts](#keyboard-shortcuts)
-- **About** - show **audioMotion** version information and links
+- **Help** - show **audioMotion** version, documentation links and the [keyboard shortcuts](#keyboard-shortcuts)
 
 ## Source and Speakers
 
@@ -162,15 +162,12 @@ Several options of color gradients for the analyzer graphs. You can also change 
 
 Select additional visualization effects for **octave bands modes.**
 
-| Effect | description |
-|:-------|:------------|
-| **LEDS** | toggle the vintage LED effect for the analyzer bars |
-| **LUMI** | toggle the luminance bars effect - all analyzer bars are displayed at full-height, varying their luminance instead |
-| **ALPHA** | toggle varying bar transparency - the higher the bar amplitude the more opaque it is (also works on *Discrete frequencies* mode) |
-| **OUTLINE** | toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings |
-
-![screenshot5](img/screenshot5.png)
-*Fullscreen view: 1/8th-octave bands, [LUMI effect](user-interface.md#effects) on, "Tie Dye" gradient.*
+| Effect | description | example (on) |
+|:-------|:------------|:------------:|
+| **LEDS** | toggle the vintage LED effect for the analyzer bars | <img src="img/leds.png" width="480">
+| **LUMI** | toggle the luminance bars effect - all analyzer bars are displayed at full-height, varying their luminance instead | <img src="img/screenshot5.png" width="480">
+| **ALPHA** | toggle varying bar transparency - the higher the bar amplitude the more opaque it is (also works on *Discrete frequencies* mode) | <img src="img/alpha-on-off.webp" width="480">
+| **OUTLINE** | toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings | <img src="img/outline.png" width="480">
 
 ### Radial
 
@@ -182,8 +179,9 @@ You can also toggle the radial analyzer with the **C** keyboard shortcut.
 
 The **SPIN** slider allows you to configure the analyzer spinning speed, when in radial mode.
 
-![screenshot7](img/screenshot7.png)
-*Fullscreen view: 1/6th-octave bands, [Radial](user-interface.md#radial) analyzer, frequency scale on, "Apple ][" gradient.*
+| Radial Mono | Radial Stereo |
+|:-----------:|:-------------:|
+| ![screenshot7](img/screenshot7.png) | ![radial-stereo](img/radial-stereo.png)
 
 ### Background
 
@@ -203,7 +201,7 @@ Selects the analyzer background.
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
 
 <sup>**( 2 )**</sup> If you use the `-b` option when [starting **audioMotion**](/#getting-started), image and video files in the provided folder
-can also be used as background. All media files found in the first level folder (sorry, no subfolders) can be selected by the *Random image* or *Random video* options,
+can also be used as background. All media files found in the first level folder (no subfolders) can be selected by the *Random image* or *Random video* options,
 and the first 20 files will also be directly available in the selection box.
 
 See also [BG Image Fit](#background-image-fit) and [Background Dim](#background-dim) settings for additional options for background images and videos.
@@ -248,6 +246,14 @@ When [Background](#background) is set to an image (including the Album cover) or
 
 **Mirror** selects the horizontal mirroring effect to the left (low frequencies at the center) or to the right (high frequencies at the center).
 
+| Reflex On | Reflex Mirrored |
+|:-----------:|:-------------:|
+| ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
+
+| Mirror Left | Mirror Right |
+|:-----------:|:-------------:|
+| ![mirror-left](img/mirror-left.png) | ![mirror-right](img/mirror-right.png)
+
 ### Sensitivity
 
 <div class="settings-panel highlight-sensitivity"></div>
@@ -262,21 +268,16 @@ There are three presets (low, normal and high) that can be customized in the [Co
 
 The lowest and highest frequencies represented in the spectrum analyzer. You can use this feature to "zoom in" a specific frequency range.
 
-### FFT Size and Smoothing
+### Smoothing
 
-<div class="settings-panel highlight-fftsize-smoothing"></div>
+<div class="settings-panel highlight-smoothing"></div>
 
-**FFT Size** is the number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+Averaging factor used to smooth values between analysis frames.
 
-Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
-The default value of **8192** usually provides the best cost/benefit ratio for both domains.
+Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger [FFT sizes](#general-settings).
+Increase it if the analyzer animation looks too "jumpy".
 
-**Smoothing** is the averaging constant used to smooth values between analysis frames.
-
-Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
-Increase it if the animation looks too "jumpy".
-
-### FS Height (fullscreen height)
+### Fullscreen Height
 
 <div class="settings-panel highlight-fsheight"></div>
 
@@ -352,6 +353,16 @@ Please note that the Gradient will be randomized on each change if the [AUTO](#g
 
 Disabled modes, gradients and image fit options will also be excluded from the randomization.
 
+### General settings
+
+**FFT Size** is the number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+
+Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
+The default value of **8192** usually provides the best cost/benefit ratio for both domains.
+
+**PIP window aspect ratio** selects the aspect ratio of the Picture-In-Picture window.
+After entering PIP, the window can be resized and the selected aspect ratio will be preserved.
+
 ### Sensitivity presets
 
 Customize low, normal and high sensitivity presets (see [Sensitivity](#sensitivity) setting). **0** dB represents the loudest possible sound volume.
@@ -366,14 +377,14 @@ The following keyboard shortcuts that can be used to control the player and chan
 
 | key | action |
 |:----|:-------|
-**Up** / **Down** | volume up / down
-**Left** / **Right** | play previous / next song (hold for rewind / fast forward)
+**Up** / **Down** arrows | volume up / down<br>**Shift** = increase / reduce analyzer height on fullscreen
+**Left** / **Right** arrows | previous / next song \| **hold** for rewind / fast forward<br>**Shift** = balance left / right
 **Space** | play / pause
 **Shift+A** / **A** | cycle through auto gradient and random mode options
 **B** | cycle through Background options
 **Shift+B** | cycle through background Image Fit options
 **C** | toggle Radial analyzer
-**D** | click on analyzer | display song information; press again for settings info and again to hide<br>(alternatively, click on the canvas)
+**D** | display song information; press again for settings info and again to hide<br>(alternatively, click on analyzer)
 **E** | shuffle play queue
 **F** | toggle fullscreen mode
 **Shift+G** / **G** | select previous / next gradient

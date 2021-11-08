@@ -186,10 +186,10 @@ p ~ .table-wrapper table {
 	--left: 420px;
 	--height: 55px;
 }
-.active.highlight-fftsize-smoothing {
+.active.highlight-smoothing {
 	--top: 105px;
 	--left: 420px;
-	--height: 100px;
+	--height: 55px;
 }
 .active.highlight-fsheight {
 	--top: 205px;
