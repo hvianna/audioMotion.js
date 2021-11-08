@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.10-beta.2
+ * @version   21.11-beta.1
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.10-beta.2';
+const VERSION = '21.11-beta.1';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
@@ -142,7 +142,8 @@ const elAlphaBars   = $('#alpha_bars'),
 	  elVideo       = $('#video'),				// background video
 	  elVolume      = $('#volume'),
  	  elWarp        = $('#warp'),				// "warp" effect layer
-  	  canvasCtx     = elOSD.getContext('2d');
+  	  canvasCtx     = elOSD.getContext('2d'),
+	  mediaSession  = navigator.mediaSession;
 
 // Configuration presets
 const presets = {
@@ -394,7 +395,6 @@ let audioElement = [],
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	panNode,					// stereoPanner node for balance control
-	pipVideo,
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -1586,8 +1586,8 @@ function playPause( play ) {
 		return;
 	if ( isPlaying() && ! play ) {
 		audioElement[ currAudio ].pause();
-		if ( isPIP() )
-			pipVideo.pause();
+		if ( isPIP() && mediaSession )
+			mediaSession.playbackState = 'paused';
 	}
 	else
 		audioElement[ currAudio ].play().catch( err => {
@@ -2409,29 +2409,33 @@ function setUIEventListeners() {
 	});
 
 	// Picture-In-Picture functionality
+	const pipVideo = document.createElement('video');
 
-	pipVideo = document.createElement('video');
-	pipVideo.muted = true;
-	pipVideo.srcObject = audioMotion.canvas.captureStream();
+	let canvasTrack, pipWindow;
 
 	const pipButton = $('#btn_pip');
 	if ( document.pictureInPictureEnabled ) {
 		pipButton.addEventListener( 'click', async () => {
-			if ( pipVideo !== document.pictureInPictureElement )
-				await pipVideo.requestPictureInPicture();
+			if ( pipVideo !== document.pictureInPictureElement ) {
+				const canvasStream = audioMotion.canvas.captureStream();
+				canvasTrack = canvasStream.getTracks()[0];
+				pipVideo.muted = true;
+				pipVideo.srcObject = canvasStream;
+				await pipVideo.play();
+				pipVideo.requestPictureInPicture();
+			}
 			else
-				await document.exitPictureInPicture();
+				document.exitPictureInPicture();
 		});
 	}
 	else
 		pipButton.classList.add('disabled');
 
-	let pipWindow;
-
 	const onPipWindowResize = debounce( () => audioMotion.setCanvasSize( pipWindow.width, pipWindow.height ) );
 
 	pipVideo.addEventListener( 'enterpictureinpicture', event => {
-		pipVideo.play();
+		if ( mediaSession )
+			mediaSession.playbackState = isPlaying() ? 'playing' : 'paused';
 		pipWindow = event.pictureInPictureWindow;
 		elContainer.classList.add('pip');
 		pipButton.classList.add('active');
@@ -2443,13 +2447,14 @@ function setUIEventListeners() {
 	pipVideo.addEventListener( 'leavepictureinpicture', () => {
 		pipWindow.removeEventListener( 'resize', onPipWindowResize );
 		pipVideo.pause();
+		canvasTrack.stop();
+		pipVideo.srcObject = canvasTrack = null;
 		pipButton.classList.remove('active');
 		elContainer.classList.remove('pip');
 		audioMotion.setCanvasSize(); // restore fluid canvas
 	});
 
 	// Show player controls in the PIP window
-	const mediaSession = navigator.mediaSession;
 	if ( mediaSession ) {
 		mediaSession.setActionHandler( 'play', () => playPause() );
 		mediaSession.setActionHandler( 'pause', () => playPause() );
@@ -2847,8 +2852,8 @@ function updateRangeValue( el ) {
 		if ( ! playNextSong( true ) ) {
 			loadSong( 0 );
 			setCanvasMsg( 'Queue ended', 10 );
-			if ( isPIP() )
-				pipVideo.pause();
+			if ( isPIP() && mediaSession )
+				mediaSession.playbackState = 'paused';
 		}
 	}
 
@@ -2863,8 +2868,8 @@ function updateRangeValue( el ) {
 			return;
 		}
 
-		if ( isPIP() )
-			pipVideo.play();
+		if ( isPIP() &&  mediaSession )
+			mediaSession.playbackState = 'playing';
 
 		if ( audioElement[ currAudio ].currentTime < .1 ) {
 			if ( elRandomMode.value == '1' )
