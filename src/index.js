@@ -1413,22 +1413,22 @@ function loadPreset( name, alert, init ) {
 	audioMotion.setOptions( {
 		alphaBars    : isSwitchOn( elAlphaBars ),
 		fftSize      : elFFTsize.value,
-		minFreq      : elRangeMin.value,
-		maxFreq      : elRangeMax.value,
-		smoothing    : elSmoothing.value,
-		showPeaks    : isSwitchOn( elShowPeaks ),
 		ledBars      : isSwitchOn( elLedDisplay ),
-		lumiBars     : isSwitchOn( elLumiBars ),
 		loRes        : isSwitchOn( elLoRes ),
-		showFPS      : isSwitchOn( elFPS ),
-		showScaleX   : isSwitchOn( elScaleX ),
-		showScaleY   : isSwitchOn( elScaleY ),
+		lumiBars     : isSwitchOn( elLumiBars ),
+		maxFreq      : elRangeMax.value,
+		minFreq      : elRangeMin.value,
+		mirror       : elMirror.value,
 		outlineBars  : isSwitchOn( elOutline ),
 		radial       : isSwitchOn( elRadial ),
+		showFPS      : isSwitchOn( elFPS ),
+		showPeaks    : isSwitchOn( elShowPeaks ),
+		showScaleX   : isSwitchOn( elScaleX ),
+		showScaleY   : isSwitchOn( elScaleY ),
+		smoothing    : elSmoothing.value,
 		spinSpeed    : elSpin.value,
-		stereo       : isSwitchOn( elStereo ),
 		splitGradient: isSwitchOn( elSplitGrad ),
-		mirror       : elMirror.value
+		stereo       : isSwitchOn( elStereo )
 	} );
 
 	// settings that make additional changes are set by the setProperty() function
