@@ -7,7 +7,7 @@
 - Several modes, color gradients and optional effects
 - Fullscreen high-resolution graphics @60fps
 
-[Live demo](https://demo.audiomotion.me)
+[Demo](https://demo.audiomotion.me)
 [About](/#about)
 [Get Started](/#getting-started)
 

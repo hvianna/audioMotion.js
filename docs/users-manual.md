@@ -1,6 +1,6 @@
-# User Interface
+# User's Manual
 
-![screenshot1](img/screenshot1.png "audioMotion user interface")
+![screenshot2](img/screenshot2.png)
 
 ## Top panel buttons
 
@@ -86,7 +86,7 @@ Saved playlists are stored locally in your browser and appear in the playlist se
 
 Select a playlist and click one of the buttons:
 
-| button | action |
+| Button | Action |
 |:-------|:-------|
 | ![folder-button](img/folder-button.png "folder") | Load the selected playlist. Please note that the playlist contents will be **added** to the current queue. |
 | ![disk-button](img/save-button.png "floppy disk") | Update the selected playlist with the current queue contents |
@@ -100,12 +100,12 @@ Select a playlist and click one of the buttons:
 
 Selects the visualization mode.
 
-| Mode | description |
+| Mode | Description |
 |------|-------------|
-**Discrete frequencies** | displays amplitudes of individual frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation
-**Area graph** | uses the discrete frequency data points to create a filled area graph
-**Line graph** | connects all the discrete data points in a continuous line graph - [line width and fill opacity](#line-width-and-fill-opacity) can be customized
-**Octave bands** | groups frequencies in bands, each one representing a full, half or the *n*th part of an octave, depending on the selected option
+**Discrete frequencies** | Displays amplitudes of individual frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation
+**Area graph** | Uses the discrete frequency data points to create a filled area graph
+**Line graph** | Connects all the discrete data points in a continuous line graph - [line width and fill opacity](#line-width-and-fill-opacity) can be customized
+**Octave bands** | Frequencies are grouped in bands, each one representing the *n*th part of an octave
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
 
@@ -125,7 +125,7 @@ You can choose which settings may be changed by random mode in the [Config panel
 
 This setting is effective only when an [octave bands mode](#mode) is selected. Avaliable options are:
 
-| Bar Spacing | description |
+| Bar Spacing | Description |
 |-------------|-------------|
 **Legacy** | ~1px spacing between analyzer bars
 **Narrow** | 10% spacing, 90% bar width (default)
@@ -151,10 +151,10 @@ These settings are effective only for [Line graph mode](#mode) or when [OUTLINE]
 
 Several options of color gradients for the analyzer graphs. You can also change gradients using the **G** and **Shift + G** keyboard shortcuts.
 
-| Switch | description |
+| Switch | Description |
 |:-------|:------------|
-| **AUTO** | select the **next gradient** on each track change, or a **random gradient** on each mode change when [Random mode](#random-mode) is active |
-| **SPLIT** | when [Stereo](#switches) is active, splits the gradient between both channels, so each channel will have different colors |
+| **AUTO** | Select the **next gradient** on each track change, or a **random gradient** on each mode change when [Random mode](#random-mode) is active |
+| **SPLIT** | When [Stereo](#switches) is active, splits the gradient between both channels, so each channel will have different colors |
 
 ### Effects
 
@@ -162,12 +162,12 @@ Several options of color gradients for the analyzer graphs. You can also change 
 
 Select additional visualization effects for **octave bands modes.**
 
-| Effect | description | example (on) |
+| Effect | Description | Example |
 |:-------|:------------|:------------:|
-| **LEDS** | toggle the vintage LED effect for the analyzer bars | <img src="img/leds.png" width="480">
-| **LUMI** | toggle the luminance bars effect - all analyzer bars are displayed at full-height, varying their luminance instead | <img src="img/screenshot5.png" width="480">
-| **ALPHA** | toggle varying bar transparency - the higher the bar amplitude the more opaque it is (also works on *Discrete frequencies* mode) | <img src="img/alpha-on-off.webp" width="480">
-| **OUTLINE** | toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings | <img src="img/outline.png" width="480">
+| **LEDS** | Toggle the vintage LED effect for the analyzer bars | <img src="img/leds.png" width="480">
+| **LUMI** | Toggle the luminance bars effect - all analyzer bars are displayed at full-height, varying their luminance instead | <img src="img/screenshot5.png" width="480">
+| **ALPHA** | Toggle varying bar transparency - the higher the bar amplitude the more opaque it is (also works on *Discrete frequencies* mode) | <img src="img/alpha-on-off.webp" width="480">
+| **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings | <img src="img/outline.png" width="480">
 
 ### Radial
 
@@ -179,8 +179,8 @@ You can also toggle the radial analyzer with the **C** keyboard shortcut.
 
 The **SPIN** slider allows you to configure the analyzer spinning speed, when in radial mode.
 
-| Radial Mono | Radial Stereo |
-|:-----------:|:-------------:|
+| Radial | Radial + Stereo |
+|:------:|:---------------:|
 | ![screenshot7](img/screenshot7.png) | ![radial-stereo](img/radial-stereo.png)
 
 ### Background
@@ -189,13 +189,13 @@ The **SPIN** slider allows you to configure the analyzer spinning speed, when in
 
 Selects the analyzer background.
 
-| Background | description |
+| Background | Description |
 |------------|-------------|
-| **Gradient default** | uses the background color defined by the currently selected gradient - when the [LED effect](#effects) is on, this shows the "unlit" LEDs instead |
-| **Black** | uses a black background |
-| **Album cover** | displays the album cover for the current song<sup> (1)</sup> |
-| **Random image** | selects a random image from the backgrounds folder<sup> (2)</sup> |
-| **Random video** | selects a random video from the backgrounds folder<sup> (2)</sup> |
+| **Gradient default** | Uses the background color defined by the currently selected gradient - when the [LED effect](#effects) is on, this shows the "unlit" LEDs instead |
+| **Black** | Uses a black background |
+| **Album cover** | Displays the album cover for the current song<sup> (1)</sup> |
+| **Random image** | Selects a random image from the backgrounds folder<sup> (2)</sup> |
+| **Random video** | Selects a random video from the backgrounds folder<sup> (2)</sup> |
 
 <sup>**( 1 )**</sup> Album covers will be preferably retrieved from song metadata. When a picture is not found in the metadata, **audioMotion** will look for image files (jpg, png, gif, webp, avif or bmp)
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
@@ -246,11 +246,11 @@ When [Background](#background) is set to an image (including the Album cover) or
 
 **Mirror** selects the horizontal mirroring effect to the left (low frequencies at the center) or to the right (high frequencies at the center).
 
-| Reflex On | Reflex Mirrored |
+| Reflex: On | Reflex: Mirrored |
 |:-----------:|:-------------:|
 | ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
 
-| Mirror Left | Mirror Right |
+| Mirror: Left | Mirror: Right |
 |:-----------:|:-------------:|
 | ![mirror-left](img/mirror-left.png) | ![mirror-right](img/mirror-right.png)
 
@@ -300,11 +300,8 @@ You can also use the **Shift** + **Up** and **Down** arrows to adjust the analyz
 | **STEREO** | toggle dual channel display, with separate analyzer graphs for left and right channels. This setting does NOT change the audio output of stereo songs. |
 | **FPS** | show current framerate at the top right corner |
 
-![screenshot3](img/screenshot3.png)
-*Fullscreen view: 1/6th-octave bands, regular bar spacing, "Outrun" gradient, [Reflex](user-interface.md#reflex) effect and complete on-screen information.*
-
 ![screenshot6](img/screenshot6.png)
-*Fullscreen view: [Stereo](#switches) Line graph, frequency and level scales on, "Rainbow" gradient.*
+_**STEREO** Line graph, with frequency (SCALEX) and level (SCALEY) scales turned on._
 
 ### Preset
 

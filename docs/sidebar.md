@@ -1,5 +1,5 @@
 * [Home](/)
-* [User Interface](/user-interface)
+* [User's Manual](/users-manual)
 * [Server modes](/server)
 * [Building](/building)
 * [Legacy features](/legacy)

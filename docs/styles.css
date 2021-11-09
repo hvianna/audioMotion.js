@@ -20,6 +20,11 @@
 	}
 }
 
+big {
+	font-size: 125%;
+	line-height: 1;
+}
+
 h2 .emoji {
 	height: 1em;
 }
@@ -45,10 +50,6 @@ img {
 
 .cover ul {
 	margin: 2em 0;
-}
-
-.markdown-section h3 ~ h3 {
-	margin-top: 0;
 }
 
 .sidebar > h1 .app-name-link {
