@@ -2198,6 +2198,9 @@ function renderGradientEditor() {
 	// set name
 	$('#new-gradient-name').value = currentGradient.name;
 
+	// set horizontal
+	$('#new-gradient-horizontal').checked = currentGradient.dir === 'h';
+
 	// build row for each stop in the gradient
 	currentGradient.colorStops.forEach((stop, i) => {
 		renderColorRow(i, currentGradient.colorStops[i]);
@@ -2300,6 +2303,7 @@ function loadGradientIntoCurrentGradient(gradientKey) {
  */
 function openGradientEditorNew() {
 	currentGradient = {
+		dir: 'v',
 		name: 'New Gradient',
 		bgColor: '#111111',
 		colorStops: [
@@ -2521,7 +2525,12 @@ function setUIEventListeners() {
 
 	$('#new-gradient-name').addEventListener('input', (e) => {
 		currentGradient.name = e.target.value;
+	});
+
+	$('#new-gradient-horizontal').addEventListener('input', (e) => {
+		currentGradient.dir = e.target.checked ? 'h' : 'v';
 	})
+
 }
 
 /**
