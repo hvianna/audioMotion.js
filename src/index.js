@@ -41,8 +41,7 @@ import './styles.css';
 const BG_DIRECTORY          = 'backgrounds', // folder name for background images and videos (no slashes!)
 	  MAX_BG_MEDIA_FILES    = 20,			 // max number of media files (images and videos) selectable as background
 	  MAX_METADATA_REQUESTS = 4,
-	  MAX_QUEUED_SONGS      = 1000,
-	  WHEEL_DELAY           = 50;			 // delay (ms) for mouse wheel controls (reduce mac mouse/touchpad sensitivity)
+	  MAX_QUEUED_SONGS      = 1000;
 
 // Background option values
 const BG_DEFAULT = '0',
@@ -141,9 +140,7 @@ const elAlphaBars   = $('#alpha_bars'),
 	  elTrackTimeout= $('#track_timeout'),
 	  elVideo       = $('#video'),				// background video
 	  elVolume      = $('#volume'),
- 	  elWarp        = $('#warp'),				// "warp" effect layer
-  	  canvasCtx     = elOSD.getContext('2d'),
-	  mediaSession  = navigator.mediaSession;
+ 	  elWarp        = $('#warp');				// "warp" effect layer
 
 // Configuration presets
 const presets = {
@@ -386,7 +383,6 @@ let audioElement = [],
 	bgImages = [],
 	bgVideos = [],
 	canvasMsg,
-	coverImage = new Image(),	// cover image for the currently playing song (for canvas rendering)
 	currAudio, 					// audio element currently in use
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
@@ -402,6 +398,10 @@ let audioElement = [],
 	skipping = false,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
+
+const canvasCtx  = elOSD.getContext('2d'),
+	  coverImage = new Image(),	// cover image for the currently playing song (for canvas rendering)
+	  pipVideo   = document.createElement('video');
 
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
@@ -943,7 +943,7 @@ function fastSearch( dir = 1 ) {
  * Finish track fast search
  */
 function finishFastSearch() {
-	window.clearTimeout( fastSearchTimeout );
+	clearTimeout( fastSearchTimeout );
 	if ( isFastSearch ) {
 		isFastSearch = false;
 		return true;
@@ -1586,8 +1586,8 @@ function playPause( play ) {
 		return;
 	if ( isPlaying() && ! play ) {
 		audioElement[ currAudio ].pause();
-		if ( isPIP() && mediaSession )
-			mediaSession.playbackState = 'paused';
+		if ( isPIP() )
+			pipVideo.pause();
 	}
 	else
 		audioElement[ currAudio ].play().catch( err => {
@@ -1832,7 +1832,7 @@ function saveToStorage( key, data ) {
  */
 function scheduleFastSearch( mode, dir = 1 ) {
 	// set a 200ms timeout to start fast search (wait for 'click' or 'keyup' event)
-	fastSearchTimeout = window.setTimeout( () => {
+	fastSearchTimeout = setTimeout( () => {
 		isFastSearch = mode;
 		fastSearch( dir );
 	}, 200 );
@@ -2152,10 +2152,10 @@ function setProperty( elems, save ) {
 				const option = elRandomMode.value;
 
 				if ( randomModeTimer )
-					randomModeTimer = window.clearInterval( randomModeTimer );
+					randomModeTimer = clearInterval( randomModeTimer );
 
 				if ( option > 1 )
-					randomModeTimer = window.setInterval( selectRandomMode, 2500 * option );
+					randomModeTimer = setInterval( selectRandomMode, 2500 * option );
 
 				break;
 
@@ -2320,30 +2320,29 @@ function setUIEventListeners() {
 	elSource.addEventListener( 'change', setSource );
 	elMute.addEventListener( 'change', () => toggleMute() );
 
-	// helper function
+	// helper debounce function - thanks https://www.freecodecamp.org/news/javascript-debounce-example/
 	const debounce = ( func, timeout = 300 ) => {
 		let timer;
 		return ( ...args ) => {
 			clearTimeout( timer );
-			timer = setTimeout( () => {	func.apply( this, args ); }, timeout );
-		};
+			timer = setTimeout( () => func.apply( this, args ), timeout );
+		}
 	}
 
 	// volume and balance knobs
-	let wheelUpdating = false;
+	let wheelTimer;
 	[ elVolume,
 	  elBalance ].forEach( el => {
 	  	el.addEventListener( 'wheel', e => {
-			e.preventDefault();
-			if ( wheelUpdating )
+			e.preventDefault(); // prevent scrolling the window
+			if ( wheelTimer )
 				return;
-			wheelUpdating = true;
+			wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
 			const incr = Math.sign( e.deltaY || 0 );
 			if ( el == elVolume )
 				changeVolume( incr );
 			else
 				changeBalance( incr );
-			setTimeout( () => wheelUpdating = false, WHEEL_DELAY );
 		});
 	});
 
@@ -2406,8 +2405,6 @@ function setUIEventListeners() {
 	});
 
 	// Picture-In-Picture functionality
-	const pipVideo = document.createElement('video');
-
 	let canvasTrack, pipWindow;
 
 	const pipButton = $('#btn_pip');
@@ -2431,8 +2428,6 @@ function setUIEventListeners() {
 	const onPipWindowResize = debounce( () => audioMotion.setCanvasSize( pipWindow.width, pipWindow.height ) );
 
 	pipVideo.addEventListener( 'enterpictureinpicture', event => {
-		if ( mediaSession )
-			mediaSession.playbackState = isPlaying() ? 'playing' : 'paused';
 		pipWindow = event.pictureInPictureWindow;
 		elContainer.classList.add('pip');
 		pipButton.classList.add('active');
@@ -2452,6 +2447,7 @@ function setUIEventListeners() {
 	});
 
 	// Show player controls in the PIP window
+	const mediaSession  = navigator.mediaSession;
 	if ( mediaSession ) {
 		mediaSession.setActionHandler( 'play', () => playPause() );
 		mediaSession.setActionHandler( 'pause', () => playPause() );
@@ -2849,8 +2845,8 @@ function updateRangeValue( el ) {
 		if ( ! playNextSong( true ) ) {
 			loadSong( 0 );
 			setCanvasMsg( 'Queue ended', 10 );
-			if ( isPIP() && mediaSession )
-				mediaSession.playbackState = 'paused';
+			if ( isPIP() )
+				pipVideo.pause();
 		}
 	}
 
@@ -2865,8 +2861,8 @@ function updateRangeValue( el ) {
 			return;
 		}
 
-		if ( isPIP() &&  mediaSession )
-			mediaSession.playbackState = 'playing';
+		if ( isPIP() )
+			pipVideo.play();
 
 		if ( audioElement[ currAudio ].currentTime < .1 ) {
 			if ( elRandomMode.value == '1' )
@@ -2887,7 +2883,7 @@ function updateRangeValue( el ) {
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
 	consoleLog( `audioMotion.js v${VERSION} initializing...` );
-	consoleLog( `User agent: ${window.navigator.userAgent}` );
+	consoleLog( `User agent: ${navigator.userAgent}` );
 
 	$('#version').innerText = VERSION;
 
