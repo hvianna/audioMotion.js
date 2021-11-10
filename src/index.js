@@ -2348,6 +2348,7 @@ function saveGradient() {
 	console.log(gradients);
 	populateGradients();
 	populateEnabledGradients();
+	savePreferences('customgrad');
 
 	currentGradient = null;
 	location.href = "/#!";
@@ -2587,6 +2588,15 @@ function loadPreferences() {
 	else
 		presets['custom'] = JSON.parse( JSON.stringify( presets['last'] ) );
 
+	// Load custom gradients
+	const customGradientsJson = localStorage.getItem('custom-gradients');
+	if (customGradientsJson !== null) {
+		const customGradients = JSON.parse(customGradientsJson);
+		Object.keys(customGradients).forEach(key => {
+			gradients[key] = customGradients[key];
+		})
+	}
+
 	// Load disabled modes preference
 	const disabledModes = localStorage.getItem( 'disabled-modes' );
 	if ( disabledModes !== null ) {
@@ -2649,6 +2659,14 @@ function savePreferences( pref ) {
 	if ( ! pref || pref == 'grad' ) {
 		const disabledGradients = Object.keys( gradients ).filter( key => gradients[ key ].disabled );
 		localStorage.setItem( 'disabled-gradients', JSON.stringify( disabledGradients ) );
+	}
+
+	if (! pref || pref == 'customgrad') {
+		const customGradients = {};
+		Object.keys(gradients)
+			.filter(key => key.startsWith('custom'))
+			.forEach(key => customGradients[key] = gradients[key]);
+		localStorage.setItem('custom-gradients', JSON.stringify(customGradients));
 	}
 
 	if ( ! pref || pref == 'prop' ) {
