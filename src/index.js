@@ -2322,6 +2322,7 @@ function openGradientEditorNew() {
 
 	renderGradientEditor();
 	$('#btn-save-gradient').innerText = 'Add';
+	$('#btn-delete-gradient').style.display = 'none'; // don't show delete button while editing a new gradient
 
 	location.href = '/#gradient-editor';
 }
@@ -2333,6 +2334,7 @@ function openGradientEdit(key) {
 	loadGradientIntoCurrentGradient(key);
 	renderGradientEditor();
 	$('#btn-save-gradient').innerText = 'Save';
+	$('#btn-delete-gradient').style.display = 'block';
 	location.href = '/#gradient-editor';
 }
 
@@ -2349,6 +2351,34 @@ function saveGradient() {
 	populateGradients();
 	populateEnabledGradients();
 	savePreferences('customgrad');
+
+	currentGradient = null;
+	location.href = "/#!";
+}
+
+/**
+ * Removes gradient that has been loaded into the editor from the gradients object as well as the saved custom gradients
+ * preference.
+ *
+ * Note, this does not remove the gradient from the analyzer. Rather, the analyzer's gradient object will be
+ * overwritten next time a gradient is created. This is because custom gradient keys are generated based on how many
+ * custom gradients. See `openGradientEditorNew()`. Additionally, the deleted gradient is removed from the stored
+ * preferences, so the analyzer will not have it on next load.
+ */
+function deleteGradient() {
+	if (!currentGradient || !currentGradient.key) return;
+
+	delete gradients[currentGradient.key];
+
+	// if that was the only enabled gradient, set the first gradient as enabled
+	if (Object.keys(gradients).filter(key => !gradients[key].disabled).length === 0) {
+		gradients[Object.keys(gradients)[0]].disabled = false;
+	}
+
+	populateGradients();
+	populateEnabledGradients();
+	savePreferences('customgrad');
+	savePreferences('grad'); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
 
 	currentGradient = null;
 	location.href = "/#!";
@@ -2482,6 +2512,8 @@ function setUIEventListeners() {
 	// add custom gradient
 	$('#add-gradient').addEventListener('click', openGradientEditorNew);
 	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
+	$('#btn-delete-gradient').addEventListener('click', deleteGradient );
+
 
 	$('#new-gradient-bkgd').addEventListener('input', (e) => {
 		currentGradient.bgColor = e.target.value;
