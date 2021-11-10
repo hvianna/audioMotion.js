@@ -2109,6 +2109,8 @@ function populateVisualizationModes() {
 	}
 }
 
+let currentGradient = null;
+
 /**
  * Populate UI gradient selection combo box
  */
@@ -2142,7 +2144,20 @@ function populateEnabledGradients() {
 		elEnabledGradients.removeChild( elEnabledGradients.firstChild );
 
 	Object.keys( gradients ).forEach( key => {
-		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
+		// only set up link for editing if this is a custom gradient
+		if (key.startsWith('custom')) {
+			elEnabledGradients.innerHTML +=
+				`<label>
+			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
+                   <a href="#" data-grad="${key}" class="grad-edit-link">${gradients[ key ].name}</a>
+                </label>`;
+		} else {
+			elEnabledGradients.innerHTML +=
+				`<label>
+			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[key].disabled ? '' : 'checked'}>
+                   ${gradients[key].name}
+                </label>`;
+		}
 	});
 
 	$$('.enabledGradient').forEach( el => {
@@ -2160,10 +2175,19 @@ function populateEnabledGradients() {
 			savePreferences('grad');
 		});
 	});
+
+	$$('.grad-edit-link').forEach( el => {
+		el.addEventListener('click', event => {
+			event.preventDefault();
+			const key = event.target.getAttribute("data-grad");
+			openGradientEdit(key);
+		})
+	})
 }
 
-let currentGradient = null;
-
+/**
+ * Renders #grad-color-table based upon values of currentGradient.
+ */
 function renderGradientEditor() {
 	if (currentGradient == null) throw new Error("Current gradient must be set before editing gradient")
 
@@ -2182,6 +2206,9 @@ function renderGradientEditor() {
 	$('#new-gradient-bkgd').value = currentGradient.bgColor;
 }
 
+/**
+ * Render color stop row inside of the #grad-color-table, adding proper event listeners.
+ */
 function renderColorRow(index, stop) {
 	const table = $('#grad-color-table');
 
@@ -2246,6 +2273,31 @@ function renderColorRow(index, stop) {
 	table.appendChild(template);
 }
 
+/**
+ * Clones the gradient of the given key into the currentGradient variable
+ */
+function loadGradientIntoCurrentGradient(gradientKey) {
+	if (!gradients[gradientKey]) throw new Error(`gradients[${gradientKey}] is null or undefined.`);
+
+	const src = gradients[gradientKey];
+	const dest = {};
+
+	dest.name = src.name;
+	dest.bgColor = src.bgColor;
+	dest.dir = src.dir
+	dest.disabled = src.disabled;
+	dest.key = gradientKey;
+	dest.colorStops = [];
+	for (const stop of src.colorStops) {
+		dest.colorStops.push({...stop});
+	}
+
+	currentGradient = dest;
+}
+
+/**
+ * Build a new gradient, set it as the current gradient, then render the gradient editor.
+ */
 function openGradientEditorNew() {
 	currentGradient = {
 		name: 'New Gradient',
@@ -2268,14 +2320,26 @@ function openGradientEditorNew() {
 		modifier++;
 	}
 
-	console.log(`Gradient key: ${currentGradient.key}`);
-
 	renderGradientEditor();
 	$('#btn-save-gradient').innerText = 'Add';
 
 	location.href = '/#gradient-editor';
 }
 
+/**
+ * Copy the gradient of given key into currentGradient, and render the gradient editor.
+ */
+function openGradientEdit(key) {
+	loadGradientIntoCurrentGradient(key);
+	renderGradientEditor();
+	$('#btn-save-gradient').innerText = 'Save';
+	location.href = '/#gradient-editor';
+}
+
+/**
+ * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
+ * then close the panel.
+ */
 function saveGradient() {
 	if (currentGradient === null) return;
 
