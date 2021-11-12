@@ -74,7 +74,7 @@ const DATASET_TEMPLATE = {
 };
 
 // localStorage keys
-const KEY_CUSTOM_GRADS   = 'customgrads',
+const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
 	  KEY_DISABLED_GRADS = 'disabled-gradients',
@@ -299,9 +299,6 @@ const gradients = {
 			  ], disabled: false }
 };
 
-// gradient that is currently loaded in gradient editor
-let currentGradient = null;
-
 // Visualization modes
 const modeOptions = [
 	{ value: '0',   text: 'Discrete frequencies', disabled: false },
@@ -388,6 +385,7 @@ let audioElement = [],
 	bgVideos = [],
 	canvasMsg,
 	currAudio, 					// audio element currently in use
+	currentGradient = null,     // gradient that is currently loaded in gradient editor
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
@@ -1598,7 +1596,6 @@ function openGradientEdit(key) {
  */
 function openGradientEditorNew() {
 	currentGradient = {
-		dir: 'v',
 		name: 'New Gradient',
 		bgColor: '#111111',
 		colorStops: [
@@ -2736,7 +2733,7 @@ function setUIEventListeners() {
 	});
 
 	$('#new-gradient-horizontal').addEventListener('input', (e) => {
-		currentGradient.dir = e.target.checked ? 'h' : 'v';
+		currentGradient.dir = e.target.checked ? 'h' : undefined;
 	})
 }
 
