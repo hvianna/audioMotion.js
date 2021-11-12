@@ -793,7 +793,7 @@ function deleteGradient() {
 	savePreferences(KEY_DISABLED_GRADS); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
 
 	currentGradient = null;
-	location.href = "/#!";
+	location.href = '/#config';
 }
 
 /**
@@ -1987,13 +1987,12 @@ function saveGradient() {
 
 	gradients[currentGradient.key] = currentGradient;
 	audioMotion.registerGradient(currentGradient.key, currentGradient);
-	console.log(gradients);
 	populateGradients();
 	populateEnabledGradients();
 	savePreferences(KEY_CUSTOM_GRADS);
 
 	currentGradient = null;
-	location.href = "/#!";
+	location.href = '/#config';
 }
 
 /**
