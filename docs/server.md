@@ -51,7 +51,7 @@ The complete command line options are:
 !> **WARNING:**<br>
 Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
 
-### Running from source code
+### Running from source code <!-- {docsify-ignore} -->
 
 audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
 
@@ -80,7 +80,7 @@ Just copy the `public` folder to your server (you can rename it to **audioMotion
 * Add your music files to the `music` folder or map the `/music` URL to another folder in your server (see examples below).
 
 
-### Configuration tips
+### Configuration tips <!-- {docsify-ignore} -->
 
 **Lighttpd:**
 
@@ -112,7 +112,7 @@ Alias "/music" "/mnt/HD/HD_a2/MUSIC"
 
 *To do...*
 
-### Apache web server with Docker
+### Apache web server with Docker <!-- {docsify-ignore} -->
 
 If you use Docker, you can simply open a command prompt in audioMotion's directory and run:
 

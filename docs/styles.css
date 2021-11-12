@@ -172,10 +172,15 @@ p ~ .table-wrapper table {
 	--left: 282px;
 	--height: 55px;
 }
-.active.highlight-reflex-mirror {
+.active.highlight-reflex {
 	--top: 160px;
 	--left: 282px;
-	--height: 100px;
+	--height: 55px;
+}
+.active.highlight-mirror {
+	--top: 208px;
+	--left: 282px;
+	--height: 55px;
 }
 .active.highlight-sensitivity {
 	--top: 1px;

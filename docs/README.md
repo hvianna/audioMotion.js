@@ -5,17 +5,14 @@
 > **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you to ♪♫ **see your music!** ♪♫<br>
 > It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
-[![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
-[![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
-
 ## Features
 
 * High-resolution real-time dual channel audio spectrum analyzer
-* Fullscreen and Picture-In-Picture support at up to 60fps, ready for retina / HiDPI displays
+* Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
 * Logarithmic frequency scale with customizable range
 * Visualize discrete frequencies or octave bands based on the equal tempered scale
 * Optional effects: vintage LEDs, luminance bars, reflection, radial visualization
-* 17 beautiful color gradients
+* 17 beautiful color gradients, plus a visual editor to easily create your own gradients
 * HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
 * Visual file explorer and play queue with drag-and-drop functionality
 * Support for M3U playlists (`m3u` and `m3u8` file extensions)
@@ -30,6 +27,7 @@
 > ▶ **[https://demo.audiomotion.me](https://demo.audiomotion.me)**
 
 The demo site includes a few sample songs, radio streams and background images and videos ([credits here](#resources-used-in-the-demo-site)).
+
 You can also upload audio files from your PC and use the microphone input.
 
 Also check out our [**YouTube channel**](https://audiomotion.me/yt) for some cool songs visualized with audioMotion!
@@ -69,9 +67,9 @@ Please be aware that using the `-e` flag will expose the contents of the mounted
 
 I would like to thank my wife **Virginia** for her continued support, encouragement and feedback! :kissing_heart:
 
-Thanks to [Yuji Koike](https://www.ykcircus.com/) for [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), which inspired me to create **audioMotion.**
+[Yuji Koike](https://www.ykcircus.com/) for his great [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), which inspired me to create **audioMotion.**
 
-And to all the developers and content creators for the resources listed below.
+And all the developers and content creators for the resources listed below.
 
 ### JavaScript libraries <!-- {docsify-ignore} -->
 

@@ -1,6 +1,6 @@
 # Legacy features
 
-## playlists.cfg file
+## playlists.cfg file <!-- {docsify-ignore} -->
 
 Up to version 19.5 audioMotion required a `playlists.cfg` file where you should register several playlists to load music files from.
 The file explorer introduced in version 19.7 made this file obsolete, but its functionality is still supported for legacy users. Below is the original documentation.

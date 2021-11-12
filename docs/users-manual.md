@@ -151,6 +151,8 @@ These settings are effective only for [Line graph mode](#mode) or when [OUTLINE]
 
 Several options of color gradients for the analyzer graphs. You can also change gradients using the **G** and **Shift + G** keyboard shortcuts.
 
+You can disable specific gradients and create your own gradients in the [Config panel](#config-panel).
+
 | Switch | Description |
 |:-------|:------------|
 | **AUTO** | Select the **next gradient** on each track change, or a **random gradient** on each mode change when [Random mode](#random-mode) is active |
@@ -238,17 +240,21 @@ Undesired options can be disabled in the [Config panel](#config-panel).
 
 When [Background](#background) is set to an image (including the Album cover) or video, this option adjusts the brightness of the background.
 
-### Reflex and Mirror
+### Reflex
 
-<div class="settings-panel highlight-reflex-mirror"></div>
+<div class="settings-panel highlight-reflex"></div>
 
-**Reflex** selects the vertical reflection style for the analyzer. This setting has no effect when the [LUMI](#effects) switch is active.
-
-**Mirror** selects the horizontal mirroring effect to the left (low frequencies at the center) or to the right (high frequencies at the center).
+Selects a vertical reflection effect. On octave bands modes, this setting has no effect when the [LUMI](#effects) switch is active.
 
 | Reflex: On | Reflex: Mirrored |
 |:-----------:|:-------------:|
 | ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
+
+### Mirror
+
+<div class="settings-panel highlight-mirror"></div>
+
+Selects a horizontal mirroring effect to the left (low frequencies at the center) or to the right (high frequencies at the center).
 
 | Mirror: Left | Mirror: Right |
 |:-----------:|:-------------:|
@@ -337,6 +343,17 @@ Uncheck the visualization modes you don't want to appear in the [Mode](#mode) se
 ### Enabled Gradients
 
 Uncheck the gradients you don't want to appear in the [Gradient](#gradient) selection box.
+
+### Gradient Editor
+
+Click the **Add Gradient** button to create a new color gradient, or click any custom gradient to edit it.
+
+![gradient-editor](img/gradient-editor.png)
+
+At least two colors are required to create a gradient, but you can add as many colors as you like.
+The **offset** must be a number between 0 and 1 - use it to adjust the position of each color inside the gradient.
+
+?> Custom gradients are saved to the browser's local storage, so they will only be available in the same browser they were created.
 
 ### Enabled BG Image Fit options
 
