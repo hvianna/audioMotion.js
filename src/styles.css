@@ -203,6 +203,7 @@ a.button:visited {
 }
 .controls input,
 .controls select {
+	padding: 4px 0;
 	margin: 4px 0;
 	width: 100%;
 }
