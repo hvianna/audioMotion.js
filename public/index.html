@@ -434,6 +434,7 @@
 				<h3>Enabled Gradients:</h3>
 				<div id="enabled_gradients" class="grid grid-3-cols">
 				</div>
+				<button class="button mt-1" id="add-gradient">Add Gradient</button>
 			</div>
 			<div>
 				<h3>Enabled BG Image Fit options:</h3>
@@ -492,6 +493,49 @@
 			</div>
 		</div>
 	</div> <!-- #config -->
+
+	<div id="gradient-editor" class="modal-window">
+		<a href="#!" title="Close" class="modal-close"></a>
+		<div>
+			<a href="#!" title="Close" class="modal-close-internal"></a>
+			<div><span class="config-label"><label for="new-gradient-name">Name</label></span></div>
+			<div class="mt-5px"><input type="text" id="new-gradient-name"></div>
+			<div class="mt-1">
+				<table id="grad-color-table">
+					<tr>
+						<td><span class="config-label">Colors</span></td>
+						<td></td>
+						<td><span class="config-label">Offset</span></td>
+					</tr>
+				</table>
+				<div class="mt-5px">
+					<input type="checkbox" id="new-gradient-horizontal">
+					<label for="new-gradient-horizontal">Horizontal</label>
+				</div>
+				<table id="grad-color-table-template">
+					<tr id="grad-row-label-template">
+						<td><span class="config-label">Colors</span></td>
+						<td></td>
+						<td><span class="config-label">Offset</span></td>
+					</tr>
+					<tr id="grad-row-template" class="grad-color-row">
+						<td><input class="grad-color-picker" type="color"></td>
+						<td><input class="grad-color-value" type="text" size="10" pattern="^#[0-9A-Fa-f]{0,6}$"></td>
+						<td><input class="grad-color-stop" type="text" size="5"></td>
+						<td><button class="grad-remove-stop"></button></td>
+						<td><button class="grad-add-stop"></button></td>
+					</tr>
+				</table>
+			</div>
+			<div class="mt-1"><span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span></div>
+			<div class="mt-5px"><input type="color" id="new-gradient-bkgd"></div>
+			<div class="flex align-center mt-1">
+				<button id="btn-delete-gradient">Delete</button>
+				<div></div>
+				<button id="btn-save-gradient">Add</button>
+			</div>
+		</div>
+	</div> <!-- #gradient-editor -->
 
 	<div id="console">
 		<div id="console-clear">Clear</div>
