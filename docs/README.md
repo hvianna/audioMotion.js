@@ -2,7 +2,7 @@
 
 ![audioMotion-header](img/audioMotion-header.png)
 
-> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you to ♪♫ **see your music!** ♪♫<br>
+> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you ♪♫ **see your music!** ♪♫<br>
 > It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 ## Features
@@ -11,7 +11,7 @@
 * Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
 * Logarithmic frequency scale with customizable range
 * Visualize discrete frequencies or octave bands based on the equal tempered scale
-* Optional effects: vintage LEDs, luminance bars, reflection, radial visualization
+* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial visualization
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
 * HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
 * Visual file explorer and play queue with drag-and-drop functionality
