@@ -1855,6 +1855,10 @@ function renderGradientEditor() {
 	// set horizontal
 	$('#new-gradient-horizontal').checked = currentGradient.dir === 'h';
 
+	const tableLabels = $('#grad-row-label-template').cloneNode(true);
+	tableLabels.removeAttribute("id");
+	table.appendChild(tableLabels);
+
 	// build row for each stop in the gradient
 	currentGradient.colorStops.forEach((stop, i) => {
 		renderColorRow(i, currentGradient.colorStops[i]);

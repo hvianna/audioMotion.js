@@ -498,17 +498,26 @@
 		<a href="#!" title="Close" class="modal-close"></a>
 		<div>
 			<a href="#!" title="Close" class="modal-close-internal"></a>
-			<div>
-				<span class="config-label"><label for="new-gradient-name">Name</label></span><br>
-				<input type="text" id="new-gradient-name">
-			</div>
+			<div><span class="config-label"><label for="new-gradient-name">Name</label></span></div>
+			<div class="mt-5px"><input type="text" id="new-gradient-name"></div>
 			<div class="mt-1">
-				<span class="config-label"><label for="new-gradient-colors">Colors</label></span><br>
 				<table id="grad-color-table">
+					<tr>
+						<td><span class="config-label">Colors</span></td>
+						<td></td>
+						<td><span class="config-label">Offset</span></td>
+					</tr>
 				</table>
-				<input type="checkbox" id="new-gradient-horizontal">
-				<label for="new-gradient-horizontal">Horizontal</label>
+				<div class="mt-5px">
+					<input type="checkbox" id="new-gradient-horizontal">
+					<label for="new-gradient-horizontal">Horizontal</label>
+				</div>
 				<table id="grad-color-table-template">
+					<tr id="grad-row-label-template">
+						<td><span class="config-label">Colors</span></td>
+						<td></td>
+						<td><span class="config-label">Offset</span></td>
+					</tr>
 					<tr id="grad-row-template" class="grad-color-row">
 						<td><input class="grad-color-picker" type="color"></td>
 						<td><input class="grad-color-value" type="text" size="10" pattern="^#[0-9A-Fa-f]{0,6}$"></td>
@@ -518,10 +527,8 @@
 					</tr>
 				</table>
 			</div>
-			<div class="mt-1">
-				<span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span><br>
-				<input type="color" id="new-gradient-bkgd">
-			</div>
+			<div class="mt-1"><span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span></div>
+			<div class="mt-5px"><input type="color" id="new-gradient-bkgd"></div>
 			<div class="flex align-center mt-1">
 				<button id="btn-delete-gradient">Delete</button>
 				<div></div>
