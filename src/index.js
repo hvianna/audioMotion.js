@@ -74,7 +74,8 @@ const DATASET_TEMPLATE = {
 };
 
 // localStorage keys
-const KEY_CUSTOM_PRESET  = 'custom-preset',
+const KEY_CUSTOM_GRADS   = 'customgrads',
+	  KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
 	  KEY_DISABLED_GRADS = 'disabled-gradients',
 	  KEY_DISABLED_MODES = 'disabled-modes',
@@ -297,6 +298,9 @@ const gradients = {
 				{ pos: .941, color: 'rgb( 242, 180, 107 )' }
 			  ], disabled: false }
 };
+
+// gradient that is currently loaded in gradient editor
+let currentGradient = null;
 
 // Visualization modes
 const modeOptions = [
@@ -767,6 +771,34 @@ function deleteChildren( el ) {
 }
 
 /**
+ * Removes gradient that has been loaded into the editor from the gradients object as well as the saved custom gradients
+ * preference.
+ *
+ * Note, this does not remove the gradient from the analyzer. Rather, the analyzer's gradient object will be
+ * overwritten next time a gradient is created. This is because custom gradient keys are generated based on how many
+ * custom gradients. See `openGradientEditorNew()`. Additionally, the deleted gradient is removed from the stored
+ * preferences, so the analyzer will not have it on next load.
+ */
+function deleteGradient() {
+	if (!currentGradient || !currentGradient.key) return;
+
+	delete gradients[currentGradient.key];
+
+	// if that was the only enabled gradient, set the first gradient as enabled
+	if (Object.keys(gradients).filter(key => !gradients[key].disabled).length === 0) {
+		gradients[Object.keys(gradients)[0]].disabled = false;
+	}
+
+	populateGradients();
+	populateEnabledGradients();
+	savePreferences(KEY_CUSTOM_GRADS);
+	savePreferences(KEY_DISABLED_GRADS); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
+
+	currentGradient = null;
+	location.href = "/#!";
+}
+
+/**
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
@@ -841,21 +873,7 @@ function doConfigPanel() {
 		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
 	});
 
-	$$('.enabledGradient').forEach( el => {
-		el.addEventListener( 'click', event => {
-			if ( ! el.checked ) {
-				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
-				if ( count < 2 ) {
-					notie.alert({ text: 'At least one Gradient must be enabled!' });
-					event.preventDefault();
-					return false;
-				}
-			}
-			gradients[ el.dataset.grad ].disabled = ! el.checked;
-			populateGradients();
-			savePreferences( KEY_DISABLED_GRADS );
-		});
-	});
+	populateEnabledGradients();
 
 	// Random Mode properties
 
@@ -1191,6 +1209,28 @@ function loadCover( uri ) {
 }
 
 /**
+ * Clones the gradient of the given key into the currentGradient variable
+ */
+function loadGradientIntoCurrentGradient(gradientKey) {
+	if (!gradients[gradientKey]) throw new Error(`gradients[${gradientKey}] is null or undefined.`);
+
+	const src = gradients[gradientKey];
+	const dest = {};
+
+	dest.name = src.name;
+	dest.bgColor = src.bgColor;
+	dest.dir = src.dir
+	dest.disabled = src.disabled;
+	dest.key = gradientKey;
+	dest.colorStops = [];
+	for (const stop of src.colorStops) {
+		dest.colorStops.push({...stop});
+	}
+
+	currentGradient = dest;
+}
+
+/**
  * Load a music file from the user's computer
  */
 function loadLocalFile( obj ) {
@@ -1333,6 +1373,15 @@ function loadPreferences() {
 
 	// Load disabled background image fit options
 	parseDisabled( localStorage.getItem( KEY_DISABLED_BGFIT ), bgFitOptions );
+
+	// Load custom gradients
+	const customGradientsJson = localStorage.getItem( KEY_CUSTOM_GRADS );
+	if (customGradientsJson !== null) {
+		const customGradients = JSON.parse(customGradientsJson);
+		Object.keys(customGradients).forEach(key => {
+			gradients[key] = customGradients[key];
+		})
+	}
 
 	// Load disabled gradients preference
 	const disabledGradients = localStorage.getItem( KEY_DISABLED_GRADS );
@@ -1534,6 +1583,50 @@ function loadSong( n ) {
 }
 
 /**
+ * Copy the gradient of given key into currentGradient, and render the gradient editor.
+ */
+function openGradientEdit(key) {
+	loadGradientIntoCurrentGradient(key);
+	renderGradientEditor();
+	$('#btn-save-gradient').innerText = 'Save';
+	$('#btn-delete-gradient').style.display = 'block';
+	location.href = '/#gradient-editor';
+}
+
+/**
+ * Build a new gradient, set it as the current gradient, then render the gradient editor.
+ */
+function openGradientEditorNew() {
+	currentGradient = {
+		dir: 'v',
+		name: 'New Gradient',
+		bgColor: '#111111',
+		colorStops: [
+			{ pos: .1, color: '#222222' },
+			{ pos: 1, color: '#eeeeee' }
+		],
+		disabled: false,
+		key: 'custom-gradient-1'  // using this to keep track of the key of the gradient object in the gradient list
+	};
+
+	// To prevent accidental overwriting of gradients and to allow duplicate names, a unique internal key is chosen
+	// instead of simply using the name the user chooses for the new gradient.
+
+	// find unique key for new gradient
+	let modifier = 2;
+	while (Object.keys(gradients).some(key => key === currentGradient.key) && modifier < 10) {
+		currentGradient.key = `custom-gradient-${modifier}`;
+		modifier++;
+	}
+
+	renderGradientEditor();
+	$('#btn-save-gradient').innerText = 'Add';
+	$('#btn-delete-gradient').style.display = 'none'; // don't show delete button while editing a new gradient
+
+	location.href = '/#gradient-editor';
+}
+
+/**
  * Play next song on queue
  */
 function playNextSong( play ) {
@@ -1628,6 +1721,58 @@ function playSong( n ) {
 }
 
 /**
+ * Build checkboxes in #config that enables gradients in the combo box of the settings panel
+ */
+function populateEnabledGradients() {
+	// Enabled gradients
+	const elEnabledGradients = $('#enabled_gradients');
+
+	// reset
+	deleteChildren(elEnabledGradients);
+
+	Object.keys( gradients ).forEach( key => {
+		// only set up link for editing if this is a custom gradient
+		if (key.startsWith('custom')) {
+			elEnabledGradients.innerHTML +=
+				`<label>
+			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
+                   <a href="#" data-grad="${key}" class="grad-edit-link">${gradients[ key ].name}</a>
+                </label>`;
+		} else {
+			elEnabledGradients.innerHTML +=
+				`<label>
+			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[key].disabled ? '' : 'checked'}>
+                   ${gradients[key].name}
+                </label>`;
+		}
+	});
+
+	$$('.enabledGradient').forEach( el => {
+		el.addEventListener( 'click', event => {
+			if ( ! el.checked ) {
+				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				if ( count < 2 ) {
+					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					event.preventDefault();
+					return false;
+				}
+			}
+			gradients[ el.dataset.grad ].disabled = ! el.checked;
+			populateGradients();
+			savePreferences(KEY_DISABLED_GRADS);
+		});
+	});
+
+	$$('.grad-edit-link').forEach( el => {
+		el.addEventListener('click', event => {
+			event.preventDefault();
+			const key = event.target.getAttribute("data-grad");
+			openGradientEdit(key);
+		})
+	})
+}
+
+/**
  * Populate UI gradient selection combo box
  */
 function populateGradients() {
@@ -1695,6 +1840,97 @@ function populateSelect( element, options, keep ) {
 }
 
 /**
+ * Renders #grad-color-table based upon values of currentGradient.
+ */
+function renderGradientEditor() {
+	if (currentGradient == null) throw new Error("Current gradient must be set before editing gradient")
+
+	// empty table
+	const table = $('#grad-color-table');
+	deleteChildren(table);
+
+	// set name
+	$('#new-gradient-name').value = currentGradient.name;
+
+	// set horizontal
+	$('#new-gradient-horizontal').checked = currentGradient.dir === 'h';
+
+	// build row for each stop in the gradient
+	currentGradient.colorStops.forEach((stop, i) => {
+		renderColorRow(i, currentGradient.colorStops[i]);
+	});
+
+	$('#new-gradient-bkgd').value = currentGradient.bgColor;
+}
+
+/**
+ * Render color stop row inside of the #grad-color-table, adding proper event listeners.
+ */
+function renderColorRow(index, stop) {
+	const table = $('#grad-color-table');
+
+	const template = $('#grad-row-template').cloneNode(true);
+	const colorPicker = template.querySelector('.grad-color-picker');
+	const colorValue = template.querySelector('.grad-color-value');
+	const colorStop = template.querySelector('.grad-color-stop');
+	const addColorButton = template.querySelector('.grad-add-stop');
+	const removeColorButton = template.querySelector('.grad-remove-stop');
+
+	colorPicker.value = stop.color;
+	colorValue.value = stop.color;
+	colorStop.value = stop.pos;
+
+	colorPicker.addEventListener('input', (e) => {
+		colorValue.value = e.target.value;
+		currentGradient.colorStops[index].color = colorPicker.value;
+	});
+
+	colorValue.addEventListener('input', (e) => {
+		colorPicker.value = e.target.value;
+		currentGradient.colorStops[index].color = colorPicker.value;
+	});
+
+	colorStop.addEventListener('input', (e) => {
+		currentGradient.colorStops[index].pos = parseFloat(e.target.value);
+	});
+
+	addColorButton.addEventListener('click', () => {
+		const idealColorPos = () => {
+			// if this is the last color stop, set the second to last stop's position as the midpoint between the last
+			// and the second to last, then return this stop's position
+			// if not, return the midpoint between this and the next stop
+			if (index === currentGradient.colorStops.length - 1) {
+				const lastPos = currentGradient.colorStops[currentGradient.colorStops.length - 1].pos
+				currentGradient.colorStops[currentGradient.colorStops.length - 1].pos =
+					(currentGradient.colorStops[currentGradient.colorStops.length - 2].pos + lastPos) / 2;
+				return lastPos;
+			} else {
+				return (currentGradient.colorStops[index].pos + currentGradient.colorStops[index + 1].pos) / 2;
+			}
+		}
+
+		currentGradient.colorStops.splice(index + 1, 0, {
+			pos: idealColorPos(),
+			color: '#111111',
+		});
+		renderGradientEditor();
+	});
+
+	// prevent from being able to delete stops if there are two stops
+	if (currentGradient.colorStops.length === 2) {
+		removeColorButton.setAttribute('disabled', 'true');
+	} else {
+		removeColorButton.addEventListener('click', () => {
+			currentGradient.colorStops.splice(index, 1);
+			renderGradientEditor();
+		});
+	}
+
+	template.removeAttribute("id");
+	table.appendChild(template);
+}
+
+/**
  * Retrieve metadata for files in the play queue
  */
 function retrieveMetadata() {
@@ -1742,6 +1978,24 @@ function revokeBlobURL( item ) {
 }
 
 /**
+ * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
+ * then close the panel.
+ */
+function saveGradient() {
+	if (currentGradient === null) return;
+
+	gradients[currentGradient.key] = currentGradient;
+	audioMotion.registerGradient(currentGradient.key, currentGradient);
+	console.log(gradients);
+	populateGradients();
+	populateEnabledGradients();
+	savePreferences(KEY_CUSTOM_GRADS);
+
+	currentGradient = null;
+	location.href = "/#!";
+}
+
+/**
  * Save/update an existing playlist
  */
 function savePlaylist( index ) {
@@ -1779,6 +2033,14 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_DISABLED_GRADS )
 		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
+
+	if (! key || key == KEY_CUSTOM_GRADS) {
+		const customGradients = {};
+		Object.keys(gradients)
+			.filter(key => key.startsWith('custom'))
+			.forEach(key => customGradients[key] = gradients[key]);
+		saveToStorage( KEY_CUSTOM_GRADS, customGradients);
+	}
 
 	if ( ! key || key == KEY_DISABLED_PROPS )
 		saveToStorage( KEY_DISABLED_PROPS, getDisabledItems( randomProperties ) );
@@ -2454,6 +2716,24 @@ function setUIEventListeners() {
 		mediaSession.setActionHandler( 'previoustrack', () => playPreviousSong() );
 		mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
 	}
+
+	// setup gradient editor controls
+	$('#add-gradient').addEventListener('click', openGradientEditorNew);
+	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
+	$('#btn-delete-gradient').addEventListener('click', deleteGradient );
+
+
+	$('#new-gradient-bkgd').addEventListener('input', (e) => {
+		currentGradient.bgColor = e.target.value;
+	});
+
+	$('#new-gradient-name').addEventListener('input', (e) => {
+		currentGradient.name = e.target.value;
+	});
+
+	$('#new-gradient-horizontal').addEventListener('input', (e) => {
+		currentGradient.dir = e.target.checked ? 'h' : 'v';
+	})
 }
 
 /**
