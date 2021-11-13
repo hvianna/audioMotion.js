@@ -1,10 +1,12 @@
 :root {
-	--accent-color: #b2ff00;
+	--accent-color: #6c9700;
+	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+	--background-image: none;
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
+	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
-	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
 }
 
 * {
@@ -25,7 +27,7 @@ audio {
 
 select,
 input[type="text"] {
-	padding: 4px 0;
+	padding: 4px;
 }
 input[type="number"] {
 	margin: 2px 0;
@@ -35,6 +37,7 @@ input[type="number"] {
 
 button,
 .button {
+	cursor: pointer;
 	background: #f3f3f3;
 	border: 1px solid #adadad;
 	border-radius: 999px;
@@ -42,9 +45,14 @@ button,
 }
 button:not([disabled]):hover,
 .button:not([data-active="1"]):hover,
-.thin-button:not(.active):hover {
+.thin-button:not(.active):not(.disabled):hover {
 	background: #f2ffd3 !important;
 	border: 1px solid #72aa00;
+}
+
+canvas {
+	display: block;
+	width: 100%;
 }
 
 header {
@@ -93,6 +101,16 @@ table {
 	text-align: center;
 }
 
+/* remove link styling from links that should look like buttons */
+a.button {
+	color: black;
+	text-decoration: none;
+}
+
+a.button:visited {
+	color: black;
+}
+
 .thin-button {
 	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0) ), #eee;
 	border: 1px solid #777;
@@ -117,8 +135,11 @@ table {
 	background: #888;
 	border-color: rgba(0,0,0,.2);
 	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3);
-	color: var(--accent-color);
+	color: var(--light-color);
 	text-shadow: 0 0 6px;
+}
+.thin-button.disabled {
+	opacity: .5;
 }
 .thin-button.warning::before {
 	background: #c00;
@@ -146,7 +167,7 @@ table {
 	border-bottom-right-radius: 20px;
 	border-top-width: 0;
 	margin-top: -301px;
-	padding: 10px;
+	padding: 10px 10px 20px;
 	position: absolute;
 	transition: margin-top .5s;
 	width: 700px;
@@ -182,10 +203,12 @@ table {
 }
 .controls input,
 .controls select {
+	padding: 4px 0;
 	margin: 4px 0;
 	width: 100%;
 }
 .controls input[type="range"] {
+	accent-color: var(--accent-color);
 	height: 16px; /* for consistency between Chromium and Gecko */
 	margin-top: 8px;
 }
@@ -207,26 +230,87 @@ table {
 }
 
 .analyzer {
-	background: #000;
-	height: calc( 100vh - 570px );
-	min-height: 270px;
+	left: 0;
 	overflow: hidden;
+	position: absolute;
+	top: 0;
+	width: 100%;
 }
-.analyzer canvas {
+
+.bg-container {
+	background: #000;
+	background-image: var(--background-image);
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: auto 100%;
-	display: block;
-	width: 100%;
+	height: calc( 100vh - 570px );
+	min-height: 270px;
+	overflow: hidden;
+	position: relative;
+	text-align: center;
 }
-.analyzer canvas:-webkit-full-screen {
-	height: auto;
-}
-.analyzer canvas.repeat {
+.bg-container.repeat {
 	background-repeat: repeat-x;
 }
-.analyzer canvas.cover {
+.bg-container.cover {
 	background-size: cover;
+}
+.bg-container:fullscreen {
+	position: relative !important;
+}
+.bg-container:fullscreen .analyzer {
+	top: 50%;
+	transform: translateY(-50%);
+}
+.bg-container:not(:fullscreen) .analyzer {
+	height: 100% !important;
+}
+
+.bg-container video,
+.bg-dim {
+	height: 100%;
+	left: 0;
+	object-fit: cover;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
+.bg-container.pip {
+	background-image: none;
+}
+.bg-container.pip::after {
+	content: 'Showing in PIP';
+	color: #fff;
+}
+.bg-container.pip .analyzer,
+.bg-container.pip .bg-dim,
+.bg-container.pip .warp,
+.bg-container.pip video {
+	display: none;
+}
+
+/**
+ * The Safari-specific rules below MUST NOT be combined with :fullscreen selectors, otherwise they won't work!
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API/Guide#presentation_differences
+ */
+.bg-container:-webkit-full-screen {
+	height: 100%;
+	position: relative !important;
+	width: 100%;
+}
+.bg-container:-webkit-full-screen .analyzer {
+	top: 50%;
+	transform: translateY(-50%);
+}
+.bg-container:not(:-webkit-full-screen) .analyzer {
+	height: 100% !important;
+}
+
+.osd {
+	left: 0;
+	position: absolute;
+	top: 0;
 }
 
 #playlists {
@@ -234,11 +318,16 @@ table {
 	width: 100%;
 }
 
+.config-panel,
+.file-panel,
+.player-area,
+.settings {
+	user-select: none;
+}
+
 .config-panel {
-	background: #f5f5f5 !important;
 	font-size: 12px;
-	padding-top: 0 !important;
-	width: 880px;
+	width: 650px;
 }
 .config-panel table th,
 .config-panel table td {
@@ -248,8 +337,15 @@ table {
 	text-align: center;
 }
 .config-panel input[type="checkbox"] {
+	accent-color: var(--accent-color);
 	margin: 4px 0;
 	vertical-align: sub;
+}
+.config-panel p {
+	margin: .5em 0;
+}
+.config-panel > div:last-child {
+	padding-bottom: 2em;
 }
 
 .flex {
@@ -359,10 +455,16 @@ div.value {
 	margin: 10px auto 15px;
 	max-width: 1400px;
 }
+
 .controls-left {
-	margin-left: 50px;
+	display: flex;
+	margin-left: 40px;
 	justify-self: start;
 }
+.controls-left > div:not(:last-child) {
+	margin-right: 4em;
+}
+
 .controls-right {
 	margin-right: 25px;
 	justify-self: end;
@@ -740,11 +842,7 @@ kbd.wide {
 }
 
 .credits {
-	width: 400px;
-}
-.credits p,
-.credits li {
-	line-height: 2;
+	margin-bottom: 2em;
 }
 .credits a:not([class]) {
 	color: #090;
@@ -753,11 +851,23 @@ kbd.wide {
 	background: var(--audioMotion-gradient);
 	background-clip: text;
 	display: inline;
-	font: 30px Orbitron, sans-serif;
+	font: 36px Orbitron, sans-serif;
 	margin: 0;
 	text-shadow: none;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
+}
+.credits p,
+.credits li {
+	line-height: 2;
+}
+.credits li {
+	display: inline-block;
+	margin: 0 .5em;
+}
+.credits li:not(:last-child)::after {
+	content: '\22c5';
+	margin-left: 1em;
 }
 
 /**
@@ -777,7 +887,7 @@ label.slider {
 	display: inline-block;
 	font-size: 8px;
 	height: 3em;
-	margin: 10px 0;
+	margin: 5px 0 10px;
 	position: relative;
 	transition: 350ms;
 	vertical-align: middle;
@@ -808,26 +918,35 @@ label.slider::after {
 	background: linear-gradient( rgba(0,0,0,0.07), rgba(255,255,255,0.1) ), #444;
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 var(--accent-color);
+				-7em 0 0 0 var(--light-color),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
 	position: absolute;
 	top: 1.25em;
 	transition: 250ms ease-in-out;
 }
 
+label.slider.on-off::after {
+	background: transparent;
+	box-shadow:	0 0.08em 0.15em -0.1em transparent,
+				0 0.05em 0.08em -0.01em transparent,
+				-7em 0 0 0 var(--light-color),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
+}
+
 .slider-on,
 .slider-off {
-	bottom: -13px;
+	bottom: -1.5em;
 	color: #444;
 	font-size: 10px;
 	position: absolute;
 	transition: 250ms ease-in-out;
 }
 
-.slider-on {
+.slider-off {
 	left: 4em;
 }
-.slider-off {
-	left: -2.4em;
+.slider-on {
+	left: -1.3em;
 }
 
 input.slider:checked + .slider::before {
@@ -835,24 +954,32 @@ input.slider:checked + .slider::before {
 }
 
 input.slider:checked + .slider::after {
-	background: linear-gradient( rgba(0,0,0,.07), rgba(255,255,255,.1) ), var(--accent-color);
+	background: linear-gradient( rgba(0,0,0,.07), rgba(255,255,255,.1) ), var(--light-color);
 	box-shadow:	0 0.08em 0.15em -0.1em rgba(0,0,0,.5) inset,
 				0 0.05em 0.08em -0.01em rgba(255,255,255,.7),
-				-7em 0 0 0 rgba(0,0,0,.5);
+				-7em 0 0 0 rgba(0,0,0,.7),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
 }
 
-input.slider:checked + .slider .slider-on,
-input.slider:not(:checked) + .slider .slider-off {
+input.slider:checked + .slider.on-off::after {
+	background: transparent;
+	box-shadow:	0 0.08em 0.15em -0.1em transparent,
+				0 0.05em 0.08em -0.01em transparent,
+				-7em 0 0 0 rgba(0,0,0,.7),
+				-7em 0.05em 0.08em -0.01em rgba(255,255,255,.5);
+}
+
+input.slider:checked + .slider:not(.on-off) .slider-off,
+input.slider:not(:checked) + .slider .slider-on {
 	text-shadow: 0px 0px 5px;
-	color: var(--accent-color);
+	color: var(--light-color);
 }
 
 /**
  *  Pure CSS modal windows
- **/
-
+ */
 .modal-window {
-	background-color: #000d;
+	background-color: #000a;
 	bottom: 0;
 	left: 0;
 	opacity: 0;
@@ -860,7 +987,7 @@ input.slider:not(:checked) + .slider .slider-off {
 	position: fixed;
 	right: 0;
 	top: 0;
-	transition: all 0.3s;
+	transition: all .3s;
 	visibility: hidden;
 	z-index: 999;
 }
@@ -870,15 +997,19 @@ input.slider:not(:checked) + .slider .slider-off {
 	visibility: visible;
 }
 .modal-window > div {
-	background: #fff;
-	left: 50%;
-	max-height: 80%;
+	background: #fffe;
+	box-shadow: -5px 0 10px #0008;
+	height: 100%;
 	max-width: 90%;
 	overflow: auto;
 	padding: 2em;
 	position: absolute;
-	top: 50%;
-	transform: translate(-50%, -50%);
+	right: -100%;
+	top: 0;
+	transition: all .3s;
+}
+.modal-window:target > div {
+	right: 0;
 }
 
 .modal-close::before {
@@ -906,7 +1037,7 @@ input.slider:not(:checked) + .slider .slider-off {
 }
 
 /**
- * volume knob
+ * Volume and balance knobs
  */
 .knob {
 	background: url(img/brushed-knob.png);
@@ -919,9 +1050,13 @@ input.slider:not(:checked) + .slider .slider-off {
 		0 0 0 1px #666;
 	cursor: url(img/icons/mousescroll.png) 16 16, ns-resize;
 	display: inline-block;
-	height: 60px;
-	margin: -10px 20px 0 10px;
+	height: 35px;
 	position: relative;
+	width: 35px;
+}
+.knob-vol {
+	height: 60px;
+	margin: -10px 20px 0 70px;
 	width: 60px;
 }
 
@@ -941,24 +1076,36 @@ input.slider:not(:checked) + .slider .slider-off {
 	content: 'MIN';
 	left: -1.5em;
 }
+.knob-bal::after {
+	content: 'R';
+	right: -.5em;
+}
+.knob-bal::before {
+	content: 'L';
+	left: -.5em;
+}
 
 .knob[data-value="1"]::after,
-.knob[data-value="0"]::before {
-	color: var(--accent-color);
+.knob-vol[data-value="0"]::before,
+.knob-bal[data-value="-1"]::before {
+	color: var(--light-color);
 	text-shadow: 0 0 5px;
 }
 
 .knob label {
-	left: -100%;
 	position: absolute;
-	top: 20px;
+	top: -20px;
+}
+.knob-vol label {
+	left: -65%;
+	top: -5px;
 }
 
 .knob .marker {
-	background-color: var(--accent-color);
+	background-color: var(--light-color);
 	border-radius: 2px;
 	box-shadow: inset 1px -1px 0 0 rgba(17,17,17,.3),
-		0 0 5px 0 var(--accent-color);
+		0 0 5px 0 var(--light-color);
 	height: 4px;
 	left: 75%;
 	margin-top: -2px;
@@ -969,6 +1116,176 @@ input.slider:not(:checked) + .slider .slider-off {
 	width: 25%;
 }
 
+/* Color gradient editor */
+.mt-1 {
+	margin-top: 1rem;
+}
+
+.mt-5px {
+	margin-top: 5px;
+}
+
+.grad-color-row td {
+	padding: 5px 10px 5px 0
+}
+
+.grad-color-row td:first-child {
+	padding: 5px 5px 5px 0;
+}
+
+.grad-color-row td:last-child {
+	padding: 5px 0 5px;
+}
+
+.grad-add-stop, .grad-remove-stop {
+	border: none;
+	background: #444;
+	color: #fff;
+	padding: 0;
+	border-radius: 10px;
+	text-align: center;
+	height: 35px;
+	width: 35px;
+}
+
+button.grad-remove-stop[disabled] {
+	opacity: 0.8;
+}
+
+button.grad-remove-stop:hover:not([disabled]) {
+	border: none;
+	background-color: #c00 !important;
+}
+
+button.grad-add-stop:hover {
+	border: none;
+	background-color: #34a800 !important;
+}
+
+.grad-add-stop::before {
+	content: '\FF0B';
+}
+
+.grad-remove-stop::before {
+	content: '\2212';
+}
+
+.grad-color-value, .grad-color-stop {
+	text-align: center;
+}
+
+#grad-color-table-template {
+	display: none;
+}
+
+
+/**
+ * Warp Tunnel effect
+ */
+:root {
+	--warp-duration: 12s;
+	--warp-size: 1000px;
+}
+
+.bg-container::before {
+	content: '';
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.warp {
+	display: inline-block;
+	perspective: 15px;
+	perspective-origin: 50% 50%;
+	position: relative;
+	vertical-align: middle;
+}
+.warp.rotating {
+	animation: warp-rotate 30s infinite linear;
+}
+
+.warp-block {
+	animation: warp-move var(--warp-duration) infinite linear;
+	animation-fill-mode: forwards;
+	height: var(--warp-size);
+	left: calc( var(--warp-size) / -2 );
+	position: absolute;
+	top: calc( var(--warp-size) / -2 );
+	transform-style: preserve-3d;
+	width: var(--warp-size);
+}
+.warp-block:nth-child(2) {
+	animation: warp-move var(--warp-duration) infinite linear;
+	animation-delay: calc( var(--warp-duration) / 2 );
+}
+
+.warp-wall {
+	animation: warp-fade var(--warp-duration) infinite linear;
+	background: var(--background-image);
+	background-size: cover;
+	height: 100%;
+	position: absolute;
+	opacity: 0;
+	width: 100%;
+}
+.warp-block:nth-child(2) .warp-wall {
+	animation-delay: calc( var(--warp-duration) / 2 );
+}
+.warp-wall-right {
+	transform: rotateY(90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-left {
+	transform: rotateY(-90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-top {
+	transform: rotateX(90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-bottom {
+	transform: rotateX(-90deg) translateZ( calc( var(--warp-size) / 2 ) );
+}
+.warp-wall-back {
+	transform: rotateX(180deg) scaleY(-1) translateZ( calc( var(--warp-size) / 2 ) );
+}
+
+.warp.paused,
+.paused .warp-block,
+.paused .warp-wall {
+	animation: none;
+	opacity: 1;
+}
+
+@keyframes warp-fade {
+	0% {
+		opacity: 0;
+	}
+	25% {
+		opacity: 1;
+	}
+	75% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+@keyframes warp-move {
+	0% {
+		transform: translateZ( calc( var(--warp-size) / -2 ) ) rotate(0deg);
+	}
+	100% {
+		transform: translateZ( calc( var(--warp-size) / 2 ) ) rotate(0deg);
+	}
+}
+@keyframes warp-rotate {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 /* Responsive layout */
 
 @media screen and (max-width: 1000px) {
@@ -977,7 +1294,7 @@ input.slider:not(:checked) + .slider .slider-off {
 		margin: 0 5px;
 	}
 	.controls-left {
-		margin-left: 30px;
+		margin-left: 20px;
 	}
 	.controls-right {
 		margin-right: 5px;

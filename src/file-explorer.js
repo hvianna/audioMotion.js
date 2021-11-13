@@ -1,7 +1,7 @@
 /**
  * audioMotion.js file explorer module
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2020 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
  */
 
 var mounts = [],
@@ -112,6 +112,26 @@ function enterDir( target, scrollTop ) {
 }
 
 /**
+ * Parses the list of files off a web server directory index
+ *
+ * @param {string}  content HTML body of a web server directory listing
+ * @returns {array} an array of objects representing each link found in the listing, with its full uri and filename only
+ */
+export function parseWebIndex( content ) {
+
+	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
+
+	let listing = [];
+
+	for ( const entry of entries ) {
+		const [ , uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
+		listing.push( { uri, file } );
+	}
+
+	return listing;
+}
+
+/**
  * Parses file and directory names from a standard web server directory listing
  *
  * @param {string}   content HTML body of a web server directory listing
@@ -119,20 +139,20 @@ function enterDir( target, scrollTop ) {
  */
 export function parseWebDirectory( content ) {
 
+	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
+	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
+
 	let files = [],
 		dirs  = [],
 		imgs  = [];
 
 	// helper function
 	const findImg = ( arr, pattern ) => {
-		const regexp = new RegExp( `${pattern}.*\\.(jpg|jpeg|png|gif|bmp)$`, 'i' );
+		const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
 		return arr.find( el => el.match( regexp ) );
 	}
 
-	const entries = content.match( /href="[^"]*"[^>]*>[^<]*<\/a>/gi ); // locate links
-
-	for ( const entry of entries ) {
-		const [ all, uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
+	for ( const { uri, file } of parseWebIndex( content ) ) {
 		if ( uri.substring( uri.length - 1 ) == '/' ) {
 			if ( ! file.match( /parent directory/i ) ) {
 				if ( file.substring( file.length - 1 ) == '/' )
@@ -142,9 +162,9 @@ export function parseWebDirectory( content ) {
 			}
 		}
 		else {
-			if ( file.match( /\.(jpg|jpeg|png|gif|bmp)$/i ) )
+			if ( file.match( imageExtensions ) )
 				imgs.push( file );
-			else if ( file.match( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i ) )
+			else if ( file.match( audioExtensions ) )
 				files.push( file );
 		}
 	}

@@ -9,7 +9,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * Copyright (c) 2018-2020 Henrique Avila Vianna <hvianna@gmail.com>
+ * Copyright (c) 2018-2021 Henrique Avila Vianna <hvianna@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +47,28 @@
 	<!-- ANALYZER & PLAYER AREA -->
 	<div class="player-area">
 
-		<div id="analyzer" class="analyzer"></div>
+		<div id="bg_container" class="bg-container">
+			<div id="warp" class="warp">
+				<div class="warp-block">
+					<div class="warp-wall warp-wall-right"></div>
+					<div class="warp-wall warp-wall-left"></div>
+					<div class="warp-wall warp-wall-top"></div>
+					<div class="warp-wall warp-wall-bottom"></div>
+					<div class="warp-wall warp-wall-back"></div>
+				</div>
+				<div class="warp-block">
+					<div class="warp-wall warp-wall-right"></div>
+					<div class="warp-wall warp-wall-left"></div>
+					<div class="warp-wall warp-wall-top"></div>
+					<div class="warp-wall warp-wall-bottom"></div>
+					<div class="warp-wall warp-wall-back"></div>
+				</div>
+			</div>
+			<video id="video" autoplay loop muted></video>
+			<div id="bg_dim" class="bg-dim"></div>
+			<div id="analyzer" class="analyzer"></div>
+			<canvas id="osd" class="osd"></canvas>
+		</div>
 
 		<audio id="player0" preload="auto" crossorigin="anonymous"></audio>
 		<audio id="player1" preload="auto" crossorigin="anonymous"></audio>
@@ -62,20 +83,32 @@
 			<h1>audioMotion</h1>
 
 			<ul>
+				<li id="btn_pip" class="thin-button"><a href="#!">PIP</a></li>
 				<li id="btn_fullscreen" class="thin-button"><a href="#!"><u>F</u>ullscreen</a></li>
-				<li class="thin-button"><a href="#shortcuts">Controls</a></li>
-				<li class="thin-button"><a href="#about">About</a></li>
+				<li class="thin-button"><a href="#help">Help</a></li>
 			</ul>
 		</header>
 
 		<div class="player-panel grid align-center center">
 			<div class="controls-left">
-				<div class="config-label">SOURCE</div>
-				<input class="slider" type="checkbox" id="source">
-  				<label class="slider" for="source">
-					<span class="slider-off">PLAYER</span>
-					<span class="slider-on">MIC</span>
-  				</label>
+				<div>
+					<div class="config-label">SOURCE</div>
+					<input class="slider" type="checkbox" id="source">
+					<label class="slider" for="source">
+						<span class="slider-on">PLAYER</span>
+						<span class="slider-off">MIC</span>
+					</label>
+				</div>
+
+				<div>
+					<div class="config-label">SPEAKERS</div>
+					<input class="slider" type="checkbox" id="mute">
+					<label class="slider on-off" for="mute">
+						<span class="slider-on">ON</span>
+						<span class="slider-off">OFF</span>
+					</label>
+	  			</div>
+
 			</div>
 
 			<ul class="player-controls">
@@ -94,7 +127,12 @@
 			</ul>
 
 			<div class="controls-right">
-				<div id="volume" class="knob">
+				<div id="balance" data-prop="balance" class="knob knob-bal">
+					<label class="config-label abs-center">BALANCE</label>
+					<div class="marker"></div>
+				</div>
+
+				<div id="volume" data-prop="volume" class="knob knob-vol">
 					<label class="config-label">VOLUME</label>
 					<div class="marker"></div>
 				</div>
@@ -138,7 +176,7 @@
 			<div>
 				<span class="config-label help">Line width
 					<span class="tooltip">
-						Line graph mode only
+						Line width for Line Graph mode and Outline effect
 					</span>
 				</span>
 				<div class="value"></div>
@@ -148,7 +186,7 @@
 			<div>
 				<span class="config-label help">Fill opacity
 					<span class="tooltip">
-						Line graph mode only
+						Fill opacity for Line Graph mode and Outline effect
 					</span>
 				</span>
 				<div class="value"></div>
@@ -172,26 +210,24 @@
 				</ul>
 			</div>
 
-			<div>
+			<div class="rowspan-2">
 				<span class="config-label">Effects</span>
 				<ul class="switch-bar">
 					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
 					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 						<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-				</ul>
-			</div>
-
-			<div>
-				<span class="config-label">&nbsp;</span>
-				<ul class="switch-bar">
+					<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
+						<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
+					<li class="switch" id="outline" data-prop="outlineBars">Outline
+						<span class="tooltip">Outlined bars <em>(octave bands modes only)</em></span>
 					<li class="switch" id="radial" data-prop="radial">RADIAL
 						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> | <kbd>C</kbd></span>
 				</ul>
 			</div>
 
 			<div>
-				<span class="config-label help">Spin
+				<span class="config-label help">Radial Spin
 					<span class="tooltip">
 						Radial spin speed
 					</span>
@@ -211,7 +247,7 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Image fit
+				<span class="config-label help">Bg image fit
 					<span class="tooltip">
 						Adjust the size and position of the background image | <kbd>Shift</kbd><kbd>B</kbd>
 					</span>
@@ -220,22 +256,31 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Image dim
+				<span class="config-label help">Background dim
 					<span class="tooltip">
-						Adjust the intensity of the background image
+						Adjust the intensity of the background image or video
 					</span>
 				</span>
 				<div class="value"></div>
 				<input id="bg_img_dim" type="range" data-prop="bgImageDim">
 			</div>
 
-			<div class="rowspan-2">
+			<div>
 				<span class="config-label help">Refle<u>x</u>
 					<span class="tooltip">
-					Select reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
+					Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
 					</span>
 				</span>
 				<select id="reflex" data-prop="reflex"></select>
+			</div>
+
+			<div>
+				<span class="config-label help">Mirror</u>
+					<span class="tooltip">
+					Horizontal mirroring effect
+					</span>
+				</span>
+				<select id="mirror" data-prop="mirror"></select>
 			</div>
 
 		<!-- COLUMN 4 -->
@@ -259,15 +304,6 @@
 				</div>
 			</div>
 
-			<div>
-				<span class="config-label help">FFT size
-					<span class="tooltip">
-					Higher values provide more detail in the frequency domain, but slower response
-					</span>
-				</span>
-				<select id="fft_size" data-prop="fftSize"></select>
-			</div>
-
 			<div class="rowspan-2">
 				<span class="config-label help">Smoothing
 					<span class="tooltip">
@@ -276,6 +312,16 @@
 				</span>
 				<div class="value"></div>
 				<input type="range" id="smoothing" data-prop="smoothing">
+			</div>
+
+			<div>
+				<span class="config-label help">Fullscr height
+					<span class="tooltip">
+					Fullscreen analyzer height (%)<br><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd>
+					</span>
+				</span>
+				<div class="value"></div>
+				<input id="fs_height" type="range" data-prop="fsHeight">
 			</div>
 
 		<!-- COLUMN 5 -->
@@ -309,16 +355,7 @@
 						<strong>"Last session"</strong> restores last used configuration settings.
 					</span>
 				</span>
-				<select id="preset">
-					<option value="" disabled selected>Select preset</option>
-					<option value="demo">Demo (random)</option>
-					<option value="fullres">Full resolution</option>
-					<option value="ledbars">LED bars</option>
-					<option value="octave">Octave bands</option>
-					<option value="custom">Custom</option>
-					<option value="last">Last session</option>
-					<option value="default">Restore defaults</option>
-				</select>
+				<select id="preset"></select>
 				<div class="flex">
 					<button id="load_preset">Load</button>
 					<span class="help">
@@ -385,24 +422,41 @@
 	</div> <!-- #files_panel -->
 
 	<div id="config" class="modal-window">
-		<a href="#!" title="Close" class="modal-close"></a>
-		<div class="config-panel grid grid-3-cols">
+		<a href="#!" class="modal-close"></a>
+		<div class="config-panel grid grid-2-cols">
 			<a href="#!" class="modal-close-internal"></a>
 			<div>
 				<h3>Enabled Modes:</h3>
-				<div id="enabled_modes" class="grid">
+				<div id="enabled_modes" class="grid grid-2-cols">
 				</div>
 			</div>
 			<div>
 				<h3>Enabled Gradients:</h3>
-				<div id="enabled_gradients" class="grid grid-2-cols">
+				<div id="enabled_gradients" class="grid grid-3-cols">
+				</div>
+				<button class="button mt-1" id="add-gradient">Add Gradient</button>
+			</div>
+			<div>
+				<h3>Enabled BG Image Fit options:</h3>
+				<div id="enabled_bgfit" class="grid grid-2-cols">
 				</div>
 			</div>
-			<div class="rowspan-2">
-				<h3>Options affected by Random Mode:</h3>
+			<div>
+				<h3>Settings affected by Random Mode:</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
+			</div>
+			<div>
+				<h3>General settings:</h3>
+				<p>FFT size:
+					<select id="fft_size"></select>
+				</p>
 
+				<p>PIP window aspect ratio:
+					<select id="pip_ratio"></select>
+				</p>
+			</div>
+			<div>
 				<h3>Sensitivity presets:</h3>
 				<table>
 					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
@@ -428,16 +482,60 @@
 			</div>
 			<div class="colspan-2">
 				<h3>On-screen information display options:</h3>
-				Show for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(leave empty for continuous display)</strong><br>
-				Show for <input id="track_timeout" type="number" min="0"> seconds at song start
-				and during the last <input id="end_timeout" type="number" min="0"> seconds of the song<br>
-				<div class="flex align-center">
-					<label><input type="checkbox" id="show_cover"> Show album covers in song info</label>
-					<button id="reset_osd">Reset to defaults</button>
-				</div>
+				<p>Display info for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(0 or empty = continuous display)</strong></p>
+				<p>Display info for <input id="track_timeout" type="number" min="0"> seconds at song start
+				and <input id="end_timeout" type="number" min="0"> seconds at song end <strong>(0 = disable)</strong></p>
+				<p>Song info shows:
+					<label><input type="checkbox" id="show_cover"> album cover</label>
+					<label><input type="checkbox" id="show_count"> track count</label>
+				</p>
+				<p><br><button id="reset_osd">Reset to defaults</button></p>
 			</div>
 		</div>
 	</div> <!-- #config -->
+
+	<div id="gradient-editor" class="modal-window">
+		<a href="#config" title="Close" class="modal-close"></a>
+		<div>
+			<a href="#config" title="Close" class="modal-close-internal"></a>
+			<div><span class="config-label"><label for="new-gradient-name">Name</label></span></div>
+			<div class="mt-5px"><input type="text" id="new-gradient-name"></div>
+			<div class="mt-1">
+				<table id="grad-color-table">
+					<tr>
+						<td><span class="config-label">Colors</span></td>
+						<td></td>
+						<td><span class="config-label">Offset</span></td>
+					</tr>
+				</table>
+				<div class="mt-5px">
+					<input type="checkbox" id="new-gradient-horizontal">
+					<label for="new-gradient-horizontal">Horizontal</label>
+				</div>
+				<table id="grad-color-table-template">
+					<tr id="grad-row-label-template">
+						<td><span class="config-label">Colors</span></td>
+						<td></td>
+						<td><span class="config-label">Offset</span></td>
+					</tr>
+					<tr id="grad-row-template" class="grad-color-row">
+						<td><input class="grad-color-picker" type="color"></td>
+						<td><input class="grad-color-value" type="text" size="10" pattern="^#[0-9A-Fa-f]{0,6}$"></td>
+						<td><input class="grad-color-stop" type="text" size="5"></td>
+						<td><button class="grad-remove-stop"></button></td>
+						<td><button class="grad-add-stop"></button></td>
+					</tr>
+				</table>
+			</div>
+			<div class="mt-1"><span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span></div>
+			<div class="mt-5px"><input type="color" id="new-gradient-bkgd"></div>
+			<div class="flex align-center mt-1">
+				<button id="btn-delete-gradient">Delete</button>
+				<div></div>
+				<button id="btn-save-gradient">Add</button>
+			</div>
+		</div>
+	</div> <!-- #gradient-editor -->
 
 	<div id="console">
 		<div id="console-clear">Clear</div>
@@ -445,29 +543,25 @@
 		<div id="console-content"></div>
 	</div>
 
-	<div id="about" class="modal-window">
-		<a href="#!" title="Close" class="modal-close"></a>
-		<div class="credits center">
-			<a href="#!" title="Close" class="modal-close-internal"></a>
-			<h1>audioMotion</h1>
-			<div>version <span id="version"></span></div>
-			<p>Copyright &copy; 2018-2020 Henrique Avila Vianna</p>
-			<ul>
-				<li><a href="https://audiomotion.me">Documentation website</a></li>
-				<li><a href="https://github.com/hvianna/audioMotion.js/">Source code available on GitHub</a></li>
-				<li><a href="https://audiomotion.me/#credits-and-acknowledgments">Credits and acknowledgments</a></li>
-			</ul>
-		</div>
-	</div> <!-- #about -->
-
-	<div id="shortcuts" class="modal-window">
-		<a href="#!" title="Close" class="modal-close"></a>
+	<div id="help" class="modal-window">
+		<a href="#!" class="modal-close"></a>
 		<div class="shortcuts center">
-			<a href="#!" title="Close" class="modal-close-internal"></a>
-			<h2>Keyboard shortcuts:</h2>
+			<a href="#!" class="modal-close-internal"></a>
+			<div class="credits">
+				<h1>audioMotion</h1>
+				<div>version <span id="version"></span></div>
+				<p>Copyright &copy; 2018-2021 Henrique Avila Vianna</p>
+				<ul>
+					<li><a href="https://audiomotion.me/users-manual">User's Manual</a></li>
+					<li><a href="https://github.com/hvianna/audioMotion.js/">GitHub</a></li>
+					<li><a href="https://audiomotion.me/credits">Credits</a></li>
+				</ul>
+			</div>
 			<table class="kbd-table">
 				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>volume up / down</td></tr>
 				<tr><td><kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd></td><td>previous / next song (hold for rewind / fast forward)</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>increase / reduce fullscreen analyzer height</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd></td><td>balance left / right</td></tr>
 				<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
 				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>change auto gradient and random mode options</td></tr>
 				<tr><td><kbd>B</kbd></td><td>change background</td></tr>
@@ -493,6 +587,7 @@
 		</div>
 	</div> <!-- #shortcuts -->
 
+	<script src="vendors.js"></script>
 	<script src="audioMotion.js"></script>
 
 </body>

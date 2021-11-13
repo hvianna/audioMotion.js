@@ -38,10 +38,20 @@ By default, audioMotion's server will only accept connections from localhost. If
 audioMotion -e -m /path/to/music
 ```
 
-⚠ **WARNING:**<br>
-Please be aware that the `-e` flag will expose the contents of the mounted folder to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
+The complete command line options are:
 
-### Running from source code
+```
+-b <path> : path to folder with background images and videos
+-e        : allow external connections (by default, only localhost)
+-m <path> : path to music folder
+-p <port> : change server listening port (default is 8000)
+-s        : start server only (do not launch client)
+```
+
+!> **WARNING:**<br>
+Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
+
+### Running from source code <!-- {docsify-ignore} -->
 
 audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
 
@@ -59,16 +69,18 @@ npm start -- -m /path/to/music
 
 You can also use audioMotion with a standard web server, like Apache, Lighttpd or Nginx.
 
-This is an alternative way to play music stored, for example, in older [NAS](https://en.wikipedia.org/wiki/Network-attached_storage) servers not capable of running Node.js.
+This is an alternative way to play music stored, for example, in older NAS servers not capable of running Node.js.
 
-Just copy the contents of the `public` folder to your server and make the necessary configurations:
+Just copy the `public` folder to your server (you can rename it to **audioMotion** for instance) and make the necessary configurations:
 
-* Assign a dedicated listening port to audioMotion so it can be accessed at the server's root, e.g., `http://192.168.0.32:8000` and not in a subdirectory like `http://192.168.0.32/audioMotion`;
+* Assign a dedicated listening port to audioMotion so it can be accessed at the server's root and not from a subdirectory:<br>
+  ✔️ `http://192.168.0.32:8000`<br>
+  ❌ `http://192.168.0.32/audioMotion` (won't work!)
 * Directory listing must be enabled for the file explorer to work;
-* All media files must be located under a main folder, mapped to the `/music` URL at the web server.
+* Add your music files to the `music` folder or map the `/music` URL to another folder in your server (see examples below).
 
 
-### Configuration tips:
+### Configuration tips <!-- {docsify-ignore} -->
 
 **Lighttpd:**
 
@@ -100,7 +112,7 @@ Alias "/music" "/mnt/HD/HD_a2/MUSIC"
 
 *To do...*
 
-### Apache web server with Docker
+### Apache web server with Docker <!-- {docsify-ignore} -->
 
 If you use Docker, you can simply open a command prompt in audioMotion's directory and run:
 
