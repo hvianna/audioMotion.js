@@ -139,11 +139,11 @@ This setting is effective only when an [octave bands mode](#mode) is selected. A
 
 These settings are effective only for [Line graph mode](#mode) or when [OUTLINE](#effects) effect is on.
 
-**Line Width** controls the thickness of the graph line or bar stroke.
+**Line Width** controls the thickness of the graph line or outline stroke.
 
 **Fill Opacity** adjusts the transparency of the graph area or bar fill. The [ALPHA](#effects) effect, when active, has precedence over the Fill Opacity (for octave bands modes only).
 
-⚠ On **Firefox**, Fill Opacity may not work properly with [Radial](#radial) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
+!> On **Firefox**, Fill Opacity may not work properly with [Radial](#radial) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
 
 ### Gradient
 
@@ -151,7 +151,7 @@ These settings are effective only for [Line graph mode](#mode) or when [OUTLINE]
 
 Several options of color gradients for the analyzer graphs. You can also change gradients using the **G** and **Shift + G** keyboard shortcuts.
 
-You can disable specific gradients and create your own gradients in the [Config panel](#config-panel).
+You can disable specific gradients and **create your own gradients** in the [Config panel](#config-panel).
 
 | Switch | Description |
 |:-------|:------------|
@@ -230,9 +230,9 @@ When [Background](#background) is set to **Album cover** or an image, this optio
 
 You can cycle through the available options using the **Shift + B** keyboard shortcut.
 
-⚠ The **Warp Drive** and **Wormhole** effects may be slow on some browsers or graphics cards.
+Effects can be selectively disabled in the [Config panel](#config-panel).
 
-Undesired options can be disabled in the [Config panel](#config-panel).
+!> The **Warp Drive** and **Wormhole** effects may degrade performance on some browsers or graphics cards.
 
 ### Background Dim
 
@@ -266,7 +266,7 @@ Selects a horizontal mirroring effect to the left (low frequencies at the center
 
 Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
 
-There are three presets (low, normal and high) that can be customized in the [Config panel](#config-panel).
+Presets for low, normal and high sensitivity can be customized in the [Config panel](#config-panel).
 
 ### Frequency Range
 
@@ -384,6 +384,7 @@ Customize low, normal and high sensitivity presets (see [Sensitivity](#sensitivi
 ### On-screen information display options
 
 Customize how long song information is displayed on screen, on different events, and toggle display of albums covers and track count.
+
 
 ## Keyboard shortcuts
 

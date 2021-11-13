@@ -5,7 +5,7 @@
 
 - Visualize discrete frequencies or octave bands
 - Several modes, color gradients and optional effects
-- Fullscreen high-resolution graphics @60fps
+- Fullscreen and PIP high-resolution graphics @60fps
 
 [Demo](https://demo.audiomotion.me)
 [About](/#about)
