@@ -1,16 +1,58 @@
 # Changelog
 
-## version 20.12 :mask:
+## version 21.11
 
-**:tada: Celebrating audioMotion's 2nd Anniversary! :confetti_ball:**
+:birthday: **It's audioMotion's THIRD Anniversary and we have plenty of new features to celebrate!!!** :tada: <big>🥳</big>
 
-### New features:
+### Added: <!-- {docsify-ignore} -->
+
++ <big>📺</big> [Picture-In-Picture](users-manual.md#top-panel-buttons) display on [compatible browsers](https://caniuse.com/mdn-api_pictureinpictureevent) -
+enjoy audioMotion while working, browsing the web, or doing anything else on your computer;
++ <big>🎨</big> Easily create your own color gradients with the new [Gradient Editor](users-manual.md#gradient-editor) (props to [@DrOverbuild](https://github.com/DrOverbuild));
++ New [Alpha](users-manual.md#effects), [Outline](users-manual.md#effects) and [Mirror](users-manual.md#mirror) effects;
++ New Warp/Wormhole effects for [Background Image Fit](users-manual.md#background-image-fit);
++ <big>🖼</big> Support for [background images and videos](users-manual.md#background);
++ Customizable [analyzer height on fullscreen](users-manual.md#fullscreen-height);
++ <big>🎧</big> [Balance control](users-manual.md#balance-and-volume);
++ Optional display of [track number and play queue count](users-manual.md#config-panel) in song info;
++ `webp` and `avif` added to valid image formats for cover and background images (support depends on browser).
+
+### Changed / improved: <!-- {docsify-ignore} -->
+
++ **FFT Size** setting moved to the Config panel, under [General settings](users-manual.md#general-settings);
++ Volume is now saved and restored between sessions;
++ Background Image Fit options can now be enabled/disabled in the Config panel;
++ Default value for [Background Dim](users-manual.md#background-dim) changed from 0.3 to 0.5;
++ Improved progression curve for volume control;
++ Improved performance when adding a lot of files to the play queue;
++ Play queue limited to 1000 songs;
++ New layout for Config and Help modal windows;
++ New fully functional [demo site](https://demo.audiomotion.me) (includes demo songs, radio streams and background images and videos);
++ Release microphone audio stream when switching back to the music player;
++ Webpack upgraded from v4 to v5;
++ Improved documentation;
++ Code quality improvements.
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Memory leak from unused resources not being released;
++ Keyboard shortcuts not working after clicking the Fullscreen button;
++ Undefined codec profile displayed in song info;
++ *AbortError* error messages when playing or pausing;
++ Incorrect "already at first track" message when skipping to previous track.
+
+
+## version 20.12
+
+:tada: **Celebrating audioMotion's 2nd Anniversary!** :confetti_ball:
+
+### New features: <!-- {docsify-ignore} -->
 
 + :fire: Revamped user interface with a cool new look! :sunglasses:
 + Stereo (dual channel) analyzer option :headphones: :notes: :musical_note:
 + :mega: Built-in volume control
 
-### Changed / improved:
+### Changed / improved: <!-- {docsify-ignore} -->
 
 + Song info may now be displayed continuously (no fade-out), and also at the **end of the song**; display times are now customizable in the Config panel;
 + The display of album covers in song info is now optional;
@@ -26,14 +68,14 @@
   + Clicks on canvas now display song information (same behavior as the **D** key);
 + Updated documentation website.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + Clicks on switches not being properly detected sometimes;
 + Random mode not working when audio source was set to microphone;
 + An unexpected error message when deleting the last song from the queue.
 
 
-## version 20.9 :mask:
+## version 20.9
 
 This is a minor update to address two bugs:
 
@@ -41,50 +83,50 @@ This is a minor update to address two bugs:
 + An unexpected error message when trying to load a playlist with an empty value in the playlist selection.
 
 
-## version 20.8 :mask:
+## version 20.8
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
-+ New [Radial visualization](docs/README.md#radial) for all modes;
-+ Option to display [level (dB) scale](docs/README.md#switches) on vertical axis;
-+ New [**Demo** preset](docs/README.md#preset).
++ New [Radial visualization](users-manual.md#radial) for all modes;
++ Option to display [level (dB) scale](users-manual.md#switches) on vertical axis;
++ New [**Demo** preset](users-manual.md#preset).
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
-+ Improved the background image [**Pulse**](docs/README.md#image-fit) effect to look more synced regardless of music style;
-+ Any image located in the song's folder can now be used as album cover when a picture is not found in the song metadata (see the [documentation](docs/README.md#background) for filename precedence).
++ Improved the background image [**Pulse**](users-manual.md#background-image-fit) effect to look more synced regardless of music style;
++ Any image located in the song's folder can now be used as album cover when a picture is not found in the song metadata (see the [documentation](users-manual.md#background) for filename precedence).
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + Audio files with uppercase extensions not recognized when audioMotion was running on a standard web server.
 
 
-## version 20.6 :mask:
+## version 20.6
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + **Album cover image** retrieved from the song metadata or from a file named *cover* or *folder* (.jpg|png|gif|bmp) inside each folder
 is now shown in the file explorer background, the on-screen song information and, optionally, in the analyzer background;
 
-+ New [Background](docs/README.md#background), [Image Fit](docs/README.md#image-fit) and [Image Dim](docs/README.md#image-dim) settings.
++ New [Background](users-manual.md#background), [Image Fit](users-manual.md#background-image-fit) and [Image Dim](users-manual.md#background-dim) settings.
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + Slightly increased the opacity of the image reflection when Reflex is On.
 
-### Removed:
+### Removed: <!-- {docsify-ignore} -->
 
 + The **NO BG** switch has been replaced by the new Background setting.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + Linux binary built with [latest pkg version](https://github.com/zeit/pkg/pull/751#issuecomment-626363292) can now open the browser automatically;
 + A typo that could cause "Unexpected null" errors on some browsers.
 
 
-## version 20.4 :mask:
+## version 20.4
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + New **Line graph** visualization mode, with customizable line width and fill opacity;
 + New **Reflex** effect;
@@ -95,14 +137,14 @@ is now shown in the file explorer background, the on-screen song information and
 + Customizable spacing between bars in octave bands modes;
 + Visualization mode can now be randomized on a time interval.
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + The **Area fill** mode has been renamed to **Area graph**;
 + The default spacing between bars in octave bands modes has been increased a bit - set the **Bar spacing** option to **Legacy** for the old look;
 + Slightly improved vertical usage of canvas when the LED effect is active (removed the black line at the bottom of the screen);
 + UI improvements.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + Track change sometimes not triggering random mode / auto gradient;
 + Case-insensitive sorting of directory listing when using a standard web server.
@@ -112,13 +154,13 @@ is now shown in the file explorer background, the on-screen song information and
 
 :tada: Celebrating audioMotion's first anniversary! :confetti_ball:
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + New **Area fill** visualization mode, which uses the same full-frequency data of the *discrete frequencies* mode, but displays a bright, colorful filled shape;
 + New luminance bars effect (**LUMI** switch) for octave bands modes, which always display full-height bars and vary their luminance instead, according to each band amplitude;
 + New option to select a random visualization mode on every track change (**RAND** switch); it will also select a random gradient, if the AUTO switch is active - great for parties!
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + Improved the look of bars at lower frequencies, especially for 1/12th and 1/24th octave bands modes;
 + Minor tweak to the **Rainbow** gradient to make cyan and blue shades a little more balanced;
@@ -131,7 +173,7 @@ is now shown in the file explorer background, the on-screen song information and
 + Improved display of feedback messages for keyboard controls;
 + Updated npm packages.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + Addressed an error on server startup when running the executable file on Linux systems (related to [an issue with pkg](https://github.com/zeit/pkg/issues/731)).
 
@@ -140,12 +182,12 @@ is now shown in the file explorer background, the on-screen song information and
 
 :sunglasses: audioMotion's graphic spectrum analyzer is now available as a [standalone project](https://github.com/hvianna/audioMotion-analyzer) and a zero-dependency [npm package](https://www.npmjs.com/package/audiomotion-analyzer) you can use in your own JavaScript projects! :tada:
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + 1/4th and 1/8th octave bands visualization modes;
 + Load files from remote URLs and manage playlists when running audioMotion in file mode (no server);
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + Double-clicking a playlist in the file explorer now correctly starts playing it, if player is idle;
 + Player automatically skips to next track on playback errors, e.g. file not found or format not supported;
@@ -158,7 +200,7 @@ is now shown in the file explorer background, the on-screen song information and
 
 ## version 19.7
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + :fire: File explorer for easy navigation through your music files and folders;
 + Custom file server written in node.js with portable binaries available for Windows, Linux and macOS - no setup required; :tada:
@@ -168,7 +210,7 @@ is now shown in the file explorer background, the on-screen song information and
 + Option to show the current frame rate;
 + New gradient: **Cool**;
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + :sunglasses: Major user interface overhaul - added tabbed panels for settings, file explorer / playlists, and console;
 + The analyzer canvas now properly adjusts to window size, without looking stretched;
@@ -179,7 +221,7 @@ is now shown in the file explorer background, the on-screen song information and
 + Increased frequency scale font size while in fullscreen;
 + `playlists.cfg` file is no longer required, but still supported as a legacy feature;
 
-### Removed:
+### Removed: <!-- {docsify-ignore} -->
 
 + *SENS* switch (toggle high sensitivity);
 + Demo playlists and music files.
@@ -187,7 +229,7 @@ is now shown in the file explorer background, the on-screen song information and
 
 ## version 19.5
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + :sunglasses: New optional vintage LED effect for the octave bands modes;
 + New gradients: **Apple ][** and **Orient**;
@@ -199,7 +241,7 @@ is now shown in the file explorer background, the on-screen song information and
 + New preset to restore all configuration defaults;
 + More keyboard shortcuts.
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + Changed some keyboard shortcuts:
   + [I] now toggles the display of song information on track change;
@@ -211,7 +253,7 @@ is now shown in the file explorer background, the on-screen song information and
 + *CYCLE* switch renamed to *AUTO*;
 + *DARK* switch renamed to *NO BG*.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + Preloaded songs not being correctly updated when modifying the playlist during playback;
 + Incorrect song information displayed when playlist was cleared or when playing local file.
@@ -219,12 +261,12 @@ is now shown in the file explorer background, the on-screen song information and
 
 ## version 19.3
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + New octave bands visualization modes (from full-octave up to 1/24th-octave) based on the equal tempered scale;
 + Improved playback of gapless tracks by using dual audio elements.
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + Removed the linear frequency scale option, in favor of the octave bands modes;
 + Improved visualization accuracy for higher frequencies on discrete mode (the old "logarithmic" mode);
@@ -236,7 +278,7 @@ is now shown in the file explorer background, the on-screen song information and
 
 ## version 19.1
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + :sunglasses: New gradients;
 + Configuration presets;
@@ -245,14 +287,14 @@ is now shown in the file explorer background, the on-screen song information and
 + On-screen display of song information via keyboard shortcut and, optionally, on each track change;
 + Support for the [#EXTINF directive](https://en.wikipedia.org/wiki/M3U#Extended_M3U) in playlists.
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + User preferences are now stored in local storage for browsers that implement it, instead of cookies;
 + Refactored some ES6-specific code to increase browser compatibility (especially on smart TVs);
 + Minor redesign of the UI and improved layout on smaller screens;
 + Renamed some of the gradients and ordered them alphabetically in the list.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + A bug where shuffling the playlist wouldn't properly load the first song;
 + Error when trying to load a song with a **#** character in its filename.
@@ -260,12 +302,12 @@ is now shown in the file explorer background, the on-screen song information and
 
 ## version 18.12
 
-### Added:
+### Added: <!-- {docsify-ignore} -->
 
 + You can now load a song from your PC;
 + Clicking on canvas now toggles scale on/off.
 
-### Changed:
+### Changed: <!-- {docsify-ignore} -->
 
 + Improved selection of audio source;
 + Improved layout on smaller screens;
@@ -273,11 +315,11 @@ is now shown in the file explorer background, the on-screen song information and
 + New icons;
 + Some code clean-up and optimizations.
 
-### Fixed:
+### Fixed: <!-- {docsify-ignore} -->
 
 + *Should* **really** work on Safari now (including macOS).
 
 
 ## version 18.11
 
-First official release.
++ First public release.
