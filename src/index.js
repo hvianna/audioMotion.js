@@ -1357,8 +1357,8 @@ function loadPreferences() {
 	const lastConfig    = localStorage.getItem( KEY_LAST_CONFIG ),
 		  isLastSession = ( lastConfig !== null );
 
-	// if no data found from last session, use the defaults (in the demo site use the demo preset)
-	presets['last'] = JSON.parse( lastConfig ) || { ...presets[ location.host.startsWith('demo.') ? 'demo' : 'default' ] };
+	// if no data found from last session, use the defaults
+	presets['last'] = JSON.parse( lastConfig ) || { ...presets['default'] };
 
 	// Load custom preset
 	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) );
