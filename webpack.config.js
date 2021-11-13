@@ -25,7 +25,6 @@ module.exports = {
     splitChunks: {
       cacheGroups: {
         vendor: {
-//          test: /[\\/]node_modules[\\/]((?!(audiomotion-analyzer)).*)[\\/]/,
           test: /[\\/]node_modules[\\/]/,
           name: 'vendors',
           chunks: 'all',
