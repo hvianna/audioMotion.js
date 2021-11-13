@@ -4,7 +4,7 @@
  * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
  */
 
-const VERSION = '21.6';
+const VERSION = '21.11';
 
 const serverSignature = `audioMotion.js server v${VERSION}`;
 

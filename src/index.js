@@ -4,7 +4,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.11-beta.1
+ * @version   21.11
  * @author    Henrique Vianna <hvianna@gmail.com>
  * @copyright (c) 2018-2021 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
@@ -23,7 +23,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const VERSION = '21.11-beta.1';
+const VERSION = '21.11';
 
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
