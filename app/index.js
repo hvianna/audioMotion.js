@@ -148,6 +148,9 @@ const createWindow = () => {
 		}
 	});
 
+	mainWindow.on( 'enter-html-full-screen', () => mainWindow.setMenuBarVisibility(false) );
+	mainWindow.on( 'leave-html-full-screen', () => mainWindow.setMenuBarVisibility(true) );
+
 	mainWindow.loadURL( `http://localhost:${ server.port }/` );
 };
 
