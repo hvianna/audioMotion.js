@@ -2489,7 +2489,20 @@ function setProperty( elems, save ) {
 /**
  * Change audio input source
  */
-function setSource() {
+async function setSource() {
+
+	let mediaOpts = true;
+
+	if ( globalThis.myCustomGetDisplayMedia ) {
+		const selectedSource = await globalThis.myCustomGetDisplayMedia();
+		mediaOpts = {
+			mandatory: {
+				chromeMediaSource: "desktop",
+//				chromeMediaSourceId: selectedSource.id
+			}
+		}
+		console.log( selectedSource );
+	}
 
 	// set global variable
 	isMicSource = elSource.checked;
@@ -2497,7 +2510,7 @@ function setSource() {
 	if ( isMicSource ) {
 		// try to get access to user's microphone
 		if ( navigator.mediaDevices ) {
-			navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
+			navigator.mediaDevices.getUserMedia( { audio: mediaOpts, video: mediaOpts } )
 			.then( stream => {
 				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
 				if ( isPlaying() )
