@@ -37,10 +37,10 @@
           }
         },
         {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "icon": "app/audioMotion.icns"
+          }
         },
         {
           "name": "@electron-forge/maker-deb",
@@ -56,9 +56,9 @@
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.61",
     "@electron-forge/maker-deb": "^6.0.0-beta.61",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.61",
     "@electron-forge/maker-rpm": "^6.0.0-beta.61",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.61",
-    "@electron-forge/maker-zip": "^6.0.0-beta.61",
     "audiomotion-analyzer": "^3.6.0",
     "buffer": "^6.0.3",
     "css-loader": "^6.5.1",
@@ -79,5 +79,8 @@
     "express": "^4.16.4",
     "semver": "^7.3.5",
     "serve-index": "^1.9.1"
+  },
+  "optionalDependencies": {
+    "appdmg": "^0.6.2"
   }
 }
