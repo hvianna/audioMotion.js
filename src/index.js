@@ -2491,18 +2491,16 @@ function setProperty( elems, save ) {
  */
 async function setSource() {
 
-	let mediaOpts = true;
-
-	if ( globalThis.myCustomGetDisplayMedia ) {
-		const selectedSource = await globalThis.myCustomGetDisplayMedia();
-		mediaOpts = {
-			mandatory: {
-				chromeMediaSource: "desktop",
-//				chromeMediaSourceId: selectedSource.id
-			}
-		}
-		console.log( selectedSource );
-	}
+	const isElectron = /electron/i.test( navigator.userAgent ),
+		  desktopSource = {
+		  	mandatory: {
+		  		chromeMediaSource: 'desktop'
+		  	}
+		  },
+		  mediaOptions = {
+		  	audio: isElectron ? desktopSource : true,
+		  	video: isElectron ? desktopSource : false
+		  }
 
 	// set global variable
 	isMicSource = elSource.checked;
@@ -2510,7 +2508,7 @@ async function setSource() {
 	if ( isMicSource ) {
 		// try to get access to user's microphone
 		if ( navigator.mediaDevices ) {
-			navigator.mediaDevices.getUserMedia( { audio: mediaOpts, video: mediaOpts } )
+			navigator.mediaDevices.getUserMedia( mediaOptions )
 			.then( stream => {
 				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
 				if ( isPlaying() )
