@@ -153,6 +153,12 @@ const createWindow = () => {
 	mainWindow.on( 'leave-html-full-screen', () => mainWindow.setMenuBarVisibility(true) );
 
 	mainWindow.loadURL( `http://localhost:${ server.port }/` );
+
+	mainWindow.webContents.setWindowOpenHandler( ({ url }) => {
+		if ( url.startsWith('https:') )
+			shell.openExternal( url );
+		return { action: 'deny' };
+	});
 };
 
 app.on( 'ready', createWindow );
