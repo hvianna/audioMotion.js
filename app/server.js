@@ -16,10 +16,7 @@
 		  path         = require('path'),
 		  express      = require('express'),
 		  serveIndex   = require('serve-index'),
-//		  open         = require('open'),
-//		  readlineSync = require('readline-sync'),
 		  semver       = require('semver');
-//		  getPort      = require('get-port');
 
 	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
@@ -31,28 +28,8 @@
 		  ANSI_GREEN = '\x1b[32m',
 		  ANSI_RESET = '\x1b[0m';
 
-//	console.log( await getPort( { port: getPort.portNumbers(8000, 8100) } ) );
-
-	let port            = 8000,
-		host            = 'localhost',
-		launchClient    = false,
-		musicPath       = os.homedir(),
+	let musicPath       = os.homedir(),
 		backgroundsPath = '';
-
-	function showHelp() {
-		console.log( `
-		Usage:
-
-		audioMotion -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
-
-		-b <path> : path to folder with background images and videos
-		-e        : allow external connections (by default, only localhost)
-		-m <path> : path to music folder
-		-p <port> : change server listening port (default: ${port})
-		-s        : start server only (do not launch client)
-
-		` );
-	}
 
 	function getDir( directoryPath, showHidden = false ) {
 		let dirs = [],
@@ -93,38 +70,6 @@
 		console.log( `\n\n\t${ANSI_RED}%s${ANSI_RESET}`, `ERROR: the minimum required version of node.js is v10.10.0 and you're running ${process.version}` );
 		process.exit(0);
 	}
-
-	// processes command line arguments
-
-	process.argv = process.argv.slice(2);
-
-	process.argv.forEach( ( arg, index ) => {
-		if ( arg == '-h' || arg.endsWith('-help') ) {
-			showHelp();
-			process.exit(0);
-		}
-		else if ( arg == '-m' && process.argv[ index + 1 ] )
-			musicPath = path.normalize( process.argv[ index + 1 ] );
-		else if ( arg == '-b' && process.argv[ index + 1 ] )
-			backgroundsPath = path.normalize( process.argv[ index + 1 ] );
-		else if ( arg == '-p' && process.argv[ index + 1 ] > 0 )
-			port = process.argv[ index + 1 ];
-		else if ( arg == '-s' )
-			launchClient = false;
-		else if ( arg == '-e' )
-			host = '';
-	});
-
-/*
-	if ( ! musicPath ) {
-		console.log( '\n\tMusic folder not defined.\n\tUse the command-line argument -m <path> to set the folder upon launching audioMotion.' );
-		musicPath = readlineSync.questionPath(
-			`\n\t${ANSI_GREEN}Please enter full path to music folder (e.g. ${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' })\n\tor just press Enter to use your home directory:\n\t> ${ANSI_RESET}`, {
-			isDirectory: true,
-			defaultInput: '~'
-		});
-	}
-*/
 
 	try {
 		fs.accessSync( musicPath, fs.constants.R_OK ); // check if music folder is readable
@@ -182,16 +127,6 @@
 	// set server root
 	server.use( express.static( pathPublic ), serveIndex( pathPublic, { template: indexTemplate } ) );
 
-	// start server
-	server.listen( port, host, () => {
-		console.log( `\n\n\t${ANSI_GREEN}%s${ANSI_RESET}`, `Listening on port ${port} ${ host ? 'for localhost connections only' : 'accepting external connections!' }` );
-		if ( launchClient ) {
-			open( `http://localhost:${port}` );
-			console.log( '\n\tLaunching client in browser...' );
-		}
-		console.log( '\n\n\tPress Ctrl+C to terminate.' );
-	})
-
 	// route for custom server detection
 	server.get( '/serverInfo', ( req, res ) => {
 		res.send( serverSignature );
@@ -210,6 +145,5 @@
 		}
 	});
 
-	server.port = port;
 	module.exports = server;
 })();

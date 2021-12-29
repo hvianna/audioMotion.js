@@ -6,9 +6,8 @@ const path = require('path');
 //  app.quit();
 //}
 
+let serverPort;
 const server = require('./server');
-
-console.log( server.port );
 
 const isMac = process.platform === 'darwin';
 
@@ -152,7 +151,7 @@ const createWindow = () => {
 	mainWindow.on( 'enter-html-full-screen', () => mainWindow.setMenuBarVisibility(false) );
 	mainWindow.on( 'leave-html-full-screen', () => mainWindow.setMenuBarVisibility(true) );
 
-	mainWindow.loadURL( `http://localhost:${ server.port }/` );
+	mainWindow.loadURL( `http://localhost:${serverPort}/` );
 
 	mainWindow.webContents.setWindowOpenHandler( ({ url }) => {
 		if ( url.startsWith('https:') )
@@ -161,7 +160,14 @@ const createWindow = () => {
 	});
 };
 
-app.on( 'ready', createWindow );
+app.on( 'ready', () => {
+	// start server
+	server.listen( 0, function() {
+		serverPort = this.address().port;
+		console.log( `\n\nListening on port ${serverPort}` );
+		createWindow();
+	});
+});
 
 app.on( 'window-all-closed', () => {
 	if ( process.platform !== 'darwin' ) {
