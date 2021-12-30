@@ -1175,6 +1175,9 @@ function keyboardControls( event ) {
  */
 function loadCover( uri ) {
 	return new Promise( resolve => {
+		// remove server route and encoding from uri
+		uri = uri.replace( /^\/getFile\//, '' ).replace( /%2f/g, '/' );
+		// remove filename
 		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
 
 		if ( serverMode == -1 )

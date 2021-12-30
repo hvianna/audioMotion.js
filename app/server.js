@@ -7,29 +7,21 @@
 'use strict';
 
 (async function() {
-	const VERSION = '21.11';
-
-	const serverSignature = `audioMotion.js server v${VERSION}`;
-
-	const fs           = require('fs'),
-		  os           = require('os'),
+	const { app }      = require('electron'),
+		  fs           = require('fs'),
 		  path         = require('path'),
 		  express      = require('express'),
 		  serveIndex   = require('serve-index'),
-		  semver       = require('semver');
+		  mounts       = require('./getMounts.js');
+
+	const serverSignature = `audioMotion.js server v${ app.getVersion() }`;
 
 	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
 	const BG_DIR = '/backgrounds'; // path to backgrounds folder (should start with a slash)
 
-	// ANSI escape sequences for console colors - thanks https://stackoverflow.com/a/41407246
-	const ANSI_RED   = '\x1b[31m',
-		  ANSI_GREEN = '\x1b[32m',
-		  ANSI_RESET = '\x1b[0m';
-
-	let musicPath       = os.homedir(),
-		backgroundsPath = '';
+	let backgroundsPath = '';
 
 	function getDir( directoryPath, showHidden = false ) {
 		let dirs = [],
@@ -64,21 +56,7 @@
 
 	/* main */
 
-	console.log( `\n\t${serverSignature}\n\t${ ('=').repeat( serverSignature.length ) }` );
-
-	if ( ! semver.gte( process.version, '10.10.0' ) ) {
-		console.log( `\n\n\t${ANSI_RED}%s${ANSI_RESET}`, `ERROR: the minimum required version of node.js is v10.10.0 and you're running ${process.version}` );
-		process.exit(0);
-	}
-
-	try {
-		fs.accessSync( musicPath, fs.constants.R_OK ); // check if music folder is readable
-	}
-	catch (err) {
-		showHelp();
-		console.log( `\n\t${ANSI_RED}%s${ANSI_RESET}`, `ERROR: no access to music folder at ${musicPath}` );
-		process.exit(0);
-	}
+	console.log( `\n${serverSignature}\n${ ('=').repeat( serverSignature.length ) }` );
 
 	// Express web server setup
 
@@ -103,10 +81,30 @@
 		console.log( `\n\t${BG_DIR} folder mounted on ${ backgroundsPath }` );
 	}
 
-	// set route for /music folder
-	server.use( '/music', express.static( musicPath ), ( req, res ) => {
+	// set server root (static files for web client)
+	server.use( express.static( pathPublic ), serveIndex( pathPublic, { template: indexTemplate } ) );
 
-		let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) ),
+	// route for custom server detection
+	server.get( '/serverInfo', ( req, res ) => {
+		res.send( serverSignature );
+	});
+
+	// retrieve a directory's cover picture
+	server.get( '/getCover/:path', ( req, res ) => {
+		const path    = decodeURI( req.params.path ).replace( /%23/g, '#' ),
+			  entries = getDir( path );
+
+		if ( entries === false )
+			res.status(404).send( 'Not found!' );
+		else {
+			const imgs = entries.files.filter( file => file.match( imageExtensions ) !== null );
+			res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
+		}
+	});
+
+	// retrieve a directory
+	server.get( '/getDir/:path', ( req, res ) => {
+		let files = getDir( decodeURI( req.params.path ).replace( /%23/g, '#' ) ),
 			imgs  = [];
 
 		if ( files === false )
@@ -122,27 +120,22 @@
 		}
 	});
 
-	console.log( `\n\t/music folder mounted on ${musicPath}` );
+	// retrieve mount points (or drives on Windows)
+	server.get( '/getMounts', ( req, res ) => {
+		mounts.getMounts( ( error, mounts ) => {
+			if ( ! error )
+				res.send( mounts );
+		});
+	});
 
-	// set server root
-	server.use( express.static( pathPublic ), serveIndex( pathPublic, { template: indexTemplate } ) );
-
-	// route for custom server detection
-	server.get( '/serverInfo', ( req, res ) => {
-		res.send( serverSignature );
-	})
-
-	// route for retrieving a directory's cover picture
-	server.get( '/getCover/:path', ( req, res ) => {
-		const path    = musicPath + decodeURI( req.params.path ).replace( /^\/music/, '' ).replace( /%23/g, '#' ),
-			  entries = getDir( path );
-
-		if ( entries === false )
-			res.status(404).send( 'Not found!' );
-		else {
-			const imgs = entries.files.filter( file => file.match( imageExtensions ) !== null );
-			res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
-		}
+	// retrieve a file
+	server.get( '/getFile/:path', ( req, res ) => {
+		const file = req.params.path;
+		// check for allowed file types
+		if ( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|jpg|jpeg|png|gif|bmp)$/.test( file ) )
+			res.sendFile( file );
+		else
+			res.sendStatus(403);
 	});
 
 	module.exports = server;

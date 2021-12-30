@@ -4,10 +4,12 @@
  * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
  */
 
-var mounts = [],
-	currentPath = [],
+const defaultRoot = '/music',
+	  isElectron  = /electron/i.test( navigator.userAgent );
+
+let mounts = [],
+	currentPath = [], // array of { dir: <string>, scrollTop: <number> }
 	nodeServer = false,
-	defaultRoot = '/music',
 	ui_path,
 	ui_files,
 //	enterDirCallback,
@@ -25,10 +27,10 @@ function updateUI( content, scrollTop ) {
 	ui_files.innerHTML = '';
 
 	// breadcrumbs
-	currentPath.forEach( ( entry, index ) => {
-		if ( entry.dir == '' )
-			entry.dir = 'root';
-		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${entry.dir}</li> / `;
+	currentPath.forEach( ( { dir }, index ) => {
+		if ( dir == '' )
+			dir = 'root';
+		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> / `;
 	});
 
 	// mounting points
@@ -55,11 +57,8 @@ function updateUI( content, scrollTop ) {
 		ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${makePath( content.cover )}')` : '' );
 	}
 
-	// restore scroll position when returning from subdirectory
-	if ( scrollTop )
-		ui_files.scrollTop = scrollTop;
-	else
-		ui_files.scrollTop = 0;
+	// restore scroll position when provided (returning from subdirectory)
+	ui_files.scrollTop = scrollTop || 0;
 }
 
 /**
@@ -204,14 +203,17 @@ export function makePath( fileName ) {
 
 	var fullPath = '';
 
-	currentPath.forEach( entry => {
-		fullPath += entry.dir + '/';
-	})
+	currentPath.forEach( ( { dir } ) => {
+		fullPath += dir + ( dir == '/' ? '' : '/' ); // avoid extra slash after the root directory
+	});
 
 	if ( fileName )
 		fullPath += fileName;
 
 	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+
+	if ( isElectron )
+		fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath.replace( /\//g, '%2f' );
 
 	return fullPath;
 }
@@ -303,7 +305,12 @@ export function create( container, options = {} ) {
 				else { // no response for our custom query, so it's probably running on a standard web server
 					status = 0;
 				}
-				mounts = [ options.rootPath || defaultRoot ];
+				if ( status == 1 && isElectron ) {
+					const response = await fetch( '/getMounts' );
+					mounts = await response.json();
+				}
+				else
+					mounts = [ options.rootPath || defaultRoot ];
 				if ( await enterDir( mounts[0] ) === false ) {
 					ui_path.innerHTML = `Cannot access media folder (${mounts[0]}) on server!`;
 					ui_files.innerHTML = '';

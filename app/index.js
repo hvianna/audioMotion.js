@@ -164,7 +164,7 @@ app.on( 'ready', () => {
 	// start server
 	server.listen( 0, function() {
 		serverPort = this.address().port;
-		console.log( `\n\nListening on port ${serverPort}` );
+		console.log( `\nListening on port ${serverPort}` );
 		createWindow();
 	});
 });
