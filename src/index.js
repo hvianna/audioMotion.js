@@ -3315,9 +3315,9 @@ function updateRangeValue( el ) {
 				  videoExtensions = /\.(mp4|webm|mov)$/i;
 
 			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
-				if ( file.match( imageExtensions ) )
+				if ( imageExtensions.test( file ) )
 					bgImages.push( file );
-				else if ( file.match( videoExtensions ) )
+				else if ( videoExtensions.test( file ) )
 					bgVideos.push( file );
 			}
 

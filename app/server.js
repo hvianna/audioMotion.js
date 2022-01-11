@@ -51,7 +51,7 @@
 	// helper function - find image files with given pattern in an array of filenames
 	function findImg( arr, pattern ) {
 		const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
-		return arr.find( el => el.match( regexp ) );
+		return arr.find( el => regexp.test( el ) );
 	}
 
 	/* main */
@@ -97,26 +97,27 @@
 		if ( entries === false )
 			res.status(404).send( 'Not found!' );
 		else {
-			const imgs = entries.files.filter( file => file.match( imageExtensions ) !== null );
-			res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
+			const images = entries.files.filter( file => imageExtensions.test( file ) );
+			res.send( findImg( images, 'cover' ) || findImg( images, 'folder' ) || findImg( images, 'front' ) || images[0] );
 		}
 	});
 
 	// retrieve a directory
 	server.get( '/getDir/:path', ( req, res ) => {
-		let files = getDir( decodeURI( req.params.path ).replace( /%23/g, '#' ) ),
-			imgs  = [];
+		let entries = getDir( decodeURI( req.params.path ).replace( /%23/g, '#' ) ),
+			images  = [];
 
-		if ( files === false )
+		if ( entries === false )
 			res.status(404).send( 'Not found!' );
 		else {
-			files.files = files.files.filter( file => {
-				if ( file.match( imageExtensions ) )
-					imgs.push( file );
-				return ( file.match( audioExtensions ) !== null );
+			entries.files = entries.files.filter( file => {
+				if ( imageExtensions.test( file ) )
+					images.push( file );
+				return audioExtensions.test( file );
 			});
-			files.cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
-			res.send( files );
+			if ( entries.files.length )
+				entries.cover = findImg( images, 'cover' ) || findImg( images, 'folder' ) || findImg( images, 'front' ) || images[0];
+			res.send( entries );
 		}
 	});
 
