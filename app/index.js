@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, dialog, Menu, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
@@ -31,12 +31,22 @@ const Store = require('electron-store');
 //  app.quit();
 //}
 
+let mainWindow;
+
 let serverPort;
 const server = require('./server');
 
 const isMac = process.platform === 'darwin';
 
-const template = [
+const KEY_BG_PATH     = 'backgroundsPath',
+	  KEY_WINDOW_SIZE = 'windowBounds';
+
+// load user preferences (for storage location see app.getPath('userData') )
+const defaults = {};
+defaults[ KEY_WINDOW_SIZE ] = { width: 1280, height: 800 };
+const config = new Store( {	name: 'user-preferences', defaults } );
+
+const menuTemplate = [
 	// { role: 'appMenu' }
 	...(isMac ? [{
 		label: app.name,
@@ -59,37 +69,45 @@ const template = [
 			isMac ? { role: 'close' } : { role: 'quit' }
 		]
 	},
-	// { role: 'editMenu' }
-/*
 	{
-		label: 'Edit',
+		label: 'Preferences',
 		submenu: [
-			{ role: 'undo' },
-			{ role: 'redo' },
-			{ type: 'separator' },
-			{ role: 'cut' },
-			{ role: 'copy' },
-			{ role: 'paste' },
-			...(isMac ? [
-				{ role: 'pasteAndMatchStyle' },
-				{ role: 'delete' },
-				{ role: 'selectAll' },
-				{ type: 'separator' },
-				{
-					label: 'Speech',
-					submenu: [
-						{ role: 'startSpeaking' },
-						{ role: 'stopSpeaking' }
-					]
+			{
+				label: 'Select backgrounds folder (requires restart)',
+				click: () => {
+					const backgroundsPath = dialog.showOpenDialogSync( mainWindow, {
+						title: 'Select backgrounds folder',
+						buttonLabel: 'Select folder',
+						properties: ['openDirectory']
+					});
+
+					if ( backgroundsPath ) {
+						config.set( KEY_BG_PATH, backgroundsPath[0] );
+						app.relaunch();
+						app.exit();
+					}
 				}
-			] : [
-				{ role: 'delete' },
-				{ type: 'separator' },
-				{ role: 'selectAll' }
-			])
+			},
+			{
+				label: 'Disable backgrounds folder',
+				id: 'disableBackgrounds',
+				enabled: config.has( KEY_BG_PATH ),
+				click: function () {
+					const yesNo = dialog.showMessageBoxSync( mainWindow, {
+						type: 'question',
+						title: 'Are you sure?',
+						message: 'Do you really want to disable the backgrounds folder?',
+						detail: 'The current images will no longer be available in the Background selection.\nThis will take effect the next time you run audioMotion.',
+						buttons: [ 'Yes', 'Cancel' ]
+					});
+					if ( yesNo === 0 ) {
+						config.delete( KEY_BG_PATH );
+						menu.getMenuItemById('disableBackgrounds').enabled = false;
+					}
+				}
+			}
 		]
 	},
-*/
 	// { role: 'viewMenu' }
 	{
 		label: 'View',
@@ -145,8 +163,7 @@ const template = [
 			{
 				label: 'About',
 				click: () => {
-					const { dialog } = require('electron');
-					dialog.showMessageBoxSync({
+					dialog.showMessageBoxSync( mainWindow, {
 						type: 'info',
 						title: 'About',
 						message: `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2021 Henrique Avila Vianna`
@@ -157,21 +174,15 @@ const template = [
 	}
 ];
 
-const menu = Menu.buildFromTemplate( template );
+const menu = Menu.buildFromTemplate( menuTemplate );
 Menu.setApplicationMenu( menu );
 
-// load user preferences (for storage location see app.getPath('userData') )
-const config = new Store({
-	name: 'user-preferences',
-	defaults: {
-		windowBounds: { width: 1280, height: 800 }
-	}
-});
 
 const createWindow = () => {
-  	const { width, height } = config.get('windowBounds');
+  	const { width, height } = config.get( KEY_WINDOW_SIZE );
 	const iconPath = path.resolve( __dirname, 'audioMotion.ico' );
-	const mainWindow = new BrowserWindow({
+
+	mainWindow = new BrowserWindow({
 		width,
 		height,
 		resizable: true,
@@ -188,7 +199,7 @@ const createWindow = () => {
 	// save window dimensions on resize
 	mainWindow.on( 'resize', () => {
 		const { width, height } = mainWindow.getBounds();
-		config.set( 'windowBounds', { width, height } );
+		config.set( KEY_WINDOW_SIZE, { width, height } );
 	});
 
 	mainWindow.loadURL( `http://localhost:${serverPort}/` );
@@ -202,8 +213,9 @@ const createWindow = () => {
 };
 
 app.on( 'ready', () => {
+	const backgroundsPath = config.get( KEY_BG_PATH );
 	// start server
-	server.create()
+	server.create( { backgroundsPath } )
 		.then( ( { port, serverSignature } ) => {
 			serverPort = port;
 			console.log( `\n${ serverSignature }\n${ ('=').repeat( serverSignature.length ) }` );
@@ -221,7 +233,7 @@ app.on( 'window-all-closed', () => {
 	}
 });
 
-app.on('activate', () => {
+app.on( 'activate', () => {
 	// On OS X it's common to re-create a window in the app when the
 	// dock icon is clicked and there are no other windows open.
 	if ( BrowserWindow.getAllWindows().length === 0 ) {

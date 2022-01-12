@@ -18,10 +18,6 @@ const serverSignature = `audioMotion.js server v${ app.getVersion() }`;
 const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
-const BG_DIR = '/backgrounds'; // path to backgrounds folder (should start with a slash)
-
-let backgroundsPath = '';
-
 function getDir( directoryPath, showHidden = false ) {
 	let dirs = [],
 		files = [],
@@ -53,7 +49,7 @@ function findImg( arr, pattern ) {
 	return arr.find( el => regexp.test( el ) );
 }
 
-function create() {
+function create( options ) {
 
 	// Express web server setup
 
@@ -72,11 +68,10 @@ function create() {
 		callback( false, htmlString );
 	}
 
-	// set custom route for backgrounds folder
-	if ( backgroundsPath ) {
-		server.use( BG_DIR, express.static( backgroundsPath ), serveIndex( backgroundsPath, { template: indexTemplate } ) );
-		console.log( `\n\t${BG_DIR} folder mounted on ${ backgroundsPath }` );
-	}
+	// set custom route for backgrounds folder, if provided
+	const { backgroundsPath } = options || {};
+	if ( backgroundsPath )
+		server.use( '/getBackground', express.static( backgroundsPath ), serveIndex( backgroundsPath, { template: indexTemplate } ) );
 
 	// set server root (static files for web client)
 	server.use( express.static( pathPublic ), serveIndex( pathPublic, { template: indexTemplate } ) );

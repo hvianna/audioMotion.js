@@ -38,7 +38,9 @@ import './notie.css';
 
 import './styles.css';
 
-const BG_DIRECTORY          = 'backgrounds', // folder name for background images and videos (no slashes!)
+const isElectron = /electron/i.test( navigator.userAgent );
+
+const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name for background images and videos (no slashes!)
 	  MAX_BG_MEDIA_FILES    = 20,			 // max number of media files (images and videos) selectable as background
 	  MAX_METADATA_REQUESTS = 4,
 	  MAX_QUEUED_SONGS      = 1000;
@@ -2494,8 +2496,7 @@ function setProperty( elems, save ) {
  */
 async function setSource() {
 
-	const isElectron = /electron/i.test( navigator.userAgent ),
-		  desktopSource = {
+	const desktopSource = {
 		  	mandatory: {
 		  		chromeMediaSource: 'desktop'
 		  	}
