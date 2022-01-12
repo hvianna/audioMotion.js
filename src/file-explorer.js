@@ -1,7 +1,7 @@
 /**
- * audioMotion.js file explorer module
+ * audioMotion.js - File explorer module
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2022 Henrique Vianna <hvianna@gmail.com>
  */
 
 const defaultRoot = '/music',
@@ -92,16 +92,18 @@ function enterDir( target, scrollTop ) {
 					else
 						return response.text();
 				}
-				else
-					resolve( false );
+				resolve( false );
+				return false;
 			})
 			.then( content => {
-				if ( ! nodeServer )
-					content = parseWebDirectory( content );
-				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
-//				if ( enterDirCallback )
-//					enterDirCallback( url, content );
-				resolve( true );
+				if ( content !== false ) {
+					if ( ! nodeServer )
+						content = parseWebDirectory( content );
+					updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
+//					if ( enterDirCallback )
+//						enterDirCallback( url, content );
+					resolve( true );
+				}
 			})
 			.catch( err => {
 				console.log( `Error accessing directory. ${err}` );

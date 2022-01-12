@@ -1,4 +1,5 @@
 /**
+ * getMounts module
  * Returns mount points on Linux or drives on Windows
  * Based on https://medium.com/quasar-framework/building-an-electron-file-explorer-with-quasar-and-vue-7bf94f1bbf6
  */

@@ -1,62 +1,59 @@
 /**
- * audioMotion.js custom file server
+ * audioMotion.js - Server module
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2022 Henrique Vianna <hvianna@gmail.com>
  */
 
 'use strict';
 
-(async function() {
-	const { app }      = require('electron'),
-		  fs           = require('fs'),
-		  path         = require('path'),
-		  express      = require('express'),
-		  serveIndex   = require('serve-index'),
-		  mounts       = require('./getMounts.js');
+const { app }      = require('electron'),
+	  fs           = require('fs'),
+	  path         = require('path'),
+	  express      = require('express'),
+	  serveIndex   = require('serve-index'),
+	  mounts       = require('./getMounts.js');
 
-	const serverSignature = `audioMotion.js server v${ app.getVersion() }`;
+const serverSignature = `audioMotion.js server v${ app.getVersion() }`;
 
-	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
-	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
+const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
+const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
-	const BG_DIR = '/backgrounds'; // path to backgrounds folder (should start with a slash)
+const BG_DIR = '/backgrounds'; // path to backgrounds folder (should start with a slash)
 
-	let backgroundsPath = '';
+let backgroundsPath = '';
 
-	function getDir( directoryPath, showHidden = false ) {
-		let dirs = [],
-			files = [],
-			entries = [];
+function getDir( directoryPath, showHidden = false ) {
+	let dirs = [],
+		files = [],
+		entries = [];
 
-		try {
-			entries = fs.readdirSync( path.normalize( directoryPath ), { withFileTypes: true } );
-		}
-		catch( e ) {
-			return false;
-		}
-
-		entries.forEach( entry => {
-			if ( entry.name[0] != '.' || showHidden ) {
-				if ( entry.isDirectory() )
-					dirs.push( entry.name );
-				else if ( entry.isFile() )
-					files.push( entry.name );
-			}
-		});
-
-		let collator = new Intl.Collator(); // for case-insensitive string sorting
-		return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
+	try {
+		entries = fs.readdirSync( path.normalize( directoryPath ), { withFileTypes: true } );
+	}
+	catch( e ) {
+		return false;
 	}
 
-	// helper function - find image files with given pattern in an array of filenames
-	function findImg( arr, pattern ) {
-		const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
-		return arr.find( el => regexp.test( el ) );
-	}
+	entries.forEach( entry => {
+		if ( entry.name[0] != '.' || showHidden ) {
+			if ( entry.isDirectory() )
+				dirs.push( entry.name );
+			else if ( entry.isFile() )
+				files.push( entry.name );
+		}
+	});
 
-	/* main */
+	let collator = new Intl.Collator(); // for case-insensitive string sorting
+	return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
+}
 
-	console.log( `\n${serverSignature}\n${ ('=').repeat( serverSignature.length ) }` );
+// helper function - find image files with given pattern in an array of filenames
+function findImg( arr, pattern ) {
+	const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
+	return arr.find( el => regexp.test( el ) );
+}
+
+function create() {
 
 	// Express web server setup
 
@@ -124,8 +121,7 @@
 	// retrieve mount points (or drives on Windows)
 	server.get( '/getMounts', ( req, res ) => {
 		mounts.getMounts( ( error, mounts ) => {
-			if ( ! error )
-				res.send( mounts );
+			res.send( mounts );
 		});
 	});
 
@@ -139,5 +135,14 @@
 			res.sendStatus(403);
 	});
 
-	module.exports = server;
-})();
+
+	// start server and return promise
+	return new Promise( resolve => {
+		server.listen( 0, function() {
+			resolve( { port: this.address().port, serverSignature } );
+		});
+	});
+
+}
+
+module.exports = { create };

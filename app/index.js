@@ -1,3 +1,27 @@
+/**
+ * audioMotion.js
+ * High-resolution real-time spectrum analyzer and music player
+ *
+ * https://github.com/hvianna/audioMotion.js
+ *
+ * @author    Henrique Vianna <hvianna@gmail.com>
+ * @copyright (c) 2018-2022 Henrique Avila Vianna
+ * @license   AGPL-3.0-or-later
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 
@@ -162,11 +186,16 @@ const createWindow = () => {
 
 app.on( 'ready', () => {
 	// start server
-	server.listen( 0, function() {
-		serverPort = this.address().port;
-		console.log( `\nListening on port ${serverPort}` );
-		createWindow();
-	});
+	server.create()
+		.then( ( { port, serverSignature } ) => {
+			serverPort = port;
+			console.log( `\n${ serverSignature }\n${ ('=').repeat( serverSignature.length ) }` );
+			console.log( `\nListening on port ${ serverPort }` );
+			createWindow();
+		})
+		.catch( err => {
+			console.log( err );
+		});
 });
 
 app.on( 'window-all-closed', () => {
