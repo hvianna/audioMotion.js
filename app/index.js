@@ -24,6 +24,7 @@
 
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
+const Store = require('electron-store');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 //if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -159,11 +160,20 @@ const template = [
 const menu = Menu.buildFromTemplate( template );
 Menu.setApplicationMenu( menu );
 
+// load user preferences (for storage location see app.getPath('userData') )
+const config = new Store({
+	name: 'user-preferences',
+	defaults: {
+		windowBounds: { width: 1280, height: 800 }
+	}
+});
+
 const createWindow = () => {
+  	const { width, height } = config.get('windowBounds');
 	const iconPath = path.resolve( __dirname, 'audioMotion.ico' );
 	const mainWindow = new BrowserWindow({
-		width: 1400,
-		height: 800,
+		width,
+		height,
 		resizable: true,
 		icon: iconPath,
 		webPreferences: {
@@ -175,8 +185,15 @@ const createWindow = () => {
 	mainWindow.on( 'enter-html-full-screen', () => mainWindow.setMenuBarVisibility(false) );
 	mainWindow.on( 'leave-html-full-screen', () => mainWindow.setMenuBarVisibility(true) );
 
+	// save window dimensions on resize
+	mainWindow.on( 'resize', () => {
+		const { width, height } = mainWindow.getBounds();
+		config.set( 'windowBounds', { width, height } );
+	});
+
 	mainWindow.loadURL( `http://localhost:${serverPort}/` );
 
+	// links clicked on the app page open in external browser
 	mainWindow.webContents.setWindowOpenHandler( ({ url }) => {
 		if ( url.startsWith('https:') )
 			shell.openExternal( url );
