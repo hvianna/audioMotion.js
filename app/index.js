@@ -46,29 +46,10 @@ const defaults = {};
 defaults[ KEY_WINDOW_SIZE ] = { width: 1280, height: 800 };
 const config = new Store( {	name: 'user-preferences', defaults } );
 
+// create app menu
 const menuTemplate = [
-	// { role: 'appMenu' }
-	...(isMac ? [{
-		label: app.name,
-		submenu: [
-			{ role: 'about' },
-			{ type: 'separator' },
-			{ role: 'services' },
-			{ type: 'separator' },
-			{ role: 'hide' },
-			{ role: 'hideOthers' },
-			{ role: 'unhide' },
-			{ type: 'separator' },
-			{ role: 'quit' }
-		]
-	}] : []),
-	// { role: 'fileMenu' }
-	{
-		label: 'File',
-		submenu: [
-			isMac ? { role: 'close' } : { role: 'quit' }
-		]
-	},
+	...( isMac ? [{ role: 'appMenu' }] : [] ),
+	{ role: 'fileMenu' },
 	{
 		label: 'Preferences',
 		submenu: [
@@ -108,42 +89,14 @@ const menuTemplate = [
 			}
 		]
 	},
-	// { role: 'viewMenu' }
-	{
-		label: 'View',
-		submenu: [
-			{ role: 'reload' },
-			{ role: 'forceReload' },
-			{ role: 'toggleDevTools' },
-			{ type: 'separator' },
-			{ role: 'resetZoom' },
-			{ role: 'zoomIn' },
-			{ role: 'zoomOut' },
-			{ type: 'separator' },
-			{ role: 'togglefullscreen' }
-		]
-	},
-	// { role: 'windowMenu' }
-	{
-		label: 'Window',
-		submenu: [
-			{ role: 'minimize' },
-			{ role: 'zoom' },
-			...(isMac ? [
-				{ type: 'separator' },
-				{ role: 'front' },
-				{ type: 'separator' },
-				{ role: 'window' }
-			] : [
-				{ role: 'close' }
-			])
-		]
-	},
+	{ role: 'viewMenu' },
+	{ role: 'windowMenu' },
 	{
 		role: 'help',
 		submenu: [
 			{
 				label: "User's Manual",
+				accelerator: 'F1',
 				click: async () => {
 					await shell.openExternal('https://audiomotion.me/users-manual');
 				}
@@ -166,7 +119,7 @@ const menuTemplate = [
 					dialog.showMessageBoxSync( mainWindow, {
 						type: 'info',
 						title: 'About',
-						message: `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2021 Henrique Avila Vianna`
+						message: `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2022 Henrique Avila Vianna`
 					});
 				}
 			}
@@ -177,7 +130,7 @@ const menuTemplate = [
 const menu = Menu.buildFromTemplate( menuTemplate );
 Menu.setApplicationMenu( menu );
 
-
+// create app browser window
 const createWindow = () => {
   	const { width, height } = config.get( KEY_WINDOW_SIZE );
 	const iconPath = path.resolve( __dirname, 'audioMotion.ico' );
@@ -196,7 +149,8 @@ const createWindow = () => {
 	mainWindow.on( 'enter-html-full-screen', () => mainWindow.setMenuBarVisibility(false) );
 	mainWindow.on( 'leave-html-full-screen', () => mainWindow.setMenuBarVisibility(true) );
 
-	// save window dimensions on resize
+	// save window dimensions to the user preferences on resize
+	// thanks https://medium.com/cameron-nokes/how-to-store-user-data-in-electron-3ba6bf66bc1e
 	mainWindow.on( 'resize', () => {
 		const { width, height } = mainWindow.getBounds();
 		config.set( KEY_WINDOW_SIZE, { width, height } );
@@ -211,6 +165,8 @@ const createWindow = () => {
 		return { action: 'deny' };
 	});
 };
+
+// event listeners
 
 app.on( 'ready', () => {
 	const backgroundsPath = config.get( KEY_BG_PATH );
