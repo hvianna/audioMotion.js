@@ -75,6 +75,7 @@
     "webpack-cli": "^4.9.1"
   },
   "dependencies": {
+    "debounce": "^1.2.1",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.0.1",
     "express": "^4.16.4",

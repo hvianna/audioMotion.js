@@ -18,7 +18,9 @@
 	  https://www.programmerall.com/article/567618944/
 	  https://github.com/electron/electron/issues/17640 (security on mac)
 
-(   ) Save/restore localStorage (renderer) to the user-settings.json file (main)
+( x ) Save/restore localStorage (renderer) to the user-settings.json file (main)
 	  needed because localStorage is relative to <server:port> and we use a random port on each run
 	  https://stackoverflow.com/questions/62938354/how-to-access-local-storage-data-inside-window-all-closed-event
+	  https://stackoverflow.com/questions/57807459/how-to-use-preload-js-properly-in-electron
 
+(   ) Save/restore last used directory in file explorer

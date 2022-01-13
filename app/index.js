@@ -25,6 +25,7 @@
 const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
+const debounce = require('debounce');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 //if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -131,14 +132,16 @@ const menuTemplate = [
 const menu = Menu.buildFromTemplate( menuTemplate );
 Menu.setApplicationMenu( menu );
 
+// save window size and position to the user-preferences file
+const saveWindowBounds = e => config.set( KEY_WINDOW_SIZE, e.sender.getBounds() );
+
 // create app browser window
 const createWindow = () => {
-  	const { width, height } = config.get( KEY_WINDOW_SIZE );
+  	const { width, height, x, y } = config.get( KEY_WINDOW_SIZE );
 	const iconPath = path.resolve( __dirname, 'audioMotion.ico' );
 
 	mainWindow = new BrowserWindow({
-		width,
-		height,
+		width, height, x, y,
 		resizable: true,
 		icon: iconPath,
 		webPreferences: {
@@ -150,14 +153,10 @@ const createWindow = () => {
 	mainWindow.on( 'enter-html-full-screen', () => mainWindow.setMenuBarVisibility(false) );
 	mainWindow.on( 'leave-html-full-screen', () => mainWindow.setMenuBarVisibility(true) );
 
-	// save window dimensions to the user preferences on resize
-	// thanks https://medium.com/cameron-nokes/how-to-store-user-data-in-electron-3ba6bf66bc1e
-	mainWindow.on( 'resize', () => {
-		const { width, height } = mainWindow.getBounds();
-		config.set( KEY_WINDOW_SIZE, { width, height } );
-	});
+	mainWindow.on( 'move', debounce( saveWindowBounds, 200 ) );
+	mainWindow.on( 'resize', debounce( saveWindowBounds, 200 ) );
 
-	mainWindow.loadURL( `http://localhost:${serverPort}/` );
+	mainWindow.loadURL( `http://localhost:${ serverPort }/` );
 
 	// links clicked on the app page open in external browser
 	mainWindow.webContents.setWindowOpenHandler( ({ url }) => {
@@ -171,7 +170,6 @@ const createWindow = () => {
 		if ( channel === 'send-storage' )
 			config.set( KEY_STORAGE, args );
 	});
-
 };
 
 // handle renderer request to get storage data saved on file
