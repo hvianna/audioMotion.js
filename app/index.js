@@ -22,7 +22,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const { app, BrowserWindow, dialog, Menu, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
@@ -39,7 +39,8 @@ const server = require('./server');
 const isMac = process.platform === 'darwin';
 
 const KEY_BG_PATH     = 'backgroundsPath',
-	  KEY_WINDOW_SIZE = 'windowBounds';
+	  KEY_WINDOW_SIZE = 'windowBounds',
+	  KEY_STORAGE     = 'localStorage';
 
 // load user preferences (for storage location see app.getPath('userData') )
 const defaults = {};
@@ -65,7 +66,7 @@ const menuTemplate = [
 					if ( backgroundsPath ) {
 						config.set( KEY_BG_PATH, backgroundsPath[0] );
 						app.relaunch();
-						app.exit();
+						app.quit(); // make sure beforeunload events are executed
 					}
 				}
 			},
@@ -142,7 +143,7 @@ const createWindow = () => {
 		icon: iconPath,
 		webPreferences: {
 //			devTools: false,
-//			preload: path.join( __dirname, 'preload.js' )
+			preload: path.join( __dirname, 'preload.js' )
 		}
 	});
 
@@ -164,9 +165,19 @@ const createWindow = () => {
 			shell.openExternal( url );
 		return { action: 'deny' };
 	});
+
+	// receive localStorage data from renderer on app close
+	mainWindow.webContents.on( 'ipc-message-sync', ( e, channel, ...args ) => {
+		if ( channel === 'send-storage' )
+			config.set( KEY_STORAGE, args );
+	});
+
 };
 
-// event listeners
+// handle renderer request to get storage data saved on file
+ipcMain.handle( 'get-storage', () => config.get( KEY_STORAGE ) );
+
+// app event listeners
 
 app.on( 'ready', () => {
 	const backgroundsPath = config.get( KEY_BG_PATH );
@@ -184,15 +195,13 @@ app.on( 'ready', () => {
 });
 
 app.on( 'window-all-closed', () => {
-	if ( process.platform !== 'darwin' ) {
+	if ( ! isMac )
 		app.quit();
-	}
 });
 
 app.on( 'activate', () => {
 	// On OS X it's common to re-create a window in the app when the
 	// dock icon is clicked and there are no other windows open.
-	if ( BrowserWindow.getAllWindows().length === 0 ) {
+	if ( BrowserWindow.getAllWindows().length === 0 )
 		createWindow();
-	}
 });

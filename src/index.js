@@ -2923,7 +2923,7 @@ function updateRangeValue( el ) {
  *  MAIN FUNCTION
  * ------------------------------------------------------------------------------------------------
  */
-(function() {
+( async function() {
 	// variables for on-screen info display
 	let baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
@@ -3181,6 +3181,13 @@ function updateRangeValue( el ) {
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
 	$('#version').innerText = VERSION;
+
+	// On Electron, rebuild localStorage from data saved on file (from main process)
+	if ( 'electron' in window ) {
+		const storage = JSON.parse( await electron.api('get-storage') || null );
+		for ( const item in storage )
+			localStorage.setItem( item, storage[ item ] );
+	}
 
 	// Load preferences from localStorage
 	const isLastSession = loadPreferences();
