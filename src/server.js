@@ -1,12 +1,21 @@
 /**
- * audioMotion.js custom file server
+ * audioMotion
+ * Legacy custom file server module
+ *
+ * This is the legacy Node.js server which doesn’t rely on Electron.
+ *
+ * Run with:
+ * npm run server
+ *
+ * See docs/server.md for more information
+ *
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2021 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2022 Henrique Vianna <hvianna@gmail.com>
  */
 
-const VERSION = '21.11';
+const VERSION = process.env.npm_package_version;
 
-const serverSignature = `audioMotion.js server v${VERSION}`;
+const serverSignature = `audioMotion.js legacy server v${VERSION}`;
 
 const fs           = require('fs'),
 	  path         = require('path'),
@@ -36,7 +45,7 @@ function showHelp() {
 	console.log( `
 	Usage:
 
-	audioMotion -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
+	npm run server -- -m "${ process.platform == 'win32' ? 'c:\\users\\john\\music' : '/home/john/music' }"
 
 	-b <path> : path to folder with background images and videos
 	-e        : allow external connections (by default, only localhost)
@@ -75,7 +84,7 @@ function getDir( directoryPath, showHidden = false ) {
 // helper function - find image files with given pattern in an array of filenames
 function findImg( arr, pattern ) {
 	const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
-	return arr.find( el => el.match( regexp ) );
+	return arr.find( el => regexp.test( el ) );
 }
 
 /* main */
@@ -152,19 +161,20 @@ if ( backgroundsPath ) {
 // set route for /music folder
 server.use( '/music', express.static( musicPath ), ( req, res ) => {
 
-	let files = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) ),
-		imgs  = [];
+	let entries = getDir( musicPath + decodeURI( req.url ).replace( /%23/g, '#' ) ),
+		images  = [];
 
-	if ( files === false )
+	if ( entries === false )
 		res.status(404).send( 'Not found!' );
 	else {
-		files.files = files.files.filter( file => {
-			if ( file.match( imageExtensions ) )
-				imgs.push( file );
-			return ( file.match( audioExtensions ) !== null );
+		entries.files = entries.files.filter( file => {
+			if ( imageExtensions.test( file ) )
+				images.push( file );
+			return audioExtensions.test( file );
 		});
-		files.cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
-		res.send( files );
+		if ( entries.files.length )
+			entries.cover = findImg( images, 'cover' ) || findImg( images, 'folder' ) || findImg( images, 'front' ) || images[0];
+		res.send( entries );
 	}
 });
 
@@ -196,7 +206,7 @@ server.get( '/getCover/:path', ( req, res ) => {
 	if ( entries === false )
 		res.status(404).send( 'Not found!' );
 	else {
-		const imgs = entries.files.filter( file => file.match( imageExtensions ) !== null );
+		const imgs = entries.files.filter( file => imageExtensions.test( file ) );
 		res.send( findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0] );
 	}
 });
