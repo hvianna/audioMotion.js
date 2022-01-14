@@ -58,7 +58,7 @@ const menuTemplate = [
 		label: 'Preferences',
 		submenu: [
 			{
-				label: 'Select backgrounds folder (requires restart)',
+				label: 'Select backgrounds folder',
 				click: () => {
 					const backgroundsPath = dialog.showOpenDialogSync( mainWindow, {
 						title: 'Select backgrounds folder',
@@ -68,8 +68,8 @@ const menuTemplate = [
 
 					if ( backgroundsPath ) {
 						config.set( KEY_BG_PATH, backgroundsPath[0] );
-						app.relaunch();
-						app.quit(); // make sure beforeunload events are executed
+						menu.getMenuItemById('disableBackgrounds').enabled = true;
+						askToRestart();
 					}
 				}
 			},
@@ -78,23 +78,23 @@ const menuTemplate = [
 				id: 'disableBackgrounds',
 				enabled: config.has( KEY_BG_PATH ),
 				click: function () {
-					const yesNo = dialog.showMessageBoxSync( mainWindow, {
+					const option = dialog.showMessageBoxSync( mainWindow, {
 						type: 'question',
 						title: 'Are you sure?',
 						message: 'Do you really want to disable the backgrounds folder?',
-						detail: 'The current images will no longer be available in the Background selection.\nThis will take effect the next time you run audioMotion.',
+						detail: 'The current images will no longer be available for selection in the Background setting.',
 						buttons: [ 'Yes', 'Cancel' ]
 					});
-					if ( yesNo === 0 ) {
+					if ( option === 0 ) {
 						config.delete( KEY_BG_PATH );
 						menu.getMenuItemById('disableBackgrounds').enabled = false;
+						askToRestart();
 					}
 				}
 			}
 		]
 	},
 	{ role: 'viewMenu' },
-	{ role: 'windowMenu' },
 	{
 		role: 'help',
 		submenu: [
@@ -133,6 +133,20 @@ const menuTemplate = [
 
 const menu = Menu.buildFromTemplate( menuTemplate );
 Menu.setApplicationMenu( menu );
+
+// show dialog informing restart is needed and let user decide
+const askToRestart = () => {
+	const option = dialog.showMessageBoxSync( mainWindow, {
+		type: 'info',
+		title: 'Restart needed',
+		message: 'The app needs to restart for your changes to take effect',
+		buttons: [ "Restart now", "I'll restart later" ]
+	});
+	if ( option === 0 ) {
+		app.relaunch();
+		app.quit(); // make sure beforeunload events are executed
+	}
+}
 
 // save window size and position to the user-preferences file
 const saveWindowBounds = e => config.set( KEY_WINDOW_SIZE, e.sender.getBounds() );
