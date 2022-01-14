@@ -15,7 +15,7 @@
 
 const VERSION = process.env.npm_package_version;
 
-const serverSignature = `audioMotion.js legacy server v${VERSION}`;
+const serverSignature = `audioMotion legacy server v${VERSION}`;
 
 const fs           = require('fs'),
 	  path         = require('path'),

@@ -9,7 +9,8 @@
     "build": "webpack",
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "server": "node src/legacy-server.js"
   },
   "config": {
     "forge": {
