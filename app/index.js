@@ -1,6 +1,6 @@
 /**
- * audioMotion.js
- * High-resolution real-time spectrum analyzer and music player
+ * audioMotion
+ * High-resolution real-time audio spectrum analyzer and music player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -26,6 +26,8 @@ const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron')
 const path = require('path');
 const Store = require('electron-store');
 const debounce = require('debounce');
+
+const aboutText = `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2022 Henrique Avila Vianna`;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 //if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -121,7 +123,7 @@ const menuTemplate = [
 					dialog.showMessageBoxSync( mainWindow, {
 						type: 'info',
 						title: 'About',
-						message: `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2022 Henrique Avila Vianna`
+						message: aboutText
 					});
 				}
 			}

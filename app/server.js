@@ -1,5 +1,7 @@
 /**
- * audioMotion.js - Server module
+ * audioMotion
+ * Server module for Electron app
+ *
  * https://github.com/hvianna/audioMotion.js
  * Copyright (C) 2019-2022 Henrique Vianna <hvianna@gmail.com>
  */
@@ -13,7 +15,7 @@ const { app }      = require('electron'),
 	  serveIndex   = require('serve-index'),
 	  mounts       = require('./getMounts.js');
 
-const serverSignature = `audioMotion.js server v${ app.getVersion() }`;
+const serverSignature = `audioMotion server v${ app.getVersion() }`;
 
 const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;

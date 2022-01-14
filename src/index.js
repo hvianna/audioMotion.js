@@ -3399,7 +3399,7 @@ function updateRangeValue( el ) {
 			btnAddFolder.disabled = true;
 		}
 		else {
-			consoleLog( `${serversignature} detected` );
+			consoleLog( `${ serversignature } detected on port ${ location.port }` );
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
