@@ -1,6 +1,6 @@
 /**
- * audioMotion.js
- * High-resolution real-time spectrum analyzer and music player
+ * audioMotion
+ * High-resolution real-time audio spectrum analyzer and music player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -3175,7 +3175,7 @@ function updateRangeValue( el ) {
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
-	consoleLog( `audioMotion.js v${VERSION} initializing...` );
+	consoleLog( `audioMotion v${VERSION} initializing...` );
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
 	$('#version').innerText = VERSION;
