@@ -495,6 +495,9 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 // returns a boolean with the current status of an UI switch
 const isSwitchOn = el => el.dataset.active == '1';
 
+// normalize slashes in path to Linux format
+const normalizeSlashes = path => path.replace( /\\/g, '/' );
+
 // returns a string with the current status of an UI switch
 const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 
@@ -569,11 +572,10 @@ function addSongToPlayQueue( uri, content = {} ) {
 	if ( queueLength() >= MAX_QUEUED_SONGS )
 		return 0;
 
-	// normalize slashes in path
-	uri = uri.replace( /\\/g, '/' );
+	uri = normalizeSlashes( uri );
 
 	// extract file name and extension
-	const file = uri.split('/').pop(),
+	const file = uri.replace( /%2f/g, '/' ).split('/').pop(),
 		  ext  = file.split('.').pop();
 
 	// create new list element
@@ -1284,12 +1286,13 @@ function loadNextSong() {
  */
 function loadPlaylist( path ) {
 
-	// normalize slashes
-	path = path.replace( /\\/g, '/' );
+	path = normalizeSlashes( path );
 
 	return new Promise( resolve => {
 		let	n = 0,
 			songInfo;
+
+		const prefixElectron = '/getFile/';
 
 		if ( ! path ) {
 			resolve( -1 );
@@ -1303,25 +1306,36 @@ function loadPlaylist( path ) {
 						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 				})
 				.then( content => {
+					path = path.replace( /%2f/g, '/' );
 					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
+
 					content.split(/[\r\n]+/).forEach( line => {
 						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-							line = line.replace( /\\/g, '/' );
+							line = normalizeSlashes( line );
 							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
 								songInfo = line.slice( line.lastIndexOf('/') + 1 );
 								songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
 							}
-							if ( line.slice( 0, 4 ) != 'http' && line[1] != ':' && line[0] != '/' )
-								line = path + line;
+
+							if ( ! line.startsWith('http') ) { // if it's an URL, keep it as is
+								if ( line[1] != ':' && line[0] != '/' ) // if it's not an absolute path, add the current path to it
+									line = path + line;
+								else if ( isElectron ) // when using the Electron server, we need to add the getFile prefix even for absolute paths
+									line = prefixElectron + line;
+							}
 
 							// try to extract artist name and song title off the info tag (format: ARTIST - SONG)
 							const sep  = songInfo.indexOf(' - '),
 								  data = sep == -1 ? { title: songInfo } : { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) };
 
+							// replace slashes (/) in path with its url-safe encoding %2f for Electron server query strings
+							if ( line.startsWith( prefixElectron ) )
+								line = prefixElectron + line.slice( prefixElectron.length ).replace( /\//g, '%2f' );
+
 							n += addSongToPlayQueue( line, data );
 							songInfo = '';
 						}
-						else if ( line.slice( 0, 7 ) == '#EXTINF' )
+						else if ( line.startsWith('#EXTINF') )
 							songInfo = line.slice( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
 					});
 					resolve( n );
@@ -1336,8 +1350,8 @@ function loadPlaylist( path ) {
 			if ( list ) {
 				list = JSON.parse( list );
 				list.forEach( item => {
-					item = item.replace( /\\/g, '/' );
-					songInfo = item.slice( item.lastIndexOf('/') + 1 );
+					item = normalizeSlashes( item );
+					songInfo = item.slice( Math.max( item.lastIndexOf('/') + 1, item.lastIndexOf('%2f') + 3 ) );
 					songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
 					n += addSongToPlayQueue( item, { title: songInfo } )
 				});
