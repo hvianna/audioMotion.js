@@ -124,7 +124,7 @@ function create( options ) {
 
 	// retrieve a file
 	server.get( '/getFile/:path', ( req, res ) => {
-		const file = req.params.path;
+		const file = path.normalize( req.params.path );
 		// check for allowed file types
 		if ( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|jpg|jpeg|png|gif|bmp)$/.test( file ) )
 			res.sendFile( file );
