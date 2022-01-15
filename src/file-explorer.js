@@ -1,5 +1,7 @@
 /**
- * audioMotion.js - File explorer module
+ * audioMotion
+ * File explorer module
+ *
  * https://github.com/hvianna/audioMotion.js
  * Copyright (C) 2019-2022 Henrique Vianna <hvianna@gmail.com>
  */
@@ -12,7 +14,7 @@ let mounts = [],
 	nodeServer = false,
 	ui_path,
 	ui_files,
-//	enterDirCallback,
+	enterDirCallback,
 	dblClickCallback;
 
 /**
@@ -70,7 +72,7 @@ function updateUI( content, scrollTop ) {
  */
 function enterDir( target, scrollTop ) {
 
-	var prev, url;
+	let prev, url;
 
 	if ( target !== undefined ) {
 		if ( target == '..' )
@@ -92,7 +94,6 @@ function enterDir( target, scrollTop ) {
 					else
 						return response.text();
 				}
-				resolve( false );
 				return false;
 			})
 			.then( content => {
@@ -100,16 +101,84 @@ function enterDir( target, scrollTop ) {
 					if ( ! nodeServer )
 						content = parseWebDirectory( content );
 					updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
-//					if ( enterDirCallback )
-//						enterDirCallback( url, content );
+					if ( enterDirCallback )
+						enterDirCallback( currentPath );
 					resolve( true );
 				}
-			})
-			.catch( err => {
-				console.log( `Error accessing directory. ${err}` );
 				resolve( false );
-			});
+			})
+			.catch( () => resolve( false ) );
 	});
+}
+
+/**
+ * Climbs up the current path (breadcrumbs navigation)
+ *
+ * @param {number} depth  how many levels to climb up
+ */
+function resetPath( depth ) {
+
+	let prev;
+
+	while ( depth > 0 ) {
+		prev = currentPath.pop();
+		depth--;
+	}
+
+	enterDir( undefined, prev && prev.scrollTop );
+}
+
+/* ******************* Public functions: ******************* */
+
+/**
+ * Generates full path for a file or directory
+ *
+ * @param {string} fileName
+ * @returns {string} full path to filename
+ */
+export function makePath( fileName ) {
+
+	let fullPath = '';
+
+	currentPath.forEach( ( { dir } ) => {
+		fullPath += dir + ( dir == '/' ? '' : '/' ); // avoid extra slash after the root directory
+	});
+
+	if ( fileName )
+		fullPath += fileName;
+
+	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+
+	if ( isElectron )
+		fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath.replace( /\//g, '%2f' );
+
+	return fullPath;
+}
+
+/**
+ * Returns current folder's file list
+ *
+ * @param {string} [selector='li']  optional CSS selector
+ * @returns {array} list of music files and playlists only
+ */
+export function getFolderContents( selector = 'li' ) {
+
+	let contents = [];
+
+	ui_files.querySelectorAll( selector ).forEach( entry => {
+		if ( ['file', 'list'].includes( entry.dataset.type ) )
+			contents.push( { file: makePath( entry.dataset.path ), type: entry.dataset.type } );
+	});
+	return contents;
+}
+
+/**
+ * Returns current path object
+ *
+ * @returns {array} array of { dir: <string>, scrollTop: <number> }
+ **/
+export function getPath() {
+	return currentPath;
 }
 
 /**
@@ -177,76 +246,38 @@ export function parseWebDirectory( content ) {
 }
 
 /**
- * Climbs up the current path (breadcrumbs navigation)
+ * Set current path
  *
- * @param {number} depth  how many levels to climb up
+ * @param {array} path	array of { dir: <string>, scrollTop: <number> }
+ * @returns {boolean}
  */
-function resetPath( depth ) {
+export async function setPath( path ) {
+	if ( ! path )
+		return false;
 
-	var prev;
+	const savedPath = [ ...currentPath ];
 
-	while ( depth > 0 ) {
-		prev = currentPath.pop();
-		depth--;
-	}
+	currentPath = path;
 
-	enterDir( undefined, prev && prev.scrollTop );
+	const success = await enterDir();
+
+	if ( ! success )
+		currentPath = savedPath;
+
+	return success;
 }
 
-/* ******************* Public functions: ******************* */
-
-/**
- * Generates full path for a file or directory
- *
- * @param {string} fileName
- * @returns {string} full path to filename
- */
-export function makePath( fileName ) {
-
-	var fullPath = '';
-
-	currentPath.forEach( ( { dir } ) => {
-		fullPath += dir + ( dir == '/' ? '' : '/' ); // avoid extra slash after the root directory
-	});
-
-	if ( fileName )
-		fullPath += fileName;
-
-	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
-
-	if ( isElectron )
-		fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath.replace( /\//g, '%2f' );
-
-	return fullPath;
-}
-
-/**
- * Returns current folder's file list
- *
- * @param {string} [selector='li']  optional CSS selector
- * @returns {array} list of music files and playlists only
- */
-export function getFolderContents( selector = 'li' ) {
-
-	var contents = [];
-
-	ui_files.querySelectorAll( selector ).forEach( entry => {
-		if ( ['file', 'list'].includes( entry.dataset.type ) )
-			contents.push( { file: makePath( entry.dataset.path ), type: entry.dataset.type } );
-	});
-	return contents;
-}
 
 /**
  * Constructor function
  *
  * @param {Element} container  DOM element where the file explorer should be inserted
- * @param {object} [options]   { dblClick: callback function, rootPath: starting path (defaults to '/music') }
+ * @param {object} [options]   { onDblClick, onEnterDir, rootPath }
  * @returns {Promise<array>}   A promise with the server status and the filelist's DOM element
  */
 export function create( container, options = {} ) {
 
-	var startUpTimer;
+	let startUpTimer;
 
 	ui_path = document.createElement('ul');
 	ui_path.className = 'breadcrumb';
@@ -279,18 +310,18 @@ export function create( container, options = {} ) {
 		}
 	});
 
-	if ( typeof options.dblClick == 'function' )
-		dblClickCallback = options.dblClick;
-
-//	if ( typeof options.onEnterDir == 'function' )
-//		enterDirCallback = options.onEnterDir;
-
 	ui_files.addEventListener( 'dblclick', function( e ) {
 		if ( e.target && e.target.nodeName == 'LI' ) {
 			if ( dblClickCallback && ['file','list'].includes( e.target.dataset.type ) )
 				dblClickCallback( makePath( e.target.dataset.path ), e );
 		}
 	});
+
+	if ( typeof options.onDblClick == 'function' )
+		dblClickCallback = options.onDblClick;
+
+	if ( typeof options.onEnterDir == 'function' )
+		enterDirCallback = options.onEnterDir;
 
 	return new Promise( resolve => {
 		fetch( '/serverInfo' )

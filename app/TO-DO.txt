@@ -23,4 +23,5 @@
 	  https://stackoverflow.com/questions/62938354/how-to-access-local-storage-data-inside-window-all-closed-event
 	  https://stackoverflow.com/questions/57807459/how-to-use-preload-js-properly-in-electron
 
-(   ) Save/restore last used directory in file explorer
+( x ) Save/restore last used directory in file explorer
+

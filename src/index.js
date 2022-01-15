@@ -83,6 +83,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_DISPLAY_OPTS   = 'display-options',
 	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
+	  KEY_LAST_DIR       = 'last-dir',
 	  KEY_SENSITIVITY    = 'sensitivity-presets';
 
 // selector shorthand functions
@@ -126,6 +127,7 @@ const elAlphaBars   = $('#alpha_bars'),
 	  elRangeMin    = $('#freq_min'),
 	  elReflex      = $('#reflex'),
 	  elRepeat      = $('#repeat'),
+	  elSaveDir     = $('#save_dir'),
 	  elScaleX      = $('#scaleX'),
 	  elScaleY      = $('#scaleY'),
 	  elSensitivity = $('#sensitivity'),
@@ -366,7 +368,8 @@ const bgFitOptions = [
 // General settings
 const generalOptionsDefaults = {
 	fftSize : 8192,
-	pipRatio: 2.35
+	pipRatio: 2.35,
+	saveDir : true
 }
 
 // PIP window aspect ratio options
@@ -918,13 +921,19 @@ function doConfigPanel() {
 	});
 
 	// General settings
-	[ elFFTsize, elPIPRatio ].forEach( el => {
+	[ elFFTsize, elPIPRatio, elSaveDir ].forEach( el => {
 		el.addEventListener( 'change', () => {
 			if ( el == elPIPRatio && isPIP() )
 				audioMotion.width = audioMotion.height * elPIPRatio.value;
 			if ( el == elFFTsize ) {
 				audioMotion.fftSize = elFFTsize.value;
 				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+			}
+			else if ( el == elSaveDir ) {
+				if ( elSaveDir.checked )
+					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
+				else
+					localStorage.removeItem( KEY_LAST_DIR );
 			}
 			savePreferences( KEY_GENERAL_OPTS );
 		});
@@ -2073,7 +2082,8 @@ function savePreferences( key ) {
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
 			fftSize : elFFTsize.value,
-			pipRatio: elPIPRatio.value
+			pipRatio: elPIPRatio.value,
+			saveDir : elSaveDir.checked
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -2258,8 +2268,9 @@ function setCurrentCover() {
  * Set general configuration options
  */
 function setGeneralOptions( options ) {
-	elFFTsize.value  = options.fftSize;
-	elPIPRatio.value = options.pipRatio;
+	elFFTsize.value   = options.fftSize;
+	elPIPRatio.value  = options.pipRatio;
+	elSaveDir.checked = options.saveDir;
 }
 
 /**
@@ -3175,6 +3186,8 @@ function updateRangeValue( el ) {
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
 
+	let initDone = false;
+
 	consoleLog( `audioMotion v${VERSION} initializing...` );
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
@@ -3382,9 +3395,13 @@ function updateRangeValue( el ) {
 	const fileExplorerPromise = fileExplorer.create(
 		$('#file_explorer'),
 		{
-			dblClick: ( file, event ) => {
+			onDblClick: ( file, event ) => {
 				addBatchToPlayQueue( [ { file } ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
+			},
+			onEnterDir: path => {
+				if ( elSaveDir.checked && initDone ) // avoid saving the path during file explorer initialization
+					saveToStorage( KEY_LAST_DIR, path );
 			}
 		}
 	).then( ([ status, filelist, serversignature ]) => {
@@ -3441,8 +3458,10 @@ function updateRangeValue( el ) {
 	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
+		fileExplorer.setPath( JSON.parse( localStorage.getItem( KEY_LAST_DIR ) ) );
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
+		initDone = true;
 	});
 
 })();
