@@ -36,10 +36,12 @@ import './notie.css';
 
 import './styles.css';
 
-const isElectron = /electron/i.test( navigator.userAgent );
+const isElectron       = /electron/i.test( navigator.userAgent ),
+	  serverFileRoute  = '/getFile/',  // server route to read files anywhere (Electron only)
+	  serverCoverRoute = '/getCover/'; // server route to get a folder's cover image (Electron and node server)
 
-const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name for background images and videos (no slashes!)
-	  MAX_BG_MEDIA_FILES    = 20,			 // max number of media files (images and videos) selectable as background
+const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
+	  MAX_BG_MEDIA_FILES    = 20,			// max number of media files (images and videos) selectable as background
 	  MAX_METADATA_REQUESTS = 4,
 	  MAX_QUEUED_SONGS      = 1000;
 
@@ -411,6 +413,12 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
+// convert URL-encoded slashes back to regular ASCII
+const decodeSlashes = path => path.replace( /%2f/g, '/' );
+
+// convert slashes to their URL-safe encoding for server queries
+const encodeSlashes = path => path.replace( /\//g, '%2f' );
+
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
 
@@ -486,6 +494,9 @@ const getCurrentSettings = _ => ({
 	stereo      : +isSwitchOn( elStereo )
 });
 
+// check if a string is an external URL
+const isExternalURL = path => path.startsWith('http');
+
 // check if PIP is active
 const isPIP = _ => elContainer.classList.contains('pip');
 
@@ -501,12 +512,23 @@ const normalizeSlashes = path => path.replace( /\\/g, '/' );
 // returns a string with the current status of an UI switch
 const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 
+// prepare a file path for use with the Electron file server if needed
+const queryFile = path => {
+	if ( isElectron && ! isExternalURL( path ) ) {
+		if ( path.startsWith( serverFileRoute ) )
+			path = path.slice( serverFileRoute.length );
+		path = serverFileRoute + encodeSlashes( path );
+	}
+	return path;
+}
+
 // returns the count of queued songs
 const queueLength = _ => playlist.children.length;
 
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
 
+// GENERAL FUNCTIONS ------------------------------------------------------------------------------
 
 /**
  * Adds a batch of files to the queue and displays total songs added when finished
@@ -522,7 +544,6 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 		notie.alert({ text, time: 5 });
 	});
 }
-// GENERAL FUNCTIONS ------------------------------------------------------------------------------
 
 /**
  * Add audio metadata to a playlist item or audio element
@@ -575,7 +596,7 @@ function addSongToPlayQueue( uri, content = {} ) {
 	uri = normalizeSlashes( uri );
 
 	// extract file name and extension
-	const file = uri.replace( /%2f/g, '/' ).split('/').pop(),
+	const file = decodeSlashes( uri ).split('/').pop(),
 		  ext  = file.split('.').pop();
 
 	// create new list element
@@ -1186,17 +1207,19 @@ function keyboardControls( event ) {
  */
 function loadCover( uri ) {
 	return new Promise( resolve => {
-		// remove server route and encoding from uri
-		uri = uri.replace( /^\/getFile\//, '' ).replace( /%2f/g, '/' );
+		// remove custom server route and encoded slashes from uri
+		const regexp = new RegExp( `^${ serverFileRoute }` );
+		uri = decodeSlashes( uri.replace( regexp, '' ) );
+
 		// remove filename
 		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
 
 		if ( serverMode == -1 )
 			resolve(''); // nothing to do when in serverless mode
 		else if ( folderImages[ path ] !== undefined )
-			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
+			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
 		else {
-			const urlToFetch = ( serverMode == 1 ) ? '/getCover/' + path.replace( /\//g, '%2f' ) : path;
+			const urlToFetch = ( serverMode == 1 ) ? serverCoverRoute + encodeSlashes( path ) : path;
 
 			fetch( urlToFetch )
 				.then( response => {
@@ -1214,7 +1237,7 @@ function loadCover( uri ) {
 						}
 					}
 					folderImages[ path ] = imageUrl;
-					resolve( path + imageUrl );
+					resolve( queryFile( path + imageUrl ) );
 				});
 		}
 	});
@@ -1292,8 +1315,6 @@ function loadPlaylist( path ) {
 		let	n = 0,
 			songInfo;
 
-		const prefixElectron = '/getFile/';
-
 		if ( ! path ) {
 			resolve( -1 );
 		}
@@ -1306,7 +1327,7 @@ function loadPlaylist( path ) {
 						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 				})
 				.then( content => {
-					path = path.replace( /%2f/g, '/' );
+					path = decodeSlashes( path );
 					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
 
 					content.split(/[\r\n]+/).forEach( line => {
@@ -1317,22 +1338,15 @@ function loadPlaylist( path ) {
 								songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
 							}
 
-							if ( ! line.startsWith('http') ) { // if it's an URL, keep it as is
-								if ( line[1] != ':' && line[0] != '/' ) // if it's not an absolute path, add the current path to it
-									line = path + line;
-								else if ( isElectron ) // when using the Electron server, we need to add the getFile prefix even for absolute paths
-									line = prefixElectron + line;
-							}
+							// if it's not an external URL or absolute path, add the current path to it
+							if ( ! isExternalURL( line ) && line[1] != ':' && line[0] != '/' )
+								line = path + line;
 
 							// try to extract artist name and song title off the info tag (format: ARTIST - SONG)
 							const sep  = songInfo.indexOf(' - '),
 								  data = sep == -1 ? { title: songInfo } : { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) };
 
-							// replace slashes (/) in path with its url-safe encoding %2f for Electron server query strings
-							if ( line.startsWith( prefixElectron ) )
-								line = prefixElectron + line.slice( prefixElectron.length ).replace( /\//g, '%2f' );
-
-							n += addSongToPlayQueue( line, data );
+							n += addSongToPlayQueue( queryFile( line ), data );
 							songInfo = '';
 						}
 						else if ( line.startsWith('#EXTINF') )
