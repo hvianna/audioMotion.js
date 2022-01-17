@@ -1011,6 +1011,47 @@ async function fullscreen() {
 }
 
 /**
+ * Try to get a cover image from the song's folder
+ */
+function getFolderCover( uri ) {
+	return new Promise( resolve => {
+		// remove custom server route and encoded slashes from uri
+		const regexp = new RegExp( `^${ serverFileRoute }` );
+		uri = decodeSlashes( uri.replace( regexp, '' ) );
+
+		// remove filename
+		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
+
+		if ( serverMode == -1 || isExternalURL( uri ) )
+			resolve(''); // nothing to do when in serverless mode or external file
+		else if ( folderImages[ path ] !== undefined )
+			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
+		else {
+			const urlToFetch = ( serverMode == 1 ) ? serverCoverRoute + encodeSlashes( path ) : path;
+
+			fetch( urlToFetch )
+				.then( response => {
+					return ( response.status == 200 ) ? response.text() : null;
+				})
+				.then( content => {
+					let imageUrl = '';
+					if ( content ) {
+						if ( serverMode == 1 )
+							imageUrl = content;
+						else {
+							const dirContents = fileExplorer.parseWebDirectory( content );
+							if ( dirContents.cover )
+								imageUrl = dirContents.cover;
+						}
+					}
+					folderImages[ path ] = imageUrl;
+					resolve( queryFile( path + imageUrl ) );
+				});
+		}
+	});
+}
+
+/**
  * Process keyboard shortcuts
  */
 function keyboardControls( event ) {
@@ -1200,47 +1241,6 @@ function keyboardControls( event ) {
 	} // else
 
 	event.preventDefault();
-}
-
-/**
- * Try to get a cover image from the song's folder
- */
-function loadCover( uri ) {
-	return new Promise( resolve => {
-		// remove custom server route and encoded slashes from uri
-		const regexp = new RegExp( `^${ serverFileRoute }` );
-		uri = decodeSlashes( uri.replace( regexp, '' ) );
-
-		// remove filename
-		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
-
-		if ( serverMode == -1 )
-			resolve(''); // nothing to do when in serverless mode
-		else if ( folderImages[ path ] !== undefined )
-			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
-		else {
-			const urlToFetch = ( serverMode == 1 ) ? serverCoverRoute + encodeSlashes( path ) : path;
-
-			fetch( urlToFetch )
-				.then( response => {
-					return ( response.status == 200 ) ? response.text() : null;
-				})
-				.then( content => {
-					let imageUrl = '';
-					if ( content ) {
-						if ( serverMode == 1 )
-							imageUrl = content;
-						else {
-							const dirContents = fileExplorer.parseWebDirectory( content );
-							if ( dirContents.cover )
-								imageUrl = dirContents.cover;
-						}
-					}
-					folderImages[ path ] = imageUrl;
-					resolve( queryFile( path + imageUrl ) );
-				});
-		}
-	});
 }
 
 /**
@@ -1994,7 +1994,7 @@ function retrieveMetadata() {
 					addMetadata( metadata, queueItem ); // add metadata to play queue item
 					syncMetadataToAudioElements( queueItem );
 					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						loadCover( uri ).then( cover => {
+						getFolderCover( uri ).then( cover => {
 							queueItem.dataset.cover = cover;
 							syncMetadataToAudioElements( queueItem );
 						});
