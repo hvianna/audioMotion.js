@@ -86,6 +86,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
+	  KEY_PLAYLISTS      = 'playlists',
 	  KEY_SENSITIVITY    = 'sensitivity-presets';
 
 // selector shorthand functions
@@ -831,13 +832,12 @@ function deletePlaylist( index ) {
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
 			submitCallback: () => {
-				const keyName = elPlaylists[ index ].value;
-				let playlists = localStorage.getItem('playlists');
+				const keyName   = elPlaylists[ index ].value,
+					  playlists = loadFromStorage( KEY_PLAYLISTS );
 
 				if ( playlists ) {
-					playlists = JSON.parse( playlists );
 					delete playlists[ keyName ];
-					saveToStorage( 'playlists', playlists );
+					saveToStorage( KEY_PLAYLISTS, playlists );
 				}
 
 				localStorage.removeItem( `pl_${keyName}` );
@@ -1244,6 +1244,16 @@ function keyboardControls( event ) {
 }
 
 /**
+ * Load a JSON-encoded object from localStorage
+ *
+ * @param {string} item key
+ * @returns {object} parsed object
+ */
+function loadFromStorage( key ) {
+	return JSON.parse( localStorage.getItem( key ) );
+}
+
+/**
  * Clones the gradient of the given key into the currentGradient variable
  */
 function loadGradientIntoCurrentGradient(gradientKey) {
@@ -1360,9 +1370,8 @@ function loadPlaylist( path ) {
 				});
 		}
 		else { // try to load playlist from localStorage
-			let list = localStorage.getItem( 'pl_' + path );
-			if ( list ) {
-				list = JSON.parse( list );
+			const list = loadFromStorage( 'pl_' + path );
+			if ( Array.isArray( list ) ) {
 				list.forEach( item => {
 					item = normalizeSlashes( item );
 					songInfo = item.slice( Math.max( item.lastIndexOf('/') + 1, item.lastIndexOf('%2f') + 3 ) );
@@ -1383,54 +1392,51 @@ function loadPlaylist( path ) {
  */
 function loadPreferences() {
 	// helper function
-	const parseDisabled = ( jsonData, options ) => {
-		if ( jsonData !== null ) {
-			JSON.parse( jsonData ).forEach( option => {
-				const opt = options.find( item => item.value == option );
+	const parseDisabled = ( data, optionList ) => {
+		if ( Array.isArray( data ) ) {
+			data.forEach( option => {
+				const opt = optionList.find( item => item.value == option );
 				if ( opt )
 					opt.disabled = true;
 			});
 		}
 	}
 
-	// Load last used settings
-	const lastConfig    = localStorage.getItem( KEY_LAST_CONFIG ),
-		  isLastSession = ( lastConfig !== null );
+	const isLastSession = KEY_LAST_CONFIG in localStorage;
 
-	// if no data found from last session, use the defaults
-	presets['last'] = JSON.parse( lastConfig ) || { ...presets['default'] };
+	// If no settings found from last session, use the defaults
+	presets['last'] = loadFromStorage( KEY_LAST_CONFIG ) || { ...presets['default'] };
 
 	// Load custom preset
-	presets['custom'] = JSON.parse( localStorage.getItem( KEY_CUSTOM_PRESET ) );
+	presets['custom'] = loadFromStorage( KEY_CUSTOM_PRESET );
 
 	// Populate presets combo box
 	populatePresets( isLastSession );
 
 	// Load disabled modes preference
-	parseDisabled( localStorage.getItem( KEY_DISABLED_MODES ), modeOptions );
+	parseDisabled( loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
 
 	// Load disabled background image fit options
-	parseDisabled( localStorage.getItem( KEY_DISABLED_BGFIT ), bgFitOptions );
+	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
 
 	// Load custom gradients
-	const customGradientsJson = localStorage.getItem( KEY_CUSTOM_GRADS );
-	if (customGradientsJson !== null) {
-		const customGradients = JSON.parse(customGradientsJson);
-		Object.keys(customGradients).forEach(key => {
-			gradients[key] = customGradients[key];
-		})
+	const customGradients = loadFromStorage( KEY_CUSTOM_GRADS );
+	if ( customGradients ) {
+		Object.keys( customGradients ).forEach( key => {
+			gradients[ key ] = customGradients[ key ];
+		});
 	}
 
 	// Load disabled gradients preference
-	const disabledGradients = localStorage.getItem( KEY_DISABLED_GRADS );
-	if ( disabledGradients !== null ) {
-		JSON.parse( disabledGradients ).forEach( key => {
+	const disabledGradients = loadFromStorage( KEY_DISABLED_GRADS );
+	if ( Array.isArray( disabledGradients ) ) {
+		disabledGradients.forEach( key => {
 			gradients[ key ].disabled = true;
 		});
 	}
 
 	// Load disabled random properties preference
-	parseDisabled( localStorage.getItem( KEY_DISABLED_PROPS ), randomProperties );
+	parseDisabled( loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -1441,7 +1447,7 @@ function loadPreferences() {
 	for ( let i = 0; i >= -40; i -= 5 )
 		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
 
-	const sensitivityPresets = JSON.parse( localStorage.getItem( KEY_SENSITIVITY ) ) || sensitivityDefaults;
+	const sensitivityPresets = loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -1449,7 +1455,7 @@ function loadPreferences() {
 	});
 
 	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( JSON.parse( localStorage.getItem( KEY_DISPLAY_OPTS ) ) || {} ) } );
+	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
 
 	// General settings
 	for ( let i = 10; i < 16; i++ )
@@ -1457,7 +1463,7 @@ function loadPreferences() {
 
 	populateSelect( elPIPRatio, pipRatioOptions );
 
-	setGeneralOptions( { ...generalOptionsDefaults, ...( JSON.parse( localStorage.getItem( KEY_GENERAL_OPTS ) ) || {} ) } );
+	setGeneralOptions( { ...generalOptionsDefaults, ...( loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -1554,11 +1560,9 @@ function loadSavedPlaylists( keyName ) {
 
 	// load playlists from localStorage
 
-	let playlists = localStorage.getItem('playlists');
+	const playlists = loadFromStorage( KEY_PLAYLISTS );
 
 	if ( playlists ) {
-		playlists = JSON.parse( playlists );
-
 		Object.keys( playlists ).forEach( key => {
 			const item = new Option( playlists[ key ], key );
 			item.dataset.isLocal = '1';
@@ -2852,19 +2856,14 @@ function storePlaylist( name, update = true ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-			let playlists = localStorage.getItem('playlists');
-
-			if ( playlists )
-				playlists = JSON.parse( playlists );
-			else
-				playlists = {};
+			const playlists = loadFromStorage( KEY_PLAYLISTS ) || {};
 
 			while ( playlists.hasOwnProperty( safename ) )
 				safename += '_1';
 
 			playlists[ safename ] = name;
 
-			saveToStorage( 'playlists', playlists );
+			saveToStorage( KEY_PLAYLISTS, playlists );
 			loadSavedPlaylists( safename );
 		}
 
@@ -3486,7 +3485,7 @@ function updateRangeValue( el ) {
 	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
-		fileExplorer.setPath( JSON.parse( localStorage.getItem( KEY_LAST_DIR ) ) );
+		fileExplorer.setPath( loadFromStorage( KEY_LAST_DIR ) );
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
