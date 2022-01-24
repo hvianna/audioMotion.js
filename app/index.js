@@ -149,7 +149,11 @@ const askToRestart = () => {
 }
 
 // save window size and position to the user-preferences file
-const saveWindowBounds = e => config.set( KEY_WINDOW_SIZE, e.sender.getBounds() );
+const saveWindowBounds = e => {
+	const bounds = e.sender.getBounds();
+	if ( bounds.width > 820 && bounds.height > 460 )
+		config.set( KEY_WINDOW_SIZE, bounds );
+}
 
 // create app browser window
 const createWindow = () => {
