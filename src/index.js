@@ -3224,7 +3224,7 @@ function updateRangeValue( el ) {
 	if ( 'electron' in window ) {
 		const storage = JSON.parse( await electron.api('get-storage') || null );
 		for ( const item in storage )
-			localStorage.setItem( item, storage[ item ] );
+			saveToStorage( item, storage[ item ] );
 	}
 
 	// Load preferences from localStorage

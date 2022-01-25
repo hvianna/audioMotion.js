@@ -41,16 +41,20 @@ const server = require('./server');
 
 const isMac = process.platform === 'darwin';
 
+// User preferences and localStorage persistent storage
+// for file location refer to `app.getPath('userData')`
+
 const KEY_BG_PATH     = 'backgroundsPath',
-	  KEY_WINDOW_SIZE = 'windowBounds',
-	  KEY_STORAGE     = 'localStorage';
+	  KEY_WINDOW_SIZE = 'windowBounds';
 
-// load user preferences (for storage location see app.getPath('userData') )
-const defaults = {};
-defaults[ KEY_WINDOW_SIZE ] = { width: 1280, height: 800 };
-const config = new Store( {	name: 'user-preferences', defaults } );
+const defaultPrefs = {};
+defaultPrefs[ KEY_WINDOW_SIZE ] = { width: 1280, height: 800 };
 
-// create app menu
+const config  = new Store( { name: 'user-preferences', defaultPrefs } ), // user-preferences.json
+	  storage = new Store( { name: 'storage' } ); // storage.json
+
+// Create app menu
+
 const menuTemplate = [
 	...( isMac ? [{ role: 'appMenu' }] : [] ),
 	{ role: 'fileMenu' },
@@ -186,14 +190,20 @@ const createWindow = () => {
 	});
 
 	// receive localStorage data from renderer on app close
-	mainWindow.webContents.on( 'ipc-message-sync', ( e, channel, ...args ) => {
-		if ( channel === 'send-storage' )
-			config.set( KEY_STORAGE, args );
+	mainWindow.webContents.on( 'ipc-message-sync', ( e, channel, data ) => {
+		if ( channel === 'send-storage' ) {
+			const storageObj = {};
+			// rebuild each property encoded string back into a native object
+			Object.entries( JSON.parse( data ) || {} ).forEach( ( [ key, value ] ) => {
+				storageObj[ key ] = JSON.parse( value );
+			});
+			storage.store = storageObj; // save the entire object to file
+		}
 	});
 };
 
 // handle renderer request to get storage data saved on file
-ipcMain.handle( 'get-storage', () => config.get( KEY_STORAGE ) );
+ipcMain.handle( 'get-storage', () => JSON.stringify( storage.store ) );
 
 // app event listeners
 
