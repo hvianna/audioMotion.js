@@ -110,10 +110,7 @@ const menuTemplate = [
 				}
 			},
 			{
-				label: 'Project on GitHub',
-				click: async () => {
-					await shell.openExternal('https://github.com/hvianna/audioMotion.js');
-				}
+				type: 'separator'
 			},
 			{
 				label: 'Website',
@@ -122,7 +119,28 @@ const menuTemplate = [
 				}
 			},
 			{
-				label: 'About',
+				label: 'YouTube',
+				click: async () => {
+					await shell.openExternal('https://channel.audiomotion.me');
+				}
+			},
+			{
+				label: 'Project on GitHub',
+				click: async () => {
+					await shell.openExternal('https://github.com/hvianna/audioMotion.js');
+				}
+			},
+			{
+				type: 'separator'
+			},
+			{
+				label: 'Releases / Changelog',
+				click: async () => {
+					await shell.openExternal('https://github.com/hvianna/audioMotion.js/releases');
+				}
+			},
+			{
+				label: 'About audioMotion',
 				click: () => {
 					dialog.showMessageBoxSync( mainWindow, {
 						type: 'info',
