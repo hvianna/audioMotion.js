@@ -20,7 +20,32 @@ const serverSignature = `audioMotion server v${ app.getVersion() }`;
 const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
-function getDir( directoryPath, showHidden = false ) {
+/**
+ * Helper functions
+ */
+
+// convert a string in the format 'hh:mm:ss' to seconds
+const timeInSeconds = time => {
+	let parts = time.split(':'),
+		len   = parts.length - 1;
+
+	return parts.reduce( ( prev, val, idx ) => prev + val * 60 ** ( len - idx ), 0 );
+}
+
+// find image files with given pattern in an array of filenames
+const findImg = ( arr, pattern ) => {
+	const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
+	return arr.find( el => regexp.test( el ) );
+}
+
+/**
+ * Get the contents of a directory
+ *
+ * @param {string} directoryPath
+ * @param {boolean} [showHidden]
+ * @returns {object} { dirs, files }
+ */
+function getDir( directoryPath, showHidden ) {
 	let dirs = [],
 		files = [],
 		entries = [];
@@ -41,16 +66,68 @@ function getDir( directoryPath, showHidden = false ) {
 		}
 	});
 
-	let collator = new Intl.Collator(); // for case-insensitive string sorting
-	return { dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
+	const collator = new Intl.Collator(); // for case-insensitive string sorting
+	dirs.sort( collator.compare );
+	files.sort( collator.compare );
+
+	return { dirs, files }
 }
 
-// helper function - find image files with given pattern in an array of filenames
-function findImg( arr, pattern ) {
-	const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
-	return arr.find( el => regexp.test( el ) );
+/**
+ * Save a playlist file to the filesystem
+ *
+ * @param {object} req Original server request object
+ * @param {boolean} [isUpdate] If `true` overwrites existing file
+ * @returns {object} { file, error } Full path of the actual saved file, or error message
+ */
+function savePlaylist( req, isUpdate ) {
+	const playlist = req.body.contents;
+
+	let { dir, name, ext } = path.parse( path.normalize( req.params.path ) );
+
+	// make sure file extension is valid
+	if ( ! ext.toLowerCase().startsWith('.m3u') )
+		ext += '.m3u8';
+
+	let file = path.join( dir, name + ext ),
+		incr = 0;
+
+	// when not updating a playlist, make sure we don't overwrite an existing file
+	if ( ! isUpdate ) {
+		try {
+			while ( true ) {
+				fs.accessSync( file, fs.constants.F_OK );
+				file = path.join( dir, `${ name }_${ ++incr }${ ext }` );
+			}
+		}
+		catch ( e ) {
+			// file doesn't exist - carry on!
+		}
+	}
+
+	let text = '#EXTM3U\n'; // M3U format header
+
+	for ( const { file, artist, title, duration } of playlist ) {
+		if ( artist || title || duration )
+			text += `#EXTINF:${ duration ? timeInSeconds( duration ) + ',' : '' }${ artist ? artist + ' - ' : '' }${ title || '' }\n`;
+		text += ( file.startsWith('http') ? file : path.normalize( file ) ) + '\n'; // normalize slashes for Windows when needed
+	}
+
+	try {
+		fs.writeFileSync( file, text );
+		return { file };
+	}
+	catch ( error ) {
+		return { error };
+	}
 }
 
+/**
+ * Creates the server (exported function)
+ *
+ * @param {object} options { backgroundsPath }
+ * @returns {Promise} which resolves with { port, serverSignature }
+ */
 function create( options ) {
 
 	// Express web server setup
@@ -74,6 +151,19 @@ function create( options ) {
 	const { backgroundsPath } = options || {};
 	if ( backgroundsPath )
 		server.use( '/getBackground', express.static( backgroundsPath ), serveIndex( backgroundsPath, { template: indexTemplate } ) );
+
+	// parse JSON bodies (for POST requests)
+	server.use( express.json() );
+
+	// save a playlist file (must be declared before the static server root for POST to work?)
+	server.post( '/savePlist/:path', ( req, res ) => {
+		res.json( savePlaylist( req ) );
+	});
+
+	// update an existing playlist file
+	server.put( '/savePlist/:path', ( req, res ) => {
+		res.json( savePlaylist( req, true ) );
+	});
 
 	// set server root (static files for web client)
 	server.use( express.static( pathPublic ), serveIndex( pathPublic, { template: indexTemplate } ) );

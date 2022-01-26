@@ -36,9 +36,11 @@ import './notie.css';
 
 import './styles.css';
 
-const isElectron       = /electron/i.test( navigator.userAgent ),
-	  serverFileRoute  = '/getFile/',  // server route to read files anywhere (Electron only)
-	  serverCoverRoute = '/getCover/'; // server route to get a folder's cover image (Electron and node server)
+const isElectron  = 'electron' in window,
+	  isWindows   = isElectron && /Windows/.test( navigator.userAgent ),
+	  ROUTE_FILE  = '/getFile/',  // server route to read files anywhere (Electron only)
+	  ROUTE_COVER = '/getCover/', // server route to get a folder's cover image (Electron and legacy node server)
+	  ROUTE_SAVE  = '/savePlist/'; // server route to save a file to the filesystem (Electron only)
 
 const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
 	  MAX_BG_MEDIA_FILES    = 20,			// max number of media files (images and videos) selectable as background
@@ -113,6 +115,7 @@ const elAlphaBars   = $('#alpha_bars'),
 	  elInfoTimeout = $('#info_timeout'),
 	  elLedDisplay  = $('#led_display'),
 	  elLineWidth   = $('#line_width'),
+	  elLoadedPlist = $('#loaded_playlist'),
 	  elLoRes       = $('#lo_res'),
 	  elLumiBars    = $('#lumi_bars'),
 	  elMirror      = $('#mirror'),
@@ -415,35 +418,13 @@ const canvasCtx  = elOSD.getContext('2d'),
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
 // convert URL-encoded slashes back to regular ASCII
-const decodeSlashes = path => path.replace( /%2f/g, '/' );
+const decodeSlashes = ( path, osNative ) => path.replace( /(%2f|\/)/g, osNative && isWindows ? '\\' : '/' );
 
 // convert slashes to their URL-safe encoding for server queries
 const encodeSlashes = path => path.replace( /\//g, '%2f' );
 
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
-
-// format time in seconds to hh:mm:ss string
-const formatHHMMSS = time => {
-	let str = '',
-		lead = '';
-
-	if ( time >= 3600 ) {
-		str = ( time / 3600 | 0 ) + ':';
-		time %= 3600;
-		lead = '0';
-	}
-
-	str += ( lead + ( time / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( time % 60 | 0 ) ).slice(-2);
-
-	return str;
-}
-
-// returns the extension of a file (lowercase, no dot)
-const getFileExt = filename => filename.slice( filename.lastIndexOf('.') + 1 ).toLowerCase();
-
-// returns only the name of a filename
-const getFileName = filename => filename.slice( 0, filename.lastIndexOf('.') );
 
 // return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
 const getIndex = node => {
@@ -513,12 +494,34 @@ const normalizeSlashes = path => path.replace( /\\/g, '/' );
 // returns a string with the current status of an UI switch
 const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 
+// parse a path and return its individual parts
+const parsePath = uri => {
+	const fullPath  = removeServerEncoding( uri ),
+		  lastSlash = fullPath.lastIndexOf('/') + 1,
+		  path      = fullPath.slice( 0, lastSlash ), // path only
+		  fileName  = fullPath.slice( lastSlash ),    // file name with extension
+		  lastDot   = fileName.lastIndexOf('.'),
+		  baseName  = fileName.slice( 0, lastDot ),   // file name only (no extension)
+		  extension = fileName.slice( lastDot + 1 ).toLowerCase();
+
+	return { path, fileName, baseName, extension };
+}
+
+// try to extract metadata off the filename (artist - title) or #EXTINF text (duration,artist - title)
+const parseTrackName = name => {
+	name = name.replace( /_/g, ' ' ); // for some really old file naming conventions :)
+	// try to discard the track number from the title, by checking commonly used separators (dot, hyphen or space)
+	// if the separator is a comma, assume the number is actually the duration from an #EXTINF tag
+	const [ ,, duration, separator,, artist, title ] = name.match( /(^(\d+)([,\.\-\s]))?((.*?)\s+-\s+)?(.*)/ );
+	return { artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
+}
+
 // prepare a file path for use with the Electron file server if needed
 const queryFile = path => {
 	if ( isElectron && ! isExternalURL( path ) ) {
-		if ( path.startsWith( serverFileRoute ) )
-			path = path.slice( serverFileRoute.length );
-		path = serverFileRoute + encodeSlashes( path );
+		if ( path.startsWith( ROUTE_FILE ) )
+			path = path.slice( ROUTE_FILE.length );
+		path = ROUTE_FILE + encodeSlashes( path );
 	}
 	return path;
 }
@@ -528,6 +531,28 @@ const queueLength = _ => playlist.children.length;
 
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
+
+// remove custom server route and encoded slashes from an URL
+const removeServerEncoding = uri => {
+	const regexp = new RegExp( `^${ ROUTE_FILE }` );
+	return normalizeSlashes( decodeSlashes( uri.replace( regexp, '' ) ) );
+}
+
+// format a value in seconds to a string in the format 'hh:mm:ss'
+const secondsToTime = secs => {
+	let str = '',
+		lead = '';
+
+	if ( secs >= 3600 ) {
+		str = ( secs / 3600 | 0 ) + ':';
+		secs %= 3600;
+		lead = '0';
+	}
+
+	str += ( lead + ( secs / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( secs % 60 | 0 ) ).slice(-2);
+
+	return str;
+}
 
 // GENERAL FUNCTIONS ------------------------------------------------------------------------------
 
@@ -571,7 +596,7 @@ function addMetadata( metadata, target ) {
 			trackData.quality = '';
 
 		if ( format && format.duration )
-			trackData.duration = formatHHMMSS( format.duration );
+			trackData.duration = secondsToTime( format.duration );
 		else
 			trackData.duration = '';
 
@@ -606,9 +631,10 @@ function addSongToPlayQueue( uri, content = {} ) {
 
 	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
-	trackData.artist = content.artist || '';
-	trackData.title  = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
-	trackData.codec  = ( ext !== file ) ? ext.toUpperCase() : '';
+	trackData.artist   = content.artist || '';
+	trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.duration = content.duration || '';
+	trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
 
 	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	uri = uri.replace( /#/g, '%23' );
@@ -633,10 +659,10 @@ function addToPlayQueue( file, autoplay = false ) {
 
 	let ret;
 
-	if ( ['m3u','m3u8'].includes( getFileExt( file ) ) )
+	if ( ['m3u','m3u8'].includes( parsePath( file ).extension ) )
 		ret = loadPlaylist( file );
 	else
-		ret = new Promise( resolve => resolve( addSongToPlayQueue( file ) ) );
+		ret = new Promise( resolve => resolve( addSongToPlayQueue( file, parseTrackName( parsePath( file ).baseName ) ) ) );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1015,19 +1041,14 @@ async function fullscreen() {
  */
 function getFolderCover( uri ) {
 	return new Promise( resolve => {
-		// remove custom server route and encoded slashes from uri
-		const regexp = new RegExp( `^${ serverFileRoute }` );
-		uri = decodeSlashes( uri.replace( regexp, '' ) );
-
-		// remove filename
-		const path = uri.slice( 0, uri.lastIndexOf('/') + 1 );
+		const path = parsePath( uri ).path; // extract path (no filename)
 
 		if ( serverMode == -1 || isExternalURL( uri ) )
 			resolve(''); // nothing to do when in serverless mode or external file
 		else if ( folderImages[ path ] !== undefined )
 			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
 		else {
-			const urlToFetch = ( serverMode == 1 ) ? serverCoverRoute + encodeSlashes( path ) : path;
+			const urlToFetch = ( serverMode == 1 ) ? ROUTE_COVER + encodeSlashes( path ) : path;
 
 			fetch( urlToFetch )
 				.then( response => {
@@ -1328,7 +1349,7 @@ function loadPlaylist( path ) {
 		if ( ! path ) {
 			resolve( -1 );
 		}
-		else if ( ['m3u','m3u8'].includes( getFileExt( path ) ) ) {
+		else if ( ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
 			fetch( path )
 				.then( response => {
 					if ( response.status == 200 )
@@ -1337,30 +1358,24 @@ function loadPlaylist( path ) {
 						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 				})
 				.then( content => {
-					path = decodeSlashes( path );
-					path = path.slice( 0, path.lastIndexOf('/') + 1 ); // remove file name from path
+					setLoadedPlaylist( path );
+					path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
 					content.split(/[\r\n]+/).forEach( line => {
 						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
 							line = normalizeSlashes( line );
-							if ( ! songInfo ) { // if no previous #EXTINF tag, extract info from the filename
-								songInfo = line.slice( line.lastIndexOf('/') + 1 );
-								songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
-							}
+							if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
+								songInfo = parsePath( line ).baseName;
 
 							// if it's not an external URL or absolute path, add the current path to it
 							if ( ! isExternalURL( line ) && line[1] != ':' && line[0] != '/' )
 								line = path + line;
 
-							// try to extract artist name and song title off the info tag (format: ARTIST - SONG)
-							const sep  = songInfo.indexOf(' - '),
-								  data = sep == -1 ? { title: songInfo } : { artist: songInfo.slice( 0, sep ), title: songInfo.slice( sep + 3 ) };
-
-							n += addSongToPlayQueue( queryFile( line ), data );
+							n += addSongToPlayQueue( queryFile( line ), parseTrackName( songInfo ) );
 							songInfo = '';
 						}
 						else if ( line.startsWith('#EXTINF') )
-							songInfo = line.slice( line.indexOf(',') + 1 || 8 ); // info will be saved for the next iteration
+							songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
 					});
 					resolve( n );
 				})
@@ -1374,9 +1389,7 @@ function loadPlaylist( path ) {
 			if ( Array.isArray( list ) ) {
 				list.forEach( item => {
 					item = normalizeSlashes( item );
-					songInfo = item.slice( Math.max( item.lastIndexOf('/') + 1, item.lastIndexOf('%2f') + 3 ) );
-					songInfo = getFileName( songInfo ).replace( /_/g, ' ' );
-					n += addSongToPlayQueue( item, { title: songInfo } )
+					n += addSongToPlayQueue( item, parseTrackName( parsePath( item ).baseName ) );
 				});
 			}
 			else
@@ -2061,6 +2074,58 @@ function savePlaylist( index ) {
 }
 
 /**
+ * Save the playqueue to the filesystem
+ * (Electron only)
+ */
+function savePlayqueueToServer( path, update ) {
+	if ( queueLength() == 0 ) {
+		notie.alert({ text: 'Queue is empty!' });
+		return;
+	}
+
+	if ( ! path ) {
+		notie.input({
+			text: 'Playlist will be saved to the current folder.<br>Enter filename:',
+			submitText: 'Save',
+			submitCallback: value => {
+				if ( value ) {
+					const newPath = fileExplorer.makePath( value, true );
+					savePlayqueueToServer( newPath );
+				}
+				else
+					notie.alert({ text: 'Canceled' });
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' });
+			}
+		});
+		return;
+	}
+
+	const contents = [];
+
+	playlist.childNodes.forEach( item => {
+		const { file, artist, title, duration } = item.dataset;
+		contents.push( { file: removeServerEncoding( file ), artist, title, duration } );
+	});
+
+	fetch( ROUTE_SAVE + path, {
+		method: update ? 'PUT' : 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify( { contents } )
+	})
+	.then( response => response.status == 200 ? response.json() : { error: `Cannot save file (ERROR ${ response.status })` } )
+	.then( ( { file, error } ) => {
+		const text = file ? `${ update ? 'Updated' : 'Saved as' } ${ parsePath( file ).fileName }` : error;
+		notie.alert({ text });
+		setLoadedPlaylist( file );
+		fileExplorer.refresh();
+	});
+}
+
+/**
  * Save Config Panel preferences to localStorage
  *
  * @param [key] {string} preference to save; if undefined save all preferences (default)
@@ -2314,6 +2379,18 @@ function setInfoOptions( options ) {
 	elEndTimeout.value   = options.end;
 	elShowCover.checked  = options.covers;
 	elShowCount.checked  = options.count;
+}
+
+/**
+ * Set / clear the currently loaded playlist (for Electron version)
+ */
+function setLoadedPlaylist( path = '' ) {
+	if ( isElectron ) {
+		path = removeServerEncoding( path );
+		elLoadedPlist.dataset.path = encodeSlashes( path );
+		elLoadedPlist.innerText = parsePath( path ).fileName;
+		elLoadedPlist.title = decodeSlashes( path, true ); // display native OS slashes (Windows)
+	}
 }
 
 /**
@@ -2696,16 +2773,43 @@ function setUIEventListeners() {
 
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
 
-	$('#load_playlist').addEventListener( 'click', () => {
-		loadPlaylist( elPlaylists.value ).then( n => {
-			const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
-			notie.alert({ text, time: 5 });
-		});
+	// playlist controls
+
+	$('#save_playlist').addEventListener( 'click', () => {
+		if ( isElectron ) {
+			const path = elLoadedPlist.dataset.path;
+			if ( path ) {
+				notie.confirm({
+					text: `<strong>${ elLoadedPlist.innerText }</strong><br>will be overwritten with the current play queue<br>ARE YOU SURE?`,
+					submitText: 'Overwrite',
+					submitCallback: () => savePlayqueueToServer( path, true ),
+					cancelCallback: () => notie.alert({ text: 'Canceled' }),
+				});
+			}
+			else
+				savePlayqueueToServer();
+		}
+		else
+			savePlaylist( elPlaylists.selectedIndex );
 	});
-	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
-	$('#create_playlist').addEventListener( 'click', () => storePlaylist() );
-	$('#delete_playlist').addEventListener( 'click', () => deletePlaylist( elPlaylists.selectedIndex ) );
-	$('#btn_clear').addEventListener( 'click', clearPlayQueue );
+	$('#create_playlist').addEventListener( 'click', () => isElectron ? savePlayqueueToServer() : storePlaylist() );
+	$('#btn_clear').addEventListener( 'click', () => {
+		clearPlayQueue();
+		setLoadedPlaylist();
+	});
+
+	// hide unused playlist components depending on which server we're running
+	( isElectron ? $('.playlist-bar') : elLoadedPlist ).style.display = 'none';
+
+	if ( ! isElectron ) {
+		$('#load_playlist').addEventListener( 'click', () => {
+			loadPlaylist( elPlaylists.value ).then( n => {
+				const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
+				notie.alert({ text, time: 5 });
+			});
+		});
+		$('#delete_playlist').addEventListener( 'click', () => deletePlaylist( elPlaylists.selectedIndex ) );
+	}
 
 	// clicks on canvas toggle info display on/off
 	elOSD.addEventListener( 'click', () => toggleInfo() );
@@ -3150,14 +3254,14 @@ function updateRangeValue( el ) {
 				if ( audioEl.duration || trackData.duration ) {
 					if ( ! trackData.duration ) {
 						trackData.duration =
-							audioEl.duration === Infinity ? 'LIVE' : formatHHMMSS( audioEl.duration );
+							audioEl.duration === Infinity ? 'LIVE' : secondsToTime( audioEl.duration );
 
 						if ( playlist.children[ playlistPos ] )
 							playlist.children[ playlistPos ].dataset.duration = trackData.duration;
 					}
 					canvasCtx.textAlign = 'right';
 
-					drawText( formatHHMMSS( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
+					drawText( secondsToTime( audioEl.currentTime ) + ' / ' + trackData.duration, rightPos, bottomLine3 );
 				}
 
 				// cover image
@@ -3221,7 +3325,7 @@ function updateRangeValue( el ) {
 	$('#version').innerText = VERSION;
 
 	// On Electron, rebuild localStorage from data saved on file (from main process)
-	if ( 'electron' in window ) {
+	if ( isElectron ) {
 		const storage = JSON.parse( await electron.api('get-storage') || null );
 		for ( const item in storage )
 			saveToStorage( item, storage[ item ] );
@@ -3369,8 +3473,8 @@ function updateRangeValue( el ) {
 
 			const imageCount = bgImages.length,
 				  videoCount = bgVideos.length,
-				  bgOptions  = bgImages.map( fn => [ BG_IMAGE + fn, '🖼️ ' + getFileName( fn ) ] ).concat(
-							   bgVideos.map( fn => [ BG_VIDEO + fn, '🎬 ' + getFileName( fn ) ] )
+				  bgOptions  = bgImages.map( fn => [ BG_IMAGE + fn, '🖼️ ' + parsePath( fn ).baseName ] ).concat(
+							   bgVideos.map( fn => [ BG_VIDEO + fn, '🎬 ' + parsePath( fn ).baseName ] )
 							   ).slice( 0, MAX_BG_MEDIA_FILES );
 
 			if ( videoCount )

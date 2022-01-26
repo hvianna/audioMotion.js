@@ -7,7 +7,8 @@
  */
 
 const defaultRoot = '/music',
-	  isElectron  = /electron/i.test( navigator.userAgent );
+	  isElectron  = 'electron' in window,
+	  isWindows   = isElectron && /Windows/.test( navigator.userAgent );
 
 let mounts = [],
 	currentPath = [], // array of { dir: <string>, scrollTop: <number> }
@@ -30,9 +31,9 @@ function updateUI( content, scrollTop ) {
 
 	// breadcrumbs
 	currentPath.forEach( ( { dir }, index ) => {
-		if ( dir == '' )
+		if ( dir == '/' )
 			dir = 'root';
-		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> / `;
+		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : '/' } `;
 	});
 
 	// mounting points
@@ -66,7 +67,7 @@ function updateUI( content, scrollTop ) {
 /**
  * Enters a subdirectory
  *
- * @param {string} [target]    directory name (if undefined will open the current path)
+ * @param {string} [target]    directory name (if empty will open the current path)
  * @param {number} [scrollTop] scrollTop attribute for the filelist container
  * @returns {Promise<boolean>} A promise that resolves to true if the directory change was successful, or false otherwise
  */
@@ -74,7 +75,7 @@ function enterDir( target, scrollTop ) {
 
 	let prev, url;
 
-	if ( target !== undefined ) {
+	if ( target ) {
 		if ( target == '..' )
 			prev = currentPath.pop();
 		else
@@ -134,9 +135,10 @@ function resetPath( depth ) {
  * Generates full path for a file or directory
  *
  * @param {string} fileName
+ * @param {boolean} if `true` does not prefix path with server route
  * @returns {string} full path to filename
  */
-export function makePath( fileName ) {
+export function makePath( fileName, noPrefix ) {
 
 	let fullPath = '';
 
@@ -149,8 +151,11 @@ export function makePath( fileName ) {
 
 	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
 
-	if ( isElectron )
-		fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath.replace( /\//g, '%2f' );
+	if ( isElectron ) {
+		fullPath = fullPath.replace( /\//g, '%2f' );
+		if ( ! noPrefix )
+			fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath;
+	}
 
 	return fullPath;
 }
@@ -243,6 +248,13 @@ export function parseWebDirectory( content ) {
 	const collator = new Intl.Collator(); // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
 
 	return { cover, dirs: dirs.sort( collator.compare ), files: files.sort( collator.compare ) }
+}
+
+/**
+ * Update the contents of the current directory
+ */
+export function refresh() {
+	enterDir( null, ui_files.scrollTop );
 }
 
 /**

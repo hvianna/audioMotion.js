@@ -397,24 +397,25 @@
 		</div>
 
 		<div id="playlist_panel" class="grid">
-			<div class="playlist-bar flex">
-				<select id="playlists"></select>
-				<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
-					<span class="tooltip">Load selected playlist</span>
-				</span>
-				<span class="help"><button id="save_playlist"><i class="icons8-save"></i></button>
-					<span class="tooltip">Overwrite selected playlist with play queue</span>
-				</span>
-				<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
-					<span class="tooltip">Delete selected playlist</span>
-				</span>
-			</div>
-			<div class="playqueue-bar flex">
+			<div class="playqueue-bar flex align-center">
 				<strong><i class="icons8-track-list"></i> Play queue</strong>
 				<div>
 					<button id="btn_clear">Clear</button>
+					<span class="help"><button id="save_playlist">Save</button>
+						<span class="tooltip">Overwrite the selected playlist with the current play queue</span>
+					</span>
 					<button id="create_playlist">Save as...</button>
 				</div>
+			</div>
+			<div id="loaded_playlist"></div>
+			<div class="playlist-bar flex align-baseline">
+				<select id="playlists"></select>
+				<span class="help"><button id="load_playlist">Load</button>
+					<span class="tooltip">Load selected playlist</span>
+				</span>
+				<span class="help"><button id="delete_playlist">Delete</button>
+					<span class="tooltip">Delete selected playlist</span>
+				</span>
 			</div>
 			<ul id="playlist" class="filelist"></ul>
 			<p class="center">Double-click to play / Drag to reorder / <kbd>Delete</kbd> to remove</p>
