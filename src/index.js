@@ -2815,7 +2815,11 @@ function setUIEventListeners() {
 	elOSD.addEventListener( 'click', () => toggleInfo() );
 
 	// local file upload
-	$('#local_file').addEventListener( 'change', e => loadLocalFile( e.target ) );
+	const uploadBtn = $('#local_file');
+	if ( isElectron )
+		uploadBtn.parentElement.style.display = 'none';
+	else
+		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
 
 	// load remote files from URL
 	$('#btn_load_url').addEventListener( 'click', () => {
