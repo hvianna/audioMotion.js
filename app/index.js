@@ -47,10 +47,10 @@ const isMac = process.platform === 'darwin';
 const KEY_BG_PATH     = 'backgroundsPath',
 	  KEY_WINDOW_SIZE = 'windowBounds';
 
-const defaultPrefs = {};
-defaultPrefs[ KEY_WINDOW_SIZE ] = { width: 1280, height: 800 };
+const defaults = {};
+defaults[ KEY_WINDOW_SIZE ] = { width: 1280, height: 894 };
 
-const config  = new Store( { name: 'user-preferences', defaultPrefs } ), // user-preferences.json
+const config  = new Store( { name: 'user-preferences', defaults } ), // user-preferences.json
 	  storage = new Store( { name: 'storage' } ); // storage.json
 
 // Create app menu
