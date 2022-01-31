@@ -20,6 +20,8 @@ const serverSignature = `audioMotion server v${ app.getVersion() }`;
 const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
 
+const LINE_BREAK = process.platform == 'win32' ? '\r\n' : '\n';
+
 /**
  * Helper functions
  */
@@ -86,7 +88,7 @@ function savePlaylist( req, isUpdate ) {
 	let { dir, name, ext } = path.parse( path.normalize( req.params.path ) );
 
 	// make sure file extension is valid
-	if ( ! ext.toLowerCase().startsWith('.m3u') )
+	if ( ! ['.m3u','.m3u8'].includes( ext.toLowerCase() ) )
 		ext += '.m3u8';
 
 	let file = path.join( dir, name + ext ),
@@ -105,12 +107,12 @@ function savePlaylist( req, isUpdate ) {
 		}
 	}
 
-	let text = '#EXTM3U\n'; // M3U format header
+	let text = '#EXTM3U' + LINE_BREAK; // M3U format header
 
 	for ( const { file, artist, title, duration } of playlist ) {
 		if ( artist || title || duration )
-			text += `#EXTINF:${ duration ? timeInSeconds( duration ) + ',' : '' }${ artist ? artist + ' - ' : '' }${ title || '' }\n`;
-		text += ( file.startsWith('http') ? file : path.normalize( file ) ) + '\n'; // normalize slashes for Windows when needed
+			text += `#EXTINF:${ duration ? timeInSeconds( duration ) + ',' : '' }${ artist ? artist + ' - ' : '' }${ title || '' }` + LINE_BREAK;
+		text += ( file.startsWith('http') ? file : path.normalize( file ) ) + LINE_BREAK; // normalize slashes for Windows when needed
 	}
 
 	try {
@@ -216,7 +218,7 @@ function create( options ) {
 	server.get( '/getFile/:path', ( req, res ) => {
 		const file = path.normalize( req.params.path );
 		// check for allowed file types
-		if ( /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|jpg|jpeg|png|gif|bmp)$/.test( file ) )
+		if ( audioExtensions.test( file ) || imageExtensions.test( file ) )
 			res.sendFile( file );
 		else
 			res.sendStatus(403);
