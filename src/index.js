@@ -512,7 +512,7 @@ const parseTrackName = name => {
 	name = name.replace( /_/g, ' ' ); // for some really old file naming conventions :)
 	// try to discard the track number from the title, by checking commonly used separators (dot, hyphen or space)
 	// if the separator is a comma, assume the number is actually the duration from an #EXTINF tag
-	const [ ,, duration, separator,, artist, title ] = name.match( /(^(\d+)([,\.\-\s]))?((.*?)\s+-\s+)?(.*)/ );
+	const [ ,, duration, separator,, artist, title ] = name.match( /(^(-?\d+)([,\.\-\s]))?((.*?)\s+-\s+)?(.*)/ );
 	return { artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
 }
 
@@ -540,7 +540,10 @@ const removeServerEncoding = uri => {
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
 const secondsToTime = secs => {
-	let str = '',
+	if ( secs == Infinity || secs == -1 )
+		return 'LIVE';
+
+	let str  = '',
 		lead = '';
 
 	if ( secs >= 3600 ) {
@@ -3258,8 +3261,7 @@ function updateRangeValue( el ) {
 				// time
 				if ( audioEl.duration || trackData.duration ) {
 					if ( ! trackData.duration ) {
-						trackData.duration =
-							audioEl.duration === Infinity ? 'LIVE' : secondsToTime( audioEl.duration );
+						trackData.duration = secondsToTime( audioEl.duration );
 
 						if ( playlist.children[ playlistPos ] )
 							playlist.children[ playlistPos ].dataset.duration = trackData.duration;

@@ -28,10 +28,13 @@ const LINE_BREAK = process.platform == 'win32' ? '\r\n' : '\n';
 
 // convert a string in the format 'hh:mm:ss' to seconds
 const timeInSeconds = time => {
+	if ( time == 'LIVE' || time == Infinity )
+		return -1;
+
 	let parts = time.split(':'),
 		len   = parts.length - 1;
 
-	return parts.reduce( ( prev, val, idx ) => prev + val * 60 ** ( len - idx ), 0 );
+	return parts.reduce( ( prev, val, idx ) => prev + ( val | 0 ) * 60 ** ( len - idx ), 0 );
 }
 
 // find image files with given pattern in an array of filenames
@@ -110,8 +113,8 @@ function savePlaylist( req, isUpdate ) {
 	let text = '#EXTM3U' + LINE_BREAK; // M3U format header
 
 	for ( const { file, artist, title, duration } of playlist ) {
-		if ( artist || title || duration )
-			text += `#EXTINF:${ duration ? timeInSeconds( duration ) + ',' : '' }${ artist ? artist + ' - ' : '' }${ title || '' }` + LINE_BREAK;
+		if ( title )
+			text += `#EXTINF:${ duration ? timeInSeconds( duration ) + ',' : '' }${ artist ? artist + ' - ' : '' }${ title }` + LINE_BREAK;
 		text += ( file.startsWith('http') ? file : path.normalize( file ) ) + LINE_BREAK; // normalize slashes for Windows when needed
 	}
 
