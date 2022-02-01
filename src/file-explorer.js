@@ -31,9 +31,7 @@ function updateUI( content, scrollTop ) {
 
 	// breadcrumbs
 	currentPath.forEach( ( { dir }, index ) => {
-		if ( dir == '/' )
-			dir = 'root';
-		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : '/' } `;
+		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : dir == '/' ? '' : '/' } `;
 	});
 
 	// mounting points
