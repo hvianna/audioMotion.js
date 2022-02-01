@@ -501,8 +501,8 @@ const parsePath = uri => {
 		  path      = fullPath.slice( 0, lastSlash ), // path only
 		  fileName  = fullPath.slice( lastSlash ),    // file name with extension
 		  lastDot   = fileName.lastIndexOf('.'),
-		  baseName  = fileName.slice( 0, lastDot ),   // file name only (no extension)
-		  extension = fileName.slice( lastDot + 1 ).toLowerCase();
+		  baseName  = lastDot >= 0 ? fileName.slice( 0, lastDot ) : fileName, // file name only (no extension)
+		  extension = lastDot >= 0 ? fileName.slice( lastDot + 1 ).toLowerCase() : ''; // extension (without dot)
 
 	return { path, fileName, baseName, extension };
 }
