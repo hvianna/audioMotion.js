@@ -1358,7 +1358,8 @@ function loadPlaylist( path ) {
 						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
 				})
 				.then( content => {
-					setLoadedPlaylist( path );
+					if ( ! elLoadedPlist.dataset.path )
+						setLoadedPlaylist( path );
 					path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
 					content.split(/[\r\n]+/).forEach( line => {
