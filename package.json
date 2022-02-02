@@ -1,6 +1,6 @@
 {
   "name": "audioMotion",
-  "version": "22.2.0-beta.0",
+  "version": "22.2.0-beta.1",
   "private": true,
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
@@ -65,15 +65,16 @@
     "buffer": "^6.0.3",
     "css-loader": "^6.5.1",
     "css-minimizer-webpack-plugin": "^3.4.1",
-    "electron": "^16.0.7",
+    "electron": "^16.0.8",
     "mini-css-extract-plugin": "^2.5.3",
     "music-metadata-browser": "^2.5.3",
     "notie": "^4.3.1",
     "open": "~7.4.2",
     "process": "^0.11.10",
     "readline-sync": "^1.4.10",
+    "semver": "^7.3.5",
     "sortablejs": "~1.10.2",
-    "webpack": "^5.67.0",
+    "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
@@ -81,7 +82,6 @@
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.0.1",
     "express": "^4.17.2",
-    "semver": "^7.3.5",
     "serve-index": "^1.9.1"
   },
   "optionalDependencies": {
