@@ -1421,8 +1421,8 @@ function loadPreferences() {
 
 	const isLastSession = KEY_LAST_CONFIG in localStorage;
 
-	// If no settings found from last session, use the defaults
-	presets['last'] = loadFromStorage( KEY_LAST_CONFIG ) || { ...presets['default'] };
+	// Merge defaults with the last session settings (if any)
+	presets['last'] = { ...presets['default'], ...loadFromStorage( KEY_LAST_CONFIG ) };
 
 	// Load custom preset
 	presets['custom'] = loadFromStorage( KEY_CUSTOM_PRESET );
