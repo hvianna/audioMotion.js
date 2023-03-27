@@ -77,6 +77,20 @@ const DATASET_TEMPLATE = {
 	title: ''
 };
 
+// Frequency scales
+const SCALE_BARK   = 'bark',
+	  SCALE_LINEAR = 'linear',
+	  SCALE_LOG    = 'log',
+	  SCALE_MEL    = 'mel';
+
+// Weighting filters
+const WEIGHT_NONE = '',
+	  WEIGHT_A    = 'A',
+	  WEIGHT_B    = 'B',
+	  WEIGHT_C    = 'C',
+	  WEIGHT_D    = 'D',
+	  WEIGHT_468  = '468';
+
 // localStorage keys
 const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_CUSTOM_PRESET  = 'custom-preset',
@@ -96,99 +110,109 @@ const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elAlphaBars   = $('#alpha_bars'),
-	  elAnalyzer    = $('#analyzer'),			// analyzer canvas container
-	  elBackground  = $('#background'),
-	  elBalance     = $('#balance'),
-	  elBarSpace    = $('#bar_space'),
-	  elBgImageDim  = $('#bg_img_dim'),
-	  elBgImageFit  = $('#bg_img_fit'),
-	  elContainer   = $('#bg_container'),		// outer container with background image
-	  elCycleGrad   = $('#cycle_grad'),
-	  elDim         = $('#bg_dim'),				// background image/video darkening layer
-	  elEndTimeout  = $('#end_timeout'),
-	  elFFTsize     = $('#fft_size'),
-	  elFillAlpha   = $('#fill_alpha'),
-	  elFPS         = $('#fps'),
-	  elFsHeight    = $('#fs_height'),
-	  elGradient    = $('#gradient'),
-	  elInfoTimeout = $('#info_timeout'),
-	  elLedDisplay  = $('#led_display'),
-	  elLineWidth   = $('#line_width'),
-	  elLoadedPlist = $('#loaded_playlist'),
-	  elLoRes       = $('#lo_res'),
-	  elLumiBars    = $('#lumi_bars'),
-	  elMirror      = $('#mirror'),
-	  elMode        = $('#mode'),
-	  elMute        = $('#mute'),
-	  elNoShadow    = $('#no_shadow'),
-	  elOutline     = $('#outline'),
-	  elOSD         = $('#osd'),				// message canvas
-	  elPIPRatio    = $('#pip_ratio'),
-	  elPlaylists   = $('#playlists'),
-	  elPreset      = $('#preset'),
-	  elRadial      = $('#radial'),
-	  elRandomMode  = $('#random_mode'),
-	  elRangeMax    = $('#freq_max'),
-	  elRangeMin    = $('#freq_min'),
-	  elReflex      = $('#reflex'),
-	  elRepeat      = $('#repeat'),
-	  elSaveDir     = $('#save_dir'),
-	  elScaleX      = $('#scaleX'),
-	  elScaleY      = $('#scaleY'),
-	  elSensitivity = $('#sensitivity'),
-	  elShowCount   = $('#show_count'),
-	  elShowCover   = $('#show_cover'),
-	  elShowPeaks   = $('#show_peaks'),
-	  elShowSong    = $('#show_song'),
-	  elSmoothing   = $('#smoothing'),
-	  elSource      = $('#source'),
-	  elSpin		= $('#spin'),
-	  elSplitGrad   = $('#split_grad'),
-	  elStereo      = $('#stereo'),
-	  elTrackTimeout= $('#track_timeout'),
-	  elVideo       = $('#video'),				// background video
-	  elVolume      = $('#volume'),
- 	  elWarp        = $('#warp');				// "warp" effect layer
+const elAlphaBars     = $('#alpha_bars'),
+	  elAnalyzer      = $('#analyzer'),			// analyzer canvas container
+	  elAnsiBands     = $('#ansi_bands'),
+	  elBackground    = $('#background'),
+	  elBalance       = $('#balance'),
+	  elBarSpace      = $('#bar_space'),
+	  elBgImageDim    = $('#bg_img_dim'),
+	  elBgImageFit    = $('#bg_img_fit'),
+	  elChnLayout     = $('#channel_layout'),
+	  elContainer     = $('#bg_container'),		// outer container with background image
+	  elCycleGrad     = $('#cycle_grad'),
+	  elDim           = $('#bg_dim'),				// background image/video darkening layer
+	  elEndTimeout    = $('#end_timeout'),
+	  elFFTsize       = $('#fft_size'),
+	  elFillAlpha     = $('#fill_alpha'),
+	  elFPS           = $('#fps'),
+	  elFreqScale     = $('#freq_scale'),
+	  elFsHeight      = $('#fs_height'),
+	  elGradient      = $('#gradient'),
+	  elGradientRight = $('#gradientRight'),
+	  elInfoTimeout   = $('#info_timeout'),
+	  elLedDisplay    = $('#led_display'),
+	  elLinearAmpl    = $('#linear_amplitude'),
+	  elLineWidth     = $('#line_width'),
+	  elLoadedPlist   = $('#loaded_playlist'),
+	  elLoRes         = $('#lo_res'),
+	  elLumiBars      = $('#lumi_bars'),
+	  elMirror        = $('#mirror'),
+	  elMode          = $('#mode'),
+	  elMute          = $('#mute'),
+	  elNoShadow      = $('#no_shadow'),
+	  elNoteLabels    = $('#note_labels'),
+	  elOutline       = $('#outline'),
+	  elOSD           = $('#osd'),				// message canvas
+	  elPIPRatio      = $('#pip_ratio'),
+	  elPlaylists     = $('#playlists'),
+	  elPreset        = $('#preset'),
+	  elRadial        = $('#radial'),
+	  elRandomMode    = $('#random_mode'),
+	  elRangeMax      = $('#freq_max'),
+	  elRangeMin      = $('#freq_min'),
+	  elReflex        = $('#reflex'),
+	  elRepeat        = $('#repeat'),
+	  elSaveDir       = $('#save_dir'),
+	  elScaleX        = $('#scaleX'),
+	  elScaleY        = $('#scaleY'),
+	  elSensitivity   = $('#sensitivity'),
+	  elShowCount     = $('#show_count'),
+	  elShowCover     = $('#show_cover'),
+	  elShowPeaks     = $('#show_peaks'),
+	  elShowSong      = $('#show_song'),
+	  elSmoothing     = $('#smoothing'),
+	  elSource        = $('#source'),
+	  elSpin		  = $('#spin'),
+	  elSplitGrad     = $('#split_grad'),
+	  elTrackTimeout  = $('#track_timeout'),
+	  elVideo         = $('#video'),				// background video
+	  elVolume        = $('#volume'),
+ 	  elWarp          = $('#warp'),				// "warp" effect layer
+ 	  elWeighting     = $('#weighting');
 
 // Configuration presets
 const presets = {
 	default: {
-		alphaBars   : 0,
-		background  : 0,	// gradient default
-		balance     : 0,
-		barSpace    : 0.1,
-		bgImageDim  : 0.5,
-		bgImageFit  : 1, 	// center
-		cycleGrad   : 1,
-		fillAlpha   : 0.1,
-		freqMax     : 22000,
-		freqMin     : 20,
-		fsHeight    : 100,
-		gradient    : 'prism',
-		ledDisplay  : 0,
-		lineWidth   : 2,
-		loRes       : 0,
-		lumiBars    : 0,
-		mirror      : 0,
-		mode        : 0,	// discrete frequencies
-		noShadow    : 1,
-		outlineBars : 0,
-		radial      : 0,
-		randomMode  : 0,
-		reflex      : 0,
-		repeat      : 0,
-		sensitivity : 1,
-		showFPS     : 0,
-		showPeaks   : 1,
-		showScaleX  : 1,
-		showScaleY  : 1,
-		showSong    : 1,
-		smoothing   : 0.5,
-		spin        : 2,
-		splitGrad   : 0,
-		stereo      : 0,
-		volume      : 1
+		alphaBars    : 0,
+		ansiBands    : 0,
+		background   : 0,	// gradient default
+		balance      : 0,
+		barSpace     : 0.1,
+		bgImageDim   : 0.5,
+		bgImageFit   : 1, 	// center
+		channelLayout: 'single',
+		cycleGrad    : 1,
+		fillAlpha    : 0.1,
+		freqMax      : 22000,
+		freqMin      : 20,
+		freqScale    : SCALE_LOG,
+		gradient     : 'prism',
+		gradientRight: 'prism',
+		ledDisplay   : 0,
+		linearAmpl   : 0,
+		lineWidth    : 2,
+		loRes        : 0,
+		lumiBars     : 0,
+		mirror       : 0,
+		mode         : 0,	// discrete frequencies
+		noShadow     : 1,
+		noteLabels   : 0,
+		outlineBars  : 0,
+		radial       : 0,
+		randomMode   : 0,
+		reflex       : 0,
+		repeat       : 0,
+		sensitivity  : 1,
+		showFPS      : 0,
+		showPeaks    : 1,
+		showScaleX   : 1,
+		showScaleY   : 1,
+		showSong     : 1,
+		spin         : 2,
+		splitGrad    : 0,
+		volume       : 1,
+		weighting    : ''
 	},
 
 	fullres: {
@@ -198,7 +222,6 @@ const presets = {
 		radial      : 0,
 		randomMode  : 0,
 		reflex      : 0,
-		smoothing   : 0.5
 	},
 
 	octave: {
@@ -322,12 +345,20 @@ const modeOptions = [
 	{ value: '1',   text: '1/24th octave bands',  disabled: false }
 ];
 
+// Channel Layouts
+const channelLayoutOptions = [
+	[ 'single', 'Single channel' ],
+	[ 'dual-vertical', 'Dual / Vertical' ],
+	[ 'dual-combined', 'Dual / Combined' ]
+];
+
 // Properties that may be changed by Random Mode
 const randomProperties = [
 	{ value: 'alpha',  text: 'Alpha',        disabled: false },
 	{ value: 'nobg',   text: 'Background',   disabled: false },
 	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
 	{ value: 'imgfit', text: 'BG Image Fit', disabled: false },
+	{ value: 'stereo', text: 'Channel Layout',disabled: false },
 	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
 	{ value: 'leds',   text: 'LEDs',         disabled: false },
 	{ value: 'line',   text: 'Line Width',   disabled: false },
@@ -339,14 +370,13 @@ const randomProperties = [
 	{ value: 'spin',   text: 'Radial Spin',  disabled: false },
 	{ value: 'reflex', text: 'Reflex',       disabled: false },
 	{ value: 'split',  text: 'Split',        disabled: false },
-	{ value: 'stereo', text: 'Stereo',       disabled: false },
 ];
 
 // Sensitivity presets
 const sensitivityDefaults = [
-	{ min: -70,  max: -20 }, // low
-	{ min: -85,  max: -25 }, // normal
-	{ min: -100, max: -30 }  // high
+	{ min: -70,  max: -20, boost: 1 }, // low
+	{ min: -85,  max: -25, boost: 1.6 }, // normal
+	{ min: -100, max: -30, boost: 2.4 }  // high
 ];
 
 // On-screen information display options
@@ -374,7 +404,9 @@ const bgFitOptions = [
 // General settings
 const generalOptionsDefaults = {
 	fftSize : 8192,
+	smoothing: .5,
 	pipRatio: 2.35,
+	fsHeight: 100,
 	saveDir : true
 }
 
@@ -441,39 +473,43 @@ const getText = el => el[ el.selectedIndex ].text;
 
 // returns an object with the current settings
 const getCurrentSettings = _ => ({
-	alphaBars   : +isSwitchOn( elAlphaBars ),
-	background  : elBackground.value,
-	barSpace    : elBarSpace.value,
-	bgImageDim  : elBgImageDim.value,
-	bgImageFit  : elBgImageFit.value,
-	cycleGrad   : +isSwitchOn( elCycleGrad ),
-	fillAlpha   : elFillAlpha.value,
-	freqMax		: elRangeMax.value,
-	freqMin		: elRangeMin.value,
-	fsHeight    : elFsHeight.value,
-	gradient	: elGradient.value,
-	ledDisplay  : +isSwitchOn( elLedDisplay ),
-	lineWidth   : elLineWidth.value,
-	loRes       : +isSwitchOn( elLoRes ),
-	lumiBars    : +isSwitchOn( elLumiBars ),
-	mirror      : elMirror.value,
-	mode        : elMode.value,
-	noShadow    : +isSwitchOn( elNoShadow ),
-	outlineBars : +isSwitchOn( elOutline ),
-	radial      : +isSwitchOn( elRadial ),
-	randomMode  : elRandomMode.value,
-	reflex      : elReflex.value,
-	repeat      : +isSwitchOn( elRepeat ),
-	sensitivity : elSensitivity.value,
-	showFPS     : +isSwitchOn( elFPS ),
-	showPeaks 	: +isSwitchOn( elShowPeaks ),
-	showScaleX 	: +isSwitchOn( elScaleX ),
-	showScaleY 	: +isSwitchOn( elScaleY ),
-	showSong    : +isSwitchOn( elShowSong ),
-	smoothing	: elSmoothing.value,
-	spin        : elSpin.value,
-	splitGrad   : +isSwitchOn( elSplitGrad ),
-	stereo      : +isSwitchOn( elStereo )
+	alphaBars    : +isSwitchOn( elAlphaBars ),
+	ansiBands    : +isSwitchOn( elAnsiBands ),
+	background   : elBackground.value,
+	barSpace     : elBarSpace.value,
+	bgImageDim   : elBgImageDim.value,
+	bgImageFit   : elBgImageFit.value,
+	channelLayout: elChnLayout.value,
+	cycleGrad    : +isSwitchOn( elCycleGrad ),
+	fillAlpha    : elFillAlpha.value,
+	freqMax		 : elRangeMax.value,
+	freqMin		 : elRangeMin.value,
+	freqScale    : elFreqScale.value,
+	gradient	 : elGradient.value,
+	gradientRight: elGradientRight.value,
+	ledDisplay   : +isSwitchOn( elLedDisplay ),
+	linearAmpl   : +isSwitchOn( elLinearAmpl ),
+	lineWidth    : elLineWidth.value,
+	loRes        : +isSwitchOn( elLoRes ),
+	lumiBars     : +isSwitchOn( elLumiBars ),
+	mirror       : elMirror.value,
+	mode         : elMode.value,
+	noShadow     : +isSwitchOn( elNoShadow ),
+	noteLabels   : +isSwitchOn( elNoteLabels ),
+	outlineBars  : +isSwitchOn( elOutline ),
+	radial       : +isSwitchOn( elRadial ),
+	randomMode   : elRandomMode.value,
+	reflex       : elReflex.value,
+	repeat       : +isSwitchOn( elRepeat ),
+	sensitivity  : elSensitivity.value,
+	showFPS      : +isSwitchOn( elFPS ),
+	showPeaks 	 : +isSwitchOn( elShowPeaks ),
+	showScaleX 	 : +isSwitchOn( elScaleX ),
+	showScaleY 	 : +isSwitchOn( elScaleY ),
+	showSong     : +isSwitchOn( elShowSong ),
+	spin         : elSpin.value,
+	splitGrad    : +isSwitchOn( elSplitGrad ),
+	weighting    : elWeighting.value
 });
 
 // check if a string is an external URL
@@ -555,6 +591,13 @@ const secondsToTime = secs => {
 	str += ( lead + ( secs / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( secs % 60 | 0 ) ).slice(-2);
 
 	return str;
+}
+
+// set attributes of "range" or "number" input elements
+const setRangeAtts = ( element, min, max, step = 1 ) => {
+	element.min  = min;
+	element.max  = max;
+	element.step = step;
 }
 
 // GENERAL FUNCTIONS ------------------------------------------------------------------------------
@@ -700,10 +743,38 @@ function changeFsHeight( incr ) {
 
 	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
 		elFsHeight.value = val + elFsHeight.step * incr;
-		setProperty( elFsHeight, true );
-		updateRangeValue( elFsHeight );
+		changeGeneralSettings( elFsHeight );
 	}
 	setCanvasMsg( `Analyzer height: ${ elFsHeight.value }%` );
+}
+
+/**
+ * Change properties configured in the General Settings (Config panel)
+ */
+function changeGeneralSettings( el ) {
+	switch ( el ) {
+		case elPIPRatio:
+			if ( isPIP() )
+				audioMotion.width = audioMotion.height * elPIPRatio.value;
+			break;
+		case elFFTsize :
+			audioMotion.fftSize = elFFTsize.value;
+			consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+			break;
+		case elSmoothing:
+			audioMotion.smoothing = elSmoothing.value;
+			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+			break;
+		case elFsHeight:
+			elAnalyzer.style.height = `${elFsHeight.value}%`;
+			break;
+		case elSaveDir :
+			if ( elSaveDir.checked )
+				saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
+			else
+				localStorage.removeItem( KEY_LAST_DIR );
+	}
+	savePreferences( KEY_GENERAL_OPTS );
 }
 
 /**
@@ -947,8 +1018,13 @@ function doConfigPanel() {
 	$$( '[data-preset]' ).forEach( el => {
 		if ( el.className == 'reset-sens' ) {
 			el.addEventListener( 'click', () => {
-				$(`.min-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].min;
-				$(`.max-db[data-preset="${el.dataset.preset}"]`).value = sensitivityDefaults[ el.dataset.preset ].max;
+				const preset = el.dataset.preset;
+				$(`.min-db[data-preset="${preset}"]`).value = sensitivityDefaults[ preset ].min;
+				$(`.max-db[data-preset="${preset}"]`).value = sensitivityDefaults[ preset ].max;
+				$(`.linear-boost[data-preset="${preset}"]`).value = sensitivityDefaults[ preset ].boost;
+				$$(`[data-preset="${preset}"]`).forEach( field => {
+					field.classList.remove('field-error');
+				});
 				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
 					setProperty( elSensitivity );
 				savePreferences( KEY_SENSITIVITY );
@@ -956,9 +1032,13 @@ function doConfigPanel() {
 		}
 		else {
 			el.addEventListener( 'change', () => {
-				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-					setProperty( elSensitivity );
-				savePreferences( KEY_SENSITIVITY );
+				const isValid = ( +el.value >= +el.min && +el.value <= +el.max );
+				if ( isValid ) {
+					if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+						setProperty( elSensitivity );
+					savePreferences( KEY_SENSITIVITY );
+				}
+				el.classList.toggle( 'field-error', ! isValid );
 			});
 		}
 	});
@@ -973,22 +1053,8 @@ function doConfigPanel() {
 	});
 
 	// General settings
-	[ elFFTsize, elPIPRatio, elSaveDir ].forEach( el => {
-		el.addEventListener( 'change', () => {
-			if ( el == elPIPRatio && isPIP() )
-				audioMotion.width = audioMotion.height * elPIPRatio.value;
-			if ( el == elFFTsize ) {
-				audioMotion.fftSize = elFFTsize.value;
-				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
-			}
-			else if ( el == elSaveDir ) {
-				if ( elSaveDir.checked )
-					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
-				else
-					localStorage.removeItem( KEY_LAST_DIR );
-			}
-			savePreferences( KEY_GENERAL_OPTS );
-		});
+	[ elFFTsize, elSmoothing, elPIPRatio, elFsHeight, elSaveDir ].forEach( el => {
+		el.addEventListener( 'change', () => changeGeneralSettings( el ) );
 	});
 }
 
@@ -1457,18 +1523,20 @@ function loadPreferences() {
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
-	for ( let i = -60; i >= -110; i -= 5 )
-		elMinSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+	elMinSens.forEach( el => setRangeAtts( el, -120, -60 ) );
 
 	const elMaxSens = $$('.max-db');
-	for ( let i = 0; i >= -40; i -= 5 )
-		elMaxSens.forEach( el => el[ el.options.length ] = new Option( i ) );
+	elMaxSens.forEach( el => setRangeAtts( el, -50, 0 ) );
+
+	const elLinearBoost = $$('.linear-boost');
+	elLinearBoost.forEach( el => setRangeAtts( el, 1, 5, .2 ) );
 
 	const sensitivityPresets = loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
 		elMaxSens[ index ].value = preset.max;
+		elLinearBoost[ index ].value = preset.boost || sensitivityDefaults[ index ].boost;
 	});
 
 	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
@@ -1476,9 +1544,13 @@ function loadPreferences() {
 
 	// General settings
 	for ( let i = 10; i < 16; i++ )
-		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i + ( i == 13 ? ' (Recommended)' : '' ), 2**i );
+		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
+
+	setRangeAtts( elSmoothing, 0, .9, .1 );
 
 	populateSelect( elPIPRatio, pipRatioOptions );
+
+	setRangeAtts( elFsHeight, 25, 100, 5 );
 
 	setGeneralOptions( { ...generalOptionsDefaults, ...( loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
@@ -1499,6 +1571,9 @@ function loadPreset( name, alert, init ) {
 
 	const thisPreset = presets[ name ],
 		  defaults   = presets['default'];
+
+	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
+		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
 	$$('[data-prop]').forEach( el => {
 		const prop = el.dataset.prop,
@@ -1521,25 +1596,31 @@ function loadPreset( name, alert, init ) {
 	});
 
 	audioMotion.setOptions( {
-		alphaBars    : isSwitchOn( elAlphaBars ),
-		fftSize      : elFFTsize.value,
-		ledBars      : isSwitchOn( elLedDisplay ),
-		loRes        : isSwitchOn( elLoRes ),
-		lumiBars     : isSwitchOn( elLumiBars ),
-		maxFreq      : elRangeMax.value,
-		minFreq      : elRangeMin.value,
-		mirror       : elMirror.value,
-		outlineBars  : isSwitchOn( elOutline ),
-		radial       : isSwitchOn( elRadial ),
-		showFPS      : isSwitchOn( elFPS ),
-		showPeaks    : isSwitchOn( elShowPeaks ),
-		showScaleX   : isSwitchOn( elScaleX ),
-		showScaleY   : isSwitchOn( elScaleY ),
-		smoothing    : elSmoothing.value,
-		spinSpeed    : elSpin.value,
-		splitGradient: isSwitchOn( elSplitGrad ),
-		stereo       : isSwitchOn( elStereo )
+		alphaBars      : isSwitchOn( elAlphaBars ),
+		ansiBands      : isSwitchOn( elAnsiBands ),
+		channelLayout  : elChnLayout.value,
+		fftSize        : elFFTsize.value,
+		ledBars        : isSwitchOn( elLedDisplay ),
+		linearAmplitude: isSwitchOn( elLinearAmpl ),
+		loRes          : isSwitchOn( elLoRes ),
+		lumiBars       : isSwitchOn( elLumiBars ),
+		maxFreq        : elRangeMax.value,
+		minFreq        : elRangeMin.value,
+		mirror         : elMirror.value,
+		noteLabels     : isSwitchOn( elNoteLabels ),
+		outlineBars    : isSwitchOn( elOutline ),
+		radial         : isSwitchOn( elRadial ),
+		showFPS        : isSwitchOn( elFPS ),
+		showPeaks      : isSwitchOn( elShowPeaks ),
+		showScaleX     : isSwitchOn( elScaleX ),
+		showScaleY     : isSwitchOn( elScaleY ),
+		smoothing      : elSmoothing.value,
+		spinSpeed      : elSpin.value,
+		splitGradient  : isSwitchOn( elSplitGrad ),
+		weightingFilter: elWeighting.value
 	} );
+
+	changeGeneralSettings( elFsHeight );
 
 	// settings that make additional changes are set by the setProperty() function
 	setProperty(
@@ -1551,7 +1632,6 @@ function loadPreset( name, alert, init ) {
 		elGradient,
 		elRandomMode,
 		elBarSpace,
-		elFsHeight,
 		elMode ], true );
 
 	if ( name == 'demo' )
@@ -1834,18 +1914,20 @@ function populateEnabledGradients() {
  * Populate UI gradient selection combo box
  */
 function populateGradients() {
-	let grad = elGradient.value;
-	deleteChildren( elGradient );
+	for ( const el of [ elGradient, elGradientRight ] ) {
+		let grad = el.value;
+		deleteChildren( el );
 
-	// add the option to the html select element for the user interface
-	for ( const key of Object.keys( gradients ) ) {
-		if ( ! gradients[ key ].disabled )
-			elGradient.options[ elGradient.options.length ] = new Option( gradients[ key ].name, key );
-	}
+		// add the option to the html select element for the user interface
+		for ( const key of Object.keys( gradients ) ) {
+			if ( ! gradients[ key ].disabled )
+				el.options[ el.options.length ] = new Option( gradients[ key ].name, key );
+		}
 
-	if ( grad !== '' ) {
-		elGradient.value = grad;
-		setProperty( elGradient, true );
+		if ( grad !== '' ) {
+			el.value = grad;
+			setProperty( el, true );
+		}
 	}
 }
 
@@ -1854,7 +1936,7 @@ function populateGradients() {
  */
 function populatePresets( isLastSession, newValue ) {
 	const presetOptions = [
-		[ '', 'Select preset' ],
+		[ null, 'Select preset' ],
 		[ 'demo', 'Demo (random)' ],
 		[ 'fullres', 'Full resolution' ],
 		[ 'ledbars', 'LED bars' ],
@@ -1884,7 +1966,7 @@ function populateSelect( element, options, keep ) {
 
 	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
 		const option = new Option( item.text || item[1], item.value || item[0] );
-		if ( option.value == '' )
+		if ( item[0] === null )
 			option.disabled = true;
 		element[ element.options.length ] = option;
 	}
@@ -2163,7 +2245,8 @@ function savePreferences( key ) {
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
 				min: $(`.min-db[data-preset="${i}"]`).value,
-				max: $(`.max-db[data-preset="${i}"]`).value
+				max: $(`.max-db[data-preset="${i}"]`).value,
+				boost: $(`.linear-boost[data-preset="${i}"]`).value
 			});
 		}
 		saveToStorage( KEY_SENSITIVITY, sensitivityPresets );
@@ -2182,9 +2265,11 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
-			fftSize : elFFTsize.value,
-			pipRatio: elPIPRatio.value,
-			saveDir : elSaveDir.checked
+			fftSize  : elFFTsize.value,
+			smoothing: elSmoothing.value,
+			pipRatio : elPIPRatio.value,
+			fsHeight : elFsHeight.value,
+			saveDir  : elSaveDir.checked
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -2294,7 +2379,7 @@ function selectRandomMode( force = isMicSource ) {
 		randomizeSwitch( elSplitGrad );
 
 	if ( isEnabled('stereo') )
-		randomizeSwitch( elStereo );
+		elChnLayout.selectedIndex = randomInt( elChnLayout.options.length );
 
 	if ( isEnabled('mirror') ) {
 		elMirror.value = randomInt(3) - 1;
@@ -2370,7 +2455,9 @@ function setCurrentCover() {
  */
 function setGeneralOptions( options ) {
 	elFFTsize.value   = options.fftSize;
+	elSmoothing.value = options.smoothing;
 	elPIPRatio.value  = options.pipRatio;
+	elFsHeight.value  = options.fsHeight;
 	elSaveDir.checked = options.saveDir;
 }
 
@@ -2411,6 +2498,10 @@ function setProperty( elems, save ) {
 		switch ( el ) {
 			case elAlphaBars:
 				audioMotion.alphaBars = isSwitchOn( elAlphaBars );
+				break;
+
+			case elAnsiBands:
+				audioMotion.ansiBands = isSwitchOn( elAnsiBands );
 				break;
 
 			case elBackground:
@@ -2467,12 +2558,16 @@ function setProperty( elems, save ) {
 				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : elBarSpace.value;
 				break;
 
+			case elChnLayout:
+				audioMotion.channelLayout = elChnLayout.value;
+				break;
+
 			case elFillAlpha:
 				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
 				break;
 
-			case elFsHeight:
-				elAnalyzer.style.height = `${elFsHeight.value}%`;
+			case elFreqScale:
+				audioMotion.frequencyScale = elFreqScale.value;
 				break;
 
 			case elRangeMin:
@@ -2483,13 +2578,18 @@ function setProperty( elems, save ) {
 				break;
 
 			case elGradient:
-				if ( elGradient.value === '' ) // handle invalid setting
-					elGradient.selectedIndex = 0;
-				audioMotion.gradient = elGradient.value;
+			case elGradientRight:
+				if ( el.value === '' ) // handle invalid setting
+					el.selectedIndex = 0;
+				audioMotion[ el.dataset.prop ] = el.value;
 				break;
 
 			case elLedDisplay:
 				audioMotion.ledBars = isSwitchOn( elLedDisplay );
+				break;
+
+			case elLinearAmpl:
+				audioMotion.linearAmplitude = isSwitchOn( elLinearAmpl );
 				break;
 
 			case elLineWidth:
@@ -2526,6 +2626,10 @@ function setProperty( elems, save ) {
 
 			case elMirror:
 				audioMotion.mirror = elMirror.value;
+				break;
+
+			case elNoteLabels:
+				audioMotion.noteLabels = isSwitchOn( elNoteLabels );
 				break;
 
 			case elOutline:
@@ -2579,6 +2683,7 @@ function setProperty( elems, save ) {
 					$(`.min-db[data-preset="${sensitivity}"]`).value,
 					$(`.max-db[data-preset="${sensitivity}"]`).value
 				);
+				audioMotion.linearBoost = $(`.linear-boost[data-preset="${sensitivity}"]`).value;
 				break;
 
 			case elFPS:
@@ -2589,11 +2694,6 @@ function setProperty( elems, save ) {
 				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
 				break;
 
-			case elSmoothing:
-				audioMotion.smoothing = elSmoothing.value;
-				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
-				break;
-
 			case elSpin:
 				audioMotion.spinSpeed = elSpin.value;
 				break;
@@ -2602,8 +2702,8 @@ function setProperty( elems, save ) {
 				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
 				break;
 
-			case elStereo:
-				audioMotion.stereo = isSwitchOn( elStereo );
+			case elWeighting:
+				audioMotion.weightingFilter = elWeighting.value;
 				break;
 
 		} // switch
@@ -3419,6 +3519,8 @@ function updateRangeValue( el ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
+	populateSelect( elChnLayout, channelLayoutOptions );
+
 	populateSelect(	elSensitivity, [
 		[ '0', 'Low'    ],
 		[ '1', 'Normal' ],
@@ -3464,6 +3566,22 @@ function updateRangeValue( el ) {
 		[ '1',  'Right'   ]
 	]);
 
+	populateSelect( elFreqScale, [
+		[ SCALE_BARK,   'Bark' ],
+		[ SCALE_LINEAR, 'Linear' ],
+		[ SCALE_LOG,    'Logarithmic' ],
+		[ SCALE_MEL,    'Mel']
+	]);
+
+	populateSelect( elWeighting, [
+		[ WEIGHT_NONE, 'None' ],
+		[ WEIGHT_A,    'A-weighting' ],
+		[ WEIGHT_B,    'B-weighting' ],
+		[ WEIGHT_C,    'C-weighting' ],
+		[ WEIGHT_D,    'D-weighting' ],
+		[ WEIGHT_468,  'ITU-R 468' ],
+	]);
+
 	// Check the backgrounds directory for additional background options (images and videos)
 	const bgDirPromise = fetch( BG_DIRECTORY )
 		.then( response => response.text() )
@@ -3496,19 +3614,10 @@ function updateRangeValue( el ) {
 		})
 		.catch( e => {} ); // fail silently
 
-	// Set attributes of range elements
-	const setRangeAtts = ( element, min, max, step = 1 ) => {
-		element.min  = min;
-		element.max  = max;
-		element.step = step;
-	}
-
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
 	setRangeAtts( elLineWidth, 1, 5 );
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
-	setRangeAtts( elSmoothing, 0, .9, .1 );
 	setRangeAtts( elSpin, 0, 3, 1 );
-	setRangeAtts( elFsHeight, 25, 100, 5 );
 
 	// Set UI event listeners
 	setUIEventListeners();

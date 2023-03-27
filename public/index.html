@@ -195,12 +195,13 @@
 
 		<!-- COLUMN 2 -->
 			<div class="rowspan-2">
-				<span class="config-label help"><u>G</u>radient
+				<span class="config-label help"><u>G</u>radients
 					<span class="tooltip">
-						Color gradient for the analyzer bars. Disable undesired gradients in Config.
+						Color gradients for the left and right channels. Disable undesired gradients in Config.
 					</span>
 				</span>
 				<select id="gradient" data-prop="gradient"></select>
+				<select id="gradientRight" data-prop="gradientRight"></select>
 
 				<ul class="switch-bar">
 					<li class="switch" id="cycle_grad" data-prop="cycleGrad"><u>A</u>UTO
@@ -211,7 +212,11 @@
 			</div>
 
 			<div class="rowspan-2">
-				<span class="config-label">Effects</span>
+				<span class="config-label help">Effects
+					<span class="tooltip">
+						Visualization effects
+					</span>
+				</span>
 				<ul class="switch-bar">
 					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
 						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
@@ -285,12 +290,28 @@
 
 		<!-- COLUMN 4 -->
 			<div>
+				<span class="config-label help">Channel Layout
+					<span class="tooltip">
+					Select the number and layout of analyzer channels
+					</span>
+				</span>
+				<select id="channel_layout" data-prop="channelLayout"></select>
+			</div>
+
+			<div>
 				<span class="config-label help">Se<u>n</u>sitivity
 					<span class="tooltip">
 					Improve visualization of songs too quiet or too loud. Customize in Config.
 					</span>
 				</span>
 				<select id="sensitivity" data-prop="sensitivity"></select>
+			</div>
+
+			<div>
+				<span class="config-label help">Frequency Scale
+					<span class="tooltip">Select how frequencies are represented in the X-axis</span>
+				</span>
+				<select id="freq_scale" data-prop="freqScale"></select>
 			</div>
 
 			<div>
@@ -304,47 +325,46 @@
 				</div>
 			</div>
 
-			<div class="rowspan-2">
-				<span class="config-label help">Smoothing
-					<span class="tooltip">
-					Lower values make the analyzer respond faster to changes
-					</span>
-				</span>
-				<div class="value"></div>
-				<input type="range" id="smoothing" data-prop="smoothing">
-			</div>
-
 			<div>
-				<span class="config-label help">Fullscr height
+				<span class="config-label help">Weighting
 					<span class="tooltip">
-					Fullscreen analyzer height (%)<br><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd>
+					Apply different frequency weighthing filters
 					</span>
 				</span>
-				<div class="value"></div>
-				<input id="fs_height" type="range" data-prop="fsHeight">
+				<select id="weighting" data-prop="weighting"></select>
 			</div>
 
 		<!-- COLUMN 5 -->
 			<div class="rowspan-3">
-				<span class="config-label">Switches</span>
+				<span class="config-label help">Switches
+					<span class="tooltip">General visualization and performance options</span>
+				</span>
 
 				<ul class="switch-bar rowspan-2">
-					<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
-						<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
-					<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
-						<span class="tooltip">Toggle level (dB) scale on the Y-axis</span>
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
 						<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 						<span class="tooltip">Hold peak levels for a short time</span>
+
+					<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
+						<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
+					<li class="switch" id="note_labels" data-prop="noteLabels">NOTES
+						<span class="tooltip">Labels on the X-axis show musical notes instead of frequencies</span>
+
+					<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
+						<span class="tooltip">Toggle level (amplitude) scale on the Y-axis</span>
+					<li class="switch" id="linear_amplitude" data-prop="linearAmpl">LINEAR
+						<span class="tooltip">Use linear values (instead of dB) for bar amplitudes</span>
+
+					<li class="switch" id="ansi_bands" data-prop="ansiBands">ANSI
+						<span class="tooltip">Use ANSI/IEC preferred frequencies for octave bands</span>
+					<li class="switch" id="fps" data-prop="showFPS">FPS
+						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
+
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
 						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-					<li class="switch" id="stereo" data-prop="stereo">Stereo
-						<span class="tooltip">Toggle Stereo analyzer</span>
-					<li class="switch" id="fps" data-prop="showFPS">FPS
-						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
 				</ul>
 			</div>
 
@@ -447,40 +467,53 @@
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
 			</div>
-			<div>
-				<h3>General settings:</h3>
-				<p>FFT size:
-					<select id="fft_size"></select>
-				</p>
+			<div class="general-settings grid grid-2-cols">
+				<h3 class="colspan-2">General settings:</h3>
+				<p>FFT size:</p>
+				<select id="fft_size"></select>
 
-				<p>PIP window aspect ratio:
-					<select id="pip_ratio"></select>
-				</p>
+				<p>Smoothing:</p>
+				<input id="smoothing" type="number">
 
-				<p>
-					<label><input type="checkbox" id="save_dir"> Remember last music folder</label>
-				</p>
+				<p>PIP window aspect ratio:</p>
+				<select id="pip_ratio"></select>
+
+				<p>Fullscren height (%):</p>
+				<input id="fs_height" type="number">
+
+				<label class="colspan-2"><input type="checkbox" id="save_dir"> Remember last music folder</label>
+
+				<p class="colspan-2"><button id="reset_general">Reset to defaults</button></p>
 			</div>
 			<div>
 				<h3>Sensitivity presets:</h3>
 				<table>
-					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
+					<tr>
+						<th>Sensitivity</th>
+						<th>Min dB</th>
+						<th>Max dB</th>
+						<th>Linear boost</th>
+						<th>Defaults</th>
+					</tr>
 					<tr>
 						<td>Low</td>
-						<td><select class="min-db" data-preset="0"></select></td>
-						<td><select class="max-db" data-preset="0"></select></td>
+						<td><input type="number" class="min-db" data-preset="0"></td>
+						<td><input type="number" class="max-db" data-preset="0"></td>
+						<td><input type="number" class="linear-boost" data-preset="0"></td>
 						<td><button class="reset-sens" data-preset="0">Reset</button></td>
 					</tr>
 					<tr>
 						<td>Normal</td>
-						<td><select class="min-db" data-preset="1"></select></td>
-						<td><select class="max-db" data-preset="1"></select></td>
+						<td><input type="number" class="min-db" data-preset="1"></td>
+						<td><input type="number" class="max-db" data-preset="1"></td>
+						<td><input type="number" class="linear-boost" data-preset="1"></td>
 						<td><button class="reset-sens" data-preset="1">Reset</button></td>
 					</tr>
 					<tr>
 						<td>High</td>
-						<td><select class="min-db" data-preset="2"></select></td>
-						<td><select class="max-db" data-preset="2"></select></td>
+						<td><input type="number" class="min-db" data-preset="2"></td>
+						<td><input type="number" class="max-db" data-preset="2"></td>
+						<td><input type="number" class="linear-boost" data-preset="2"></td>
 						<td><button class="reset-sens" data-preset="2">Reset</button></td>
 					</tr>
 				</table>

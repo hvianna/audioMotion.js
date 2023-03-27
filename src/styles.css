@@ -212,6 +212,9 @@ a.button:visited {
 	height: 16px; /* for consistency between Chromium and Gecko */
 	margin-top: 8px;
 }
+.controls select ~ select {
+	margin-top: 0;
+}
 
 .player-area {
 	background: inherit;
@@ -348,6 +351,12 @@ a.button:visited {
 	padding-bottom: 2em;
 }
 
+.field-error {
+	border: 4px solid #c00;
+	border-radius: 4px;
+	color: #c00;
+}
+
 .flex {
 	display: flex;
 	justify-content: space-between;
@@ -389,6 +398,12 @@ a.button:visited {
 }
 .rowspan-3 {
 	grid-row: span 3;
+}
+
+.general-settings input[type="number"],
+.general-settings input[type="range"],
+.general-settings select {
+	width: 70px;
 }
 
 .config-label {
