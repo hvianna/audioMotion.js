@@ -10,7 +10,7 @@
  * See docs/server.md for more information
  *
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2022 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2023 Henrique Vianna <hvianna@gmail.com>
  */
 
 const VERSION = process.env.npm_package_version;

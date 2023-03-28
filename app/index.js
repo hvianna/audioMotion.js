@@ -5,7 +5,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2022 Henrique Avila Vianna
+ * @copyright (c) 2018-2023 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ const path = require('path');
 const Store = require('electron-store');
 const debounce = require('debounce');
 
-const aboutText = `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2022 Henrique Avila Vianna`;
+const aboutText = `audioMotion version ${ app.getVersion() }\nCopyright © 2018-2023 Henrique Avila Vianna`;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 //if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
