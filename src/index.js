@@ -402,6 +402,8 @@ const bgFitOptions = [
 ];
 
 // General settings
+const generalOptionsElements = [ elFFTsize, elFsHeight, elPIPRatio, elSaveDir, elSmoothing ];
+
 const generalOptionsDefaults = {
 	fftSize : 8192,
 	smoothing: .5,
@@ -743,38 +745,9 @@ function changeFsHeight( incr ) {
 
 	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
 		elFsHeight.value = val + elFsHeight.step * incr;
-		changeGeneralSettings( elFsHeight );
+		setProperty( elFsHeight );
 	}
 	setCanvasMsg( `Analyzer height: ${ elFsHeight.value }%` );
-}
-
-/**
- * Change properties configured in the General Settings (Config panel)
- */
-function changeGeneralSettings( el ) {
-	switch ( el ) {
-		case elPIPRatio:
-			if ( isPIP() )
-				audioMotion.width = audioMotion.height * elPIPRatio.value;
-			break;
-		case elFFTsize :
-			audioMotion.fftSize = elFFTsize.value;
-			consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
-			break;
-		case elSmoothing:
-			audioMotion.smoothing = elSmoothing.value;
-			consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
-			break;
-		case elFsHeight:
-			elAnalyzer.style.height = `${elFsHeight.value}%`;
-			break;
-		case elSaveDir :
-			if ( elSaveDir.checked )
-				saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
-			else
-				localStorage.removeItem( KEY_LAST_DIR );
-	}
-	savePreferences( KEY_GENERAL_OPTS );
 }
 
 /**
@@ -863,7 +836,7 @@ function cycleElement( el, prev ) {
 	else
 		el.selectedIndex = idx;
 
-	setProperty( el, true );
+	setProperty( el );
 }
 
 /**
@@ -883,7 +856,7 @@ function cycleScale( prev ) {
 	elScaleX.dataset.active = scale & 1;
 	elScaleY.dataset.active = scale >> 1;
 
-	setProperty( [ elScaleX, elScaleY ], true );
+	setProperty( [ elScaleX, elScaleY ] );
 	return scale;
 }
 
@@ -1026,7 +999,7 @@ function doConfigPanel() {
 					field.classList.remove('field-error');
 				});
 				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-					setProperty( elSensitivity );
+					setProperty( elSensitivity, false );
 				savePreferences( KEY_SENSITIVITY );
 			});
 		}
@@ -1035,7 +1008,7 @@ function doConfigPanel() {
 				const isValid = ( +el.value >= +el.min && +el.value <= +el.max );
 				if ( isValid ) {
 					if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
-						setProperty( elSensitivity );
+						setProperty( elSensitivity, false );
 					savePreferences( KEY_SENSITIVITY );
 				}
 				el.classList.toggle( 'field-error', ! isValid );
@@ -1053,8 +1026,13 @@ function doConfigPanel() {
 	});
 
 	// General settings
-	[ elFFTsize, elSmoothing, elPIPRatio, elFsHeight, elSaveDir ].forEach( el => {
-		el.addEventListener( 'change', () => changeGeneralSettings( el ) );
+	generalOptionsElements.forEach( el => {
+		el.addEventListener( 'change', () => setProperty( el ) );
+	});
+
+	$('#reset_general').addEventListener( 'click', () => {
+		setGeneralOptions( generalOptionsDefaults );
+		setProperty( generalOptionsElements );
 	});
 }
 
@@ -1253,7 +1231,7 @@ function keyboardControls( event ) {
 					elCycleGrad.dataset.active = '1';
 					setCanvasMsg( 'Auto gradient ON' );
 				}
-				setProperty( elRandomMode, true );
+				setProperty( elRandomMode );
 				break;
 			case 'KeyB': 		// background or image fit (shift)
 				cycleElement( isShiftKey ? elBgImageFit : elBackground );
@@ -1600,6 +1578,7 @@ function loadPreset( name, alert, init ) {
 		ansiBands      : isSwitchOn( elAnsiBands ),
 		channelLayout  : elChnLayout.value,
 		fftSize        : elFFTsize.value,
+		frequencyScale : elFreqScale.value,
 		ledBars        : isSwitchOn( elLedDisplay ),
 		linearAmplitude: isSwitchOn( elLinearAmpl ),
 		loRes          : isSwitchOn( elLoRes ),
@@ -1620,19 +1599,20 @@ function loadPreset( name, alert, init ) {
 		weightingFilter: elWeighting.value
 	} );
 
-	changeGeneralSettings( elFsHeight );
-
-	// settings that make additional changes are set by the setProperty() function
+	// settings that require additional checks are set by the setProperty() function
 	setProperty(
 		[ elBackground,
 		elBgImageFit,
 		elBgImageDim,
+		elFsHeight,
 		elSensitivity,
 		elReflex,
 		elGradient,
+		elGradientRight,
 		elRandomMode,
 		elBarSpace,
-		elMode ], true );
+		elMode ]
+	);
 
 	if ( name == 'demo' )
 		selectRandomMode( true );
@@ -1926,7 +1906,7 @@ function populateGradients() {
 
 		if ( grad !== '' ) {
 			el.value = grad;
-			setProperty( el, true );
+			setProperty( el );
 		}
 	}
 }
@@ -1975,7 +1955,7 @@ function populateSelect( element, options, keep ) {
 		element.value = oldValue;
 		if ( element.selectedIndex == -1 ) // old value disabled
 			element.selectedIndex = 0;
-		setProperty( element, true );
+		setProperty( element );
 	}
 }
 
@@ -2395,7 +2375,7 @@ function selectRandomMode( force = isMicSource ) {
 	props.push( elBackground, elReflex, elMode );
 
 	// effectively set the affected properties
-	setProperty( props, true );
+	setProperty( props );
 }
 
 /**
@@ -2490,7 +2470,7 @@ function setLoadedPlaylist( path = '' ) {
  * @param elems {object|array} a DOM element object or array of objects
  * @param [save] {boolean} true to save current settings to last used preset
  */
-function setProperty( elems, save ) {
+function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
@@ -2566,8 +2546,17 @@ function setProperty( elems, save ) {
 				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
 				break;
 
+			case elFFTsize :
+				audioMotion.fftSize = elFFTsize.value;
+				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
+				break;
+
 			case elFreqScale:
 				audioMotion.frequencyScale = elFreqScale.value;
+				break;
+
+			case elFsHeight:
+				elAnalyzer.style.height = `${elFsHeight.value}%`;
 				break;
 
 			case elRangeMin:
@@ -2602,7 +2591,7 @@ function setProperty( elems, save ) {
 
 			case elLumiBars:
 				audioMotion.lumiBars = isSwitchOn( elLumiBars );
-				setProperty( elBarSpace );
+				setProperty( elBarSpace, false );
 				break;
 
 			case elMode:
@@ -2621,7 +2610,7 @@ function setProperty( elems, save ) {
 					audioMotion.fillAlpha = elFillAlpha.value;
 				}
 
-				setProperty( elBarSpace );
+				setProperty( elBarSpace, false );
 				break;
 
 			case elMirror:
@@ -2636,9 +2625,14 @@ function setProperty( elems, save ) {
 				audioMotion.outlineBars = isSwitchOn( elOutline );
 				break;
 
+			case elPIPRatio:
+				if ( isPIP() )
+					audioMotion.width = audioMotion.height * elPIPRatio.value;
+				break;
+
 			case elRadial:
 				audioMotion.radial = isSwitchOn( elRadial );
-				setProperty( elBarSpace );
+				setProperty( elBarSpace, false );
 				break;
 
 			case elRandomMode:
@@ -2669,6 +2663,12 @@ function setProperty( elems, save ) {
 				}
 				break;
 
+			case elSaveDir :
+				if ( elSaveDir.checked )
+					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
+				else
+					localStorage.removeItem( KEY_LAST_DIR );
+
 			case elScaleX:
 				audioMotion.showScaleX = isSwitchOn( elScaleX );
 				break;
@@ -2694,6 +2694,11 @@ function setProperty( elems, save ) {
 				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
 				break;
 
+			case elSmoothing:
+				audioMotion.smoothing = elSmoothing.value;
+				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+				break;
+
 			case elSpin:
 				audioMotion.spinSpeed = elSpin.value;
 				break;
@@ -2707,10 +2712,16 @@ function setProperty( elems, save ) {
 				break;
 
 		} // switch
+
+		if ( save ) {
+			if ( generalOptionsElements.includes( el ) )
+				savePreferences( KEY_GENERAL_OPTS );
+			else
+				updateLastConfig();
+		}
+
 	} // for
 
-	if ( save )
-		updateLastConfig();
 }
 
 /**
@@ -2803,14 +2814,14 @@ function setUIEventListeners() {
 	$$('.switch').forEach( el => {
 		el.addEventListener( 'click', () => {
 			el.dataset.active = +!+el.dataset.active;
-			setProperty( el, true );
+			setProperty( el );
 		});
 	});
 
 	// settings combo boxes and sliders ('change' event is only triggered for select and input elements)
 	$$('[data-prop]').forEach( el => {
 		el.addEventListener( 'change', () => {
-			setProperty( el, true );
+			setProperty( el );
 			updateRangeValue( el );
 		});
 	});
