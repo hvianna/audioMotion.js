@@ -120,7 +120,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elBgImageFit    = $('#bg_img_fit'),
 	  elChnLayout     = $('#channel_layout'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
-	  elCycleGrad     = $('#cycle_grad'),
 	  elDim           = $('#bg_dim'),				// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
@@ -134,6 +133,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elLedDisplay    = $('#led_display'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
+	  elLinkGrads     = $('#link_grads'),
 	  elLoadedPlist   = $('#loaded_playlist'),
 	  elLoRes         = $('#lo_res'),
 	  elLumiBars      = $('#lumi_bars'),
@@ -182,7 +182,6 @@ const presets = {
 		bgImageDim   : 0.5,
 		bgImageFit   : 1, 	// center
 		channelLayout: 'single',
-		cycleGrad    : 1,
 		fillAlpha    : 0.1,
 		freqMax      : 22000,
 		freqMin      : 20,
@@ -192,6 +191,7 @@ const presets = {
 		ledDisplay   : 0,
 		linearAmpl   : 0,
 		lineWidth    : 2,
+		linkGrads    : 0,
 		loRes        : 0,
 		lumiBars     : 0,
 		mirror       : 0,
@@ -246,7 +246,6 @@ const presets = {
 	},
 
 	demo: {
-		cycleGrad   : 1,
 		randomMode  : 6    // 15 seconds
 	}
 };
@@ -354,22 +353,23 @@ const channelLayoutOptions = [
 
 // Properties that may be changed by Random Mode
 const randomProperties = [
-	{ value: 'alpha',  text: 'Alpha',        disabled: false },
-	{ value: 'nobg',   text: 'Background',   disabled: false },
-	{ value: 'barSp',  text: 'Bar Spacing',  disabled: false },
-	{ value: 'imgfit', text: 'BG Image Fit', disabled: false },
-	{ value: 'stereo', text: 'Channel Layout',disabled: false },
-	{ value: 'fill',   text: 'Fill Opacity', disabled: false },
-	{ value: 'leds',   text: 'LEDs',         disabled: false },
-	{ value: 'line',   text: 'Line Width',   disabled: false },
-	{ value: 'lumi',   text: 'Lumi',         disabled: false },
-	{ value: 'mirror', text: 'Mirror',       disabled: false },
-	{ value: 'outline',text: 'Outline',      disabled: false },
-	{ value: 'peaks',  text: 'Peaks',        disabled: false },
-	{ value: 'radial', text: 'Radial',       disabled: false },
-	{ value: 'spin',   text: 'Radial Spin',  disabled: false },
-	{ value: 'reflex', text: 'Reflex',       disabled: false },
-	{ value: 'split',  text: 'Split',        disabled: false },
+	{ value: 'alpha',    text: 'Alpha',          disabled: false },
+	{ value: 'nobg',     text: 'Background',     disabled: false },
+	{ value: 'barSp',    text: 'Bar Spacing',    disabled: false },
+	{ value: 'imgfit',   text: 'BG Image Fit',   disabled: false },
+	{ value: 'stereo',   text: 'Channel Layout', disabled: false },
+	{ value: 'fill',     text: 'Fill Opacity',   disabled: false },
+	{ value: 'gradient', text: 'Gradients',      disabled: false },
+	{ value: 'leds',     text: 'LEDs',           disabled: false },
+	{ value: 'line',     text: 'Line Width',     disabled: false },
+	{ value: 'lumi',     text: 'Lumi',           disabled: false },
+	{ value: 'mirror',   text: 'Mirror',         disabled: false },
+	{ value: 'outline',  text: 'Outline',        disabled: false },
+	{ value: 'peaks',    text: 'Peaks',          disabled: false },
+	{ value: 'radial',   text: 'Radial',         disabled: false },
+	{ value: 'spin',     text: 'Radial Spin',    disabled: false },
+	{ value: 'reflex',   text: 'Reflex',         disabled: false },
+	{ value: 'split',    text: 'Split',          disabled: false },
 ];
 
 // Sensitivity presets
@@ -482,7 +482,6 @@ const getCurrentSettings = _ => ({
 	bgImageDim   : elBgImageDim.value,
 	bgImageFit   : elBgImageFit.value,
 	channelLayout: elChnLayout.value,
-	cycleGrad    : +isSwitchOn( elCycleGrad ),
 	fillAlpha    : elFillAlpha.value,
 	freqMax		 : elRangeMax.value,
 	freqMin		 : elRangeMin.value,
@@ -492,6 +491,7 @@ const getCurrentSettings = _ => ({
 	ledDisplay   : +isSwitchOn( elLedDisplay ),
 	linearAmpl   : +isSwitchOn( elLinearAmpl ),
 	lineWidth    : elLineWidth.value,
+	linkGrads    : +isSwitchOn( elLinkGrads ),
 	loRes        : +isSwitchOn( elLoRes ),
 	lumiBars     : +isSwitchOn( elLumiBars ),
 	mirror       : elMirror.value,
@@ -1214,23 +1214,9 @@ function keyboardControls( event ) {
 					skipTrack();
 				}
 				break;
-			case 'KeyA': 		// cycle thru auto gradient / random mode options
-				if ( isSwitchOn( elCycleGrad ) || isShiftKey ) {
-					if ( ( elRandomMode.selectedIndex == elRandomMode.options.length - 1 && ! isShiftKey ) ||
-					     ( elRandomMode.selectedIndex == 0 && isSwitchOn( elCycleGrad ) && isShiftKey ) ) {
-						elCycleGrad.dataset.active = '0';
-						elRandomMode.value = '0';
-						setCanvasMsg( 'Auto gradient OFF / Random mode OFF' );
-					}
-					else {
-						cycleElement( elRandomMode, isShiftKey );
-						setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
-					}
-				}
-				else {
-					elCycleGrad.dataset.active = '1';
-					setCanvasMsg( 'Auto gradient ON' );
-				}
+			case 'KeyA': 		// cycle thru random mode options
+				cycleElement( elRandomMode, isShiftKey );
+				setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
 				setProperty( elRandomMode );
 				break;
 			case 'KeyB': 		// background or image fit (shift)
@@ -2366,9 +2352,11 @@ function selectRandomMode( force = isMicSource ) {
 		props.push( elMirror );
 	}
 
-	if ( isSwitchOn( elCycleGrad ) ) {
-		elGradient.selectedIndex = randomInt( elGradient.options.length );
-		props.push( elGradient );
+	if ( isEnabled('gradient') ) {
+		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] ) {
+			el.selectedIndex = randomInt( el.options.length );
+			props.push( el );
+		}
 	}
 
 	// add properties that depend on other settings (mode also sets barspace)
@@ -2570,7 +2558,10 @@ function setProperty( elems, save = true ) {
 			case elGradientRight:
 				if ( el.value === '' ) // handle invalid setting
 					el.selectedIndex = 0;
-				audioMotion[ el.dataset.prop ] = el.value;
+				if ( isSwitchOn( elLinkGrads ) )
+					audioMotion.gradient = elGradient.value = elGradientRight.value = el.value;
+				else
+					audioMotion[ el == elGradient ? 'gradientLeft' : 'gradientRight' ] = el.value;
 				break;
 
 			case elLedDisplay:
@@ -3327,7 +3318,6 @@ function updateRangeValue( el ) {
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
 				drawText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
-				drawText( `Auto gradient is ${ onOff( elCycleGrad ) }`, centerPos, topLine2 );
 
 				canvasCtx.textAlign = 'left';
 				drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
@@ -3417,12 +3407,8 @@ function updateRangeValue( el ) {
 		if ( isPIP() )
 			pipVideo.play();
 
-		if ( audioElement[ currAudio ].currentTime < .1 ) {
-			if ( elRandomMode.value == '1' )
-				selectRandomMode( true );
-			else if ( isSwitchOn( elCycleGrad ) && elRandomMode.value == '0' )
-				cycleElement( elGradient );
-		}
+		if ( audioElement[ currAudio ].currentTime < .1 && elRandomMode.value == '1' )
+			selectRandomMode( true );
 
 		if ( isSwitchOn( elShowSong ) ) {
 			const timeout = +elTrackTimeout.value || Infinity;
