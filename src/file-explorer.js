@@ -176,6 +176,23 @@ export function getFolderContents( selector = 'li' ) {
 }
 
 /**
+ * Returns user's home path (for Electron only)
+ *
+ * @returns {array} array of { dir: <string>, scrollTop: <number> }
+ */
+export async function getHomePath() {
+
+	const response = await fetch( '/getHomeDir' ),
+		  homeDir  = await response.text();
+
+	let homePath = [];
+	for ( const dir of homeDir.split( isWindows ? '\\' : '/' ) )
+		homePath.push( { dir, scrollTop: 0 } );
+
+	return homePath;
+}
+
+/**
  * Returns current path object
  *
  * @returns {array} array of { dir: <string>, scrollTop: <number> }
@@ -351,13 +368,15 @@ export function create( container, options = {} ) {
 				if ( status == 1 && isElectron ) {
 					const response = await fetch( '/getMounts' );
 					mounts = await response.json();
+					setPath( await getHomePath() ); // on Electron start at user's home by default
 				}
-				else
+				else {
 					mounts = [ options.rootPath || defaultRoot ];
-				if ( await enterDir( mounts[0] ) === false ) {
-					ui_path.innerHTML = `Cannot access media folder (${mounts[0]}) on server!`;
-					ui_files.innerHTML = '';
-					status = -1;
+					if ( await enterDir( mounts[0] ) === false ) {
+						ui_path.innerHTML = `Cannot access media folder (${mounts[0]}) on server!`;
+						ui_files.innerHTML = '';
+						status = -1;
+					}
 				}
 				resolve([ status, ui_files, status ? content : 'Standard web server' ]);
 			})

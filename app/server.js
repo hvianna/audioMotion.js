@@ -227,6 +227,11 @@ function create( options ) {
 			res.sendStatus(403);
 	});
 
+	// return user's home directory
+	server.get( '/getHomeDir', ( req, res ) => {
+		const homedir = require('os').homedir();
+		res.send( homedir );
+	});
 
 	// start server and return promise
 	return new Promise( resolve => {
