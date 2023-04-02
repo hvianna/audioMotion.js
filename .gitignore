@@ -1,4 +1,4 @@
 **/node_modules
-# Electron-Forge
 out/
 .DS_Store
+package-lock.json
