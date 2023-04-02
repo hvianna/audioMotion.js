@@ -1,41 +1,44 @@
-# Server modes
+# Running as a Web App
 
-audioMotion can run in three different server scenarios:
-+ serverless, in [local file mode](#local-file-mode) with limited capabilites;
-+ using its own [custom file server](#custom-file-server) (preferred);
-+ from a [standard web server](#standard-web-server) like Apache, Lighttpd or Nginx.
+audioMotion can also run in your web browser, in three different server scenarios:
+
+- serverless, in [local file mode](#local-file-mode) with limited capabilites;
+- using its own [custom file server](#custom-file-server) (preferred);
+- from a [standard web server](#standard-web-server) like Apache, Lighttpd or Nginx.
 
 ## Local file mode
 
 You can run audioMotion in **file mode** by directly opening the `index.html` file located inside the `public` folder.
 
-In this mode you can play individual music files from your computer or from a remote URL and use the microphone input, but the file explorer won't be available.
-
-Due to the security policy of web browsers, JavaScript can only read files via HTTP protocol.
-So, in order for audioMotion to read music files from your hard disk, you must have an HTTP server software running in your computer.
+In this mode you can play individual music files from your computer or from a remote URL and use the microphone input,
+but neither the file explorer or the playlist functionalities will be available.
 
 ## Custom file server
 
-audioMotion's custom file server allows you to easily access music files anywhere in your computer. This is the easiest and preferred way to run audioMotion.
+audioMotion's custom file server allows the web app to access music files from a selected folder in your hard disk.
 
-The custom file server is included in the binaries you can download from the project's [releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
+You'll need [Node.js](https://nodejs.org) installed in your computer to run the server.
 
-Simply double-click the executable to launch audioMotion and you'll be asked for the path to your music folder.
-
-You can also start audioMotion from the command-line to provide the path, by running:
+Install the required packages (first time only) with:
 
 ```
-audioMotion -m /path/to/music
+npm install
 ```
 
-Where `/path/to/music` is the full path to your music folder (in Windows machines the path will look like `c:\user\myUser\music`). Only files inside this folder will be available to audioMotion.
+And then start the server by running:
+
+```
+npm start -- -m /path/to/music
+```
+
+Where `/path/to/music` is the full path to your music folder (in Windows machines the path will look like `c:\user\myUser\music`).
 
 You should then be able to access audioMotion at `localhost:8000` on your web browser.
 
-By default, audioMotion's server will only accept connections from localhost. If you'd like other computers in your network to have access to the server, you can start it with the `-e` argument:
+By default, the server will only accept connections from *localhost*. If you'd like other computers in your network to access the web app, you can start the server with the `-e` argument:
 
 ```
-audioMotion -e -m /path/to/music
+npm start -- -e -m /path/to/music
 ```
 
 The complete command line options are:
@@ -50,20 +53,6 @@ The complete command line options are:
 
 !> **WARNING:**<br>
 Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
-
-### Running from source code <!-- {docsify-ignore} -->
-
-audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
-
-```
-npm install
-```
-
-And then start the server by running:
-
-```
-npm start -- -m /path/to/music
-```
 
 ## Standard web server
 
