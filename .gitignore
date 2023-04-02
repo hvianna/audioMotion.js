@@ -1,4 +1,5 @@
 **/node_modules
+bin/
 out/
 .DS_Store
 package-lock.json

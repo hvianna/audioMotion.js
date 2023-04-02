@@ -11,7 +11,12 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "server": "node src/legacy-server.js"
+    "server": "node src/webapp-server.js",
+    "pkg": "pkg . --out-path ./bin/"
+  },
+  "bin": "src/webapp-server.js",
+  "pkg": {
+    "assets": "public/**/*"
   },
   "config": {
     "forge": {

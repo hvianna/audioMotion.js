@@ -1,21 +1,15 @@
 /**
  * audioMotion
- * Legacy custom file server module
+ * Custom file server for the web app
  *
- * This is the legacy Node.js server which doesn’t rely on Electron.
- *
- * Run with:
- * npm run server
- *
- * See docs/server.md for more information
+ * See docs/webapp.md for more information
  *
  * https://github.com/hvianna/audioMotion.js
  * Copyright (C) 2019-2023 Henrique Vianna <hvianna@gmail.com>
  */
 
-const VERSION = process.env.npm_package_version;
-
-const serverSignature = `audioMotion legacy server v${VERSION}`;
+const package_json = require('../package.json'),
+	  serverSignature = `audioMotion web app server v${ package_json.version }`;
 
 const fs           = require('fs'),
 	  path         = require('path'),
