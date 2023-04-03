@@ -21,7 +21,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "app/audioMotion.ico",
+        "icon": "app/audioMotion",
         "ignore": [
           "^(/docs$)",
           "^(/src$)",
@@ -52,11 +52,19 @@
         },
         {
           "name": "@electron-forge/maker-deb",
-          "config": {}
+          "config": {
+            "options": {
+              "icon": "app/audioMotion.png"
+            }
+          }
         },
         {
           "name": "@electron-forge/maker-rpm",
-          "config": {}
+          "config": {
+            "options": {
+              "icon": "app/audioMotion.png"
+            }
+          }
         }
       ]
     }
