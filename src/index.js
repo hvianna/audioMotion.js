@@ -1,6 +1,13 @@
 /**
- * audioMotion
- * High-resolution real-time audio spectrum analyzer and music player
+ *                    ░    ░          ░     ░                ░
+ *                    ░               ░░   ░░         ░
+ *   ░░░   ░   ░   ░░░░   ░░    ░░░   ░ ░ ░ ░   ░░░  ░░░    ░░    ░░░   ░░░░
+ *      ▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒  ▒  ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *   ▒▒▒▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒     ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
+ *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
+ *
+ * audioMotion | High-resolution real-time audio spectrum analyzer and music player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -3499,10 +3506,10 @@ function updateRangeValue( el ) {
 
 	populateSelect( elMode, modeOptions );
 
-	for ( const i of [20,30,40,50,60,100,250,500,1000,2000] )
+	for ( const i of [16,20,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
 
-	for ( const i of [1000,2000,4000,8000,12000,16000,22000] )
+	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
 	populateSelect( elChnLayout, channelLayoutOptions );
