@@ -1,6 +1,6 @@
 {
   "name": "audioMotion",
-  "version": "23.4.0-beta.2",
+  "version": "23.4.0-beta.4",
   "private": true,
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
@@ -33,7 +33,11 @@
           "_config.yml",
           "docker-compose.yml",
           "^(/webpack.config.js$)"
-        ]
+        ],
+        "extendInfo": {
+          "NSMicrophoneUsageDescription": "Please allow access to your microphone",
+          "com.apple.security.device.audio-input": true
+        }
       },
       "makers": [
         {

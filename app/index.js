@@ -1,6 +1,13 @@
 /**
- * audioMotion
- * High-resolution real-time audio spectrum analyzer and music player
+ *                    ░    ░          ░     ░                ░
+ *                    ░               ░░   ░░         ░
+ *   ░░░   ░   ░   ░░░░   ░░    ░░░   ░ ░ ░ ░   ░░░  ░░░    ░░    ░░░   ░░░░
+ *      ▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒  ▒  ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *   ▒▒▒▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒     ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
+ *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
+ *
+ * audioMotion | High-resolution real-time audio spectrum analyzer and music player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -222,6 +229,16 @@ const createWindow = () => {
 
 // handle renderer request to get storage data saved on file
 ipcMain.handle( 'get-storage', () => JSON.stringify( storage.store ) );
+
+// handle renderer request to get access to the microphone (macOS only)
+// https://www.electronjs.org/docs/latest/api/system-preferences#systempreferencesaskformediaaccessmediatype-macos
+ipcMain.handle( 'ask-for-media-access', () => {
+	if ( ! isMac )
+		return true;
+
+	const { systemPreferences } = require('electron');
+	return systemPreferences.askForMediaAccess('microphone');
+});
 
 // app event listeners
 

@@ -2731,7 +2731,9 @@ async function setSource() {
 
 	if ( isMicSource ) {
 		// try to get access to user's microphone
-		if ( navigator.mediaDevices ) {
+		const hasPermission = isElectron ? await electron.api('ask-for-media-access') : true;
+
+		if ( hasPermission && navigator.mediaDevices ) {
 			navigator.mediaDevices.getUserMedia( { audio: true } )
 			.then( stream => {
 				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
