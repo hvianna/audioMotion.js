@@ -23,6 +23,7 @@
       "packagerConfig": {
         "icon": "app/audioMotion",
         "ignore": [
+          "^(/bin$)",
           "^(/docs$)",
           "^(/src$)",
           "^(/.github$)",
@@ -37,14 +38,15 @@
         "extendInfo": {
           "NSMicrophoneUsageDescription": "Please allow access to your microphone",
           "com.apple.security.device.audio-input": true
-        }
+        },
+        "asar": false
       },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "audioMotion",
-            "iconUrl": "app/audioMotion.ico",
+            "iconUrl": "https://raw.githubusercontent.com/hvianna/audioMotion.js/electron/app/audioMotion.ico",
             "setupIcon": "app/audioMotion.ico"
           }
         },
@@ -74,6 +76,7 @@
     }
   },
   "devDependencies": {
+    "@electron/asar": "^3.2.3",
     "@electron-forge/cli": "^6.1.0",
     "@electron-forge/maker-deb": "^6.1.0",
     "@electron-forge/maker-dmg": "^6.1.0",
