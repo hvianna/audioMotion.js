@@ -29,7 +29,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const { app, BrowserWindow, dialog, ipcMain, Menu, shell } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, shell, session } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const debounce = require('debounce');
@@ -255,6 +255,16 @@ app.on( 'ready', () => {
 		.catch( err => {
 			console.log( err );
 		});
+
+	// define Content Security Policy
+	session.defaultSession.webRequest.onHeadersReceived( ( details, callback ) => {
+		callback( {
+			responseHeaders: {
+				...details.responseHeaders,
+				'Content-Security-Policy': ['script-src \'self\'']
+			}
+		});
+	});
 });
 
 app.on( 'window-all-closed', () => {
