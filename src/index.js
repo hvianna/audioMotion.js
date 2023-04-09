@@ -911,9 +911,9 @@ function deletePlaylist( index ) {
 		notie.confirm({
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
-			submitCallback: () => {
+			submitCallback: async () => {
 				const keyName   = elPlaylists[ index ].value,
-					  playlists = loadFromStorage( KEY_PLAYLISTS );
+					  playlists = await loadFromStorage( KEY_PLAYLISTS );
 
 				if ( playlists ) {
 					delete playlists[ keyName ];
@@ -1310,8 +1310,8 @@ function keyboardControls( event ) {
  * @param {string} item key
  * @returns {object} parsed object
  */
-function loadFromStorage( key ) {
-	return JSON.parse( localStorage.getItem( key ) );
+async function loadFromStorage( key ) {
+	return JSON.parse( isElectron ? await electron.api( 'storage-get', key ) : localStorage.getItem( key ) );
 }
 
 /**
@@ -1382,7 +1382,7 @@ function loadPlaylist( path ) {
 
 	path = normalizeSlashes( path );
 
-	return new Promise( resolve => {
+	return new Promise( async ( resolve ) => {
 		let	n = 0,
 			songInfo;
 
@@ -1426,7 +1426,7 @@ function loadPlaylist( path ) {
 				});
 		}
 		else { // try to load playlist from localStorage
-			const list = loadFromStorage( 'pl_' + path );
+			const list = await loadFromStorage( 'pl_' + path );
 			if ( Array.isArray( list ) ) {
 				list.forEach( item => {
 					item = normalizeSlashes( item );
@@ -1444,7 +1444,7 @@ function loadPlaylist( path ) {
 /**
  * Load preferences from localStorage
  */
-function loadPreferences() {
+async function loadPreferences() {
 	// helper function
 	const parseDisabled = ( data, optionList ) => {
 		if ( Array.isArray( data ) ) {
@@ -1456,25 +1456,26 @@ function loadPreferences() {
 		}
 	}
 
-	const isLastSession = KEY_LAST_CONFIG in localStorage;
+	const lastConfig    = await loadFromStorage( KEY_LAST_CONFIG ),
+	 	  isLastSession = lastConfig !== null;
 
 	// Merge defaults with the last session settings (if any)
-	presets['last'] = { ...presets['default'], ...loadFromStorage( KEY_LAST_CONFIG ) };
+	presets['last'] = { ...presets['default'], ...lastConfig };
 
 	// Load custom preset
-	presets['custom'] = loadFromStorage( KEY_CUSTOM_PRESET );
+	presets['custom'] = await loadFromStorage( KEY_CUSTOM_PRESET );
 
 	// Populate presets combo box
 	populatePresets( isLastSession );
 
 	// Load disabled modes preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
+	parseDisabled( await loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
 
 	// Load disabled background image fit options
-	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
+	parseDisabled( await loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
 
 	// Load custom gradients
-	const customGradients = loadFromStorage( KEY_CUSTOM_GRADS );
+	const customGradients = await loadFromStorage( KEY_CUSTOM_GRADS );
 	if ( customGradients ) {
 		Object.keys( customGradients ).forEach( key => {
 			gradients[ key ] = customGradients[ key ];
@@ -1482,7 +1483,7 @@ function loadPreferences() {
 	}
 
 	// Load disabled gradients preference
-	const disabledGradients = loadFromStorage( KEY_DISABLED_GRADS );
+	const disabledGradients = await loadFromStorage( KEY_DISABLED_GRADS );
 	if ( Array.isArray( disabledGradients ) ) {
 		disabledGradients.forEach( key => {
 			gradients[ key ].disabled = true;
@@ -1490,7 +1491,7 @@ function loadPreferences() {
 	}
 
 	// Load disabled random properties preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
+	parseDisabled( await loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -1502,7 +1503,7 @@ function loadPreferences() {
 	const elLinearBoost = $$('.linear-boost');
 	elLinearBoost.forEach( el => setRangeAtts( el, 1, 5, .2 ) );
 
-	const sensitivityPresets = loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
+	const sensitivityPresets = await loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -1511,7 +1512,7 @@ function loadPreferences() {
 	});
 
 	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
+	setInfoOptions( { ...infoDisplayDefaults, ...( await loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
 
 	// General settings
 	for ( let i = 10; i < 16; i++ )
@@ -1523,7 +1524,7 @@ function loadPreferences() {
 
 	setRangeAtts( elFsHeight, 25, 100, 5 );
 
-	setGeneralOptions( { ...generalOptionsDefaults, ...( loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
+	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -1617,7 +1618,7 @@ function loadPreset( name, alert, init ) {
 /**
  * Load playlists from localStorage and legacy playlists.cfg file
  */
-function loadSavedPlaylists( keyName ) {
+async function loadSavedPlaylists( keyName ) {
 
 	// reset UI playlist selection box
 
@@ -1630,7 +1631,7 @@ function loadSavedPlaylists( keyName ) {
 
 	// load playlists from localStorage
 
-	const playlists = loadFromStorage( KEY_PLAYLISTS );
+	const playlists = await loadFromStorage( KEY_PLAYLISTS );
 
 	if ( playlists ) {
 		Object.keys( playlists ).forEach( key => {
@@ -1953,6 +1954,18 @@ function populateSelect( element, options, keep ) {
 }
 
 /**
+ * Remove a key from localStorage
+ *
+ * @param key {string}
+ */
+function removeFromStorage( key ) {
+	if ( isElectron )
+		electron.api( 'storage-remove', key );
+	else
+		localStorage.removeItem( key );
+}
+
+/**
  * Renders #grad-color-table based upon values of currentGradient.
  */
 function renderGradientEditor() {
@@ -2255,7 +2268,11 @@ function savePreferences( key ) {
  * @param {object} data object
  */
 function saveToStorage( key, data ) {
-	localStorage.setItem( key, JSON.stringify( data ) );
+	const value = JSON.stringify( data );
+	if ( isElectron )
+		electron.api( 'storage-set', key, value );
+	else
+		localStorage.setItem( key, value );
 }
 
 /**
@@ -2665,7 +2682,7 @@ function setProperty( elems, save = true ) {
 				if ( elSaveDir.checked )
 					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
 				else
-					localStorage.removeItem( KEY_LAST_DIR );
+					removeFromStorage( KEY_LAST_DIR );
 
 			case elScaleX:
 				audioMotion.showScaleX = isSwitchOn( elScaleX );
@@ -3039,7 +3056,7 @@ function stop() {
 /**
  * Store a playlist in localStorage
  */
-function storePlaylist( name, update = true ) {
+async function storePlaylist( name, update = true ) {
 
 	if ( queueLength() == 0 ) {
 		notie.alert({ text: 'Queue is empty!' });
@@ -3068,7 +3085,7 @@ function storePlaylist( name, update = true ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-			const playlists = loadFromStorage( KEY_PLAYLISTS ) || {};
+			const playlists = await loadFromStorage( KEY_PLAYLISTS ) || {};
 
 			while ( playlists.hasOwnProperty( safename ) )
 				safename += '_1';
@@ -3426,15 +3443,10 @@ function updateRangeValue( el ) {
 
 	$('#version').innerText = VERSION;
 
-	// On Electron, rebuild localStorage from data saved on file (from main process)
-	if ( isElectron ) {
-		const storage = JSON.parse( await electron.api('get-storage') || null );
-		for ( const item in storage )
-			saveToStorage( item, storage[ item ] );
-	}
-
 	// Load preferences from localStorage
-	const isLastSession = loadPreferences();
+	if ( isElectron )
+		consoleLog( `Reading user preferences from ${ await electron.api('storage-info') }` );
+	const isLastSession = await loadPreferences();
 
 	// Initialize play queue and set event listeners
 	playlist = $('#playlist');
@@ -3696,11 +3708,13 @@ function updateRangeValue( el ) {
 		positions: { alert: 'bottom' }
 	});
 
+	const lastDir = await loadFromStorage( KEY_LAST_DIR );
+
 	// Wait for all async operations to finish before loading the last used settings
 	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
-		fileExplorer.setPath( loadFromStorage( KEY_LAST_DIR ) );
+		fileExplorer.setPath( lastDir );
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;

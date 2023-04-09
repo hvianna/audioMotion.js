@@ -47,8 +47,7 @@ const server = require('./server');
 
 const isMac = process.platform === 'darwin';
 
-// User preferences and localStorage persistent storage
-// for file location refer to `app.getPath('userData')`
+// Persistent storage for user preferences - stored at `app.getPath('userData')`
 
 const KEY_BG_PATH     = 'backgroundsPath',
 	  KEY_WINDOW_SIZE = 'windowBounds';
@@ -56,8 +55,7 @@ const KEY_BG_PATH     = 'backgroundsPath',
 const defaults = {};
 defaults[ KEY_WINDOW_SIZE ] = { width: 1280, height: 894 };
 
-const config  = new Store( { name: 'user-preferences', defaults } ), // user-preferences.json
-	  storage = new Store( { name: 'storage' } ); // storage.json
+const storage = new Store( { name: 'user-preferences', defaults } );
 
 // Create app menu
 
@@ -77,7 +75,7 @@ const menuTemplate = [
 					});
 
 					if ( backgroundsPath ) {
-						config.set( KEY_BG_PATH, backgroundsPath[0] );
+						storage.set( KEY_BG_PATH, backgroundsPath[0] );
 						menu.getMenuItemById('disableBackgrounds').enabled = true;
 						askToRestart();
 					}
@@ -86,7 +84,7 @@ const menuTemplate = [
 			{
 				label: 'Disable backgrounds folder',
 				id: 'disableBackgrounds',
-				enabled: config.has( KEY_BG_PATH ),
+				enabled: storage.has( KEY_BG_PATH ),
 				click: function () {
 					const option = dialog.showMessageBoxSync( mainWindow, {
 						type: 'question',
@@ -96,7 +94,7 @@ const menuTemplate = [
 						buttons: [ 'Yes', 'Cancel' ]
 					});
 					if ( option === 0 ) {
-						config.delete( KEY_BG_PATH );
+						storage.delete( KEY_BG_PATH );
 						menu.getMenuItemById('disableBackgrounds').enabled = false;
 						askToRestart();
 					}
@@ -180,12 +178,12 @@ const askToRestart = () => {
 const saveWindowBounds = e => {
 	const bounds = e.sender.getBounds();
 	if ( bounds.width > 820 && bounds.height > 460 )
-		config.set( KEY_WINDOW_SIZE, bounds );
+		storage.set( KEY_WINDOW_SIZE, bounds );
 }
 
 // create app browser window
 const createWindow = () => {
-  	const { width, height, x, y } = config.get( KEY_WINDOW_SIZE );
+  	const { width, height, x, y } = storage.get( KEY_WINDOW_SIZE );
 	const iconPath = path.resolve( __dirname, 'audioMotion.ico' );
 
 	mainWindow = new BrowserWindow({
@@ -212,22 +210,13 @@ const createWindow = () => {
 			shell.openExternal( url );
 		return { action: 'deny' };
 	});
-
-	// receive localStorage data from renderer on app close
-	mainWindow.webContents.on( 'ipc-message-sync', ( e, channel, data ) => {
-		if ( channel === 'send-storage' ) {
-			const storageObj = {};
-			// rebuild each property encoded string back into a native object
-			Object.entries( JSON.parse( data ) || {} ).forEach( ( [ key, value ] ) => {
-				storageObj[ key ] = JSON.parse( value );
-			});
-			storage.store = storageObj; // save the entire object to file
-		}
-	});
 };
 
-// handle renderer request to get storage data saved on file
-ipcMain.handle( 'get-storage', () => JSON.stringify( storage.store ) );
+// handle storage methods
+ipcMain.handle( 'storage-get', ( event, key ) => JSON.stringify( storage.get( key, null ) ) );
+ipcMain.handle( 'storage-set', ( event, key, value ) => storage.set( key, JSON.parse( value ) ) );
+ipcMain.handle( 'storage-remove', ( event, key ) => storage.delete( key ) );
+ipcMain.handle( 'storage-info', () => storage.path );
 
 // handle renderer request to get access to the microphone (macOS only)
 // https://www.electronjs.org/docs/latest/api/system-preferences#systempreferencesaskformediaaccessmediatype-macos
@@ -242,7 +231,7 @@ ipcMain.handle( 'ask-for-media-access', () => {
 // app event listeners
 
 app.on( 'ready', () => {
-	const backgroundsPath = config.get( KEY_BG_PATH );
+	const backgroundsPath = storage.get( KEY_BG_PATH );
 	// start server
 	server.create( { backgroundsPath } )
 		.then( ( { port, serverSignature } ) => {
