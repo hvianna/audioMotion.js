@@ -840,6 +840,10 @@ kbd.wide {
 #console-content::-webkit-scrollbar-thumb {
 	background-color: #080;
 }
+#console-content div {
+	margin-left: 8em;
+	text-indent: -8.25em;
+}
 
 #console-clear,
 #console-close {

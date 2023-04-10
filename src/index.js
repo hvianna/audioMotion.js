@@ -822,7 +822,7 @@ function consoleLog( msg, error, clear ) {
 		$('#toggle_console').classList.add('warning');
 
 	if ( msg )
-		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } ${msg}</div>`;
+		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
 
 	content.scrollTop = content.scrollHeight;
 }
@@ -3715,7 +3715,7 @@ function updateRangeValue( el ) {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
 		fileExplorer.setPath( lastDir );
-		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
+		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
 	});
