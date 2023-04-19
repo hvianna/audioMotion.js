@@ -34,11 +34,11 @@
  -->
 	<title>audioMotion</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="fonts/styles.css">
 	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="img/icons/css/styles.css">
 	<link rel="icon" type="image/png" sizes="32x32" href="img/favicon32.png">
 	<link rel="apple-touch-icon" href="img/favicon256.png">
-	<link href="https://fonts.googleapis.com/css?family=Orbitron:900&display=swap" rel="stylesheet">
  	<meta name="msapplication-TileImage" content="img/favicon256.png">
 	<meta property="og:url" content="https://audiomotion.me">
 	<meta property="og:title" content="audioMotion">
@@ -120,17 +120,17 @@
 
 			<ul class="player-controls">
 				<li class="button help" id="btn_play"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i>
-					<span class="tooltip">Play / Pause | <kbd>Spacebar</kbd></span>
+					<span class="tooltip">Play / Pause <kbd>Spacebar</kbd></span>
 				<li class="button help" id="btn_prev"><i class="icons8-previous-track-2"></i>
-					<span class="tooltip">Previous song / Rewind (Hold) | <kbd>&larr;</kbd></span>
+					<span class="tooltip">Previous song / Rewind (Hold) <kbd class="narrow">&lt;-</kbd></span>
 				<li class="button help" id="btn_stop"><i class="icons8-stop-symbol"></i>
 					<span class="tooltip">Stop</span>
 				<li class="button help" id="btn_next"><i class="icons8-skip-this-track-2"></i>
-					<span class="tooltip">Next song / Fast forward (Hold) |	<kbd>&rarr;</kbd></span>
+					<span class="tooltip">Next song / Fast forward (Hold) <kbd class="narrow">-&gt;</kbd></span>
 				<li class="button help" id="btn_shuf"><i class="icons8-shuffle"></i>
-					<span class="tooltip">Shuffle queue | <kbd>E</kbd></span>
+					<span class="tooltip">Shuffle queue <kbd>E</kbd></span>
 				<li class="button switch help" id="repeat"><i class="icons8-repeat"></i>
-					<span class="tooltip">Repeat queue | <kbd>R</kbd></span>
+					<span class="tooltip">Repeat queue <kbd>R</kbd></span>
 			</ul>
 
 			<div class="controls-right">
@@ -163,16 +163,16 @@
 			</div>
 
 			<div>
-				<span class="config-label help">R<u>a</u>ndom mode
+				<span class="config-label help">R<u>a</u>ndomize
 					<span class="tooltip">
-					Randomize visualization mode on track change or time interval
+					Randomize settings on track change or time interval
 					</span>
 				</span>
 				<select id="random_mode" data-prop="randomMode"></select>
 			</div>
 
 			<div>
-				<span class="config-label help">Bar spacing
+				<span class="config-label help">Bar Spacing
 					<span class="tooltip">
 						Octave bands modes only<br><em>(no effect when LUMI is on)</em>
 					</span>
@@ -181,7 +181,7 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Line width
+				<span class="config-label help">Line Width
 					<span class="tooltip">
 						Line width for Line Graph mode and Outline effect
 					</span>
@@ -191,7 +191,7 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Fill opacity
+				<span class="config-label help">Fill Opacity
 					<span class="tooltip">
 						Fill opacity for Line Graph mode and Outline effect
 					</span>
@@ -234,7 +234,9 @@
 					<li class="switch" id="outline" data-prop="outlineBars">Outline
 						<span class="tooltip">Outlined bars <em>(octave bands modes only)</em></span>
 					<li class="switch" id="radial" data-prop="radial">RADIAL
-						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> | <kbd>C</kbd></span>
+						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+					<li class="switch" id="round_bars" data-prop="roundBars">ROUND
+						<span class="tooltip">Round capped bars <em>(octave bands modes only)</em></span>
 				</ul>
 			</div>
 
@@ -259,16 +261,16 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Bg image fit
+				<span class="config-label help">Background Image Fit
 					<span class="tooltip">
-						Adjust the size and position of the background image | <kbd>Shift</kbd><kbd>B</kbd>
+						Adjust the size and position of the background image <kbd>Shift</kbd><kbd>B</kbd>
 					</span>
 				</span>
 				<select id="bg_img_fit" data-prop="bgImageFit"></select>
 			</div>
 
 			<div>
-				<span class="config-label help">Background dim
+				<span class="config-label help">Background Dim
 					<span class="tooltip">
 						Adjust the intensity of the background image or video
 					</span>
@@ -366,7 +368,7 @@
 					<li class="switch" id="ansi_bands" data-prop="ansiBands">ANSI
 						<span class="tooltip">Use ANSI/IEC preferred frequencies for octave bands</span>
 					<li class="switch" id="fps" data-prop="showFPS">FPS
-						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
+						<span class="tooltip">Display current frame rate <kbd>H</kbd></span>
 
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
 						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
@@ -470,11 +472,11 @@
 				</div>
 			</div>
 			<div>
-				<h3>Settings affected by Random Mode:</h3>
+				<h3>Settings affected by Randomize:</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
 			</div>
-			<div class="general-settings grid grid-2-cols">
+			<div class="general-settings grid grid-2-cols align-center">
 				<h3 class="colspan-2">General settings:</h3>
 				<p>FFT size:</p>
 				<select id="fft_size"></select>
@@ -494,9 +496,9 @@
 			</div>
 			<div>
 				<h3>Sensitivity presets:</h3>
-				<table>
+				<table class="table-fixed">
 					<tr>
-						<th>Sensitivity</th>
+						<th>Preset</th>
 						<th>Min dB</th>
 						<th>Max dB</th>
 						<th>Linear boost</th>
@@ -604,11 +606,11 @@
 			</div>
 			<table class="kbd-table">
 				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>volume up / down</td></tr>
-				<tr><td><kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd></td><td>previous / next song (hold for rewind / fast forward)</td></tr>
+				<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>previous / next song (hold for rewind / fast forward)</td></tr>
 				<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>increase / reduce fullscreen analyzer height</td></tr>
-				<tr><td><kbd>Shift</kbd> + <kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd></td><td>balance left / right</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>balance left / right</td></tr>
 				<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>change random mode options</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>change randomize interval</td></tr>
 				<tr><td><kbd>B</kbd></td><td>change background</td></tr>
 				<tr><td><kbd>Shift</kbd><kbd>B</kbd></td><td>change background image fit</td></tr>
 				<tr><td><kbd>C</kbd></td><td>toggle Radial analyzer</td></tr>

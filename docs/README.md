@@ -93,7 +93,8 @@ Some of audioMotion's great features are provided by these awesome open-source l
 
 ### Graphic resources <!-- {docsify-ignore} -->
 
-* The font used in audioMotion's logo is [Orbitron](https://fonts.google.com/specimen/Orbitron) by Matt McInerney
+* Fonts [Orbitron](https://github.com/theleagueof/orbitron), [Jet Brains Mono](https://github.com/JetBrains/JetBrainsMono) (_from [Google Fonts](https://fonts.google.com/specimen/JetBrains+Mono)_) and
+[Sofia-Sans Semi-Condensed](https://github.com/lettersoup/Sofia-Sans) licensed under the [SIL Open Font License](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=ofl)
 * Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 * [Mouse scroll icon](https://thenounproject.com/term/mouse-scroll/628146/) by Viktor Ostrovsky, licensed under [Creative Commons CCBY](https://creativecommons.org/licenses/by/3.0/us/legalcode)
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
