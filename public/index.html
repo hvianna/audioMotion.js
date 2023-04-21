@@ -202,20 +202,26 @@
 
 		<!-- COLUMN 2 -->
 			<div class="rowspan-2">
-				<span class="config-label help"><u>G</u>radients
+				<span class="config-label help">Color Mode & <u>G</u>radients
 					<span class="tooltip">
 						Color gradients for the left and right channels. Disable undesired gradients in Config.
 					</span>
 				</span>
-				<select id="gradient" data-prop="gradient"></select>
-				<select id="gradientRight" data-prop="gradientRight"></select>
+
+				<select id="color_mode" data-prop="colorMode"></select>
+
+				<div class="flex align-center">
+					<select id="gradient" data-prop="gradient"></select>
+					<select id="gradientRight" data-prop="gradientRight"></select>
+				</div>
 
 				<ul class="switch-bar">
 					<li class="switch" id="link_grads" data-prop="linkGrads">LINK
-						<span class="tooltip">Link gradient changes on both channels</span>
+						<span class="tooltip">Gradient selection affect both channels</span>
 					<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
 						<span class="tooltip">Split gradients in two different parts<br><em>(for Dual / Vertical channel layout)</em></span>
 				</ul>
+
 			</div>
 
 			<div class="rowspan-2">
@@ -467,7 +473,7 @@
 				<button class="button mt-1" id="add-gradient">Add Gradient</button>
 			</div>
 			<div>
-				<h3>Enabled BG Image Fit options:</h3>
+				<h3>Enabled options for Background Image Fit:</h3>
 				<div id="enabled_bgfit" class="grid grid-2-cols">
 				</div>
 			</div>

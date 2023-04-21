@@ -72,7 +72,7 @@ const BGFIT_ADJUST   = '0',
 	  BGFIT_WARP_ANI = '7',
 	  BGFIT_WARP_ROT = '8';
 
-// dataset template for playqueue items and audio elements
+// Dataset template for playqueue items and audio elements
 const DATASET_TEMPLATE = {
 	album: '',
 	artist: '',
@@ -83,6 +83,50 @@ const DATASET_TEMPLATE = {
 	quality: '',
 	title: ''
 };
+
+// Channel Layouts
+const CHANNEL_COMBINED = 'dual-combined',
+	  CHANNEL_SINGLE   = 'single',
+	  CHANNEL_VERTICAL = 'dual-vertical';
+
+// Color modes
+const COLOR_GRADIENT = 'gradient',
+	  COLOR_INDEX    = 'bar-index',
+	  COLOR_LEVEL    = 'bar-level';
+
+// Visualization modes
+const MODE_DISCRETE    = '0',
+	  MODE_AREA        = '10',
+	  MODE_LINE        = '101',
+	  MODE_OCTAVE_FULL = '8',
+	  MODE_OCTAVE_HALF = '7',
+	  MODE_OCTAVE_3RD  = '6',
+	  MODE_OCTAVE_4TH  = '5',
+	  MODE_OCTAVE_6TH  = '4',
+	  MODE_OCTAVE_8TH  = '3',
+	  MODE_OCTAVE_12TH = '2',
+	  MODE_OCTAVE_24TH = '1';
+
+// Random mode property keys
+const RND_ALPHA       = 'alpha',
+	  RND_BACKGROUND  = 'nobg',
+	  RND_BARSPACING  = 'barSp',
+	  RND_BGIMAGEFIT  = 'imgfit',
+	  RND_CHNLAYOUT   = 'stereo',
+	  RND_COLORMODE   = 'colormode',
+	  RND_FILLOPACITY = 'fill',
+	  RND_GRADIENT    = 'gradient',
+	  RND_LEDS        = 'leds',
+	  RND_LINEWIDTH   = 'line',
+	  RND_LUMI        = 'lumi',
+	  RND_MIRROR      = 'mirror',
+	  RND_OUTLINE     = 'outline',
+	  RND_PEAKS       = 'peaks',
+	  RND_RADIAL      = 'radial',
+	  RND_SPIN        = 'spin',
+	  RND_REFLEX      = 'reflex',
+	  RND_ROUND       = 'round',
+	  RND_SPLIT       = 'split';
 
 // Frequency scales
 const SCALE_BARK   = 'bark',
@@ -126,6 +170,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elBgImageDim    = $('#bg_img_dim'),
 	  elBgImageFit    = $('#bg_img_fit'),
 	  elChnLayout     = $('#channel_layout'),
+	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),				// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
@@ -160,6 +205,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elRangeMin      = $('#freq_min'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
+	  elRoundBars     = $('#round_bars'),
 	  elSaveDir       = $('#save_dir'),
 	  elScaleX        = $('#scaleX'),
 	  elScaleY        = $('#scaleY'),
@@ -188,7 +234,8 @@ const presets = {
 		barSpace     : 0.1,
 		bgImageDim   : 0.5,
 		bgImageFit   : 1, 	// center
-		channelLayout: 'single',
+		channelLayout: CHANNEL_SINGLE,
+		colorMode    : COLOR_GRADIENT,
 		fillAlpha    : 0.1,
 		freqMax      : 22000,
 		freqMin      : 20,
@@ -202,7 +249,7 @@ const presets = {
 		loRes        : 0,
 		lumiBars     : 0,
 		mirror       : 0,
-		mode         : 0,	// discrete frequencies
+		mode         : MODE_DISCRETE,
 		noShadow     : 1,
 		noteLabels   : 0,
 		outlineBars  : 0,
@@ -210,6 +257,7 @@ const presets = {
 		randomMode   : 0,
 		reflex       : 0,
 		repeat       : 0,
+		roundBars    : 0,
 		sensitivity  : 1,
 		showFPS      : 0,
 		showPeaks    : 1,
@@ -219,41 +267,163 @@ const presets = {
 		spin         : 2,
 		splitGrad    : 0,
 		volume       : 1,
-		weighting    : ''
-	},
-
-	fullres: {
-		freqMax     : 22000,
-		freqMin     : 20,
-		mode        : 0,
-		radial      : 0,
-		randomMode  : 0,
-		reflex      : 0,
-	},
-
-	octave: {
-		barSpace    : 0.1,
-		ledDisplay  : 0,
-		lumiBars    : 0,
-		mode        : 3,	// 1/8th octave bands mode
-		radial      : 0,
-		randomMode  : 0,
-		reflex      : 0
-	},
-
-	ledbars: {
-		background  : 0,
-		barSpace    : 0.5,
-		ledDisplay  : 1,
-		lumiBars    : 0,
-		mode        : 3,
-		radial      : 0,
-		randomMode  : 0,
-		reflex      : 0
+		weighting    : WEIGHT_NONE
 	},
 
 	demo: {
 		randomMode  : 6    // 15 seconds
+	},
+
+	bands: {
+		alphaBars    : 0,
+		ansiBands    : 0,
+		background   : BG_COVER,
+		barSpace     : .25,	// CRIAR CONSTANTE BARSPC_REGULAR
+		bgImageDim   : .3,
+		bgImageFit   : BGFIT_ADJUST,
+		channelLayout: CHANNEL_SINGLE,
+		colorMode    : COLOR_GRADIENT,
+		freqMax      : 20000,
+		freqMin      : 20,
+		freqScale    : SCALE_LOG,
+		gradient     : 'rainbow',
+		ledDisplay   : 0,
+		linearAmpl   : 1,
+		lumiBars     : 0,
+		mirror       : 0,
+		mode         : MODE_OCTAVE_12TH,
+		noteLabels   : 1,
+		outlineBars  : 0,
+		radial       : 0,
+		randomMode   : 0,
+		reflex       : 1,
+		roundBars    : 0,
+		showPeaks    : 1,
+		showScaleX   : 1,
+		showScaleY   : 0,
+		showSong     : 1,
+		splitGrad    : 0,
+		weighting    : WEIGHT_D
+	},
+
+	ledbars: {
+		alphaBars    : 0,
+		ansiBands    : 1,
+		background   : BG_COVER,
+		barSpace     : .25,
+		bgImageDim   : .3,
+		bgImageFit   : BGFIT_CENTER,
+		channelLayout: CHANNEL_SINGLE,
+		colorMode    : COLOR_GRADIENT,
+		freqMax      : 20000,
+		freqMin      : 30,
+		freqScale    : SCALE_LOG,
+		gradient     : 'classic',
+		ledDisplay   : 1,
+		linearAmpl   : 1,
+		lumiBars     : 0,
+		outlineBars  : 0,
+		mirror       : 0,
+		mode         : MODE_OCTAVE_3RD,
+		noteLabels   : 0,
+		radial       : 0,
+		randomMode   : 0,
+		reflex       : 0,
+		roundBars    : 0,
+		showPeaks    : 1,
+		showScaleX   : 1,
+		showScaleY   : 0,
+		showSong     : 1,
+		splitGrad    : 0,
+		weighting    : WEIGHT_D
+	},
+
+	dual: {
+		background   : BG_COVER,
+		bgImageDim   : .3,
+		bgImageFit   : BGFIT_CENTER,
+		channelLayout: CHANNEL_COMBINED,
+		colorMode    : COLOR_GRADIENT,
+		fillAlpha    : .3,
+		freqMax      : 20000,
+		freqMin      : 60,
+		freqScale    : SCALE_LOG,
+		gradient     : 'cool',
+		gradientRight: 'dusk',
+		linearAmpl   : 1,
+		lineWidth    : 1.5,	// ATIVAR STEP .5
+		linkGrads    : 0,
+		mirror       : 0,
+		mode         : MODE_LINE,
+		radial       : 0,
+		randomMode   : 0,
+		reflex       : 0,
+		showPeaks    : 0,
+		showScaleX   : 0,
+		showScaleY   : 0,
+		showSong     : 1,
+		splitGrad    : 0,
+		weighting    : WEIGHT_D
+	},
+
+	radial: {
+		alphaBars    : 1,
+		background   : BG_COVER,
+		barSpace     : .1,
+		bgImageDim   : .3,
+		bgImageFit   : BGFIT_PULSE,
+		channelLayout: CHANNEL_SINGLE,
+		colorMode    : COLOR_LEVEL,
+		freqMax      : 20000,
+		freqMin      : 20,
+		freqScale    : SCALE_BARK,
+		gradient     : 'prism',
+		ledDisplay   : 0,
+		linearAmpl   : 1,
+		lumiBars     : 0,
+		mirror       : 0,
+		mode         : MODE_OCTAVE_4TH,
+		noteLabels   : 0,
+		outlineBars  : 0,
+		radial       : 1,
+		randomMode   : 0,
+		showPeaks    : 1,
+		showScaleX   : 1,
+		showScaleY   : 0,
+		showSong     : 1,
+		spin         : 1,
+		splitGrad    : 0,
+		weighting    : WEIGHT_D
+	},
+
+	round: {
+		alphaBars    : 0,
+		background   : BG_COVER,
+		barSpace     : .25,
+		bgImageDim   : .3,
+		bgImageFit   : BGFIT_WARP_ANI,
+		channelLayout: CHANNEL_SINGLE,
+		colorMode    : COLOR_INDEX,
+		freqMax      : 20000,
+		freqMin      : 30,
+		freqScale    : SCALE_LOG,
+		gradient     : 'apple',
+		ledDisplay   : 0,
+		linearAmpl   : 1,
+		lumiBars     : 0,
+		mirror       : 0,
+		mode         : MODE_OCTAVE_8TH,
+		outlineBars  : 0,
+		radial       : 0,
+		randomMode   : 0,
+		reflex       : 2,	// CRIAR CONSTANTE
+		roundBars    : 1,
+		showPeaks    : 0,
+		showScaleX   : 0,
+		showScaleY   : 0,
+		showSong     : 1,
+		splitGrad    : 0,
+		weighting    : WEIGHT_D
 	}
 };
 
@@ -338,45 +508,47 @@ const gradients = {
 
 // Visualization modes
 const modeOptions = [
-	{ value: '0',   text: 'Discrete frequencies', disabled: false },
-	{ value: '10',  text: 'Area graph',           disabled: false },
-	{ value: '101', text: 'Line graph',           disabled: false },
-	{ value: '8',   text: 'Full octave bands',    disabled: false },
-	{ value: '7',   text: 'Half octave bands',    disabled: false },
-	{ value: '6',   text: '1/3rd octave bands',   disabled: false },
-	{ value: '5',   text: '1/4th octave bands',   disabled: false },
-	{ value: '4',   text: '1/6th octave bands',   disabled: false },
-	{ value: '3',   text: '1/8th octave bands',   disabled: false },
-	{ value: '2',   text: '1/12th octave bands',  disabled: false },
-	{ value: '1',   text: '1/24th octave bands',  disabled: false }
+	{ value: MODE_DISCRETE,    text: 'Discrete frequencies',    disabled: false },
+	{ value: MODE_AREA,        text: 'Area graph',              disabled: false },
+	{ value: MODE_LINE,        text: 'Line graph',              disabled: false },
+	{ value: MODE_OCTAVE_FULL, text: 'Octave bands / 10 bands', disabled: false },
+	{ value: MODE_OCTAVE_HALF, text: '1/2 octave / 20 bands',   disabled: false },
+	{ value: MODE_OCTAVE_3RD,  text: '1/3 octave / 30 bands',   disabled: false },
+	{ value: MODE_OCTAVE_4TH,  text: '1/4 octave / 40 bands',   disabled: false },
+	{ value: MODE_OCTAVE_6TH,  text: '1/6 octave / 60 bands',   disabled: false },
+	{ value: MODE_OCTAVE_8TH,  text: '1/8 octave / 80 bands',   disabled: false },
+	{ value: MODE_OCTAVE_12TH, text: '1/12 octave / 120 bands', disabled: false },
+	{ value: MODE_OCTAVE_24TH, text: '1/24 octave / 240 bands', disabled: false }
 ];
 
-// Channel Layouts
+// Channel Layout options
 const channelLayoutOptions = [
-	[ 'single', 'Single channel' ],
-	[ 'dual-vertical', 'Dual / Vertical' ],
-	[ 'dual-combined', 'Dual / Combined' ]
+	[ CHANNEL_SINGLE,   'Single channel'  ],
+	[ CHANNEL_VERTICAL, 'Dual / Vertical' ],
+	[ CHANNEL_COMBINED, 'Dual / Combined' ]
 ];
 
 // Properties that may be changed by Random Mode
 const randomProperties = [
-	{ value: 'alpha',    text: 'Alpha',          disabled: false },
-	{ value: 'nobg',     text: 'Background',     disabled: false },
-	{ value: 'barSp',    text: 'Bar Spacing',    disabled: false },
-	{ value: 'imgfit',   text: 'BG Image Fit',   disabled: false },
-	{ value: 'stereo',   text: 'Channel Layout', disabled: false },
-	{ value: 'fill',     text: 'Fill Opacity',   disabled: false },
-	{ value: 'gradient', text: 'Gradients',      disabled: false },
-	{ value: 'leds',     text: 'LEDs',           disabled: false },
-	{ value: 'line',     text: 'Line Width',     disabled: false },
-	{ value: 'lumi',     text: 'Lumi',           disabled: false },
-	{ value: 'mirror',   text: 'Mirror',         disabled: false },
-	{ value: 'outline',  text: 'Outline',        disabled: false },
-	{ value: 'peaks',    text: 'Peaks',          disabled: false },
-	{ value: 'radial',   text: 'Radial',         disabled: false },
-	{ value: 'spin',     text: 'Radial Spin',    disabled: false },
-	{ value: 'reflex',   text: 'Reflex',         disabled: false },
-	{ value: 'split',    text: 'Split',          disabled: false },
+	{ value: RND_ALPHA,       text: 'Alpha',          disabled: false },
+	{ value: RND_BACKGROUND,  text: 'Background',     disabled: false },
+	{ value: RND_BARSPACING,  text: 'Bar Spacing',    disabled: false },
+	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',   disabled: false },
+	{ value: RND_CHNLAYOUT,   text: 'Channel Layout', disabled: false },
+	{ value: RND_COLORMODE,   text: 'Color Mode',     disabled: false },
+	{ value: RND_FILLOPACITY, text: 'Fill Opacity',   disabled: false },
+	{ value: RND_GRADIENT,    text: 'Gradients',      disabled: false },
+	{ value: RND_LEDS,        text: 'LEDs',           disabled: false },
+	{ value: RND_LINEWIDTH,   text: 'Line Width',     disabled: false },
+	{ value: RND_LUMI,        text: 'Lumi',           disabled: false },
+	{ value: RND_MIRROR,      text: 'Mirror',         disabled: false },
+	{ value: RND_OUTLINE,     text: 'Outline',        disabled: false },
+	{ value: RND_PEAKS,       text: 'Peaks',          disabled: false },
+	{ value: RND_RADIAL,      text: 'Radial',         disabled: false },
+	{ value: RND_SPIN,        text: 'Radial Spin',    disabled: false },
+	{ value: RND_REFLEX,      text: 'Reflex',         disabled: false },
+	{ value: RND_ROUND,       text: 'Round',          disabled: false },
+	{ value: RND_SPLIT,       text: 'Split',          disabled: false },
 ];
 
 // Sensitivity presets
@@ -489,6 +661,7 @@ const getCurrentSettings = _ => ({
 	bgImageDim   : elBgImageDim.value,
 	bgImageFit   : elBgImageFit.value,
 	channelLayout: elChnLayout.value,
+	colorMode    : elColorMode.value,
 	fillAlpha    : elFillAlpha.value,
 	freqMax		 : elRangeMax.value,
 	freqMin		 : elRangeMin.value,
@@ -510,6 +683,7 @@ const getCurrentSettings = _ => ({
 	randomMode   : elRandomMode.value,
 	reflex       : elReflex.value,
 	repeat       : +isSwitchOn( elRepeat ),
+	roundBars    : +isSwitchOn( elRoundBars ),
 	sensitivity  : elSensitivity.value,
 	showFPS      : +isSwitchOn( elFPS ),
 	showPeaks 	 : +isSwitchOn( elShowPeaks ),
@@ -1570,7 +1744,7 @@ function loadPreset( name, alert, init ) {
 	audioMotion.setOptions( {
 		alphaBars      : isSwitchOn( elAlphaBars ),
 		ansiBands      : isSwitchOn( elAnsiBands ),
-		channelLayout  : elChnLayout.value,
+		colorMode      : elColorMode.value,
 		fftSize        : elFFTsize.value,
 		frequencyScale : elFreqScale.value,
 		ledBars        : isSwitchOn( elLedDisplay ),
@@ -1583,6 +1757,7 @@ function loadPreset( name, alert, init ) {
 		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
 		radial         : isSwitchOn( elRadial ),
+		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
 		showPeaks      : isSwitchOn( elShowPeaks ),
 		showScaleX     : isSwitchOn( elScaleX ),
@@ -1593,12 +1768,14 @@ function loadPreset( name, alert, init ) {
 		weightingFilter: elWeighting.value
 	} );
 
-	// settings that require additional checks are set by the setProperty() function
+	// settings that affect other properties are set by the setProperty() function
 	setProperty(
 		[ elBackground,
 		elBgImageFit,
 		elBgImageDim,
+		elChnLayout,
 		elFsHeight,
+		elLinkGrads, // needs to be set before the gradients
 		elSensitivity,
 		elReflex,
 		elGradient,
@@ -1910,11 +2087,13 @@ function populateGradients() {
  */
 function populatePresets( isLastSession, newValue ) {
 	const presetOptions = [
-		[ null, 'Select preset' ],
-		[ 'demo', 'Demo (random)' ],
-		[ 'fullres', 'Full resolution' ],
-		[ 'ledbars', 'LED bars' ],
-		[ 'octave', 'Octave bands' ],
+		[ null,      'Select preset' ],
+		[ 'demo',    'Demo (random)' ],
+		[ 'bands',   'Octave Bands' ],
+		[ 'ledbars', 'Classic LED bars' ],
+		[ 'dual',    'Dual Channel Line Graph' ],
+		[ 'radial',  'Radial color by Level' ],
+		[ 'round',   'Round Bars' ],
 		...( presets['custom'] ? [ [ 'custom', 'Custom' ] ] : [] ),
 		...( isLastSession ? [ [ 'last', 'Last session' ] ] : [] ),
 		[ 'default', 'Restore defaults' ]
@@ -2302,6 +2481,12 @@ function selectRandomMode( force = isMicSource ) {
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
+	const randomizeSelect = ( el, push = true ) => {
+		el.selectedIndex = randomInt( el.options.length );
+		if ( push )
+			props.push( el );
+	}
+
 	const randomizeSwitch = el => {
 		el.dataset.active = randomInt();
 		props.push( el );
@@ -2311,76 +2496,75 @@ function selectRandomMode( force = isMicSource ) {
 
 	elMode.selectedIndex = randomInt( elMode.options.length );
 
-	if ( isEnabled('alpha') )
+	if ( isEnabled( RND_ALPHA ) )
 		randomizeSwitch( elAlphaBars );
 
-	if ( isEnabled('nobg') )
-		elBackground.selectedIndex = randomInt( elBackground.options.length );
+	if ( isEnabled( RND_BACKGROUND ) )
+		randomizeSelect( elBackground, false );
 
-	if ( isEnabled('imgfit') ) {
-		elBgImageFit.selectedIndex = randomInt( elBgImageFit.options.length );
-		props.push( elBgImageFit );
-	}
+	if ( isEnabled( RND_BGIMAGEFIT ) )
+		randomizeSelect( elBgImageFit );
 
-	if ( isEnabled('peaks') )
+	if ( isEnabled( RND_COLORMODE ) )
+		randomizeSelect( elColorMode );
+
+	if ( isEnabled( RND_PEAKS ) )
 		randomizeSwitch( elShowPeaks );
 
-	if ( isEnabled('leds') )
+	if ( isEnabled( RND_LEDS ) )
 		randomizeSwitch( elLedDisplay );
 
-	if ( isEnabled('lumi') ) {
+	if ( isEnabled( RND_LUMI ) ) {
 		// always disable lumi when leds are active and background is set to image or video
 		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
 		props.push( elLumiBars );
 	}
 
-	if ( isEnabled('line') ) {
-		elLineWidth.value = randomInt( 5 ) + 1; // 1 to 5
+	if ( isEnabled( RND_LINEWIDTH ) ) {
+		elLineWidth.value = ( randomInt( 8 ) + 1 ) / 2; // 0.5 to 4 with .5 intervals
 		updateRangeValue( elLineWidth );
 	}
 
-	if ( isEnabled('fill') ) {
+	if ( isEnabled( RND_FILLOPACITY ) ) {
 		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
 		updateRangeValue( elFillAlpha );
 	}
 
-	if ( isEnabled('barSp') )
-		elBarSpace.selectedIndex = randomInt( elBarSpace.options.length );
+	if ( isEnabled( RND_BARSPACING ) )
+		randomizeSelect( elBarSpace, false );
 
-	if ( isEnabled('outline') )
+	if ( isEnabled( RND_OUTLINE ) )
 		randomizeSwitch( elOutline );
 
-	if ( isEnabled('reflex') ) {
+	if ( isEnabled( RND_REFLEX ) ) {
 		// exclude 'mirrored' reflex option for octave bands modes
 		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
 		elReflex.selectedIndex = randomInt( options );
 	}
 
-	if ( isEnabled('radial') )
+	if ( isEnabled( RND_RADIAL ) )
 		randomizeSwitch( elRadial );
 
-	if ( isEnabled('spin') ) {
+	if ( isEnabled( RND_SPIN ) ) {
 		elSpin.value = randomInt(4);
 		updateRangeValue( elSpin );
 		props.push( elSpin );
 	}
 
-	if ( isEnabled('split') )
+	if ( isEnabled( RND_SPLIT ) )
 		randomizeSwitch( elSplitGrad );
 
-	if ( isEnabled('stereo') )
-		elChnLayout.selectedIndex = randomInt( elChnLayout.options.length );
+	if ( isEnabled( RND_CHNLAYOUT ) )
+		randomizeSelect( elChnLayout, false );
 
-	if ( isEnabled('mirror') ) {
+	if ( isEnabled( RND_MIRROR ) ) {
 		elMirror.value = randomInt(3) - 1;
 		props.push( elMirror );
 	}
 
-	if ( isEnabled('gradient') ) {
-		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] ) {
-			el.selectedIndex = randomInt( el.options.length );
-			props.push( el );
-		}
+	if ( isEnabled( RND_GRADIENT ) ) {
+		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
+			randomizeSelect( el );
 	}
 
 	// add properties that depend on other settings (mode also sets barspace)
@@ -2486,6 +2670,8 @@ function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
+	const toggleGradients = () => elGradientRight.style.display = ( elChnLayout.value == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
+
 	for ( const el of elems ) {
 		switch ( el ) {
 			case elAlphaBars:
@@ -2552,10 +2738,15 @@ function setProperty( elems, save = true ) {
 
 			case elChnLayout:
 				audioMotion.channelLayout = elChnLayout.value;
+				toggleGradients();
+				break;
+
+			case elColorMode:
+				audioMotion.colorMode = elColorMode.value;
 				break;
 
 			case elFillAlpha:
-				audioMotion.fillAlpha = ( elMode.value == 10 ) ? 1 : elFillAlpha.value;
+				audioMotion.fillAlpha = ( elMode.value == MODE_AREA ) ? 1 : elFillAlpha.value;
 				break;
 
 			case elFFTsize :
@@ -2597,7 +2788,11 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLineWidth:
-				audioMotion.lineWidth = ( elMode.value == 10 ) ? 0 : elLineWidth.value;
+				audioMotion.lineWidth = ( elMode.value == MODE_AREA ) ? 0 : elLineWidth.value;
+				break;
+
+			case elLinkGrads:
+				toggleGradients();
 				break;
 
 			case elLoRes:
@@ -2611,12 +2806,12 @@ function setProperty( elems, save = true ) {
 
 			case elMode:
 				const mode = elMode.value;
-				if ( mode < 10 )
+				if ( ! [ MODE_AREA, MODE_LINE ].includes( mode ) )
 					audioMotion.mode = mode;
 				else
-					audioMotion.mode = 10;
+					audioMotion.mode = 10; // graph mode - for both "Area" and "Line"
 
-				if ( mode == 10 ) { // "Area graph" mode
+				if ( mode == MODE_AREA ) {
 					audioMotion.lineWidth = 0;
 					audioMotion.fillAlpha = 1;
 				}
@@ -2676,6 +2871,10 @@ function setProperty( elems, save = true ) {
 					default:
 						audioMotion.reflexRatio = 0;
 				}
+				break;
+
+			case elRoundBars:
+				audioMotion.roundBars = isSwitchOn( elRoundBars );
 				break;
 
 			case elSaveDir :
@@ -3589,6 +3788,12 @@ function updateRangeValue( el ) {
 		[ WEIGHT_468,  'ITU-R 468' ],
 	]);
 
+	populateSelect( elColorMode, [
+		[ COLOR_GRADIENT, 'Gradient'  ],
+		[ COLOR_INDEX,    'Bar Index' ],
+		[ COLOR_LEVEL,    'Bar Level' ]
+	]);
+
 	// Check the backgrounds directory for additional background options (images and videos)
 	const bgDirPromise = fetch( BG_DIRECTORY )
 		.then( response => response.text() )
@@ -3622,7 +3827,7 @@ function updateRangeValue( el ) {
 		.catch( e => {} ); // fail silently
 
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
-	setRangeAtts( elLineWidth, 1, 5 );
+	setRangeAtts( elLineWidth, 1, 4, .5 );
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
 	setRangeAtts( elSpin, 0, 3, 1 );
 

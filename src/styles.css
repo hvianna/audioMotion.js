@@ -183,7 +183,7 @@ a.button:visited {
 	padding: 10px 10px 20px;
 	position: absolute;
 	transition: margin-top .5s;
-	width: 700px;
+	width: 800px;
 	z-index: 1;
 }
 .settings.active {
@@ -229,11 +229,11 @@ a.button:visited {
 }
 .controls input[type="range"] {
 	accent-color: var(--accent-color);
-	height: 16px; /* for consistency between Chromium and Gecko */
-	margin-top: 8px;
+	height: 2px;
+	margin-top: 15px;
 }
-.controls select ~ select {
-	margin-top: 0;
+#color_mode {
+	margin-bottom: 0;
 }
 
 .player-area {
