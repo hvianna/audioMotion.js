@@ -237,7 +237,7 @@ const presets = {
 		channelLayout: CHANNEL_SINGLE,
 		colorMode    : COLOR_GRADIENT,
 		fillAlpha    : 0.1,
-		freqMax      : 22000,
+		freqMax      : 20000,
 		freqMin      : 20,
 		freqScale    : SCALE_LOG,
 		gradient     : 'prism',
@@ -585,7 +585,7 @@ const generalOptionsElements = [ elFFTsize, elFsHeight, elPIPRatio, elSaveDir, e
 
 const generalOptionsDefaults = {
 	fftSize : 8192,
-	smoothing: .5,
+	smoothing: .7,
 	pipRatio: 2.35,
 	fsHeight: 100,
 	saveDir : true
