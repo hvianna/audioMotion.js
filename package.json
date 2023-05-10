@@ -11,10 +11,10 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "server": "node src/webapp-server.js",
+    "server": "node src/web-server.js",
     "pkg": "pkg . --out-path ./bin/"
   },
-  "bin": "src/webapp-server.js",
+  "bin": "src/web-server.js",
   "pkg": {
     "assets": "public/**/*"
   },
