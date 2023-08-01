@@ -221,17 +221,56 @@ a.button:visited {
 	padding: 0 5px;
 }
 .controls input,
+.controls form,
 .controls select {
 	margin: 3px 0;
 	padding-left: 0;
 	padding-right: 0;
 	width: 100%;
 }
+/* custom range inputs - thanks https://www.smashingmagazine.com/2021/12/create-custom-range-input-consistent-browsers/ */
 .controls input[type="range"] {
-	accent-color: var(--accent-color);
-	height: 2px;
-	margin-top: 15px;
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent;
+	cursor: pointer;
+	margin-top: 8px;
+	width: 100%;
 }
+.controls input[type="range"]::-webkit-slider-runnable-track {
+	background: linear-gradient(rgba(0,0,0,.5),transparent),rgba(0,0,0,.2);
+	border-radius: 999px;
+	box-shadow: inset 1px 1px 0 rgba(0,0,0,.4), inset -1px -1px 0 rgba(0,0,0,.2);
+	height: 4px;
+	margin-top: 6px;
+}
+.controls input[type="range"]::-moz-range-track {
+	background: linear-gradient(rgba(0,0,0,.5),transparent),rgba(0,0,0,.2);
+	border-radius: 999px;
+	box-shadow: inset 1px 1px 0 rgba(0,0,0,.4), inset -1px -1px 0 rgba(0,0,0,.2);
+	height: 4px;
+}
+.controls input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	background: url(img/brushed-knob.png);
+	background-size: 100%;
+	border-radius: 50%;
+	box-shadow: 2px 2px 5px 0 #222, 0 0 0 1px #999;
+	height: 16px;
+	margin-top: -7px;
+	width: 16px;
+}
+.controls input[type="range"]::-moz-range-thumb {
+	background: url(img/brushed-knob.png);
+	background-size: 100%;
+	border: none;
+	border-radius: 50%;
+	box-shadow: 2px 2px 5px 0 #222, 0 0 0 1px #999;
+	height: 16px;
+	width: 16px;
+}
+
 #color_mode {
 	margin-bottom: 0;
 }
@@ -615,6 +654,57 @@ div.value {
 .config-label + .switch-bar {
 	margin-top: 4px;
 }
+
+/* Custom radio buttons */
+
+form[data-prop] {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 0, 1fr ) );
+	height: 4px;
+}
+form[data-prop] input {
+	display: none;
+}
+form[data-prop] input:checked + label {
+	color: var(--accent-color);
+	text-shadow: 0 0 4px var(--light-color);
+}
+form[data-prop] input:checked+label::before {
+/*	background: var(--light-color);
+	box-shadow: inset 1px 1px 1px 0 #8888, 1px 1px 4px var(--light-color), 1px 1px 4px var(--light-color); */
+	background: #999;
+	box-shadow: inset 1px 1px #0008, inset -1px -1px #fff4;
+/*	border-color: rgba(0,0,0,.2); */
+	display: block;
+}
+form[data-prop] label {
+	cursor: pointer;
+	padding-top: 15px;
+	position: relative;
+	text-align: center;
+	text-transform: uppercase;
+	transition: .15s ease-in;
+}
+form[data-prop] label::before {
+	background: linear-gradient( rgba(0,0,0,.1), rgba(0,0,0,.3) ), #eee;
+	border: 1px solid #666;
+	content: '';
+	height: 8px;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+form[data-prop] label:first-of-type::before {
+	border-bottom-left-radius: 999px;
+	border-top-left-radius: 999px;
+}
+form[data-prop] label:last-of-type::before {
+	border-bottom-right-radius: 999px;
+	border-top-right-radius: 999px;
+}
+
+/* Tooltips */
 
 .tooltip {
 	background-color: #fffce0;

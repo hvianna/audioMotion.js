@@ -30,7 +30,8 @@
  */
 
 import { version as VERSION } from '../package.json';
-import AudioMotionAnalyzer from 'audiomotion-analyzer';
+//import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audioMotion-analyzer.js';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
@@ -649,8 +650,18 @@ const getIndex = node => {
 	return i;
 }
 
-// returns the text of the selected option in a `select` HTML element
-const getText = el => el[ el.selectedIndex ].text;
+// returns the text of the selected option in a `select` or custom radio element
+const getText = el => {
+	let text = '';
+	if ( el.tagName == 'FORM' ) {
+		const option = el.querySelector(':checked ~ label');
+		if ( option )
+			text = option.textContent;
+	}
+	else
+		text = el[ el.selectedIndex ].text;
+	return text;
+}
 
 // returns an object with the current settings
 const getCurrentSettings = _ => ({
@@ -665,7 +676,7 @@ const getCurrentSettings = _ => ({
 	fillAlpha    : elFillAlpha.value,
 	freqMax		 : elRangeMax.value,
 	freqMin		 : elRangeMin.value,
-	freqScale    : elFreqScale.value,
+	freqScale    : getRadioValue( elFreqScale ),
 	gradient	 : elGradient.value,
 	gradientRight: elGradientRight.value,
 	ledDisplay   : +isSwitchOn( elLedDisplay ),
@@ -674,17 +685,17 @@ const getCurrentSettings = _ => ({
 	linkGrads    : +isSwitchOn( elLinkGrads ),
 	loRes        : +isSwitchOn( elLoRes ),
 	lumiBars     : +isSwitchOn( elLumiBars ),
-	mirror       : elMirror.value,
+	mirror       : getRadioValue( elMirror ),
 	mode         : elMode.value,
 	noShadow     : +isSwitchOn( elNoShadow ),
 	noteLabels   : +isSwitchOn( elNoteLabels ),
 	outlineBars  : +isSwitchOn( elOutline ),
 	radial       : +isSwitchOn( elRadial ),
 	randomMode   : elRandomMode.value,
-	reflex       : elReflex.value,
+	reflex       : getRadioValue( elReflex ),
 	repeat       : +isSwitchOn( elRepeat ),
 	roundBars    : +isSwitchOn( elRoundBars ),
-	sensitivity  : elSensitivity.value,
+	sensitivity  : getRadioValue( elSensitivity ),
 	showFPS      : +isSwitchOn( elFPS ),
 	showPeaks 	 : +isSwitchOn( elShowPeaks ),
 	showScaleX 	 : +isSwitchOn( elScaleX ),
@@ -694,6 +705,9 @@ const getCurrentSettings = _ => ({
 	splitGrad    : +isSwitchOn( elSplitGrad ),
 	weighting    : elWeighting.value
 });
+
+// get value of a custom radio buttons element
+const getRadioValue = el => el.elements[ el.dataset.prop ].value;
 
 // check if a string is an external URL
 const isExternalURL = path => path.startsWith('http');
@@ -1002,18 +1016,24 @@ function consoleLog( msg, error, clear ) {
 }
 
 /**
- * Select next or previous option in a `select` HTML element, cycling around when necessary
+ * Select next or previous option in a `select` HTML element or custom radio buttons, cycling around when necessary
  *
  * @param el {object} HTML object
  * @param [prev] {boolean} true to select previous option
  */
 function cycleElement( el, prev ) {
-	const idx = el.selectedIndex + ( prev ? -1 : 1 );
+	const isCustomRadio = el.tagName == 'FORM',
+	      options = isCustomRadio ? el.elements[ el.dataset.prop ] : el.options;
+
+	let idx = ( isCustomRadio ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
 
 	if ( idx < 0 )
-		el.selectedIndex = el.options.length - 1;
-	else if ( idx >= el.options.length )
-		el.selectedIndex = 0;
+		idx = options.length - 1;
+	else if ( idx >= options.length )
+		idx = 0;
+
+	if ( isCustomRadio )
+		options[ idx ].checked = true;
 	else
 		el.selectedIndex = idx;
 
@@ -1179,7 +1199,7 @@ function doConfigPanel() {
 				$$(`[data-preset="${preset}"]`).forEach( field => {
 					field.classList.remove('field-error');
 				});
-				if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+				if ( el.dataset.preset == getRadioValue( elSensitivity ) ) // current preset has been changed
 					setProperty( elSensitivity, false );
 				savePreferences( KEY_SENSITIVITY );
 			});
@@ -1188,7 +1208,7 @@ function doConfigPanel() {
 			el.addEventListener( 'change', () => {
 				const isValid = ( +el.value >= +el.min && +el.value <= +el.max );
 				if ( isValid ) {
-					if ( el.dataset.preset == elSensitivity.value ) // current preset has been changed
+					if ( el.dataset.preset == getRadioValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
 					savePreferences( KEY_SENSITIVITY );
 				}
@@ -1726,7 +1746,13 @@ function loadPreset( name, alert, init ) {
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
 		if ( val !== undefined ) {
-			if ( el.classList.contains('switch') )
+			if ( el.tagName == 'FORM' ) {
+				// note: el.elements[ prop ].value = val won't work for empty string value
+				const option = el.querySelector(`[value="${val}"]`);
+				if ( option )
+					option.checked = true;
+			}
+			else if ( el.classList.contains('switch') )
 				el.dataset.active = +val;
 			else if ( el == elVolume )
 				setVolume( val );
@@ -1746,14 +1772,14 @@ function loadPreset( name, alert, init ) {
 		ansiBands      : isSwitchOn( elAnsiBands ),
 		colorMode      : elColorMode.value,
 		fftSize        : elFFTsize.value,
-		frequencyScale : elFreqScale.value,
+		frequencyScale : getRadioValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
 		linearAmplitude: isSwitchOn( elLinearAmpl ),
 		loRes          : isSwitchOn( elLoRes ),
 		lumiBars       : isSwitchOn( elLumiBars ),
 		maxFreq        : elRangeMax.value,
 		minFreq        : elRangeMin.value,
-		mirror         : elMirror.value,
+		mirror         : getRadioValue( elMirror ),
 		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
 		radial         : isSwitchOn( elRadial ),
@@ -2007,6 +2033,34 @@ function playPreviousSong() {
 function playSong( n ) {
 	if ( loadSong( n ) )
 		playPause( true );
+}
+
+/**
+ * Populate a custom radio buttons element
+ *
+ * @param element {object}
+ * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
+ */
+function populateCustomRadio( element, options ) {
+	const isObject = ! Array.isArray( options[0] );
+	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
+		const name = element.dataset.prop,
+			  text = item.text || item[1],
+			  val  = item.value || item[0],
+			  id   = name + '-' + val,
+		 	  button = document.createElement('input'),
+		 	  label = document.createElement('label');
+
+		button.name  = name;
+		button.id    = id;
+		button.type  = 'radio';
+		button.value = val;
+
+		label.htmlFor = id;
+		label.innerText = text;
+
+		element.append( button, label );
+	}
 }
 
 /**
@@ -2481,6 +2535,16 @@ function selectRandomMode( force = isMicSource ) {
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
+	const randomizeRadio = ( el, push = true ) => {
+		const items = el.elements[ el.dataset.prop ],
+		      notMirror = el == elReflex && isSwitchOn( elLedDisplay );
+			  // exclude 'full' (mirrored) reflex option when LEDS is active
+
+		items[ randomInt( items.length - notMirror ) ].checked = true;
+		if ( push )
+			props.push( el );
+	}
+
 	const randomizeSelect = ( el, push = true ) => {
 		el.selectedIndex = randomInt( el.options.length );
 		if ( push )
@@ -2536,14 +2600,14 @@ function selectRandomMode( force = isMicSource ) {
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeSwitch( elOutline );
 
-	if ( isEnabled( RND_REFLEX ) ) {
-		// exclude 'mirrored' reflex option for octave bands modes
-		const options = elReflex.options.length - ( elMode.value % 10 != 0 );
-		elReflex.selectedIndex = randomInt( options );
-	}
+	if ( isEnabled( RND_REFLEX ) )
+		randomizeRadio( elReflex, false );
 
 	if ( isEnabled( RND_RADIAL ) )
 		randomizeSwitch( elRadial );
+
+	if ( isEnabled( RND_ROUND ) )
+		randomizeSwitch( elRoundBars );
 
 	if ( isEnabled( RND_SPIN ) ) {
 		elSpin.value = randomInt(4);
@@ -2555,12 +2619,10 @@ function selectRandomMode( force = isMicSource ) {
 		randomizeSwitch( elSplitGrad );
 
 	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeSelect( elChnLayout, false );
+		randomizeSelect( elChnLayout );
 
-	if ( isEnabled( RND_MIRROR ) ) {
-		elMirror.value = randomInt(3) - 1;
-		props.push( elMirror );
-	}
+	if ( isEnabled( RND_MIRROR ) )
+		randomizeRadio( elMirror );
 
 	if ( isEnabled( RND_GRADIENT ) ) {
 		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
@@ -2755,7 +2817,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elFreqScale:
-				audioMotion.frequencyScale = elFreqScale.value;
+				audioMotion.frequencyScale = getRadioValue( elFreqScale );
 				break;
 
 			case elFsHeight:
@@ -2824,7 +2886,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elMirror:
-				audioMotion.mirror = elMirror.value;
+				audioMotion.mirror = getRadioValue( elMirror );
 				break;
 
 			case elNoteLabels:
@@ -2857,7 +2919,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elReflex:
-				switch ( elReflex.value ) {
+				switch ( getRadioValue( elReflex ) ) {
 					case '1':
 						audioMotion.reflexRatio = .4;
 						audioMotion.reflexAlpha = .2;
@@ -2892,7 +2954,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSensitivity:
-				const sensitivity = elSensitivity.value;
+				const sensitivity = getRadioValue( elSensitivity );
 				audioMotion.setSensitivity(
 					$(`.min-db[data-preset="${sensitivity}"]`).value,
 					$(`.max-db[data-preset="${sensitivity}"]`).value
@@ -2922,7 +2984,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elWeighting:
-				audioMotion.weightingFilter = elWeighting.value;
+				audioMotion.weightingFilter = getRadioValue( elWeighting );
 				break;
 
 		} // switch
@@ -3025,10 +3087,17 @@ function setUIEventListeners() {
 
 	// settings combo boxes and sliders ('change' event is only triggered for select and input elements)
 	$$('[data-prop]').forEach( el => {
-		el.addEventListener( 'change', () => {
-			setProperty( el );
-			updateRangeValue( el );
-		});
+		if ( el.tagName == 'FORM' ) {
+			el.elements[ el.dataset.prop ].forEach( btn => {
+				btn.addEventListener( 'click', () => setProperty( el ) );
+			});
+		}
+		else {
+			el.addEventListener( 'change', () => {
+				setProperty( el );
+				updateRangeValue( el );
+			});
+		}
 	});
 
 	// audio source selection and speakers mute
@@ -3727,7 +3796,7 @@ function updateRangeValue( el ) {
 
 	populateSelect( elChnLayout, channelLayoutOptions );
 
-	populateSelect(	elSensitivity, [
+	populateCustomRadio( elSensitivity, [
 		[ '0', 'Low'    ],
 		[ '1', 'Normal' ],
 		[ '2', 'High'   ]
@@ -3752,10 +3821,10 @@ function updateRangeValue( el ) {
 		[ '120', '5 minutes'       ]
 	]);
 
-	populateSelect(	elReflex, [
-		[ '0', 'Off'      ],
-		[ '1', 'On'       ],
-		[ '2', 'Mirrored' ]
+	populateCustomRadio( elReflex, [
+		[ '0', 'Off'  ],
+		[ '1', 'On'   ],
+		[ '2', 'Full' ]
 	]);
 
 	populateSelect(	elBackground, [
@@ -3766,26 +3835,26 @@ function updateRangeValue( el ) {
 
 	populateSelect( elBgImageFit, bgFitOptions );
 
-	populateSelect( elMirror, [
-		[ '0',  'Off' ],
-		[ '-1', 'Left'    ],
-		[ '1',  'Right'   ]
+	populateCustomRadio( elMirror, [
+		[ '-1', 'Left'  ],
+		[ '0',  'Off'   ],
+		[ '1',  'Right' ]
 	]);
 
-	populateSelect( elFreqScale, [
+	populateCustomRadio( elFreqScale, [
 		[ SCALE_BARK,   'Bark' ],
-		[ SCALE_LINEAR, 'Linear' ],
-		[ SCALE_LOG,    'Logarithmic' ],
-		[ SCALE_MEL,    'Mel']
+		[ SCALE_LINEAR, 'Lin'  ],
+		[ SCALE_LOG,    'Log'  ],
+		[ SCALE_MEL,    'Mel'  ]
 	]);
 
-	populateSelect( elWeighting, [
-		[ WEIGHT_NONE, 'None' ],
-		[ WEIGHT_A,    'A-weighting' ],
-		[ WEIGHT_B,    'B-weighting' ],
-		[ WEIGHT_C,    'C-weighting' ],
-		[ WEIGHT_D,    'D-weighting' ],
-		[ WEIGHT_468,  'ITU-R 468' ],
+	populateCustomRadio( elWeighting, [
+		[ WEIGHT_NONE, 'OFF' ],
+		[ WEIGHT_A,    'A'   ],
+		[ WEIGHT_B,    'B'   ],
+		[ WEIGHT_C,    'C'   ],
+		[ WEIGHT_D,    'D'   ],
+		[ WEIGHT_468,  '468' ],
 	]);
 
 	populateSelect( elColorMode, [
