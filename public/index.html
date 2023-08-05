@@ -153,8 +153,8 @@
 
 		<div class="controls">
 		<!-- COLUMN 1 -->
-			<div>
-				<span class="config-label help"><u>M</u>ode
+			<div class="column">
+				<span class="config-label help">Analyzer <u>M</u>ode
 					<span class="tooltip">
 					Visualization mode.<br>Disable undesired modes in Config.
 					</span>
@@ -174,7 +174,7 @@
 			<div>
 				<span class="config-label help">Bar Spacing
 					<span class="tooltip">
-						Octave bands modes only<br><em>(no effect when LUMI is on)</em>
+						Frequency bands modes only<br><em>(no effect when LUMI is on)</em>
 					</span>
 				</span>
 				<select id="bar_space" data-prop="barSpace"></select>
@@ -201,14 +201,12 @@
 			</div>
 
 		<!-- COLUMN 2 -->
-			<div class="rowspan-2">
-				<span class="config-label help">Color Mode & <u>G</u>radients
+			<div class="column rowspan-2">
+				<span class="config-label help"><u>G</u>radients
 					<span class="tooltip">
-						Select bar coloring mode and gradients for single and dual channels. Enable/disable gradients in Config.
+						Gradients for left and right channels. Enable/disable gradients in Config.
 					</span>
 				</span>
-
-				<select id="color_mode" data-prop="colorMode"></select>
 
 				<div class="flex align-center">
 					<select id="gradient" data-prop="gradient"></select>
@@ -221,29 +219,18 @@
 					<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
 						<span class="tooltip">Split gradients in two different parts<br><em>(for Dual / Vertical channel layout)</em></span>
 				</ul>
-
 			</div>
 
-			<div class="rowspan-2">
-				<span class="config-label help">Effects
+			<div>
+				<span class="config-label help">Color Mode
 					<span class="tooltip">
-						Visualization effects
+						Bar coloring mode
 					</span>
 				</span>
-				<ul class="switch-bar">
-					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
-						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
-					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
-						<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-					<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
-						<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
-					<li class="switch" id="outline" data-prop="outlineBars">Outline
-						<span class="tooltip">Outlined bars <em>(octave bands modes only)</em></span>
-					<li class="switch" id="radial" data-prop="radial">RADIAL
-						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
-					<li class="switch" id="round_bars" data-prop="roundBars">ROUND
-						<span class="tooltip">Round capped bars <em>(octave bands modes only)</em></span>
-				</ul>
+				<select id="color_mode" data-prop="colorMode"></select>
+			</div>
+
+			<div>
 			</div>
 
 			<div>
@@ -257,7 +244,7 @@
 			</div>
 
 		<!-- COLUMN 3 -->
-			<div>
+			<div class="column">
 				<span class="config-label help"><u>B</u>ackground
 					<span class="tooltip">
 					Select background option
@@ -304,7 +291,7 @@
 			</div>
 
 		<!-- COLUMN 4 -->
-			<div>
+			<div class="column">
 				<span class="config-label help">Channel Layout
 					<span class="tooltip">
 					Select the number and layout of analyzer channels
@@ -350,12 +337,12 @@
 			</div>
 
 		<!-- COLUMN 5 -->
-			<div class="rowspan-3">
+			<div class="column rowspan-5">
 				<span class="config-label help">Switches
 					<span class="tooltip">General visualization and performance options</span>
 				</span>
 
-				<ul class="switch-bar rowspan-2">
+				<ul class="switch-bar">
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
 						<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
@@ -380,19 +367,25 @@
 						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-				</ul>
-			</div>
 
-			<div class="rowspan-2">
-				<span class="config-label help">Preset
-					<span class="tooltip">
-						Load a configuration preset.<br>
-						<strong>"Last session"</strong> restores last used configuration settings.
-					</span>
-				</span>
-				<select id="preset"></select>
-				<div class="flex">
-					<button id="load_preset">Load</button>
+					<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
+						<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
+					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
+						<span class="tooltip">Show full height bars with varying luminance <em>(bands modes only)</em></span>
+
+					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
+						<span class="tooltip">Vintage LED bars effect <em>(bands modes only)</em></span>
+					<li class="switch" id="outline" data-prop="outlineBars">Outline
+						<span class="tooltip">Outlined bars <em>(bands modes only)</em></span>
+
+					<li class="switch" id="radial" data-prop="radial">RADIAL
+						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+					<li class="switch" id="round_bars" data-prop="roundBars">ROUND
+						<span class="tooltip">Rounded tip bars <em>(bands modes only)</em></span>
+				</ul>
+
+				<div class="flex preset-controls">
+					<button id="load_preset">Load Preset</button>
 					<span class="help">
 						<button id="btn_save">Save</button>
 						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>

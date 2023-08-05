@@ -51,7 +51,7 @@ button,
 	border: 1px solid #adadad;
 	border-radius: 999px;
 	line-height: normal;
-	padding: 6px 16px;
+	padding: .425em 1.1em;
 }
 button:not([disabled]):hover,
 .button:not([data-active="1"]):hover,
@@ -174,7 +174,8 @@ a.button:visited {
 }
 
 .settings {
-	background: #f0f0f0f0;
+	backdrop-filter: blur(2px);
+	background: #f0f0f0cc;
 	border: 1px solid #888;
 	border-bottom-left-radius: 20px;
 	border-bottom-right-radius: 20px;
@@ -460,6 +461,12 @@ a.button:visited {
 .rowspan-3 {
 	grid-row: span 3;
 }
+.rowspan-4 {
+	grid-row: span 4;
+}
+.rowspan-5 {
+	grid-row: span 5;
+}
 
 .general-settings input[type="number"],
 .general-settings input[type="range"],
@@ -468,10 +475,9 @@ a.button:visited {
 }
 
 .config-label {
-	font-weight: bold;
+	font-weight: 600;
 }
 .config-label.help {
-	color: #080;
 	cursor: help;
 }
 
@@ -584,6 +590,10 @@ div.value {
 	border-right-width: 1px !important;
     margin-right: -1px;
     z-index: 1;
+}
+
+.preset-controls {
+	margin-top: 10px;
 }
 
 .help {
@@ -744,6 +754,10 @@ form[data-prop] label:last-of-type::before {
 .controls .tooltip {
 	left: 110%;
 	top: 0;
+}
+.controls .switch-bar .tooltip {
+	top: auto;
+	transform: translateY(-50%);
 }
 .player-controls .tooltip {
 	left: 50%;
@@ -1244,7 +1258,7 @@ input.slider:not(:checked) + .slider .slider-on {
 }
 .knob-vol label {
 	left: -65%;
-	top: -5px;
+	top: 5px;
 }
 
 .knob .marker {
@@ -1447,5 +1461,16 @@ button.grad-add-stop:hover {
 	}
 	.file-panel {
 		grid-template-columns: 1fr 110px 1fr;
+	}
+}
+
+@media screen and (max-width: 1279px) {
+	.controls .column:last-child .tooltip {
+		left: auto;
+		right: 50px;
+	}
+	.controls .column:last-child .preset-controls .tooltip,
+	.controls .column:last-child .switch-bar .tooltip {
+		right: 150px;
 	}
 }

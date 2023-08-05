@@ -173,7 +173,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elChnLayout     = $('#channel_layout'),
 	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
-	  elDim           = $('#bg_dim'),				// background image/video darkening layer
+	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
@@ -199,7 +199,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
-	  elPreset        = $('#preset'),
 	  elRadial        = $('#radial'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
@@ -220,213 +219,253 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
 	  elTrackTimeout  = $('#track_timeout'),
-	  elVideo         = $('#video'),				// background video
+	  elVideo         = $('#video'),			// background video
 	  elVolume        = $('#volume'),
  	  elWarp          = $('#warp'),				// "warp" effect layer
  	  elWeighting     = $('#weighting');
 
 // Configuration presets
-const presets = {
-	default: {
-		alphaBars    : 0,
-		ansiBands    : 0,
-		background   : 0,	// gradient default
-		balance      : 0,
-		barSpace     : 0.1,
-		bgImageDim   : 0.5,
-		bgImageFit   : 1, 	// center
-		channelLayout: CHANNEL_SINGLE,
-		colorMode    : COLOR_GRADIENT,
-		fillAlpha    : 0.1,
-		freqMax      : 20000,
-		freqMin      : 20,
-		freqScale    : SCALE_LOG,
-		gradient     : 'prism',
-		gradientRight: 'prism',
-		ledDisplay   : 0,
-		linearAmpl   : 0,
-		lineWidth    : 2,
-		linkGrads    : 0,
-		loRes        : 0,
-		lumiBars     : 0,
-		mirror       : 0,
-		mode         : MODE_DISCRETE,
-		noShadow     : 1,
-		noteLabels   : 0,
-		outlineBars  : 0,
-		radial       : 0,
-		randomMode   : 0,
-		reflex       : 0,
-		repeat       : 0,
-		roundBars    : 0,
-		sensitivity  : 1,
-		showFPS      : 0,
-		showPeaks    : 1,
-		showScaleX   : 1,
-		showScaleY   : 1,
-		showSong     : 1,
-		spin         : 2,
-		splitGrad    : 0,
-		volume       : 1,
-		weighting    : WEIGHT_NONE
+const presets = [
+	{
+		key: 'demo',
+		name: 'Demo (random)',
+		options: {
+			randomMode  : 6    // 15 seconds
+		}
 	},
 
-	demo: {
-		randomMode  : 6    // 15 seconds
+	{
+		key: 'bands',
+		name: 'Octave Bands',
+		options: {
+			alphaBars    : 0,
+			ansiBands    : 0,
+			background   : BG_COVER,
+			barSpace     : .25,
+			bgImageDim   : .3,
+			bgImageFit   : BGFIT_ADJUST,
+			channelLayout: CHANNEL_SINGLE,
+			colorMode    : COLOR_GRADIENT,
+			freqMax      : 20000,
+			freqMin      : 20,
+			freqScale    : SCALE_LOG,
+			gradient     : 'rainbow',
+			ledDisplay   : 0,
+			linearAmpl   : 1,
+			lumiBars     : 0,
+			mirror       : 0,
+			mode         : MODE_OCTAVE_12TH,
+			noteLabels   : 1,
+			outlineBars  : 0,
+			radial       : 0,
+			randomMode   : 0,
+			reflex       : 1,
+			roundBars    : 0,
+			showPeaks    : 1,
+			showScaleX   : 1,
+			showScaleY   : 0,
+			showSong     : 1,
+			splitGrad    : 0,
+			weighting    : WEIGHT_D
+		}
 	},
 
-	bands: {
-		alphaBars    : 0,
-		ansiBands    : 0,
-		background   : BG_COVER,
-		barSpace     : .25,	// CRIAR CONSTANTE BARSPC_REGULAR
-		bgImageDim   : .3,
-		bgImageFit   : BGFIT_ADJUST,
-		channelLayout: CHANNEL_SINGLE,
-		colorMode    : COLOR_GRADIENT,
-		freqMax      : 20000,
-		freqMin      : 20,
-		freqScale    : SCALE_LOG,
-		gradient     : 'rainbow',
-		ledDisplay   : 0,
-		linearAmpl   : 1,
-		lumiBars     : 0,
-		mirror       : 0,
-		mode         : MODE_OCTAVE_12TH,
-		noteLabels   : 1,
-		outlineBars  : 0,
-		radial       : 0,
-		randomMode   : 0,
-		reflex       : 1,
-		roundBars    : 0,
-		showPeaks    : 1,
-		showScaleX   : 1,
-		showScaleY   : 0,
-		showSong     : 1,
-		splitGrad    : 0,
-		weighting    : WEIGHT_D
+	{
+		key: 'ledbars',
+		name: 'Classic LED bars',
+		options: {
+			alphaBars    : 0,
+			ansiBands    : 1,
+			background   : BG_COVER,
+			barSpace     : .25,
+			bgImageDim   : .3,
+			bgImageFit   : BGFIT_CENTER,
+			channelLayout: CHANNEL_SINGLE,
+			colorMode    : COLOR_GRADIENT,
+			freqMax      : 20000,
+			freqMin      : 25,
+			freqScale    : SCALE_LOG,
+			gradient     : 'classic',
+			ledDisplay   : 1,
+			linearAmpl   : 1,
+			lumiBars     : 0,
+			outlineBars  : 0,
+			mirror       : 0,
+			mode         : MODE_OCTAVE_3RD,
+			noteLabels   : 0,
+			radial       : 0,
+			randomMode   : 0,
+			reflex       : 0,
+			roundBars    : 0,
+			showPeaks    : 1,
+			showScaleX   : 1,
+			showScaleY   : 0,
+			showSong     : 1,
+			splitGrad    : 0,
+			weighting    : WEIGHT_D
+		}
 	},
 
-	ledbars: {
-		alphaBars    : 0,
-		ansiBands    : 1,
-		background   : BG_COVER,
-		barSpace     : .25,
-		bgImageDim   : .3,
-		bgImageFit   : BGFIT_CENTER,
-		channelLayout: CHANNEL_SINGLE,
-		colorMode    : COLOR_GRADIENT,
-		freqMax      : 20000,
-		freqMin      : 30,
-		freqScale    : SCALE_LOG,
-		gradient     : 'classic',
-		ledDisplay   : 1,
-		linearAmpl   : 1,
-		lumiBars     : 0,
-		outlineBars  : 0,
-		mirror       : 0,
-		mode         : MODE_OCTAVE_3RD,
-		noteLabels   : 0,
-		radial       : 0,
-		randomMode   : 0,
-		reflex       : 0,
-		roundBars    : 0,
-		showPeaks    : 1,
-		showScaleX   : 1,
-		showScaleY   : 0,
-		showSong     : 1,
-		splitGrad    : 0,
-		weighting    : WEIGHT_D
+	{
+		key: 'dual',
+		name: 'Dual-channel combined Graph',
+		options: {
+			background   : BG_COVER,
+			bgImageDim   : .3,
+			bgImageFit   : BGFIT_CENTER,
+			channelLayout: CHANNEL_COMBINED,
+			colorMode    : COLOR_GRADIENT,
+			fillAlpha    : .3,
+			freqMax      : 20000,
+			freqMin      : 60,
+			freqScale    : SCALE_LOG,
+			gradient     : 'cool',
+			gradientRight: 'dusk',
+			linearAmpl   : 1,
+			lineWidth    : 1.5,
+			linkGrads    : 0,
+			mirror       : 0,
+			mode         : MODE_LINE,
+			radial       : 0,
+			randomMode   : 0,
+			reflex       : 0,
+			showPeaks    : 0,
+			showScaleX   : 0,
+			showScaleY   : 0,
+			showSong     : 1,
+			splitGrad    : 0,
+			weighting    : WEIGHT_D
+		}
 	},
 
-	dual: {
-		background   : BG_COVER,
-		bgImageDim   : .3,
-		bgImageFit   : BGFIT_CENTER,
-		channelLayout: CHANNEL_COMBINED,
-		colorMode    : COLOR_GRADIENT,
-		fillAlpha    : .3,
-		freqMax      : 20000,
-		freqMin      : 60,
-		freqScale    : SCALE_LOG,
-		gradient     : 'cool',
-		gradientRight: 'dusk',
-		linearAmpl   : 1,
-		lineWidth    : 1.5,	// ATIVAR STEP .5
-		linkGrads    : 0,
-		mirror       : 0,
-		mode         : MODE_LINE,
-		radial       : 0,
-		randomMode   : 0,
-		reflex       : 0,
-		showPeaks    : 0,
-		showScaleX   : 0,
-		showScaleY   : 0,
-		showSong     : 1,
-		splitGrad    : 0,
-		weighting    : WEIGHT_D
+	{
+		key: 'radial',
+		name: 'Radial Color by Level',
+		options: {
+			alphaBars    : 1,
+			background   : BG_COVER,
+			barSpace     : .1,
+			bgImageDim   : .3,
+			bgImageFit   : BGFIT_PULSE,
+			channelLayout: CHANNEL_SINGLE,
+			colorMode    : COLOR_LEVEL,
+			freqMax      : 20000,
+			freqMin      : 20,
+			freqScale    : SCALE_BARK,
+			gradient     : 'prism',
+			ledDisplay   : 0,
+			linearAmpl   : 1,
+			lumiBars     : 0,
+			mirror       : 0,
+			mode         : MODE_OCTAVE_4TH,
+			noteLabels   : 0,
+			outlineBars  : 0,
+			radial       : 1,
+			randomMode   : 0,
+			showPeaks    : 1,
+			showScaleX   : 1,
+			showScaleY   : 0,
+			showSong     : 1,
+			spin         : 1,
+			splitGrad    : 0,
+			weighting    : WEIGHT_D
+		}
 	},
 
-	radial: {
-		alphaBars    : 1,
-		background   : BG_COVER,
-		barSpace     : .1,
-		bgImageDim   : .3,
-		bgImageFit   : BGFIT_PULSE,
-		channelLayout: CHANNEL_SINGLE,
-		colorMode    : COLOR_LEVEL,
-		freqMax      : 20000,
-		freqMin      : 20,
-		freqScale    : SCALE_BARK,
-		gradient     : 'prism',
-		ledDisplay   : 0,
-		linearAmpl   : 1,
-		lumiBars     : 0,
-		mirror       : 0,
-		mode         : MODE_OCTAVE_4TH,
-		noteLabels   : 0,
-		outlineBars  : 0,
-		radial       : 1,
-		randomMode   : 0,
-		showPeaks    : 1,
-		showScaleX   : 1,
-		showScaleY   : 0,
-		showSong     : 1,
-		spin         : 1,
-		splitGrad    : 0,
-		weighting    : WEIGHT_D
+	{
+		key: 'round',
+		name: 'Round Bars reflex',
+		options: {
+			alphaBars    : 0,
+			background   : BG_COVER,
+			barSpace     : .25,
+			bgImageDim   : .3,
+			bgImageFit   : BGFIT_WARP_ANI,
+			channelLayout: CHANNEL_SINGLE,
+			colorMode    : COLOR_INDEX,
+			freqMax      : 20000,
+			freqMin      : 30,
+			freqScale    : SCALE_LOG,
+			gradient     : 'apple',
+			ledDisplay   : 0,
+			linearAmpl   : 1,
+			lumiBars     : 0,
+			mirror       : 0,
+			mode         : MODE_OCTAVE_8TH,
+			outlineBars  : 0,
+			radial       : 0,
+			randomMode   : 0,
+			reflex       : 2,
+			roundBars    : 1,
+			showPeaks    : 0,
+			showScaleX   : 0,
+			showScaleY   : 0,
+			showSong     : 1,
+			splitGrad    : 0,
+			weighting    : WEIGHT_D
+		}
 	},
 
-	round: {
-		alphaBars    : 0,
-		background   : BG_COVER,
-		barSpace     : .25,
-		bgImageDim   : .3,
-		bgImageFit   : BGFIT_WARP_ANI,
-		channelLayout: CHANNEL_SINGLE,
-		colorMode    : COLOR_INDEX,
-		freqMax      : 20000,
-		freqMin      : 30,
-		freqScale    : SCALE_LOG,
-		gradient     : 'apple',
-		ledDisplay   : 0,
-		linearAmpl   : 1,
-		lumiBars     : 0,
-		mirror       : 0,
-		mode         : MODE_OCTAVE_8TH,
-		outlineBars  : 0,
-		radial       : 0,
-		randomMode   : 0,
-		reflex       : 2,	// CRIAR CONSTANTE
-		roundBars    : 1,
-		showPeaks    : 0,
-		showScaleX   : 0,
-		showScaleY   : 0,
-		showSong     : 1,
-		splitGrad    : 0,
-		weighting    : WEIGHT_D
+	{
+		key: 'custom',
+		name: 'Custom',
+		options: {}
+	},
+
+	{
+		key: 'last',
+		name: 'Last session',
+		options: {}
+	},
+
+	{
+		key: 'default',
+		name: 'Restore defaults',
+		options: {
+			alphaBars    : 0,
+			ansiBands    : 0,
+			background   : BG_DEFAULT,
+			balance      : 0,
+			barSpace     : 0.1,
+			bgImageDim   : 0.5,
+			bgImageFit   : BGFIT_CENTER,
+			channelLayout: CHANNEL_SINGLE,
+			colorMode    : COLOR_GRADIENT,
+			fillAlpha    : 0.1,
+			freqMax      : 20000,
+			freqMin      : 20,
+			freqScale    : SCALE_LOG,
+			gradient     : 'prism',
+			gradientRight: 'prism',
+			ledDisplay   : 0,
+			linearAmpl   : 0,
+			lineWidth    : 2,
+			linkGrads    : 0,
+			loRes        : 0,
+			lumiBars     : 0,
+			mirror       : 0,
+			mode         : MODE_DISCRETE,
+			noShadow     : 1,
+			noteLabels   : 0,
+			outlineBars  : 0,
+			radial       : 0,
+			randomMode   : 0,
+			reflex       : 0,
+			repeat       : 0,
+			roundBars    : 0,
+			sensitivity  : 1,
+			showFPS      : 0,
+			showPeaks    : 1,
+			showScaleX   : 1,
+			showScaleY   : 1,
+			showSong     : 1,
+			spin         : 2,
+			splitGrad    : 0,
+			volume       : 1,
+			weighting    : WEIGHT_NONE
+		}
 	}
-};
+];
 
 // Gradient definitions
 const gradients = {
@@ -706,11 +745,40 @@ const getCurrentSettings = _ => ({
 	weighting    : elWeighting.value
 });
 
+// get the array index for a preset key, or validate a given index; if invalid or not found returns -1
+const getPresetIndex = key => {
+	const index = ( +key == key ) ? key : presets.findIndex( item => item.key == key );
+	return ( index < 0 || index > presets.length - 1 ) ? -1 : index;
+}
+
+// get the configurations options of a preset
+const getPreset = key => {
+	const index = getPresetIndex( key );
+	return ( index == -1 ) ? {} : presets[ index ].options;
+}
+
+// get the name of a preset
+const getPresetName = key => {
+	const index = getPresetIndex( key );
+	return ( index == -1 ) ? false : presets[ index ].name;
+}
+
+// update configuration options from an existing preset
+const setPreset = ( key, options ) => {
+	const index = getPresetIndex( key );
+	if ( index == -1 )
+		return;
+	presets[ index ].options = options;
+}
+
 // get value of a custom radio buttons element
 const getRadioValue = el => el.elements[ el.dataset.prop ].value;
 
 // check if a string is an external URL
 const isExternalURL = path => path.startsWith('http');
+
+// check if an object is empty
+const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).length;
 
 // check if PIP is active
 const isPIP = _ => elContainer.classList.contains('pip');
@@ -1654,13 +1722,10 @@ async function loadPreferences() {
 	 	  isLastSession = lastConfig !== null;
 
 	// Merge defaults with the last session settings (if any)
-	presets['last'] = { ...presets['default'], ...lastConfig };
+	setPreset( 'last', { ...getPreset('default'), ...lastConfig } );
 
 	// Load custom preset
-	presets['custom'] = await loadFromStorage( KEY_CUSTOM_PRESET );
-
-	// Populate presets combo box
-	populatePresets( isLastSession );
+	setPreset( 'custom', await loadFromStorage( KEY_CUSTOM_PRESET ) );
 
 	// Load disabled modes preference
 	parseDisabled( await loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
@@ -1726,17 +1791,20 @@ async function loadPreferences() {
 /**
  * Load a configuration preset
  *
- * @param name {string} desired preset name
- * @param [alert] {boolean} true to display on-screen alert after loading
+ * @param key {string} desired preset key
+ * @param [alert] {boolean} true to display console message and on-screen alert after loading
  * @param [init] {boolean} true to use default values for missing properties
  */
-function loadPreset( name, alert, init ) {
+function loadPreset( key, alert = true, init ) {
 
-	if ( ! presets[ name ] ) // check invalid preset name
+	const thisPreset = getPreset( key ),
+		  defaults   = getPreset('default');
+
+	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
-	const thisPreset = presets[ name ],
-		  defaults   = presets['default'];
+	if ( alert )
+		consoleLog( `Loading '${ getPresetName( key ) }' preset` );
 
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
@@ -1811,7 +1879,7 @@ function loadPreset( name, alert, init ) {
 		elMode ]
 	);
 
-	if ( name == 'demo' )
+	if ( key == 'demo' )
 		selectRandomMode( true );
 
 	if ( alert )
@@ -2134,27 +2202,6 @@ function populateGradients() {
 			setProperty( el );
 		}
 	}
-}
-
-/**
- * Populate presets combo box
- */
-function populatePresets( isLastSession, newValue ) {
-	const presetOptions = [
-		[ null,      'Select preset' ],
-		[ 'demo',    'Demo (random)' ],
-		[ 'bands',   'Octave Bands' ],
-		[ 'ledbars', 'Classic LED bars' ],
-		[ 'dual',    'Dual Channel Line Graph' ],
-		[ 'radial',  'Radial color by Level' ],
-		[ 'round',   'Round Bars' ],
-		...( presets['custom'] ? [ [ 'custom', 'Custom' ] ] : [] ),
-		...( isLastSession ? [ [ 'last', 'Last session' ] ] : [] ),
-		[ 'default', 'Restore defaults' ]
-	];
-
-	populateSelect( elPreset, presetOptions );
-	elPreset.value = newValue || '';
 }
 
 /**
@@ -3153,11 +3200,18 @@ function setUIEventListeners() {
 
 	// action buttons
 	$('#load_preset').addEventListener( 'click', () => {
-		if ( elPreset.value ) {
-			consoleLog( `Loading preset '${ getText( elPreset ) }'` );
-			loadPreset( elPreset.value, true );
-		}
+		const choices = [];
+		presets.forEach( item => {
+			if ( ! isEmpty( item.options ) )
+				choices.push( { text: item.name, handler: () => loadPreset( item.key ) } );
+		});
+
+		notie.select({
+			text: 'Select preset:',
+			choices
+		});
 	});
+
 	$('#btn_save').addEventListener( 'click', updateCustomPreset );
 
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
@@ -3429,10 +3483,9 @@ function toggleMute( mute ) {
  */
 function updateCustomPreset() {
 	const settings = getCurrentSettings();
-	presets['custom'] = settings;
+	setPreset( 'custom', settings );
 	saveToStorage( KEY_CUSTOM_PRESET, settings );
 	notie.alert({ text: 'Custom preset saved!' });
-	populatePresets( Array.from( elPreset.options, item => item.value ).includes('last'), 'custom' );
 }
 
 /**
