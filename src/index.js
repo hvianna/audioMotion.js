@@ -1473,8 +1473,9 @@ function keyboardControls( event ) {
 				}
 				break;
 			case 'KeyG': 		// gradient
+				const isDual = elChnLayout.value != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
 				cycleElement( elGradient, isShiftKey );
-				setCanvasMsg( 'Gradient: ' + gradients[ elGradient.value ].name );
+				setCanvasMsg( `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }` );
 				break;
 			case 'ArrowRight': 	// next song
 			case 'KeyK':
@@ -1485,7 +1486,7 @@ function keyboardControls( event ) {
 				break;
 			case 'KeyA': 		// cycle thru random mode options
 				cycleElement( elRandomMode, isShiftKey );
-				setCanvasMsg( 'Random mode: ' + getText( elRandomMode ) );
+				setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
 				setProperty( elRandomMode );
 				break;
 			case 'KeyB': 		// background or image fit (shift)
@@ -3653,11 +3654,14 @@ function updateRangeValue( el ) {
 
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
-				drawText( 'Gradient: ' + gradients[ elGradient.value ].name, centerPos, topLine1, maxWidthTop );
+				const isDual = elChnLayout.value != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ),
+					  gradText = `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
+
+				drawText( gradText, centerPos, topLine1, maxWidthTop );
 
 				canvasCtx.textAlign = 'left';
 				drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
-				drawText( `Random mode: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
+				drawText( `Randomize: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
 
 				canvasCtx.textAlign = 'right';
 				drawText( getText( elSensitivity ).toUpperCase() + ' sensitivity', rightPos, topLine1, maxWidthTop );
@@ -3841,7 +3845,7 @@ function updateRangeValue( el ) {
 
 	populateSelect( elMode, modeOptions );
 
-	for ( const i of [16,20,30,40,50,60,100,250,500,1000,2000] )
+	for ( const i of [16,20,25,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
 
 	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
