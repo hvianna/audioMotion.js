@@ -317,7 +317,7 @@ const presets = [
 			colorMode    : COLOR_GRADIENT,
 			fillAlpha    : .3,
 			freqMax      : 20000,
-			freqMin      : 60,
+			freqMin      : 20,
 			freqScale    : SCALE_LOG,
 			gradient     : 'cool',
 			gradientRight: 'dusk',
@@ -384,7 +384,7 @@ const presets = [
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_INDEX,
 			freqMax      : 20000,
-			freqMin      : 30,
+			freqMin      : 20,
 			freqScale    : SCALE_LOG,
 			gradient     : 'apple',
 			ledDisplay   : 0,
@@ -404,12 +404,6 @@ const presets = [
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
 		}
-	},
-
-	{
-		key: 'custom',
-		name: 'Custom',
-		options: {}
 	},
 
 	{
@@ -654,12 +648,14 @@ let audioElement = [],
 	isMicSource,				// flag for microphone input in use
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
+	overwritePreset = false,    // flag to overwrite user preset during fullscreen
 	panNode,					// stereoPanner node for balance control
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
 	serverMode, 				// 1 = custom server; 0 = standard web server; -1 = local (file://) mode
 	skipping = false,
+	userPresets,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
 
@@ -1389,6 +1385,61 @@ function getFolderCover( uri ) {
 }
 
 /**
+ * Return a list of descriptions for each user preset
+ */
+function getUserPresets() {
+
+	const validCombo = ( preset, option ) => {
+		const isOptionSet = !! +preset[ option ],
+			  isLeds      = option == 'ledDisplay',
+			  isBarsOpt   = option.includes('Bars'),
+			  isBands     = preset.mode > 0 && preset.mode < 9,
+			  isRadial    = !! +preset.radial;
+
+		return isOptionSet && ( ! isLeds || ! isRadial ) && ( ( ! isLeds && ! isBarsOpt ) || isBands );
+	}
+
+	const list = [];
+	userPresets.forEach( ( item, index ) => {
+		let text = `#${ index + 1 }: `;
+		if ( isEmpty( item ) )
+			text += 'Empty';
+		else {
+			const opts = [
+				[ 'randomMode', 'Random'  ],
+				[ 'radial',     'Radial'  ],
+				[ 'reflex',     'Reflex'  ],
+				[ 'mirror',     'Mirror'  ],
+				[ 'linearAmpl', 'Linear'  ],
+				[ 'alphaBars',  'Alpha'   ],
+				[ 'lumiBars',   'Lumi'    ],
+				[ 'ledDisplay', 'Leds'    ],
+				[ 'outlineBars','Outline' ],
+				[ 'roundBars',  'Round'   ]
+			];
+			let c = 0;
+			if ( item.channelLayout != CHANNEL_SINGLE ) {
+				text += 'Dual | ';
+				c++;
+			}
+			if ( item.freqScale != SCALE_LOG ) {
+				text += item.freqScale.charAt(0).toUpperCase() + item.freqScale.substring(1) + ' scale | ';
+				c++;
+			}
+			for ( const [ opt, descr ] of opts ) {
+				if ( validCombo( item, opt ) && c < 3 ) {
+					text += `${ descr } | `;
+					c++;
+				}
+			}
+			text += modeOptions.find( el => el.value == item.mode ).text;
+		}
+		list.push( text );
+	});
+	return list;
+}
+
+/**
  * Process keyboard shortcuts
  */
 function keyboardControls( event ) {
@@ -1398,6 +1449,7 @@ function keyboardControls( event ) {
 
 	const isShiftKey = event.shiftKey;
 
+	// keys handled on 'keydown' allow automatic repetition
 	if ( event.type == 'keydown' ) {
 		switch ( event.code ) {
 			case 'ArrowUp': 	// volume up
@@ -1438,131 +1490,146 @@ function keyboardControls( event ) {
 		}
 	}
 	else {
-		// the keys below are handled on 'keyup' to avoid key repetition
-		switch ( event.code ) {
-			case 'Delete': 		// delete selected songs from the playlist
-			case 'Backspace':	// for Mac
-				playlist.querySelectorAll('.selected').forEach( e => {
-					revokeBlobURL( e );
-					e.remove();
-				});
-				const current = getIndex( playlist.querySelector('.current') );
-				if ( current !== undefined )
-					playlistPos = current;	// update playlistPos if current song hasn't been deleted
-				else if ( playlistPos > queueLength() - 1 )
-					playlistPos = queueLength() - 1;
-				else
-					playlistPos--;
-				if ( queueLength() )
-					loadNextSong();
-				else {
-					clearAudioElement( nextAudio );
-					if ( ! isPlaying() )
-						clearAudioElement();
-				}
-				break;
-			case 'Space': 		// play / pause
-				setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
-				playPause();
-				break;
-			case 'ArrowLeft': 	// previous song
-			case 'KeyJ':
-				if ( ! finishFastSearch() && ! isShiftKey ) {
-					setCanvasMsg( 'Previous track', 1 );
-					skipTrack(true);
-				}
-				break;
-			case 'KeyG': 		// gradient
-				const isDual = elChnLayout.value != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
-				cycleElement( elGradient, isShiftKey );
-				setCanvasMsg( `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }` );
-				break;
-			case 'ArrowRight': 	// next song
-			case 'KeyK':
-				if ( ! finishFastSearch() && ! isShiftKey ) {
-					setCanvasMsg( 'Next track', 1 );
-					skipTrack();
-				}
-				break;
-			case 'KeyA': 		// cycle thru random mode options
-				cycleElement( elRandomMode, isShiftKey );
-				setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
-				setProperty( elRandomMode );
-				break;
-			case 'KeyB': 		// background or image fit (shift)
-				cycleElement( isShiftKey ? elBgImageFit : elBackground );
-				const bgOption = elBackground.value[0];
-				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
-				break;
-			case 'KeyC': 		// radial
-				elRadial.click();
-				setCanvasMsg( 'Radial ' + onOff( elRadial ) );
-				break;
-			case 'KeyD': 		// display information
-				toggleInfo();
-				break;
-			case 'KeyE': 		// shuffle queue
-				if ( queueLength() > 0 ) {
-					shufflePlayQueue();
-					setCanvasMsg( 'Shuffle' );
-				}
-				break;
-			case 'KeyF': 		// toggle fullscreen
-				fullscreen();
-				break;
-			case 'KeyH': 		// toggle fps display
-				elFPS.click();
-				break;
-			case 'KeyI': 		// toggle info display on track change
-				elShowSong.click();
-				setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
-				break;
-			case 'KeyL': 		// toggle LED display effect
-				elLedDisplay.click();
-				setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
-				break;
-			case 'KeyM': 		// visualization mode
-			case 'KeyV':
-				cycleElement( elMode, isShiftKey );
-				setCanvasMsg( 'Mode: ' + getText( elMode ) );
-				break;
-			case 'KeyN': 		// increase or reduce sensitivity
-				cycleElement( elSensitivity, isShiftKey );
-				setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
-				break;
-			case 'KeyO': 		// toggle resolution
-				elLoRes.click();
-				setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
-				break;
-			case 'KeyP': 		// toggle peaks display
-				elShowPeaks.click();
-				setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
-				break;
-			case 'KeyR': 		// toggle playlist repeat
-				elRepeat.click();
-				setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
-				break;
-			case 'KeyS': 		// toggle X and Y axis scales
-				setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
-				break;
-			case 'KeyT': 		// toggle text shadow
-				elNoShadow.click();
-				setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
-				break;
-			case 'KeyU': 		// toggle lumi bars
-				elLumiBars.click();
-				setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
-				break;
-			case 'KeyX':
-				cycleElement( elReflex, isShiftKey );
-				setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
-				break;
-			default:
-				// no key match - quit and keep default behavior
-				return;
-
-		} // switch
-	} // else
+		if ( event.code.match( /^(Digit|Numpad)[0-9]$/ ) ) {
+			const index = event.code.slice(-1) - 1;
+			if ( index == -1 ) { // '0' pressed
+				// ignore if Shift pressed as it could be a user mistake
+				if ( ! isShiftKey )
+					selectRandomMode( true );
+			}
+			else if ( isShiftKey ) {
+				const settings = getCurrentSettings();
+				settings.randomMode = 0; // when saving via keyboard shortcut, turn off randomize
+				saveUserPreset( index, settings );
+			}
+			else
+				loadPreset( index );
+		}
+		else {
+			switch ( event.code ) {
+				case 'Delete': 		// delete selected songs from the playlist
+				case 'Backspace':	// for Mac
+					playlist.querySelectorAll('.selected').forEach( e => {
+						revokeBlobURL( e );
+						e.remove();
+					});
+					const current = getIndex( playlist.querySelector('.current') );
+					if ( current !== undefined )
+						playlistPos = current;	// update playlistPos if current song hasn't been deleted
+					else if ( playlistPos > queueLength() - 1 )
+						playlistPos = queueLength() - 1;
+					else
+						playlistPos--;
+					if ( queueLength() )
+						loadNextSong();
+					else {
+						clearAudioElement( nextAudio );
+						if ( ! isPlaying() )
+							clearAudioElement();
+					}
+					break;
+				case 'Space': 		// play / pause
+					setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
+					playPause();
+					break;
+				case 'ArrowLeft': 	// previous song
+				case 'KeyJ':
+					if ( ! finishFastSearch() && ! isShiftKey ) {
+						setCanvasMsg( 'Previous track', 1 );
+						skipTrack(true);
+					}
+					break;
+				case 'KeyG': 		// gradient
+					const isDual = elChnLayout.value != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
+					cycleElement( elGradient, isShiftKey );
+					setCanvasMsg( `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }` );
+					break;
+				case 'ArrowRight': 	// next song
+				case 'KeyK':
+					if ( ! finishFastSearch() && ! isShiftKey ) {
+						setCanvasMsg( 'Next track', 1 );
+						skipTrack();
+					}
+					break;
+				case 'KeyA': 		// cycle thru random mode options
+					cycleElement( elRandomMode, isShiftKey );
+					setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
+					setProperty( elRandomMode );
+					break;
+				case 'KeyB': 		// background or image fit (shift)
+					cycleElement( isShiftKey ? elBgImageFit : elBackground );
+					const bgOption = elBackground.value[0];
+					setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
+					break;
+				case 'KeyC': 		// radial
+					elRadial.click();
+					setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+					break;
+				case 'KeyD': 		// display information
+					toggleInfo();
+					break;
+				case 'KeyE': 		// shuffle queue
+					if ( queueLength() > 0 ) {
+						shufflePlayQueue();
+						setCanvasMsg( 'Shuffle' );
+					}
+					break;
+				case 'KeyF': 		// toggle fullscreen
+					fullscreen();
+					break;
+				case 'KeyH': 		// toggle fps display
+					elFPS.click();
+					break;
+				case 'KeyI': 		// toggle info display on track change
+					elShowSong.click();
+					setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
+					break;
+				case 'KeyL': 		// toggle LED display effect
+					elLedDisplay.click();
+					setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
+					break;
+				case 'KeyM': 		// visualization mode
+				case 'KeyV':
+					cycleElement( elMode, isShiftKey );
+					setCanvasMsg( 'Mode: ' + getText( elMode ) );
+					break;
+				case 'KeyN': 		// increase or reduce sensitivity
+					cycleElement( elSensitivity, isShiftKey );
+					setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
+					break;
+				case 'KeyO': 		// toggle resolution
+					elLoRes.click();
+					setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
+					break;
+				case 'KeyP': 		// toggle peaks display
+					elShowPeaks.click();
+					setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+					break;
+				case 'KeyR': 		// toggle playlist repeat
+					elRepeat.click();
+					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
+					break;
+				case 'KeyS': 		// toggle X and Y axis scales
+					setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
+					break;
+				case 'KeyT': 		// toggle text shadow
+					elNoShadow.click();
+					setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
+					break;
+				case 'KeyU': 		// toggle lumi bars
+					elLumiBars.click();
+					setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
+					break;
+				case 'KeyX':
+					cycleElement( elReflex, isShiftKey );
+					setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
+					break;
+				default:
+					// no key match - quit and keep default behavior
+					return;
+			} // switch
+		}
+	} // else if ( event.type == 'keydown' )
 
 	event.preventDefault();
 }
@@ -1725,8 +1792,13 @@ async function loadPreferences() {
 	// Merge defaults with the last session settings (if any)
 	setPreset( 'last', { ...getPreset('default'), ...lastConfig } );
 
-	// Load custom preset
-	setPreset( 'custom', await loadFromStorage( KEY_CUSTOM_PRESET ) );
+	// Load user presets
+	userPresets = await loadFromStorage( KEY_CUSTOM_PRESET );
+	if ( ! Array.isArray( userPresets ) )
+		userPresets = [ userPresets ]; // for compatibility with versions <= 21.11
+	for ( let i = 0; i < 9; i++ )
+		if ( userPresets[ i ] === undefined )
+			userPresets[ i ] = {}
 
 	// Load disabled modes preference
 	parseDisabled( await loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
@@ -1792,20 +1864,21 @@ async function loadPreferences() {
 /**
  * Load a configuration preset
  *
- * @param key {string} desired preset key
+ * @param key {string|number} desired built-in preset key or user preset index
  * @param [alert] {boolean} true to display console message and on-screen alert after loading
  * @param [init] {boolean} true to use default values for missing properties
  */
 function loadPreset( key, alert = true, init ) {
 
-	const thisPreset = getPreset( key ),
-		  defaults   = getPreset('default');
+	const isUserPreset = ( +key == key ),
+		  thisPreset   = isUserPreset ? userPresets[ key ] : getPreset( key ),
+		  defaults     = getPreset('default');
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
 	if ( alert )
-		consoleLog( `Loading '${ getPresetName( key ) }' preset` );
+		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
 
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
@@ -2557,6 +2630,51 @@ function saveToStorage( key, data ) {
 }
 
 /**
+ * Save or update an user preset
+ *
+ * @param {number} slot index (0-8)
+ * @param {object} settings object
+ * @param [{boolean}] force overwriting existing content
+ */
+function saveUserPreset( index, settings, force ) {
+	const userPresetText = `User Preset #${ index + 1 }`,
+		  confirmTimeout = 5;
+
+	if ( ! isEmpty( userPresets[ index ] ) && ! force && ! overwritePreset ) {
+		if ( audioMotion.isFullscreen ) {
+			setCanvasMsg( `Overwrite ${ userPresetText } - Press again to confirm!`, confirmTimeout );
+			overwritePreset = true;
+			setTimeout( () => {
+				overwritePreset = false;
+			}, confirmTimeout * 1000 );
+		}
+		else {
+			notie.confirm({
+				text: `Do you really want to overwrite ${ userPresetText }?`,
+				submitText: 'Overwrite',
+				submitCallback: () => {
+					saveUserPreset( index, settings, true );
+				},
+				cancelCallback: () => {
+					notie.alert({ text: 'Canceled!' })
+				},
+			});
+		}
+		return;
+	}
+
+	userPresets[ index ] = settings;
+	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
+	overwritePreset = false;
+
+	const text = `Saved to ${ userPresetText }`;
+	if ( audioMotion.isFullscreen )
+		setCanvasMsg( text, 5 );
+	else
+		notie.alert({ text });
+}
+
+/**
  * Schedule start of track fast search
  *
  * @param mode {string} 'm' for mouse, 'k' for keyboard
@@ -3202,18 +3320,42 @@ function setUIEventListeners() {
 	// action buttons
 	$('#load_preset').addEventListener( 'click', () => {
 		const choices = [];
+
 		presets.forEach( item => {
 			if ( ! isEmpty( item.options ) )
 				choices.push( { text: item.name, handler: () => loadPreset( item.key ) } );
 		});
 
+		choices.push({
+			text: 'User presets →', handler: () => {
+				const userChoices = [];
+				getUserPresets().forEach( ( text, index ) => {
+					userChoices.push( { text, handler: () => loadPreset( index ) } );
+				});
+				notie.select({
+					text: 'Load User Preset:',
+					choices: userChoices
+				});
+			}
+		});
+
 		notie.select({
-			text: 'Select preset:',
+			text: 'Load preset:',
 			choices
 		});
 	});
 
-	$('#btn_save').addEventListener( 'click', updateCustomPreset );
+	$('#btn_save').addEventListener( 'click', () => {
+		const choices = [];
+		getUserPresets().forEach( ( text, index ) => {
+			choices.push( { text, handler: () => saveUserPreset( index, getCurrentSettings() ) } );
+		});
+
+		notie.select({
+			text: 'Save to slot:',
+			choices
+		});
+	});
 
 	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
 
@@ -3477,16 +3619,6 @@ function toggleMute( mute ) {
 		audioMotion.disconnectOutput();
 	else
 		audioMotion.connectOutput();
-}
-
-/**
- * Update custom preset
- */
-function updateCustomPreset() {
-	const settings = getCurrentSettings();
-	setPreset( 'custom', settings );
-	saveToStorage( KEY_CUSTOM_PRESET, settings );
-	notie.alert({ text: 'Custom preset saved!' });
 }
 
 /**
