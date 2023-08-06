@@ -1443,6 +1443,12 @@ function getUserPresets() {
  */
 function keyboardControls( event ) {
 
+	if ( event.code == 'F1' && ! event.altKey && ! event.ctrlKey ) {
+		location.href = '#help';
+		event.preventDefault();
+		return;
+	}
+
 	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
 		return;
 
