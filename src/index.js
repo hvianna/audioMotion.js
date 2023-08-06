@@ -30,8 +30,7 @@
  */
 
 import { version as VERSION } from '../package.json';
-//import AudioMotionAnalyzer from 'audiomotion-analyzer';
-import AudioMotionAnalyzer from '../../audioMotion-analyzer/src/audioMotion-analyzer.js';
+import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
