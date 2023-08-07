@@ -107,7 +107,7 @@ const MODE_DISCRETE    = '0',
 	  MODE_OCTAVE_12TH = '2',
 	  MODE_OCTAVE_24TH = '1';
 
-// Random mode property keys
+// Property keys for Randomize settings
 const RND_ALPHA       = 'alpha',
 	  RND_BACKGROUND  = 'nobg',
 	  RND_BARSPACING  = 'barSp',
@@ -120,8 +120,10 @@ const RND_ALPHA       = 'alpha',
 	  RND_LINEWIDTH   = 'line',
 	  RND_LUMI        = 'lumi',
 	  RND_MIRROR      = 'mirror',
+	  RND_MODE        = 'mode',
 	  RND_OUTLINE     = 'outline',
 	  RND_PEAKS       = 'peaks',
+	  RND_PRESETS     = 'presets',
 	  RND_RADIAL      = 'radial',
 	  RND_SPIN        = 'spin',
 	  RND_REFLEX      = 'reflex',
@@ -561,9 +563,10 @@ const channelLayoutOptions = [
 	[ CHANNEL_COMBINED, 'Dual / Combined' ]
 ];
 
-// Properties that may be changed by Random Mode
+// Randomize options
 const randomProperties = [
 	{ value: RND_ALPHA,       text: 'Alpha',          disabled: false },
+	{ value: RND_MODE,        text: 'Analyzer Mode',  disabled: false },
 	{ value: RND_BACKGROUND,  text: 'Background',     disabled: false },
 	{ value: RND_BARSPACING,  text: 'Bar Spacing',    disabled: false },
 	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',   disabled: false },
@@ -582,6 +585,7 @@ const randomProperties = [
 	{ value: RND_REFLEX,      text: 'Reflex',         disabled: false },
 	{ value: RND_ROUND,       text: 'Round',          disabled: false },
 	{ value: RND_SPLIT,       text: 'Split',          disabled: false },
+	{ value: RND_PRESETS,     text: 'User Presets',   disabled: false }
 ];
 
 // Sensitivity presets
@@ -1236,7 +1240,7 @@ function doConfigPanel() {
 
 	populateEnabledGradients();
 
-	// Random Mode properties
+	// Randomize configuration
 
 	const elProperties = $('#random_properties');
 
@@ -1500,11 +1504,11 @@ function keyboardControls( event ) {
 			if ( index == -1 ) { // '0' pressed
 				// ignore if Shift pressed as it could be a user mistake
 				if ( ! isShiftKey )
-					selectRandomMode( true );
+					randomizeSettings( true );
 			}
 			else if ( isShiftKey ) {
 				const settings = getCurrentSettings();
-				settings.randomMode = 0; // when saving via keyboard shortcut, turn off randomize
+				settings.randomMode = 0; // when saving via keyboard shortcut, turn off Randomize
 				saveUserPreset( index, settings );
 			}
 			else
@@ -1556,7 +1560,7 @@ function keyboardControls( event ) {
 						skipTrack();
 					}
 					break;
-				case 'KeyA': 		// cycle thru random mode options
+				case 'KeyA': 		// cycle thru Randomize options
 					cycleElement( elRandomMode, isShiftKey );
 					setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
 					setProperty( elRandomMode );
@@ -1869,11 +1873,12 @@ async function loadPreferences() {
 /**
  * Load a configuration preset
  *
- * @param key {string|number} desired built-in preset key or user preset index
- * @param [alert] {boolean} true to display console message and on-screen alert after loading
- * @param [init] {boolean} true to use default values for missing properties
+ * @param {string|number} desired built-in preset key or user preset index
+ * @param [{boolean}] true to display console message and on-screen alert after loading (default)
+ * @param [{boolean}] true to use default values for missing properties
+ * @param [{boolean}] true to keep Randomize setting unchanged
  */
-function loadPreset( key, alert = true, init ) {
+function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	const isUserPreset = ( +key == key ),
 		  thisPreset   = isUserPreset ? userPresets[ key ] : getPreset( key ),
@@ -1892,7 +1897,7 @@ function loadPreset( key, alert = true, init ) {
 		const prop = el.dataset.prop,
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
-		if ( val !== undefined ) {
+		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) ) {
 			if ( el.tagName == 'FORM' ) {
 				// note: el.elements[ prop ].value = val won't work for empty string value
 				const option = el.querySelector(`[value="${val}"]`);
@@ -1953,13 +1958,13 @@ function loadPreset( key, alert = true, init ) {
 		elReflex,
 		elGradient,
 		elGradientRight,
-		elRandomMode,
+		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elMode ]
 	);
 
 	if ( key == 'demo' )
-		selectRandomMode( true );
+		randomizeSettings( true );
 
 	if ( alert )
 		notie.alert({ text: 'Settings loaded!' });
@@ -2313,6 +2318,128 @@ function populateSelect( element, options, keep ) {
 }
 
 /**
+ * Choose random settings
+ *
+ * @param [force] {boolean} force change even when not playing
+ *                (default true for microphone input, false otherwise )
+ */
+function randomizeSettings( force = isMicSource ) {
+	if ( ! isPlaying() && ! force )
+		return;
+
+	// helper functions
+	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
+
+	const randomizeRadio = ( el, push = true ) => {
+		const items = el.elements[ el.dataset.prop ],
+		      notMirror = el == elReflex && isSwitchOn( elLedDisplay );
+			  // exclude 'full' (mirrored) reflex option when LEDS is active
+
+		items[ randomInt( items.length - notMirror ) ].checked = true;
+		if ( push )
+			props.push( el );
+	}
+
+	const randomizeSelect = ( el, push = true ) => {
+		el.selectedIndex = randomInt( el.options.length );
+		if ( push )
+			props.push( el );
+	}
+
+	const randomizeSwitch = el => {
+		el.dataset.active = randomInt();
+		props.push( el );
+	}
+
+	let props = []; // properties that need to be updated
+
+	if ( isEnabled( RND_PRESETS ) ) {
+		const validIndexes = userPresets.map( ( item, index ) => isEmpty( item ) ? null : index ).filter( item => item !== null ),
+			  count = validIndexes.length;
+		if ( count )
+			loadPreset( validIndexes[ randomInt( count ) ], false, false, true );
+	}
+
+	if ( isEnabled( RND_MODE ) )
+		elMode.selectedIndex = randomInt( elMode.options.length );
+
+	if ( isEnabled( RND_ALPHA ) )
+		randomizeSwitch( elAlphaBars );
+
+	if ( isEnabled( RND_BACKGROUND ) )
+		randomizeSelect( elBackground, false );
+
+	if ( isEnabled( RND_BGIMAGEFIT ) )
+		randomizeSelect( elBgImageFit );
+
+	if ( isEnabled( RND_COLORMODE ) )
+		randomizeSelect( elColorMode );
+
+	if ( isEnabled( RND_PEAKS ) )
+		randomizeSwitch( elShowPeaks );
+
+	if ( isEnabled( RND_LEDS ) )
+		randomizeSwitch( elLedDisplay );
+
+	if ( isEnabled( RND_LUMI ) ) {
+		// always disable lumi when leds are active and background is set to image or video
+		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
+		props.push( elLumiBars );
+	}
+
+	if ( isEnabled( RND_LINEWIDTH ) ) {
+		elLineWidth.value = ( randomInt( 8 ) + 1 ) / 2; // 0.5 to 4 with .5 intervals
+		updateRangeValue( elLineWidth );
+	}
+
+	if ( isEnabled( RND_FILLOPACITY ) ) {
+		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
+		updateRangeValue( elFillAlpha );
+	}
+
+	if ( isEnabled( RND_BARSPACING ) )
+		randomizeSelect( elBarSpace, false );
+
+	if ( isEnabled( RND_OUTLINE ) )
+		randomizeSwitch( elOutline );
+
+	if ( isEnabled( RND_REFLEX ) )
+		randomizeRadio( elReflex, false );
+
+	if ( isEnabled( RND_RADIAL ) )
+		randomizeSwitch( elRadial );
+
+	if ( isEnabled( RND_ROUND ) )
+		randomizeSwitch( elRoundBars );
+
+	if ( isEnabled( RND_SPIN ) ) {
+		elSpin.value = randomInt(4);
+		updateRangeValue( elSpin );
+		props.push( elSpin );
+	}
+
+	if ( isEnabled( RND_SPLIT ) )
+		randomizeSwitch( elSplitGrad );
+
+	if ( isEnabled( RND_CHNLAYOUT ) )
+		randomizeSelect( elChnLayout );
+
+	if ( isEnabled( RND_MIRROR ) )
+		randomizeRadio( elMirror );
+
+	if ( isEnabled( RND_GRADIENT ) ) {
+		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
+			randomizeSelect( el );
+	}
+
+	// add properties that depend on other settings (mode also sets barspace)
+	props.push( elBackground, elReflex, elMode );
+
+	// effectively set the affected properties
+	setProperty( props );
+}
+
+/**
  * Remove a key from localStorage
  *
  * @param key {string}
@@ -2645,6 +2772,7 @@ function saveUserPreset( index, settings, force ) {
 	const userPresetText = `User Preset #${ index + 1 }`,
 		  confirmTimeout = 5;
 
+	// Show warning messages on attempt to overwrite existing preset
 	if ( ! isEmpty( userPresets[ index ] ) && ! force && ! overwritePreset ) {
 		if ( audioMotion.isFullscreen ) {
 			setCanvasMsg( `Overwrite ${ userPresetText } - Press again to confirm!`, confirmTimeout );
@@ -2658,7 +2786,7 @@ function saveUserPreset( index, settings, force ) {
 				text: `Do you really want to overwrite ${ userPresetText }?`,
 				submitText: 'Overwrite',
 				submitCallback: () => {
-					saveUserPreset( index, settings, true );
+					saveUserPreset( index, settings, true ); // force save
 				},
 				cancelCallback: () => {
 					notie.alert({ text: 'Canceled!' })
@@ -2668,9 +2796,11 @@ function saveUserPreset( index, settings, force ) {
 		return;
 	}
 
+	overwritePreset = false;
+
+	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = settings;
 	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
-	overwritePreset = false;
 
 	const text = `Saved to ${ userPresetText }`;
 	if ( audioMotion.isFullscreen )
@@ -2691,120 +2821,6 @@ function scheduleFastSearch( mode, dir = 1 ) {
 		isFastSearch = mode;
 		fastSearch( dir );
 	}, 200 );
-}
-
-/**
- * Choose a random visualization mode
- *
- * @param [force] {boolean} force change even when not playing
- *                (default true for microphone input, false otherwise )
- */
-function selectRandomMode( force = isMicSource ) {
-	if ( ! isPlaying() && ! force )
-		return;
-
-	// helper functions
-	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
-
-	const randomizeRadio = ( el, push = true ) => {
-		const items = el.elements[ el.dataset.prop ],
-		      notMirror = el == elReflex && isSwitchOn( elLedDisplay );
-			  // exclude 'full' (mirrored) reflex option when LEDS is active
-
-		items[ randomInt( items.length - notMirror ) ].checked = true;
-		if ( push )
-			props.push( el );
-	}
-
-	const randomizeSelect = ( el, push = true ) => {
-		el.selectedIndex = randomInt( el.options.length );
-		if ( push )
-			props.push( el );
-	}
-
-	const randomizeSwitch = el => {
-		el.dataset.active = randomInt();
-		props.push( el );
-	}
-
-	let props = []; // properties that need to be updated
-
-	elMode.selectedIndex = randomInt( elMode.options.length );
-
-	if ( isEnabled( RND_ALPHA ) )
-		randomizeSwitch( elAlphaBars );
-
-	if ( isEnabled( RND_BACKGROUND ) )
-		randomizeSelect( elBackground, false );
-
-	if ( isEnabled( RND_BGIMAGEFIT ) )
-		randomizeSelect( elBgImageFit );
-
-	if ( isEnabled( RND_COLORMODE ) )
-		randomizeSelect( elColorMode );
-
-	if ( isEnabled( RND_PEAKS ) )
-		randomizeSwitch( elShowPeaks );
-
-	if ( isEnabled( RND_LEDS ) )
-		randomizeSwitch( elLedDisplay );
-
-	if ( isEnabled( RND_LUMI ) ) {
-		// always disable lumi when leds are active and background is set to image or video
-		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
-		props.push( elLumiBars );
-	}
-
-	if ( isEnabled( RND_LINEWIDTH ) ) {
-		elLineWidth.value = ( randomInt( 8 ) + 1 ) / 2; // 0.5 to 4 with .5 intervals
-		updateRangeValue( elLineWidth );
-	}
-
-	if ( isEnabled( RND_FILLOPACITY ) ) {
-		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
-		updateRangeValue( elFillAlpha );
-	}
-
-	if ( isEnabled( RND_BARSPACING ) )
-		randomizeSelect( elBarSpace, false );
-
-	if ( isEnabled( RND_OUTLINE ) )
-		randomizeSwitch( elOutline );
-
-	if ( isEnabled( RND_REFLEX ) )
-		randomizeRadio( elReflex, false );
-
-	if ( isEnabled( RND_RADIAL ) )
-		randomizeSwitch( elRadial );
-
-	if ( isEnabled( RND_ROUND ) )
-		randomizeSwitch( elRoundBars );
-
-	if ( isEnabled( RND_SPIN ) ) {
-		elSpin.value = randomInt(4);
-		updateRangeValue( elSpin );
-		props.push( elSpin );
-	}
-
-	if ( isEnabled( RND_SPLIT ) )
-		randomizeSwitch( elSplitGrad );
-
-	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeSelect( elChnLayout );
-
-	if ( isEnabled( RND_MIRROR ) )
-		randomizeRadio( elMirror );
-
-	if ( isEnabled( RND_GRADIENT ) ) {
-		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
-			randomizeSelect( el );
-	}
-
-	// add properties that depend on other settings (mode also sets barspace)
-	props.push( elBackground, elReflex, elMode );
-
-	// effectively set the affected properties
-	setProperty( props );
 }
 
 /**
@@ -3085,7 +3101,7 @@ function setProperty( elems, save = true ) {
 					randomModeTimer = clearInterval( randomModeTimer );
 
 				if ( option > 1 )
-					randomModeTimer = setInterval( selectRandomMode, 2500 * option );
+					randomModeTimer = setInterval( randomizeSettings, 2500 * option );
 
 				break;
 
@@ -3686,7 +3702,7 @@ function updateRangeValue( el ) {
 		centerPos   = width / 2;
 		rightPos    = width - baseSize;
 		topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
-		topLine2    = topLine1 * 1.8;			// auto gradient, random mode & repeat status
+		topLine2    = topLine1 * 1.8;			// auto gradient, Randomize & repeat status
 		maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
 		bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
 		bottomLine2 = height - baseSize * 2.8;	// song title
@@ -3885,7 +3901,7 @@ function updateRangeValue( el ) {
 			pipVideo.play();
 
 		if ( audioElement[ currAudio ].currentTime < .1 && elRandomMode.value == '1' )
-			selectRandomMode( true );
+			randomizeSettings( true );
 
 		if ( isSwitchOn( elShowSong ) ) {
 			const timeout = +elTrackTimeout.value || Infinity;
