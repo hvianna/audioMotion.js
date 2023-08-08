@@ -785,13 +785,13 @@ const isPIP = _ => elContainer.classList.contains('pip');
 // check if audio is playing
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
 
-// returns a boolean with the current status of an UI switch
+// returns a boolean with the current status of a UI switch
 const isSwitchOn = el => el.dataset.active == '1';
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => path.replace( /\\/g, '/' );
 
-// returns a string with the current status of an UI switch
+// returns a string with the current status of a UI switch
 const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 
 // parse a path and return its individual parts
@@ -832,7 +832,7 @@ const queueLength = _ => playlist.children.length;
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
 
-// remove custom server route and encoded slashes from an URL
+// remove custom server route and encoded slashes from a URL
 const removeServerEncoding = uri => {
 	const regexp = new RegExp( `^${ ROUTE_FILE }` );
 	return normalizeSlashes( decodeSlashes( uri.replace( regexp, '' ) ) );
@@ -1302,6 +1302,39 @@ function doConfigPanel() {
 		setGeneralOptions( generalOptionsDefaults );
 		setProperty( generalOptionsElements );
 	});
+}
+
+/**
+ * Erase a user preset
+ *
+ * @param {number} slot index (0-8)
+ * @param [{boolean}] force
+ */
+function eraseUserPreset( index, force ) {
+	if ( isEmpty( userPresets[ index ] ) )
+		return; // nothing to do
+
+	const userPresetText = `User Preset #${ index + 1 }`;
+
+	if ( ! force ) {
+		notie.confirm({
+			text: `Do you really want to ERASE ${ userPresetText }?`,
+			submitText: 'ERASE',
+			submitCallback: () => {
+				eraseUserPreset( index, true ); // force erase
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled!' })
+			},
+		});
+		return;
+	}
+
+	// Update presets array in memory and save updated contents to storage
+	userPresets[ index ] = {};
+	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
+
+	notie.alert({ text: `Erased ${ userPresetText }` });
 }
 
 /**
@@ -2762,7 +2795,7 @@ function saveToStorage( key, data ) {
 }
 
 /**
- * Save or update an user preset
+ * Save or update a user preset
  *
  * @param {number} slot index (0-8)
  * @param {object} settings object
@@ -3344,7 +3377,7 @@ function setUIEventListeners() {
 
 		presets.forEach( item => {
 			if ( ! isEmpty( item.options ) )
-				choices.push( { text: item.name, handler: () => loadPreset( item.key ) } );
+				choices.push( { text: item.name + ( item.key == 'default' ? ' (warning: resets Volume!)' : '' ), handler: () => loadPreset( item.key ) } );
 		});
 
 		choices.push({
@@ -3369,7 +3402,10 @@ function setUIEventListeners() {
 	$('#btn_save').addEventListener( 'click', () => {
 		const choices = [];
 		getUserPresets().forEach( ( text, index ) => {
-			choices.push( { text, handler: () => saveUserPreset( index, getCurrentSettings() ) } );
+			choices.push(
+				{ type: 1, text, handler: () => saveUserPreset( index, getCurrentSettings() ) },
+				{ type: 2, text: '<button title="Erase">&#xf120;</button>', handler: () => eraseUserPreset( index ) }
+			);
 		});
 
 		notie.select({

@@ -1,7 +1,7 @@
 .notie-container {
   background: #f8f8f8;
   color: #444;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   height: auto;
   left: 0;
   margin: 0 auto;
@@ -20,8 +20,8 @@
 }
 
 .notie-alert {
-  background: #666;
-  color: #f0f0f0;
+  background: #527200;
+  color: #fff;
 }
 
 .notie-textbox {
@@ -82,4 +82,36 @@
   padding: 10px;
   text-align: center;
   width: calc( 100% - 20px );
+}
+
+/* types 'success' and 'warning' are used to create the two-column layout of the save preset dialog */
+
+.notie-background-success:not(.notie-element-half) {
+  border-bottom: 1px solid #ccc;
+  display: inline-block;
+  text-align: left;
+  width: calc(100% - 75px);
+}
+
+.notie-background-success:not(.notie-element-half):hover {
+  background: #f2ffd3;
+  border-bottom: 1px solid #72aa00;
+}
+
+.notie-background-warning:not(.notie-element-half) {
+  display: inline-block;
+  font-family: 'audioMotion';
+  padding: 0 10px 0 0;
+  text-align: right;
+  width: 75px;
+}
+
+.notie-container button {
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+
+/* Cancel button on select dialogs */
+.notie-container .notie-background-neutral:last-child {
+  padding: 40px;
 }
