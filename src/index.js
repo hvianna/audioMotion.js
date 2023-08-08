@@ -248,7 +248,7 @@ const presets = [
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
 			freqMax      : 20000,
-			freqMin      : 20,
+			freqMin      : 25,
 			freqScale    : SCALE_LOG,
 			gradient     : 'rainbow',
 			ledDisplay   : 0,
@@ -309,8 +309,9 @@ const presets = [
 
 	{
 		key: 'dual',
-		name: 'Dual-channel combined Graph',
+		name: 'Dual-channel combined Graph, Bark frequency scale',
 		options: {
+			ansiBands    : 0,
 			background   : BG_COVER,
 			bgImageDim   : .3,
 			bgImageFit   : BGFIT_CENTER,
@@ -319,7 +320,7 @@ const presets = [
 			fillAlpha    : .3,
 			freqMax      : 20000,
 			freqMin      : 20,
-			freqScale    : SCALE_LOG,
+			freqScale    : SCALE_BARK,
 			gradient     : 'cool',
 			gradientRight: 'dusk',
 			linearAmpl   : 1,
@@ -327,6 +328,7 @@ const presets = [
 			linkGrads    : 0,
 			mirror       : 0,
 			mode         : MODE_LINE,
+			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : 0,
@@ -344,6 +346,7 @@ const presets = [
 		name: 'Radial Color by Level',
 		options: {
 			alphaBars    : 1,
+			ansiBands    : 0,
 			background   : BG_COVER,
 			barSpace     : .1,
 			bgImageDim   : .3,
@@ -352,7 +355,7 @@ const presets = [
 			colorMode    : COLOR_LEVEL,
 			freqMax      : 20000,
 			freqMin      : 20,
-			freqScale    : SCALE_BARK,
+			freqScale    : SCALE_LOG,
 			gradient     : 'prism',
 			ledDisplay   : 0,
 			linearAmpl   : 1,
@@ -393,6 +396,7 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_8TH,
+			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
@@ -1318,7 +1322,7 @@ function eraseUserPreset( index, force ) {
 
 	if ( ! force ) {
 		notie.confirm({
-			text: `Do you really want to ERASE ${ userPresetText }?`,
+			text: `Do you really want to ERASE ${ userPresetText }?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'ERASE',
 			submitCallback: () => {
 				eraseUserPreset( index, true ); // force erase
