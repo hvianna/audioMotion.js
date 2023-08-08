@@ -154,12 +154,14 @@
 		<div class="controls">
 		<!-- COLUMN 1 -->
 			<div class="column">
-				<span class="config-label help">Analyzer <u>M</u>ode
-					<span class="tooltip">
-					Visualization mode.<br>Disable undesired modes in Config.
+				<div class="flex preset-controls">
+					<span class="help"><button id="load_preset">Load</button>
+						<span class="tooltip">Load a configuration preset</span>
 					</span>
-				</span>
-				<select id="mode" data-prop="mode"></select>
+					<span class="help"><button id="btn_save">Save / Clear</button>
+						<span class="tooltip">Save current settings<br>or Erase a User Preset slot</span>
+					</span>
+				</div>
 			</div>
 
 			<div>
@@ -174,10 +176,10 @@
 			<div>
 				<span class="config-label help">Bar Spacing
 					<span class="tooltip">
-						Frequency bands modes only<br><em>(no effect when LUMI is on)</em>
+						Bar spacing for band modes<br><em>(no effect when LUMI is on)</em>
 					</span>
 				</span>
-				<select id="bar_space" data-prop="barSpace"></select>
+				<form id="bar_space" data-prop="barSpace"></form>
 			</div>
 
 			<div>
@@ -201,7 +203,16 @@
 			</div>
 
 		<!-- COLUMN 2 -->
-			<div class="column rowspan-2">
+			<div class="column">
+				<span class="config-label help">Analyzer <u>M</u>ode
+					<span class="tooltip">
+					Visualization mode.<br>Enable/disable modes in Config.
+					</span>
+				</span>
+				<select id="mode" data-prop="mode"></select>
+			</div>
+
+			<div class="rowspan-2">
 				<span class="config-label help"><u>G</u>radients
 					<span class="tooltip">
 						Gradients for left and right channels. Enable/disable gradients in Config.
@@ -227,10 +238,7 @@
 						Bar coloring mode
 					</span>
 				</span>
-				<select id="color_mode" data-prop="colorMode"></select>
-			</div>
-
-			<div>
+				<form id="color_mode" data-prop="colorMode"></form>
 			</div>
 
 			<div>
@@ -292,15 +300,6 @@
 
 		<!-- COLUMN 4 -->
 			<div class="column">
-				<span class="config-label help">Channel Layout
-					<span class="tooltip">
-					Select the number and layout of analyzer channels
-					</span>
-				</span>
-				<select id="channel_layout" data-prop="channelLayout"></select>
-			</div>
-
-			<div>
 				<span class="config-label help">Frequency Range
 					<span class="tooltip">Lowest and highest frequencies displayed in the X-axis</span>
 				</span>
@@ -334,6 +333,15 @@
 					</span>
 				</span>
 				<form id="weighting" data-prop="weighting"></form>
+			</div>
+
+			<div>
+				<span class="config-label help">Channel Layout
+					<span class="tooltip">
+					Select the number and layout of analyzer channels
+					</span>
+				</span>
+				<form id="channel_layout" data-prop="channelLayout"></form>
 			</div>
 
 		<!-- COLUMN 5 -->
@@ -383,14 +391,6 @@
 					<li class="switch" id="round_bars" data-prop="roundBars">ROUND
 						<span class="tooltip">Rounded tip bars <em>(bands modes only)</em></span>
 				</ul>
-
-				<div class="flex preset-controls">
-					<button id="load_preset">Load Preset</button>
-					<span class="help">
-						<button id="btn_save">Save</button>
-						<span class="tooltip">Save current settings<br>or Erase a User Preset slot</span>
-					</span>
-				</div>
 			</div>
 
 		</div> <!-- .controls -->

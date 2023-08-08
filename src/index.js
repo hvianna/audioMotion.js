@@ -558,9 +558,9 @@ const modeOptions = [
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ CHANNEL_SINGLE,   'Single channel'  ],
-	[ CHANNEL_VERTICAL, 'Dual / Vertical' ],
-	[ CHANNEL_COMBINED, 'Dual / Combined' ]
+	[ CHANNEL_SINGLE,   'Single'  ],
+	[ CHANNEL_VERTICAL, 'Vert' ],
+	[ CHANNEL_COMBINED, 'Comb' ]
 ];
 
 // Randomize options
@@ -706,11 +706,11 @@ const getCurrentSettings = _ => ({
 	alphaBars    : +isSwitchOn( elAlphaBars ),
 	ansiBands    : +isSwitchOn( elAnsiBands ),
 	background   : elBackground.value,
-	barSpace     : elBarSpace.value,
+	barSpace     : getRadioValue( elBarSpace ),
 	bgImageDim   : elBgImageDim.value,
 	bgImageFit   : elBgImageFit.value,
-	channelLayout: elChnLayout.value,
-	colorMode    : elColorMode.value,
+	channelLayout: getRadioValue( elChnLayout ),
+	colorMode    : getRadioValue( elColorMode ),
 	fillAlpha    : elFillAlpha.value,
 	freqMax		 : elRangeMax.value,
 	freqMin		 : elRangeMin.value,
@@ -1582,7 +1582,7 @@ function keyboardControls( event ) {
 					}
 					break;
 				case 'KeyG': 		// gradient
-					const isDual = elChnLayout.value != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
+					const isDual = getRadioValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
 					cycleElement( elGradient, isShiftKey );
 					setCanvasMsg( `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }` );
 					break;
@@ -1955,7 +1955,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	audioMotion.setOptions( {
 		alphaBars      : isSwitchOn( elAlphaBars ),
 		ansiBands      : isSwitchOn( elAnsiBands ),
-		colorMode      : elColorMode.value,
+		colorMode      : getRadioValue( elColorMode ),
 		fftSize        : elFFTsize.value,
 		frequencyScale : getRadioValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
@@ -2405,8 +2405,11 @@ function randomizeSettings( force = isMicSource ) {
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeSelect( elBgImageFit );
 
+	if ( isEnabled( RND_CHNLAYOUT ) )
+		randomizeRadio( elChnLayout );
+
 	if ( isEnabled( RND_COLORMODE ) )
-		randomizeSelect( elColorMode );
+		randomizeRadio( elColorMode );
 
 	if ( isEnabled( RND_PEAKS ) )
 		randomizeSwitch( elShowPeaks );
@@ -2431,7 +2434,7 @@ function randomizeSettings( force = isMicSource ) {
 	}
 
 	if ( isEnabled( RND_BARSPACING ) )
-		randomizeSelect( elBarSpace, false );
+		randomizeRadio( elBarSpace, false );
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeSwitch( elOutline );
@@ -2453,9 +2456,6 @@ function randomizeSettings( force = isMicSource ) {
 
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeSwitch( elSplitGrad );
-
-	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeSelect( elChnLayout );
 
 	if ( isEnabled( RND_MIRROR ) )
 		randomizeRadio( elMirror );
@@ -2952,7 +2952,7 @@ function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleGradients = () => elGradientRight.style.display = ( elChnLayout.value == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
+	const toggleGradients = () => elGradientRight.style.display = ( getRadioValue( elChnLayout ) == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
 
 	for ( const el of elems ) {
 		switch ( el ) {
@@ -3015,16 +3015,16 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBarSpace:
-				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : elBarSpace.value;
+				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getRadioValue( elBarSpace );
 				break;
 
 			case elChnLayout:
-				audioMotion.channelLayout = elChnLayout.value;
+				audioMotion.channelLayout = getRadioValue( elChnLayout );
 				toggleGradients();
 				break;
 
 			case elColorMode:
-				audioMotion.colorMode = elColorMode.value;
+				audioMotion.colorMode = getRadioValue( elColorMode );
 				break;
 
 			case elFillAlpha:
@@ -3843,7 +3843,7 @@ function updateRangeValue( el ) {
 
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
-				const isDual = elChnLayout.value != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ),
+				const isDual = getRadioValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ),
 					  gradText = `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
 
 				drawText( gradText, centerPos, topLine1, maxWidthTop );
@@ -4040,7 +4040,7 @@ function updateRangeValue( el ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
-	populateSelect( elChnLayout, channelLayoutOptions );
+	populateCustomRadio( elChnLayout, channelLayoutOptions );
 
 	populateCustomRadio( elSensitivity, [
 		[ '0', 'Low'    ],
@@ -4048,16 +4048,16 @@ function updateRangeValue( el ) {
 		[ '2', 'High'   ]
 	]);
 
-	populateSelect(	elBarSpace, [
-		[ '1.5',  'Legacy'     ],
-		[ '0.1',  'Narrow'     ],
-		[ '0.25', 'Regular'    ],
-		[ '0.5',  'Wide'       ],
-		[ '0.75', 'Extra wide' ]
+	populateCustomRadio( elBarSpace, [
+		[ '1.5',  'Min' ],
+		[ '0.1',  '10' ],
+		[ '0.25', '25' ],
+		[ '0.5',  '50' ],
+		[ '0.75', '75' ]
 	]);
 
 	populateSelect( elRandomMode, [
-		[ '0',   'Off'             ],
+		[ '0',   'OFF'             ],
 		[ '1',   'On track change' ],
 		[ '2',   '5 seconds'       ],
 		[ '6',   '15 seconds'      ],
@@ -4103,10 +4103,10 @@ function updateRangeValue( el ) {
 		[ WEIGHT_468,  '468' ],
 	]);
 
-	populateSelect( elColorMode, [
+	populateCustomRadio( elColorMode, [
 		[ COLOR_GRADIENT, 'Gradient'  ],
-		[ COLOR_INDEX,    'Bar Index' ],
-		[ COLOR_LEVEL,    'Bar Level' ]
+		[ COLOR_INDEX,    'Index' ],
+		[ COLOR_LEVEL,    'Level' ]
 	]);
 
 	// Check the backgrounds directory for additional background options (images and videos)
