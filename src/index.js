@@ -160,7 +160,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty',
-	  PRESET_NONAME = 'No description - save again to add one';
+	  PRESET_NONAME = 'No description';
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -1344,8 +1344,8 @@ function eraseUserPreset( index, force ) {
 
 	if ( ! force ) {
 		notie.confirm({
-			text: `Do you really want to ERASE ${ userPresetText }?${ currentName }<br>THIS CANNOT BE UNDONE!`,
-			submitText: 'ERASE',
+			text: `Do you really want to DELETE ${ userPresetText }?${ currentName }<br>THIS CANNOT BE UNDONE!`,
+			submitText: 'DELETE',
 			submitCallback: () => {
 				eraseUserPreset( index, true ); // force erase
 			},
@@ -1360,7 +1360,7 @@ function eraseUserPreset( index, force ) {
 	userPresets[ index ] = {};
 	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
 
-	notie.alert({ text: `Erased ${ userPresetText }` });
+	notie.alert({ text: `Deleted ${ userPresetText }` });
 }
 
 /**
@@ -2806,7 +2806,7 @@ function saveUserPreset( index, options, name, force ) {
 				text: 'Give this preset a name or short description',
 				submitText: 'Save',
 				value: currentName,
-				maxlength: 45,
+				maxlength: 40,
 				submitCallback: newName => { saveUserPreset( index, options, newName.trim() || PRESET_NONAME, true ); },
 				cancelCallback: () => {	notie.alert({ text: 'Save canceled!' }) }
 			});
@@ -3391,12 +3391,13 @@ function setUIEventListeners() {
 		getUserPresets().forEach( ( text, index ) => {
 			choices.push(
 				{ type: 1, text, handler: () => saveUserPreset( index, getCurrentSettings() ) },
-				{ type: 2, text: '<button title="Erase">&#xf120;</button>', handler: () => eraseUserPreset( index ) }
+				{ type: 2, text: '<button title="Edit name">&#xf11f;</button>', handler: () => saveUserPreset( index, userPresets[ index ].options, '', true ) },
+				{ type: 2, text: '<button title="Delete preset">&#xf120;</button>', handler: () => eraseUserPreset( index ) }
 			);
 		});
 
 		notie.select({
-			text: 'SAVE TO SLOT:',
+			text: '<strong>Click slot to SAVE - Use buttons to Edit or Delete</strong>',
 			choices
 		});
 	});
