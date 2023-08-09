@@ -709,47 +709,56 @@ const getText = el => {
 	return text;
 }
 
+// return the value of a Settings UI control
+const getControlValue = el => {
+	if ( el.tagName == 'FORM' ) // custom radio buttons
+		return el.elements[ el.dataset.prop ].value;
+	if ( el.dataset.active !== undefined ) // switches
+		return el.dataset.active;
+	return el.value; // select and input elements
+}
+
 // returns an object with the current settings
 const getCurrentSettings = _ => ({
-	alphaBars    : +isSwitchOn( elAlphaBars ),
-	ansiBands    : +isSwitchOn( elAnsiBands ),
-	background   : elBackground.value,
-	barSpace     : getRadioValue( elBarSpace ),
-	bgImageDim   : elBgImageDim.value,
-	bgImageFit   : elBgImageFit.value,
-	channelLayout: getRadioValue( elChnLayout ),
-	colorMode    : getRadioValue( elColorMode ),
-	fillAlpha    : elFillAlpha.value,
-	freqMax		 : elRangeMax.value,
-	freqMin		 : elRangeMin.value,
-	freqScale    : getRadioValue( elFreqScale ),
-	gradient	 : elGradient.value,
-	gradientRight: elGradientRight.value,
-	ledDisplay   : +isSwitchOn( elLedDisplay ),
-	linearAmpl   : +isSwitchOn( elLinearAmpl ),
-	lineWidth    : elLineWidth.value,
-	linkGrads    : +isSwitchOn( elLinkGrads ),
-	loRes        : +isSwitchOn( elLoRes ),
-	lumiBars     : +isSwitchOn( elLumiBars ),
-	mirror       : getRadioValue( elMirror ),
-	mode         : elMode.value,
-	noShadow     : +isSwitchOn( elNoShadow ),
-	noteLabels   : +isSwitchOn( elNoteLabels ),
-	outlineBars  : +isSwitchOn( elOutline ),
-	radial       : +isSwitchOn( elRadial ),
-	randomMode   : elRandomMode.value,
-	reflex       : getRadioValue( elReflex ),
-	repeat       : +isSwitchOn( elRepeat ),
-	roundBars    : +isSwitchOn( elRoundBars ),
-	sensitivity  : getRadioValue( elSensitivity ),
-	showFPS      : +isSwitchOn( elFPS ),
-	showPeaks 	 : +isSwitchOn( elShowPeaks ),
-	showScaleX 	 : +isSwitchOn( elScaleX ),
-	showScaleY 	 : +isSwitchOn( elScaleY ),
-	showSong     : +isSwitchOn( elShowSong ),
-	spin         : elSpin.value,
-	splitGrad    : +isSwitchOn( elSplitGrad ),
-	weighting    : elWeighting.value
+	alphaBars    : getControlValue( elAlphaBars ),
+	ansiBands    : getControlValue( elAnsiBands ),
+	background   : getControlValue( elBackground ),
+	barSpace     : getControlValue( elBarSpace ),
+	bgImageDim   : getControlValue( elBgImageDim ),
+	bgImageFit   : getControlValue( elBgImageFit ),
+	channelLayout: getControlValue( elChnLayout ),
+	colorMode    : getControlValue( elColorMode ),
+	fillAlpha    : getControlValue( elFillAlpha ),
+	freqMax		 : getControlValue( elRangeMax ),
+	freqMin		 : getControlValue( elRangeMin ),
+	freqScale    : getControlValue( elFreqScale ),
+	gradient	 : getControlValue( elGradient ),
+	gradientRight: getControlValue( elGradientRight ),
+	ledDisplay   : getControlValue( elLedDisplay ),
+	linearAmpl   : getControlValue( elLinearAmpl ),
+	lineWidth    : getControlValue( elLineWidth ),
+	linkGrads    : getControlValue( elLinkGrads ),
+	loRes        : getControlValue( elLoRes ),
+	lumiBars     : getControlValue( elLumiBars ),
+	mirror       : getControlValue( elMirror ),
+	mode         : getControlValue( elMode ),
+	noShadow     : getControlValue( elNoShadow ),
+	noteLabels   : getControlValue( elNoteLabels ),
+	outlineBars  : getControlValue( elOutline ),
+	radial       : getControlValue( elRadial ),
+	randomMode   : getControlValue( elRandomMode ),
+	reflex       : getControlValue( elReflex ),
+	repeat       : getControlValue( elRepeat ),
+	roundBars    : getControlValue( elRoundBars ),
+	sensitivity  : getControlValue( elSensitivity ),
+	showFPS      : getControlValue( elFPS ),
+	showPeaks 	 : getControlValue( elShowPeaks ),
+	showScaleX 	 : getControlValue( elScaleX ),
+	showScaleY 	 : getControlValue( elScaleY ),
+	showSong     : getControlValue( elShowSong ),
+	spin         : getControlValue( elSpin ),
+	splitGrad    : getControlValue( elSplitGrad ),
+	weighting    : getControlValue( elWeighting )
 });
 
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
@@ -770,6 +779,12 @@ const getPresetName = key => {
 	return ( index == -1 ) ? false : presets[ index ].name;
 }
 
+// return selected gradient(s) for canvas OSD message
+const getSelectedGradients = () => {
+	const isDual = getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
+	return `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
+}
+
 // update configuration options from an existing preset
 const setPreset = ( key, options ) => {
 	const index = getPresetIndex( key );
@@ -777,9 +792,6 @@ const setPreset = ( key, options ) => {
 		return;
 	presets[ index ].options = options;
 }
-
-// get value of a custom radio buttons element
-const getRadioValue = el => el.elements[ el.dataset.prop ].value;
 
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>#${ index + 1 }</strong>&nbsp; ${ isEmpty( item ) ? PRESET_EMPTY : item.name || PRESET_NONAME }` );
@@ -1277,7 +1289,7 @@ function doConfigPanel() {
 				$$(`[data-preset="${preset}"]`).forEach( field => {
 					field.classList.remove('field-error');
 				});
-				if ( el.dataset.preset == getRadioValue( elSensitivity ) ) // current preset has been changed
+				if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 					setProperty( elSensitivity, false );
 				savePreferences( KEY_SENSITIVITY );
 			});
@@ -1286,7 +1298,7 @@ function doConfigPanel() {
 			el.addEventListener( 'change', () => {
 				const isValid = ( +el.value >= +el.min && +el.value <= +el.max );
 				if ( isValid ) {
-					if ( el.dataset.preset == getRadioValue( elSensitivity ) ) // current preset has been changed
+					if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
 					savePreferences( KEY_SENSITIVITY );
 				}
@@ -1539,9 +1551,8 @@ function keyboardControls( event ) {
 					}
 					break;
 				case 'KeyG': 		// gradient
-					const isDual = getRadioValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
 					cycleElement( elGradient, isShiftKey );
-					setCanvasMsg( `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }` );
+					setCanvasMsg( getSelectedGradients() );
 					break;
 				case 'ArrowRight': 	// next song
 				case 'KeyK':
@@ -1915,16 +1926,16 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	audioMotion.setOptions( {
 		alphaBars      : isSwitchOn( elAlphaBars ),
 		ansiBands      : isSwitchOn( elAnsiBands ),
-		colorMode      : getRadioValue( elColorMode ),
-		fftSize        : elFFTsize.value,
-		frequencyScale : getRadioValue( elFreqScale ),
+		colorMode      : getControlValue( elColorMode ),
+		fftSize        : getControlValue( elFFTsize ),
+		frequencyScale : getControlValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
 		linearAmplitude: isSwitchOn( elLinearAmpl ),
 		loRes          : isSwitchOn( elLoRes ),
 		lumiBars       : isSwitchOn( elLumiBars ),
-		maxFreq        : elRangeMax.value,
-		minFreq        : elRangeMin.value,
-		mirror         : getRadioValue( elMirror ),
+		maxFreq        : getControlValue( elRangeMax ),
+		minFreq        : getControlValue( elRangeMin ),
+		mirror         : getControlValue( elMirror ),
 		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
 		radial         : isSwitchOn( elRadial ),
@@ -1933,10 +1944,10 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		showPeaks      : isSwitchOn( elShowPeaks ),
 		showScaleX     : isSwitchOn( elScaleX ),
 		showScaleY     : isSwitchOn( elScaleY ),
-		smoothing      : elSmoothing.value,
-		spinSpeed      : elSpin.value,
+		smoothing      : getControlValue( elSmoothing ),
+		spinSpeed      : getControlValue( elSpin ),
 		splitGradient  : isSwitchOn( elSplitGrad ),
-		weightingFilter: elWeighting.value
+		weightingFilter: getControlValue( elWeighting )
 	} );
 
 	// settings that affect other properties are set by the setProperty() function
@@ -2930,7 +2941,7 @@ function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleGradients = () => elGradientRight.style.display = ( getRadioValue( elChnLayout ) == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
+	const toggleGradients = () => elGradientRight.style.display = ( getControlValue( elChnLayout ) == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
 
 	for ( const el of elems ) {
 		switch ( el ) {
@@ -2993,16 +3004,16 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBarSpace:
-				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getRadioValue( elBarSpace );
+				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getControlValue( elBarSpace );
 				break;
 
 			case elChnLayout:
-				audioMotion.channelLayout = getRadioValue( elChnLayout );
+				audioMotion.channelLayout = getControlValue( elChnLayout );
 				toggleGradients();
 				break;
 
 			case elColorMode:
-				audioMotion.colorMode = getRadioValue( elColorMode );
+				audioMotion.colorMode = getControlValue( elColorMode );
 				break;
 
 			case elFillAlpha:
@@ -3015,7 +3026,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elFreqScale:
-				audioMotion.frequencyScale = getRadioValue( elFreqScale );
+				audioMotion.frequencyScale = getControlValue( elFreqScale );
 				break;
 
 			case elFsHeight:
@@ -3084,7 +3095,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elMirror:
-				audioMotion.mirror = getRadioValue( elMirror );
+				audioMotion.mirror = getControlValue( elMirror );
 				break;
 
 			case elNoteLabels:
@@ -3117,7 +3128,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elReflex:
-				switch ( getRadioValue( elReflex ) ) {
+				switch ( getControlValue( elReflex ) ) {
 					case '1':
 						audioMotion.reflexRatio = .4;
 						audioMotion.reflexAlpha = .2;
@@ -3152,7 +3163,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSensitivity:
-				const sensitivity = getRadioValue( elSensitivity );
+				const sensitivity = getControlValue( elSensitivity );
 				audioMotion.setSensitivity(
 					$(`.min-db[data-preset="${sensitivity}"]`).value,
 					$(`.max-db[data-preset="${sensitivity}"]`).value
@@ -3182,7 +3193,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elWeighting:
-				audioMotion.weightingFilter = getRadioValue( elWeighting );
+				audioMotion.weightingFilter = getControlValue( elWeighting );
 				break;
 
 		} // switch
@@ -3821,10 +3832,7 @@ function updateRangeValue( el ) {
 
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
-				const isDual = getRadioValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ),
-					  gradText = `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
-
-				drawText( gradText, centerPos, topLine1, maxWidthTop );
+				drawText( getSelectedGradients(), centerPos, topLine1, maxWidthTop );
 
 				canvasCtx.textAlign = 'left';
 				drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
