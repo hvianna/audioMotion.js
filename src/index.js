@@ -158,6 +158,10 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_PLAYLISTS      = 'playlists',
 	  KEY_SENSITIVITY    = 'sensitivity-presets';
 
+// User presets placeholders
+const PRESET_EMPTY  = 'Empty',
+	  PRESET_NONAME = 'No description - save again to add one';
+
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
@@ -777,6 +781,9 @@ const setPreset = ( key, options ) => {
 // get value of a custom radio buttons element
 const getRadioValue = el => el.elements[ el.dataset.prop ].value;
 
+// return a list of user preset slots and descriptions
+const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>#${ index + 1 }</strong>&nbsp; ${ isEmpty( item ) ? PRESET_EMPTY : item.name || PRESET_NONAME }` );
+
 // check if a string is an external URL
 const isExternalURL = path => path.startsWith('http');
 
@@ -1318,11 +1325,12 @@ function eraseUserPreset( index, force ) {
 	if ( isEmpty( userPresets[ index ] ) )
 		return; // nothing to do
 
-	const userPresetText = `User Preset #${ index + 1 }`;
+	const userPresetText = `User Preset #${ index + 1 }`,
+		  currentName = userPresets[ index ].name ? '<br>' + userPresets[ index ].name : '';
 
 	if ( ! force ) {
 		notie.confirm({
-			text: `Do you really want to ERASE ${ userPresetText }?<br>THIS CANNOT BE UNDONE!`,
+			text: `Do you really want to ERASE ${ userPresetText }?${ currentName }<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'ERASE',
 			submitCallback: () => {
 				eraseUserPreset( index, true ); // force erase
@@ -1422,61 +1430,6 @@ function getFolderCover( uri ) {
 				});
 		}
 	});
-}
-
-/**
- * Return a list of descriptions for each user preset
- */
-function getUserPresets() {
-
-	const validCombo = ( preset, option ) => {
-		const isOptionSet = !! +preset[ option ],
-			  isLeds      = option == 'ledDisplay',
-			  isBarsOpt   = option.includes('Bars'),
-			  isBands     = preset.mode > 0 && preset.mode < 9,
-			  isRadial    = !! +preset.radial;
-
-		return isOptionSet && ( ! isLeds || ! isRadial ) && ( ( ! isLeds && ! isBarsOpt ) || isBands );
-	}
-
-	const list = [];
-	userPresets.forEach( ( item, index ) => {
-		let text = `#${ index + 1 }: `;
-		if ( isEmpty( item ) )
-			text += 'Empty';
-		else {
-			const opts = [
-				[ 'randomMode', 'Random'  ],
-				[ 'radial',     'Radial'  ],
-				[ 'reflex',     'Reflex'  ],
-				[ 'mirror',     'Mirror'  ],
-				[ 'linearAmpl', 'Linear'  ],
-				[ 'alphaBars',  'Alpha'   ],
-				[ 'lumiBars',   'Lumi'    ],
-				[ 'ledDisplay', 'Leds'    ],
-				[ 'outlineBars','Outline' ],
-				[ 'roundBars',  'Round'   ]
-			];
-			let c = 0;
-			if ( item.channelLayout != CHANNEL_SINGLE ) {
-				text += 'Dual | ';
-				c++;
-			}
-			if ( item.freqScale != SCALE_LOG ) {
-				text += item.freqScale.charAt(0).toUpperCase() + item.freqScale.substring(1) + ' scale | ';
-				c++;
-			}
-			for ( const [ opt, descr ] of opts ) {
-				if ( validCombo( item, opt ) && c < 3 ) {
-					text += `${ descr } | `;
-					c++;
-				}
-			}
-			text += modeOptions.find( el => el.value == item.mode ).text;
-		}
-		list.push( text );
-	});
-	return list;
 }
 
 /**
@@ -1841,10 +1794,13 @@ async function loadPreferences() {
 	// Load user presets
 	userPresets = await loadFromStorage( KEY_CUSTOM_PRESET );
 	if ( ! Array.isArray( userPresets ) )
-		userPresets = [ userPresets ]; // for compatibility with versions <= 21.11
-	for ( let i = 0; i < 9; i++ )
+		userPresets = [ { options: userPresets } ]; // for compatibility with versions <= 21.11
+	for ( let i = 0; i < 9; i++ ) {
 		if ( userPresets[ i ] === undefined )
-			userPresets[ i ] = {}
+			userPresets[ i ] = {};
+		else if ( ! isEmpty( userPresets[ i ] ) && ! userPresets[ i ].options ) // make sure 'options' exists
+			userPresets[ i ] = { options: userPresets[ i ] };
+	}
 
 	// Load disabled modes preference
 	parseDisabled( await loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
@@ -1918,7 +1874,7 @@ async function loadPreferences() {
 function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	const isUserPreset = ( +key == key ),
-		  thisPreset   = isUserPreset ? userPresets[ key ] : getPreset( key ),
+		  thisPreset   = isUserPreset ? userPresets[ key ].options : getPreset( key ),
 		  defaults     = getPreset('default');
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
@@ -2805,13 +2761,15 @@ function saveToStorage( key, data ) {
  * @param {object} settings object
  * @param [{boolean}] force overwriting existing content
  */
-function saveUserPreset( index, settings, force ) {
+function saveUserPreset( index, options, name, force ) {
 	const userPresetText = `User Preset #${ index + 1 }`,
+		  currentName    = userPresets[ index ].name || '', // avoid undefined
+		  isFullscreen   = audioMotion.isFullscreen,
 		  confirmTimeout = 5;
 
 	// Show warning messages on attempt to overwrite existing preset
 	if ( ! isEmpty( userPresets[ index ] ) && ! force && ! overwritePreset ) {
-		if ( audioMotion.isFullscreen ) {
+		if ( isFullscreen ) {
 			setCanvasMsg( `Overwrite ${ userPresetText } - Press again to confirm!`, confirmTimeout );
 			overwritePreset = true;
 			setTimeout( () => {
@@ -2820,14 +2778,10 @@ function saveUserPreset( index, settings, force ) {
 		}
 		else {
 			notie.confirm({
-				text: `Do you really want to overwrite ${ userPresetText }?`,
+				text: `Do you really want to overwrite ${ userPresetText }?<br>${ currentName }`,
 				submitText: 'Overwrite',
-				submitCallback: () => {
-					saveUserPreset( index, settings, true ); // force save
-				},
-				cancelCallback: () => {
-					notie.alert({ text: 'Canceled!' })
-				},
+				submitCallback: () => {	saveUserPreset( index, options, name, true ); }, // force save
+				cancelCallback: () => {	notie.alert({ text: 'Canceled!' }) }
 			});
 		}
 		return;
@@ -2835,12 +2789,32 @@ function saveUserPreset( index, settings, force ) {
 
 	overwritePreset = false;
 
+	if ( ! name || ! `${ name }`.trim() ) { // coerce to string, but check for falsy values first (avoid strings like 'undefined')
+		if ( isFullscreen )
+			name = '';
+		else {
+			notie.input({
+				text: 'Give this preset a name or short description',
+				submitText: 'Save',
+				value: currentName,
+				maxlength: 45,
+				submitCallback: newName => { saveUserPreset( index, options, newName.trim() || PRESET_NONAME, true ); },
+				cancelCallback: () => {	notie.alert({ text: 'Save canceled!' }) }
+			});
+			return;
+		}
+	}
+
+	// avoid saving the placeholder text
+	if ( name == PRESET_NONAME )
+		name = '';
+
 	// Update presets array in memory and save updated contents to storage
-	userPresets[ index ] = settings;
+	userPresets[ index ] = { name, options };
 	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
 
 	const text = `Saved to ${ userPresetText }`;
-	if ( audioMotion.isFullscreen )
+	if ( isFullscreen )
 		setCanvasMsg( text, 5 );
 	else
 		notie.alert({ text });
@@ -3385,20 +3359,20 @@ function setUIEventListeners() {
 		});
 
 		choices.push({
-			text: 'User presets →', handler: () => {
+			text: 'USER PRESETS →', handler: () => {
 				const userChoices = [];
 				getUserPresets().forEach( ( text, index ) => {
 					userChoices.push( { text, handler: () => loadPreset( index ) } );
 				});
 				notie.select({
-					text: 'Load User Preset:',
+					text: 'LOAD PRESET:',
 					choices: userChoices
 				});
 			}
 		});
 
 		notie.select({
-			text: 'Load preset:',
+			text: 'LOAD PRESET:',
 			choices
 		});
 	});
@@ -3413,7 +3387,7 @@ function setUIEventListeners() {
 		});
 
 		notie.select({
-			text: 'Save to slot:',
+			text: 'SAVE TO SLOT:',
 			choices
 		});
 	});
