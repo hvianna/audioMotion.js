@@ -699,7 +699,7 @@ const getIndex = node => {
 // returns the text of the selected option in a `select` or custom radio element
 const getText = el => {
 	let text = '';
-	if ( el.tagName == 'FORM' ) {
+	if ( isCustomRadio( el ) ) {
 		const option = el.querySelector(':checked ~ label');
 		if ( option )
 			text = option.textContent;
@@ -711,7 +711,7 @@ const getText = el => {
 
 // return the value of a Settings UI control
 const getControlValue = el => {
-	if ( el.tagName == 'FORM' ) // custom radio buttons
+	if ( isCustomRadio( el ) )
 		return el.elements[ el.dataset.prop ].value;
 	if ( el.dataset.active !== undefined ) // switches
 		return el.dataset.active;
@@ -795,6 +795,9 @@ const setPreset = ( key, options ) => {
 
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>#${ index + 1 }</strong>&nbsp; ${ isEmpty( item ) ? PRESET_EMPTY : item.name || PRESET_NONAME }` );
+
+// check if a given object is a custom radio buttons element
+const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
 
 // check if a string is an external URL
 const isExternalURL = path => path.startsWith('http');
@@ -1112,17 +1115,16 @@ function consoleLog( msg, error, clear ) {
  * @param [prev] {boolean} true to select previous option
  */
 function cycleElement( el, prev ) {
-	const isCustomRadio = el.tagName == 'FORM',
-	      options = isCustomRadio ? el.elements[ el.dataset.prop ] : el.options;
+	const options = isCustomRadio( el ) ? el.elements[ el.dataset.prop ] : el.options;
 
-	let idx = ( isCustomRadio ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
+	let idx = ( isCustomRadio( el ) ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
 
 	if ( idx < 0 )
 		idx = options.length - 1;
 	else if ( idx >= options.length )
 		idx = 0;
 
-	if ( isCustomRadio )
+	if ( isCustomRadio( el ) )
 		options[ idx ].checked = true;
 	else
 		el.selectedIndex = idx;
@@ -1902,7 +1904,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
 		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) ) {
-			if ( el.tagName == 'FORM' ) {
+			if ( isCustomRadio( el ) ) {
 				// note: el.elements[ prop ].value = val won't work for empty string value
 				const option = el.querySelector(`[value="${val}"]`);
 				if ( option )
@@ -2334,25 +2336,21 @@ function randomizeSettings( force = isMicSource ) {
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
-	const randomizeRadio = ( el, push = true ) => {
-		const items = el.elements[ el.dataset.prop ],
-		      notMirror = el == elReflex && isSwitchOn( elLedDisplay );
-			  // exclude 'full' (mirrored) reflex option when LEDS is active
+	const randomizeControl = ( el, push = true ) => {
+		if ( isCustomRadio( el ) ) {
+			const items = el.elements[ el.dataset.prop ],
+			      notMirror = el == elReflex && isSwitchOn( elLedDisplay );
+				  // exclude 'full' (mirrored) reflex option when LEDS is active
 
-		items[ randomInt( items.length - notMirror ) ].checked = true;
+			items[ randomInt( items.length - notMirror ) ].checked = true;
+		}
+		else if ( el.dataset.active !== undefined )
+			el.dataset.active = randomInt();
+		else
+			el.selectedIndex = randomInt( el.options.length );
+
 		if ( push )
 			props.push( el );
-	}
-
-	const randomizeSelect = ( el, push = true ) => {
-		el.selectedIndex = randomInt( el.options.length );
-		if ( push )
-			props.push( el );
-	}
-
-	const randomizeSwitch = el => {
-		el.dataset.active = randomInt();
-		props.push( el );
 	}
 
 	let props = []; // properties that need to be updated
@@ -2365,28 +2363,28 @@ function randomizeSettings( force = isMicSource ) {
 	}
 
 	if ( isEnabled( RND_MODE ) )
-		elMode.selectedIndex = randomInt( elMode.options.length );
+		randomizeControl( elMode );
 
 	if ( isEnabled( RND_ALPHA ) )
-		randomizeSwitch( elAlphaBars );
+		randomizeControl( elAlphaBars );
 
 	if ( isEnabled( RND_BACKGROUND ) )
-		randomizeSelect( elBackground, false );
+		randomizeControl( elBackground, false );
 
 	if ( isEnabled( RND_BGIMAGEFIT ) )
-		randomizeSelect( elBgImageFit );
+		randomizeControl( elBgImageFit );
 
 	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeRadio( elChnLayout );
+		randomizeControl( elChnLayout );
 
 	if ( isEnabled( RND_COLORMODE ) )
-		randomizeRadio( elColorMode );
+		randomizeControl( elColorMode );
 
 	if ( isEnabled( RND_PEAKS ) )
-		randomizeSwitch( elShowPeaks );
+		randomizeControl( elShowPeaks );
 
 	if ( isEnabled( RND_LEDS ) )
-		randomizeSwitch( elLedDisplay );
+		randomizeControl( elLedDisplay );
 
 	if ( isEnabled( RND_LUMI ) ) {
 		// always disable lumi when leds are active and background is set to image or video
@@ -2405,19 +2403,19 @@ function randomizeSettings( force = isMicSource ) {
 	}
 
 	if ( isEnabled( RND_BARSPACING ) )
-		randomizeRadio( elBarSpace, false );
+		randomizeControl( elBarSpace, false );
 
 	if ( isEnabled( RND_OUTLINE ) )
-		randomizeSwitch( elOutline );
+		randomizeControl( elOutline );
 
 	if ( isEnabled( RND_REFLEX ) )
-		randomizeRadio( elReflex, false );
+		randomizeControl( elReflex, false );
 
 	if ( isEnabled( RND_RADIAL ) )
-		randomizeSwitch( elRadial );
+		randomizeControl( elRadial );
 
 	if ( isEnabled( RND_ROUND ) )
-		randomizeSwitch( elRoundBars );
+		randomizeControl( elRoundBars );
 
 	if ( isEnabled( RND_SPIN ) ) {
 		elSpin.value = randomInt(4);
@@ -2426,14 +2424,14 @@ function randomizeSettings( force = isMicSource ) {
 	}
 
 	if ( isEnabled( RND_SPLIT ) )
-		randomizeSwitch( elSplitGrad );
+		randomizeControl( elSplitGrad );
 
 	if ( isEnabled( RND_MIRROR ) )
-		randomizeRadio( elMirror );
+		randomizeControl( elMirror );
 
 	if ( isEnabled( RND_GRADIENT ) ) {
 		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
-			randomizeSelect( el );
+			randomizeControl( el );
 	}
 
 	// add properties that depend on other settings (mode also sets barspace)
@@ -3296,7 +3294,7 @@ function setUIEventListeners() {
 
 	// settings combo boxes and sliders ('change' event is only triggered for select and input elements)
 	$$('[data-prop]').forEach( el => {
-		if ( el.tagName == 'FORM' ) {
+		if ( isCustomRadio( el ) ) {
 			el.elements[ el.dataset.prop ].forEach( btn => {
 				btn.addEventListener( 'click', () => setProperty( el ) );
 			});
