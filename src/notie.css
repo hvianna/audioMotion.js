@@ -106,6 +106,10 @@
   width: 50px;
 }
 
+.notie-button .empty {
+  opacity: .5;
+}
+
 /* edit and delete buttons */
 .notie-container button {
   border-radius: 10px;

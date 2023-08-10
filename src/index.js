@@ -159,7 +159,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_SENSITIVITY    = 'sensitivity-presets';
 
 // User presets placeholders
-const PRESET_EMPTY  = 'Empty',
+const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
 
 // selector shorthand functions
@@ -794,7 +794,7 @@ const setPreset = ( key, options ) => {
 }
 
 // return a list of user preset slots and descriptions
-const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>#${ index + 1 }</strong>&nbsp; ${ isEmpty( item ) ? PRESET_EMPTY : item.name || PRESET_NONAME }` );
+const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
@@ -1807,7 +1807,7 @@ async function loadPreferences() {
 	// Load user presets
 	userPresets = await loadFromStorage( KEY_CUSTOM_PRESET );
 	if ( ! Array.isArray( userPresets ) )
-		userPresets = [ { options: userPresets } ]; // for compatibility with versions <= 21.11
+		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
 		if ( userPresets[ i ] === undefined )
 			userPresets[ i ] = {};
@@ -2777,12 +2777,13 @@ function saveUserPreset( index, options, name, force ) {
 		  confirmTimeout = 5;
 
 	// Show warning messages on attempt to overwrite existing preset
-	if ( ! isEmpty( userPresets[ index ] ) && ! force && ! overwritePreset ) {
+	if ( ! isEmpty( userPresets[ index ] ) && ! force && overwritePreset !== index ) {
 		if ( isFullscreen ) {
 			setCanvasMsg( `Overwrite ${ userPresetText } - Press again to confirm!`, confirmTimeout );
-			overwritePreset = true;
+			overwritePreset = index;
 			setTimeout( () => {
-				overwritePreset = false;
+				if ( overwritePreset === index )
+					overwritePreset = false;
 			}, confirmTimeout * 1000 );
 		}
 		else {
@@ -3368,7 +3369,7 @@ function setUIEventListeners() {
 		});
 
 		choices.push({
-			text: 'USER PRESETS →', handler: () => {
+			text: '<strong>USER PRESETS →</strong>', handler: () => {
 				const userChoices = [];
 				getUserPresets().forEach( ( text, index ) => {
 					userChoices.push( { text, handler: () => loadPreset( index ) } );
@@ -3389,10 +3390,11 @@ function setUIEventListeners() {
 	$('#btn_save').addEventListener( 'click', () => {
 		const choices = [];
 		getUserPresets().forEach( ( text, index ) => {
+			const options = userPresets[ index ].options;
 			choices.push(
 				{ type: 1, text, handler: () => saveUserPreset( index, getCurrentSettings() ) },
-				{ type: 2, text: '<button title="Edit name">&#xf11f;</button>', handler: () => saveUserPreset( index, userPresets[ index ].options, '', true ) },
-				{ type: 2, text: '<button title="Delete preset">&#xf120;</button>', handler: () => eraseUserPreset( index ) }
+				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Edit name">&#xf11f;</button>', handler: () => saveUserPreset( index, options, '', true ) },
+				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Delete preset">&#xf120;</button>', handler: () => eraseUserPreset( index ) }
 			);
 		});
 
