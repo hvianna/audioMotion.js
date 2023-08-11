@@ -2345,9 +2345,18 @@ function randomizeSettings( force = isMicSource ) {
 			items[ randomInt( items.length - notMirror ) ].checked = true;
 		}
 		else if ( el.dataset.active !== undefined )
-			el.dataset.active = randomInt();
+			el.dataset.active = randomInt(); // "switches"
+		else if ( el.step ) {
+			// range inputs
+			const { min, max, step } = el, // note: these come as strings
+				  range = ( max - min ) / step,
+				  newVal = randomInt( range + 1 ) * step + +min; // cast min to number
+
+			el.value = ( newVal * 10 | 0 ) / 10; // fix rounding errors (1 decimal place)
+			updateRangeValue( el );
+		}
 		else
-			el.selectedIndex = randomInt( el.options.length );
+			el.selectedIndex = randomInt( el.options.length ); // selects
 
 		if ( push )
 			props.push( el );
@@ -2392,15 +2401,11 @@ function randomizeSettings( force = isMicSource ) {
 		props.push( elLumiBars );
 	}
 
-	if ( isEnabled( RND_LINEWIDTH ) ) {
-		elLineWidth.value = ( randomInt( 8 ) + 1 ) / 2; // 0.5 to 4 with .5 intervals
-		updateRangeValue( elLineWidth );
-	}
+	if ( isEnabled( RND_LINEWIDTH ) )
+		randomizeControl( elLineWidth, false );
 
-	if ( isEnabled( RND_FILLOPACITY ) ) {
-		elFillAlpha.value = randomInt( 6 ) / 10; // 0 to 0.5
-		updateRangeValue( elFillAlpha );
-	}
+	if ( isEnabled( RND_FILLOPACITY ) )
+		randomizeControl( elFillAlpha, false );
 
 	if ( isEnabled( RND_BARSPACING ) )
 		randomizeControl( elBarSpace, false );
@@ -2417,11 +2422,8 @@ function randomizeSettings( force = isMicSource ) {
 	if ( isEnabled( RND_ROUND ) )
 		randomizeControl( elRoundBars );
 
-	if ( isEnabled( RND_SPIN ) ) {
-		elSpin.value = randomInt(4);
-		updateRangeValue( elSpin );
-		props.push( elSpin );
-	}
+	if ( isEnabled( RND_SPIN ) )
+		randomizeControl( elSpin );
 
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
@@ -4129,7 +4131,7 @@ function updateRangeValue( el ) {
 		.catch( e => {} ); // fail silently
 
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
-	setRangeAtts( elLineWidth, 1, 4, .5 );
+	setRangeAtts( elLineWidth, 1, 3, .5 );
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
 	setRangeAtts( elSpin, 0, 3, 1 );
 
