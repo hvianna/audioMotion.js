@@ -1805,7 +1805,7 @@ async function loadPreferences() {
 	setPreset( 'last', { ...getPreset('default'), ...lastConfig } );
 
 	// Load user presets
-	userPresets = await loadFromStorage( KEY_CUSTOM_PRESET );
+	userPresets = await loadFromStorage( KEY_CUSTOM_PRESET ) || [];
 	if ( ! Array.isArray( userPresets ) )
 		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
