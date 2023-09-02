@@ -2869,22 +2869,25 @@ function setBalance( value ) {
  * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
  *                            string provides a custom message to be displayed at the top
  * @param [timer] {number} time in seconds to display message (1/3rd of it will be used for fade in/out)
- * @param [dir] {number} -1 for fade-in; 1 for fade-out (default)
+ * @param [dir] {number} 1 for fade-in; -1 for fade-out (default)
  */
-function setCanvasMsg( msg, timer = 2, dir = 1 ) {
+function setCanvasMsg( msg, timer = 2, dir = -1 ) {
 	if ( ! msg )
-		canvasMsg = { timer: 0, msgTimer: 0 }; // clear all canvas messages
+		canvasMsg = { endTime: 0, msgTimer: 0 }; // clear all canvas messages
 	else {
-		if ( typeof msg == 'number' ) {
+		const now = performance.now(),
+		 	  targetTime = now + timer * 1000;
+		if ( msg == +msg ) { // msg is a number
 			canvasMsg.info = msg; // set info level 1 or 2
-			canvasMsg.timer = Math.round( Math.max( timer * 60, canvasMsg.timer || 0 ) ); // note: Infinity | 0 == 0
-			canvasMsg.fade = Math.round( canvasMsg.timer / 3 ) * dir;
+			canvasMsg.startTime = now;
+			canvasMsg.endTime = Math.max( targetTime, canvasMsg.endTime || 0 ); // note: Infinity | 0 == 0
+			canvasMsg.fade = ( timer == Infinity ) ? 0 : timer / 3 * dir;
 		}
 		else {
 			canvasMsg.msg = msg;  // set custom message
 			if ( canvasMsg.info == 2 )
 				canvasMsg.info = 1;
-			canvasMsg.msgTimer = timer * 60 | 0;
+			canvasMsg.msgTimer = targetTime;
 		}
 	}
 }
@@ -3632,8 +3635,10 @@ function syncMetadataToAudioElements( source ) {
  * Toggle display of song and settings information on canvas
  */
 function toggleInfo() {
-	if ( canvasMsg.info == 2 ) // if already showing all info, turn it off
-		setCanvasMsg();
+	if ( canvasMsg.endTime < performance.now() )
+		canvasMsg.info = 0; // reset info flag if display time has ended
+	if ( canvasMsg.info == 2 )
+		setCanvasMsg(); // if already showing all info, turn it off
 	else // increase the information level (0 -> 1 -> 2) and reset the display timeout
 		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, +elInfoTimeout.value || Infinity ); // NOTE: canvasMsg.info may be undefined
 }
@@ -3746,14 +3751,15 @@ function updateRangeValue( el ) {
 	 *
 	 * Uses global object canvasMsg
 	 * canvasMsg = {
-	 * 		info    : <number>, // 1 = song info; 2 = song & settings info
-	 * 		timer   : <number>, // countdown timer (in frames) to display info
-	 * 		fade    : <number>, // fade in/out time (in frames, negative number for fade-in)
-	 *		msg     : <string>, // custom message to be displayed at the top
-	 * 		msgTimer: <number>  // countdown timer (in frames) to display custom message
-	 * }	                    // (fade for custom message is always 60 frames)
+	 * 		info     : <number>, // 1 = song info; 2 = song & settings info
+	 * 		endTime  : <number>, // timestamp (in milliseconds) up to when info should be displayed
+	 *      startTime: <number>, // initial timestamp (for fade-in control only)
+	 * 		fade     : <number>, // fade in/out time in seconds (negative number for fade-out)
+	 *		msg      : <string>, // custom message to be displayed at the top
+	 * 		msgTimer : <number>  // timestamp (in milliseconds) up to when msg should be displayed
+	 * }	                     // (custom messages always use a one second fade-out only)
 	 */
-	const displayCanvasMsg = _ => {
+	const displayCanvasMsg = ( instance, data ) => {
 
 		const audioEl    = audioElement[ currAudio ],
 			  trackData  = audioEl.dataset,
@@ -3762,15 +3768,16 @@ function updateRangeValue( el ) {
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
 			  noShadow   = isSwitchOn( elNoShadow ),
-			  pixelRatio = audioMotion.pixelRatio;
+			  pixelRatio = audioMotion.pixelRatio,
+			  { timestamp } = data;
 
 		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 		if ( remaining < .1 )
 			playNextSong( true );
 
 		// set song info display at the end of the song
-		if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && ! canvasMsg.info && isPlaying() )
-			setCanvasMsg( 1, remaining, -1 );
+		if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && timestamp > canvasMsg.endTime && isPlaying() )
+			setCanvasMsg( 1, remaining, 1 );
 
 		// compute background image size for pulse and zoom in/out effects
 		if (
@@ -3791,8 +3798,10 @@ function updateRangeValue( el ) {
 
 		elOSD.width |= 0; // clear OSD canvas
 
-		if ( ( canvasMsg.timer || canvasMsg.msgTimer ) < 1 )
-			return;
+		const { endTime, startTime, msgTimer, info, msg, fade } = canvasMsg;
+
+		if ( timestamp > endTime && timestamp > msgTimer )
+			return; // nothing to display
 
 		// helper function
 		const drawText = ( text, x, y, maxWidth ) => {
@@ -3815,23 +3824,25 @@ function updateRangeValue( el ) {
 		canvasCtx.fillStyle = '#fff';
 		canvasCtx.strokeStyle = canvasCtx.shadowColor = '#000';
 
-		// Display custom message if any and info level 2 is not set
-		if ( canvasMsg.msgTimer > 0 && canvasMsg.info != 2 ) {
-			canvasCtx.globalAlpha = canvasMsg.msgTimer < 60 ? canvasMsg.msgTimer / 60 : 1;
+		// Display custom message if we don't need to display info level 2
+		if ( msgTimer > timestamp && ( timestamp > endTime || info != 2 ) ) {
+			const timeLeft = ( msgTimer - timestamp ) / 1000;
+			canvasCtx.globalAlpha = timeLeft > 1 ? 1 : timeLeft; // one second fade-out
 			drawText( canvasMsg.msg, centerPos, topLine1 );
-			canvasMsg.msgTimer--;
 		}
 
 		// Display song and config info
-		if ( canvasMsg.timer > 0 ) {
-			if ( canvasMsg.fade < 0 ) {
-				// fade-in
-				const fade     = Math.abs( canvasMsg.fade ),
-					  framesIn = fade * 3 - canvasMsg.timer;
-				canvasCtx.globalAlpha = framesIn < fade ? framesIn / fade : 1;
+		if ( endTime > timestamp ) {
+			if ( fade < 0 ) {
+				// fade-out
+				const timeLeft = ( endTime - timestamp ) / 1000;
+				canvasCtx.globalAlpha = timeLeft > -fade ? 1 : timeLeft / -fade;
 			}
-			else // fade-out
-				canvasCtx.globalAlpha = canvasMsg.timer < canvasMsg.fade ? canvasMsg.timer / canvasMsg.fade : 1;
+			else {
+				// fade-in - avoid negative timeElapsed when canvasMsg has been set in this same iteration (info at song end)
+				const timeElapsed = Math.max( 0, ( timestamp - startTime ) / 1000 );
+				canvasCtx.globalAlpha = timeElapsed > fade ? 1 : timeElapsed / fade;
+			}
 
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
@@ -3894,9 +3905,6 @@ function updateRangeValue( el ) {
 				if ( coverImage.width && elShowCover.checked )
 					canvasCtx.drawImage( coverImage, baseSize, bottomLine1 - coverSize * 1.3, coverSize, coverSize );
 			}
-
-			if ( --canvasMsg.timer < 1 )
-				canvasMsg.info = canvasMsg.fade = 0;
 		}
 	}
 
