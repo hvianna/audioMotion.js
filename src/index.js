@@ -1507,8 +1507,10 @@ function keyboardControls( event ) {
 			const index = event.code.slice(-1) - 1;
 			if ( index == -1 ) { // '0' pressed
 				// ignore if Shift pressed as it could be a user mistake
-				if ( ! isShiftKey )
+				if ( ! isShiftKey ) {
 					randomizeSettings( true );
+					setProperty( elRandomMode, false ); // restart randomize timer (if active)
+				}
 			}
 			else if ( isShiftKey ) {
 				const settings = getCurrentSettings();
