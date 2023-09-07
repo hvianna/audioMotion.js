@@ -29,8 +29,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { version as VERSION } from '../package.json';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
@@ -45,9 +45,10 @@ import './styles.css';
 
 const isElectron  = 'electron' in window,
 	  isWindows   = isElectron && /Windows/.test( navigator.userAgent ),
-	  ROUTE_FILE  = '/getFile/',  // server route to read files anywhere (Electron only)
-	  ROUTE_COVER = '/getCover/', // server route to get a folder's cover image (Electron and legacy node server)
-	  ROUTE_SAVE  = '/savePlist/'; // server route to save a file to the filesystem (Electron only)
+	  ROUTE_FILE  = '/getFile/',   // server route to read files anywhere (Electron only)
+	  ROUTE_COVER = '/getCover/',  // server route to get a folder's cover image (Electron and legacy node server)
+	  ROUTE_SAVE  = '/savePlist/', // server route to save a file to the filesystem (Electron only)
+	  VERSION     = packageJson.version;
 
 const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
 	  MAX_BG_MEDIA_FILES    = 20,			// max number of media files (images and videos) selectable as background
