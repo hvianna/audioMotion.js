@@ -594,7 +594,7 @@ const randomProperties = [
 	{ value: RND_REFLEX,      text: 'Reflex',         disabled: false },
 	{ value: RND_ROUND,       text: 'Round',          disabled: false },
 	{ value: RND_SPLIT,       text: 'Split',          disabled: false },
-	{ value: RND_PRESETS,     text: 'User Presets',   disabled: false }
+	{ value: RND_PRESETS,     text: 'User Presets',   disabled: true }
 ];
 
 // Sensitivity presets
@@ -1229,7 +1229,7 @@ function doConfigPanel() {
 	const buildOptions = ( container, cssClass, options, parent, cfgKey ) => {
 		// create checkboxes inside the container
 		options.forEach( item => {
-			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${item.disabled ? '' : 'checked'}> ${item.text}</label>`;
+			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${ item.disabled ? '' : 'checked' }> ${item.text}</label>`;
 		});
 
 		// add event listeners for enabling/disabling options
@@ -1243,9 +1243,12 @@ function doConfigPanel() {
 						return false;
 					}
 				}
-				options.find( item => item.value == element.dataset.option ).disabled = ! element.checked;
-				populateSelect( parent, options );
-				savePreferences( cfgKey );
+				const opt = options.find( item => item.value == element.dataset.option );
+				if ( opt ) {
+					opt.disabled = ! element.checked;
+					populateSelect( parent, options );
+					savePreferences( cfgKey );
+				}
 			});
 		});
 	}
@@ -1254,7 +1257,7 @@ function doConfigPanel() {
 	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
 
 	// Enabled Background Image Fit options
-	buildOptions( $('#enabled_bgfit'), 'enabledMode', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
+	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
 	// Enabled gradients
 
@@ -1794,9 +1797,11 @@ async function loadPreferences() {
 	const parseDisabled = ( data, optionList ) => {
 		if ( Array.isArray( data ) ) {
 			data.forEach( option => {
-				const opt = optionList.find( item => item.value == option );
+				// if `option` is not an object, `disabled` is inferred true - for compatibility with legacy versions
+				const { value, disabled } = typeof option == 'object' ? option : { value: option, disabled: true } ;
+				const opt = optionList.find( item => item.value == value );
 				if ( opt )
-					opt.disabled = true;
+					opt.disabled = disabled;
 			});
 		}
 	}
@@ -2697,7 +2702,7 @@ function savePlayqueueToServer( path, update ) {
  */
 function savePreferences( key ) {
 	// helper function
-	const getDisabledItems = items => items.filter( item => item.disabled ).map( item => item.value );
+	const getDisabledItems = items => items.map( ( { value, disabled } ) => ( { value, disabled } ) );
 
 	if ( ! key || key == KEY_DISABLED_MODES )
 		saveToStorage( KEY_DISABLED_MODES, getDisabledItems( modeOptions ) );
