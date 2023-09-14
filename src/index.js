@@ -86,9 +86,10 @@ const DATASET_TEMPLATE = {
 };
 
 // Channel Layouts
-const CHANNEL_COMBINED = 'dual-combined',
-	  CHANNEL_SINGLE   = 'single',
-	  CHANNEL_VERTICAL = 'dual-vertical';
+const CHANNEL_COMBINED   = 'dual-combined',
+ 	  CHANNEL_HORIZONTAL = 'dual-horizontal',
+	  CHANNEL_SINGLE     = 'single',
+	  CHANNEL_VERTICAL   = 'dual-vertical';
 
 // Color modes
 const COLOR_GRADIENT = 'gradient',
@@ -567,9 +568,10 @@ const modeOptions = [
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ CHANNEL_SINGLE,   'Single'  ],
-	[ CHANNEL_VERTICAL, 'Vert' ],
-	[ CHANNEL_COMBINED, 'Comb' ]
+	[ CHANNEL_SINGLE,     'Singl' ],
+	[ CHANNEL_COMBINED,   'Comb'  ],
+	[ CHANNEL_HORIZONTAL, 'Horiz' ],
+	[ CHANNEL_VERTICAL,   'Vert'  ]
 ];
 
 // Randomize options
