@@ -202,6 +202,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elLoadedPlist   = $('#loaded_playlist'),
 	  elLoRes         = $('#lo_res'),
 	  elLumiBars      = $('#lumi_bars'),
+	  elMaxFPS        = $('#max_fps'),
 	  elMirror        = $('#mirror'),
 	  elMode          = $('#mode'),
 	  elMute          = $('#mute'),
@@ -634,17 +635,23 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elFFTsize, elFsHeight, elPIPRatio, elSaveDir, elSmoothing ];
+const generalOptionsElements = [ elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSmoothing ];
 
 const generalOptionsDefaults = {
-	fftSize : 8192,
+	fftSize  : 8192,
+	fsHeight : 100,
+	maxFPS   : 60,
+	pipRatio : 2.35,
+	saveDir  : true,
 	smoothing: .7,
-	pipRatio: 2.35,
-	fsHeight: 100,
-	saveDir : true
 }
 
-// PIP window aspect ratio options
+const maxFpsOptions = [
+	[ 30, '30' ],
+	[ 60, '60' ],
+	[ 0, 'unlimited' ]
+];
+
 const pipRatioOptions = [
 	[ 1, '1:1' ],
 	[ 1.33, '4:3' ],
@@ -1886,6 +1893,8 @@ async function loadPreferences() {
 
 	setRangeAtts( elFsHeight, 25, 100, 5 );
 
+	populateSelect( elMaxFPS, maxFpsOptions );
+
 	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
 	return isLastSession;
@@ -1950,6 +1959,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		linearAmplitude: isSwitchOn( elLinearAmpl ),
 		loRes          : isSwitchOn( elLoRes ),
 		lumiBars       : isSwitchOn( elLumiBars ),
+		maxFPS         : getControlValue( elMaxFPS ),
 		maxFreq        : getControlValue( elRangeMax ),
 		minFreq        : getControlValue( elRangeMin ),
 		mirror         : getControlValue( elMirror ),
@@ -2755,10 +2765,11 @@ function savePreferences( key ) {
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
 			fftSize  : elFFTsize.value,
-			smoothing: elSmoothing.value,
-			pipRatio : elPIPRatio.value,
 			fsHeight : elFsHeight.value,
-			saveDir  : elSaveDir.checked
+			maxFPS   : elMaxFPS.value,
+			pipRatio : elPIPRatio.value,
+			saveDir  : elSaveDir.checked,
+			smoothing: elSmoothing.value
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -2919,10 +2930,11 @@ function setCurrentCover() {
  */
 function setGeneralOptions( options ) {
 	elFFTsize.value   = options.fftSize;
-	elSmoothing.value = options.smoothing;
-	elPIPRatio.value  = options.pipRatio;
 	elFsHeight.value  = options.fsHeight;
+	elMaxFPS.value    = options.maxFPS;
+	elPIPRatio.value  = options.pipRatio;
 	elSaveDir.checked = options.saveDir;
+	elSmoothing.value = options.smoothing;
 }
 
 /**
@@ -3090,6 +3102,10 @@ function setProperty( elems, save = true ) {
 			case elLumiBars:
 				audioMotion.lumiBars = isSwitchOn( elLumiBars );
 				setProperty( elBarSpace, false );
+				break;
+
+			case elMaxFPS:
+				audioMotion.maxFPS = elMaxFPS.value;
 				break;
 
 			case elMode:
