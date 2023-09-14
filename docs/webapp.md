@@ -4,7 +4,9 @@ audioMotion can also run in your web browser, in three different server scenario
 
 - serverless, in [local file mode](#local-file-mode) with limited capabilites;
 - using its own [custom file server](#custom-file-server) (preferred);
-- from a [standard web server](#standard-web-server) like Apache, Lighttpd or Nginx.
+- hosted in a [standard web server](#standard-web-server) like Apache, Lighttpd or Nginx.
+
+[Clone the project](https://github.com/hvianna/audioMotion.js) from GitHub or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
 
 ## Local file mode
 

@@ -2,9 +2,12 @@
 
 These steps require [Node.js](https://nodejs.org) installed in your computer.
 
-Install the required npm packages:
+First, [clone the project](https://github.com/hvianna/audioMotion.js) from GitHub or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
+
+Move to the project's directory and install the required npm packages:
 
 ```
+cd audioMotion.js
 npm install
 ```
 

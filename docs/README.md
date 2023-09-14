@@ -2,15 +2,17 @@
 
 ![audioMotion-header](img/audioMotion-header.png)
 
-> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you ♪♫ **see your music!** ♪♫<br>
+> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you **see your music!** ♪♫🤩<br>
 > It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 ## Features
 
 * High-resolution real-time dual channel audio spectrum analyzer
 * Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
-* Logarithmic frequency scale with customizable range
-* Visualize discrete frequencies or octave bands based on the equal tempered scale
+* Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
+* Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
+* Decibel and linear amplitude scales, with customizable sensitivity
+* Optional A, B, C, D and ITU-R 468 weighting filters
 * Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial visualization
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
 * HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
@@ -34,32 +36,33 @@ Also check out our [**YouTube channel**](https://audiomotion.me/yt) for some coo
 
 ## Getting started
 
-Download the latest version from the [**releases page**](https://github.com/hvianna/audioMotion.js/releases/latest). Portable binaries are available for Windows, Linux and macOS.
+Download the latest version from the [**Releases page**](https://github.com/hvianna/audioMotion.js/releases/latest).
 
-Launch audioMotion and you'll be asked for the path to your music folder. Only files under that folder will be accessible to the player.
+Binaries are available for Windows, Linux and macOS (Intel x64) - these are not signed, so you'll get the usual warnings from your operating system.
 
-You can also use the command line argument `-m` to set the music folder when launching audioMotion, like so:
+Verify the integrity of binaries using the commands below. Check the generated checksums against the ones provided in the release page.
 
++ Windows:
 ```
-audioMotion -m c:\users\john\music
-```
-
-This will start the server and should also launch the client in your browser.
-
-The complete command line options are:
-
-```
--b <path> : path to folder with background images and videos
--e        : allow external connections (by default, only localhost)
--m <path> : path to music folder
--p <port> : change server listening port (default is 8000)
--s        : start server only (do not launch client)
+certutil -hashfile "audioMotion-23.8.0 Setup" md5
+certutil -hashfile "audioMotion-23.8.0 Setup" sha256
 ```
 
-!> **WARNING:**<br>
-Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
++ Linux:
+```
+md5sum filename
+sha256sum filename
+```
 
-?> See the [**User's Manual**](users-manual.md) for the complete documentation of audioMotion's features and settings.
++ MacOS:
+```
+md5 filename
+shasum -a 256 filename
+```
+
+?> You don't need binaries to run **audioMotion** in a web browser. Check [Running as a Web App](webapp.md) for more information.
+
+If you want to build your own binaries, check the [Building](building.md) page.
 
 ## Credits
 
@@ -97,6 +100,7 @@ Some of audioMotion's great features are provided by these awesome open-source l
 [Sofia-Sans Semi-Condensed](https://github.com/lettersoup/Sofia-Sans) licensed under the [SIL Open Font License](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=ofl)
 * Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
 * [Mouse scroll icon](https://thenounproject.com/term/mouse-scroll/628146/) by Viktor Ostrovsky, licensed under [Creative Commons CCBY](https://creativecommons.org/licenses/by/3.0/us/legalcode)
+* Gradients *Prism* and *Rainbow* use the [12-bit rainbow palette](https://iamkate.com/data/12-bit-rainbow/) by Kate Morley
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
 * Gradients *Pacific Dream*, *Shahabi*, *Summer* and *Sunset* from [uiGradients](https://uigradients.com)
 * The *Apple &#93;&#91;* gradient was created based on [this post](https://creativemarket.com/blog/6-famous-logos-with-great-color-schemes) by Creative Market
@@ -140,7 +144,7 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2021 [Henrique Avila Vianna](https://henriquevianna.com)<br>
+audioMotion.js copyright (c) 2018-2023 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
 
 ---

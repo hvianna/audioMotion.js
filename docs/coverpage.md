@@ -1,9 +1,9 @@
 
 # audioMotion
 
-> A high-resolution real-time spectrum analyzer and music player written in JavaScript
+> high-resolution real-time spectrum analyzer and music player
 
-- Visualize discrete frequencies or octave bands
+- Visualize discrete FFT frequencies or up to 240 frequency bands
 - Several modes, color gradients and optional effects
 - Fullscreen and PIP high-resolution graphics @60fps
 

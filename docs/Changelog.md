@@ -1,5 +1,41 @@
 # Changelog
 
+## version NEXT
+
+:tada: **audioMotion** now runs as a native app, thanks to Electron!
+
+But fear not, it still also works as a [web app](webapp.md), using any web server or its own custom file server!
+
+### Added: <!-- {docsify-ignore} -->
+
++ *Bark*, *Mel* and linear frequency scales for improved visualization of mid-range and high frequencies;
++ Frequency weighting filters;
++ New dual-channel layouts: horizontal (side-by-side channels) and combined (overlaid channels);
++ New bar coloring modes: by level (bar amplitude) and by index (bar position);
++ Rounded corner bars (optional);
++ Option to display musical note labels in the X-axis scale;
++ Option to use linear amplitude values, instead of dB;
++ Option to use IEC/ANSI preferred frequencies for octave bands;
++ Allow selecting different gradients for the left and right channels, when using a dual-channel layout;
++ Playlists can now be saved to the hard disk (native app only).
+
+### Changed / improved: <!-- {docsify-ignore} -->
+
++ The **Prism** and **Rainbow** gradients have been updated with softer colors;
++ The custom preset funcionality now provides 9 slots for saving your favorite presets;
++ The **Smoothing** setting has been moved to [General settings](users-manual.md#general-settings), and the default value changed to 0.7 (from 0.5);
++ Random Mode has been renamed to **Randomize** and it's now possible to remove the *Mode* from the settings randomized;
++ The **AUTO** gradient button/functionality has been removed - check *Gradients* under [Settings affected by Randomize]() to have new gradient(s) selected when *Randomize* is active;
++ The **STEREO** button has been replaced by the **Channel Layout** setting;
++ Added more options to the minimum and maximum values in the frequency range;
++ New fonts for the user interface and internal console;
++ New custom UI controls to replace standard range inputs and radio buttons;
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Reflex not working on PIP mode on some circumstances.
+
+
 ## version 21.11
 
 :birthday: **It's audioMotion's THIRD Anniversary and we have plenty of new features to celebrate!!!** :tada: <big>🥳</big>
