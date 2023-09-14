@@ -109,6 +109,11 @@ const MODE_DISCRETE    = '0',
 	  MODE_OCTAVE_12TH = '2',
 	  MODE_OCTAVE_24TH = '1';
 
+// Reflex options
+const REFLEX_OFF  = '0',
+	  REFLEX_ON   = '1',
+	  REFLEX_FULL = '2';
+
 // Property keys for Randomize settings
 const RND_ALPHA       = 'alpha',
 	  RND_BACKGROUND  = 'nobg',
@@ -266,7 +271,7 @@ const presets = [
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : 1,
+			reflex       : REFLEX_ON,
 			roundBars    : 0,
 			showPeaks    : 1,
 			showScaleX   : 1,
@@ -302,7 +307,7 @@ const presets = [
 			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : 0,
+			reflex       : REFLEX_OFF,
 			roundBars    : 0,
 			showPeaks    : 1,
 			showScaleX   : 1,
@@ -337,7 +342,7 @@ const presets = [
 			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : 0,
+			reflex       : REFLEX_OFF,
 			showPeaks    : 0,
 			showScaleX   : 0,
 			showScaleY   : 0,
@@ -406,7 +411,7 @@ const presets = [
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : 2,
+			reflex       : REFLEX_FULL,
 			roundBars    : 1,
 			showPeaks    : 0,
 			showScaleX   : 0,
@@ -455,7 +460,7 @@ const presets = [
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : 0,
+			reflex       : REFLEX_OFF,
 			repeat       : 0,
 			roundBars    : 0,
 			sensitivity  : 1,
@@ -2346,27 +2351,28 @@ function randomizeSettings( force = isMicSource ) {
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
-	const randomizeControl = ( el, push = true ) => {
-		if ( isCustomRadio( el ) ) {
-			const items = el.elements[ el.dataset.prop ],
-			      notMirror = el == elReflex && isSwitchOn( elLedDisplay );
-				  // exclude 'full' (mirrored) reflex option when LEDS is active
+	const randomizeControl = ( el, push = true, validate = () => true ) => {
+		let attempts = 9; // avoid an infinite loop just in case validation is never satisfied
+		do {
+			if ( isCustomRadio( el ) ) {
+				// custom radio buttons
+				const items = el.elements[ el.dataset.prop ];
+				items[ randomInt( items.length ) ].checked = true;
+			}
+			else if ( el.dataset.active !== undefined ) // on/off switches
+				el.dataset.active = randomInt();
+			else if ( el.step ) {
+				// range inputs
+				const { min, max, step } = el, // note: these come as strings
+					  range = ( max - min ) / step,
+					  newVal = randomInt( range + 1 ) * step + +min; // coerce min to number
 
-			items[ randomInt( items.length - notMirror ) ].checked = true;
-		}
-		else if ( el.dataset.active !== undefined )
-			el.dataset.active = randomInt(); // "switches"
-		else if ( el.step ) {
-			// range inputs
-			const { min, max, step } = el, // note: these come as strings
-				  range = ( max - min ) / step,
-				  newVal = randomInt( range + 1 ) * step + +min; // cast min to number
-
-			el.value = ( newVal * 10 | 0 ) / 10; // fix rounding errors (1 decimal place)
-			updateRangeValue( el );
-		}
-		else
-			el.selectedIndex = randomInt( el.options.length ); // selects
+				el.value = ( newVal * 10 | 0 ) / 10; // fix rounding errors (1 decimal place)
+				updateRangeValue( el );
+			}
+			else // selects
+				el.selectedIndex = randomInt( el.options.length );
+		} while ( ! validate( getControlValue( el ) ) && attempts-- );
 
 		if ( push )
 			props.push( el );
@@ -2394,7 +2400,7 @@ function randomizeSettings( force = isMicSource ) {
 		randomizeControl( elBgImageFit );
 
 	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeControl( elChnLayout );
+		randomizeControl( elChnLayout, true, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
 
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
@@ -2405,11 +2411,8 @@ function randomizeSettings( force = isMicSource ) {
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
 
-	if ( isEnabled( RND_LUMI ) ) {
-		// always disable lumi when leds are active and background is set to image or video
-		elLumiBars.dataset.active = elBackground.value[0] > 1 && isSwitchOn( elLedDisplay ) ? 0 : randomInt();
-		props.push( elLumiBars );
-	}
+	if ( isEnabled( RND_LUMI ) )
+		randomizeControl( elLumiBars, true, newVal => ! newVal || elBackground.value[0] <= 1 || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
 
 	if ( isEnabled( RND_LINEWIDTH ) )
 		randomizeControl( elLineWidth, false );
@@ -2424,7 +2427,7 @@ function randomizeSettings( force = isMicSource ) {
 		randomizeControl( elOutline );
 
 	if ( isEnabled( RND_REFLEX ) )
-		randomizeControl( elReflex, false );
+		randomizeControl( elReflex, false, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
 
 	if ( isEnabled( RND_RADIAL ) )
 		randomizeControl( elRadial );
@@ -3143,12 +3146,12 @@ function setProperty( elems, save = true ) {
 
 			case elReflex:
 				switch ( getControlValue( elReflex ) ) {
-					case '1':
+					case REFLEX_ON:
 						audioMotion.reflexRatio = .4;
 						audioMotion.reflexAlpha = .2;
 						break;
 
-					case '2':
+					case REFLEX_FULL:
 						audioMotion.reflexRatio = .5;
 						audioMotion.reflexAlpha = 1;
 						break;
