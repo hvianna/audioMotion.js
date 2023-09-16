@@ -137,6 +137,11 @@ const RND_ALPHA       = 'alpha',
 	  RND_ROUND       = 'round',
 	  RND_SPLIT       = 'split';
 
+// Server modes
+const SERVER_LOCAL  = -1, // local (file://) or web server with no URL mapping for /music
+	  SERVER_CUSTOM = 1,  // custom server (node or Electron)
+	  SERVER_WEB    = 0;  // standard web server
+
 // Frequency scales
 const SCALE_BARK   = 'bark',
 	  SCALE_LINEAR = 'linear',
@@ -679,7 +684,7 @@ let audioElement = [],
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
-	serverMode, 				// 1 = custom server; 0 = standard web server; -1 = local (file://) mode
+	serverMode,
 	skipping = false,
 	userPresets,
 	waitingMetadata = 0,
@@ -910,11 +915,11 @@ const setRangeAtts = ( element, min, max, step = 1 ) => {
 /**
  * Adds a batch of files to the queue and displays total songs added when finished
  *
- * @param files {array} array of objects with a 'file' property
+ * @param files {array} array of objects with a 'file' property (and optional 'handle' property)
  * @param [autoplay] {boolean}
  */
 function addBatchToPlayQueue( files, autoplay = false ) {
-	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
+	const promises = files.map( entry => addToPlayQueue( entry, autoplay ) );
 	Promise.all( promises ).then( added => {
 		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
 			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
@@ -965,12 +970,12 @@ function addMetadata( metadata, target ) {
  * Add a song to the play queue
  * returns 1 if song added or 0 if queue is full
  */
-function addSongToPlayQueue( uri, content = {} ) {
+function addSongToPlayQueue( fileObject, content = {} ) {
 
 	if ( queueLength() >= MAX_QUEUED_SONGS )
 		return 0;
 
-	uri = normalizeSlashes( uri );
+	let uri = normalizeSlashes( fileObject.file );
 
 	// extract file name and extension
 	const file = decodeSlashes( uri ).split('/').pop(),
@@ -986,6 +991,8 @@ function addSongToPlayQueue( uri, content = {} ) {
 	trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
 	trackData.duration = content.duration || '';
 	trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
+
+	newEl.handle = fileObject.handle; // for File System API accesses
 
 	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
 	uri = uri.replace( /#/g, '%23' );
@@ -1006,14 +1013,14 @@ function addSongToPlayQueue( uri, content = {} ) {
 /**
  * Add a song or playlist to the play queue
  */
-function addToPlayQueue( file, autoplay = false ) {
+function addToPlayQueue( fileObject, autoplay = false ) {
 
 	let ret;
 
-	if ( ['m3u','m3u8'].includes( parsePath( file ).extension ) )
-		ret = loadPlaylist( file );
+	if ( ['m3u','m3u8'].includes( parsePath( fileObject.file ).extension ) )
+		ret = loadPlaylist( fileObject.file );
 	else
-		ret = new Promise( resolve => resolve( addSongToPlayQueue( file, parseTrackName( parsePath( file ).baseName ) ) ) );
+		ret = new Promise( resolve => resolve( addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) ) ) );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1667,6 +1674,21 @@ function keyboardControls( event ) {
 }
 
 /**
+ * Load a file blob into an audio element
+ *
+ * @param {object} audio element
+ * @param {object} file blob
+ */
+function loadFileBlob( fileBlob, audioEl ) {
+	audioEl.src = URL.createObjectURL( fileBlob );
+	audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
+
+	mm.parseBlob( fileBlob )
+		.then( metadata => addMetadata( metadata, audioEl ) )
+		.catch( e => {} );
+}
+
+/**
  * Load a JSON-encoded object from localStorage
  *
  * @param {string} item key
@@ -1702,21 +1724,13 @@ function loadGradientIntoCurrentGradient(gradientKey) {
  * Load a music file from the user's computer
  */
 function loadLocalFile( obj ) {
-
 	const fileBlob = obj.files[0];
 
 	if ( fileBlob ) {
 		clearAudioElement();
-
 		const audioEl = audioElement[ currAudio ];
-
-		audioEl.src = URL.createObjectURL( fileBlob );
+		loadFileBlob( fileBlob, audioEl );
 		audioEl.play();
-		audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
-
-		mm.parseBlob( fileBlob )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
 	}
 }
 
@@ -1729,9 +1743,21 @@ function loadNextSong() {
 		  audioEl = audioElement[ nextAudio ];
 
 	if ( song ) {
-		audioEl.src = song.dataset.file;
-		audioEl.load();
-		addMetadata( song, audioEl );
+//		if ( serverMode == SERVER_LOCAL ) {
+//			fileExplorer.getMountHandle().getFileHandle( song.dataset.file )
+//				.then( fileHandle => fileHandle.getFile() )
+		if ( song.handle ) {
+			song.handle.getFile()
+				.then( fileBlob => {
+					loadFileBlob( fileBlob, audioEl );
+					audioEl.load();
+				});
+		}
+		else {
+			audioEl.src = song.dataset.file;
+			audioEl.load();
+			addMetadata( song, audioEl );
+		}
 	}
 
 	skipping = false; // finished skipping track
@@ -1774,7 +1800,7 @@ function loadPlaylist( path ) {
 							if ( ! isExternalURL( line ) && line[1] != ':' && line[0] != '/' )
 								line = path + line;
 
-							n += addSongToPlayQueue( queryFile( line ), parseTrackName( songInfo ) );
+							n += addSongToPlayQueue( { file: queryFile( line ) }, parseTrackName( songInfo ) );
 							songInfo = '';
 						}
 						else if ( line.startsWith('#EXTINF') )
@@ -1790,9 +1816,9 @@ function loadPlaylist( path ) {
 		else { // try to load playlist from localStorage
 			const list = await loadFromStorage( 'pl_' + path );
 			if ( Array.isArray( list ) ) {
-				list.forEach( item => {
-					item = normalizeSlashes( item );
-					n += addSongToPlayQueue( item, parseTrackName( parsePath( item ).baseName ) );
+				list.forEach( file => {
+					file = normalizeSlashes( file );
+					n += addSongToPlayQueue( { file }, parseTrackName( parsePath( file ).baseName ) );
 				});
 			}
 			else
@@ -2070,8 +2096,15 @@ function loadSong( n ) {
 	if ( playlist.children[ n ] ) {
 		playlistPos = n;
 		const song = playlist.children[ playlistPos ];
-		audioEl.src = song.dataset.file;
-		addMetadata( song, audioEl );
+
+//		if ( serverMode == SERVER_LOCAL ) {
+//			song.fileHandle.getFileHandle( song.dataset.file )
+		if ( song.handle )
+			song.handle.getFile().then( fileBlob => loadFileBlob( fileBlob, audioEl ) );
+		else {
+			audioEl.src = song.dataset.file;
+			addMetadata( song, audioEl );
+		}
 
 		updatePlaylistUI();
 		loadNextSong();
@@ -3182,7 +3215,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSaveDir :
-				if ( elSaveDir.checked )
+				if ( elSaveDir.checked && serverMode != SERVER_LOCAL )
 					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
 				else
 					removeFromStorage( KEY_LAST_DIR );
@@ -4195,12 +4228,12 @@ function updateRangeValue( el ) {
 	const fileExplorerPromise = fileExplorer.create(
 		$('#file_explorer'),
 		{
-			onDblClick: ( file, event ) => {
-				addBatchToPlayQueue( [ { file } ], true );
+			onDblClick: ( fileObject, event ) => {
+				addBatchToPlayQueue( [ fileObject ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			},
 			onEnterDir: path => {
-				if ( elSaveDir.checked && initDone ) // avoid saving the path during file explorer initialization
+				if ( elSaveDir.checked && initDone && serverMode != SERVER_LOCAL ) // avoid saving the path during file explorer initialization
 					saveToStorage( KEY_LAST_DIR, path );
 			}
 		}
@@ -4211,9 +4244,12 @@ function updateRangeValue( el ) {
 		serverMode = status;
 
 		if ( status == -1 ) {
-			consoleLog( 'No server found. File explorer will not be available.', true );
-			btnAddSelected.disabled = true;
-			btnAddFolder.disabled = true;
+			const hasSupport = window.showDirectoryPicker;
+			consoleLog( `No server found${ hasSupport ? '. Using File System API' : ' and no browser support for File System API. File explorer will not be available' }.`, ! hasSupport );
+			if ( ! hasSupport ) {
+				btnAddSelected.disabled = true;
+				btnAddFolder.disabled = true;
+			}
 		}
 		else {
 			consoleLog( `${ serversignature } detected on port ${ location.port }` );
