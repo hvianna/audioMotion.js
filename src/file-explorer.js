@@ -100,7 +100,7 @@ function enterDir( target, scrollTop ) {
 				handle = prev.handle;
 		}
 		else
-			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle } );
+			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle: currentDirHandle } );
 	}
 
 	ui_files.innerHTML = '<li>Loading...</li>';
@@ -121,36 +121,14 @@ function enterDir( target, scrollTop ) {
 			resolve( false );
 		}
 
-		if ( currentDirHandle ) {
-			if ( ! target ) {
-				// get entries of the current directory
-				let content = [];
-				for await ( const p of currentDirHandle.entries() )
-					content.push( p );
-				parseContent( content );
-			}
-			else if ( handle ) {
-				let content = [];
-				for await ( const p of handle.entries() )
-					content.push( p );
-				parseContent( content );
-			}
-/*
-			else {
-				currentDirHandle.getDirectoryHandle( target )
-					.then( async handle => {
-						currentDirHandle = handle;
-						let content = [];
-						for await ( const p of currentDirHandle.entries() )
-							content.push( p );
-						parseContent( content );
-					})
-					.catch( e => {
-						console.log( e );
-						resolve( false );
-					});
-			}
-*/
+		if ( currentDirHandle ) { // File System API
+			if ( handle )
+				currentDirHandle = handle;
+
+			let content = [];
+			for await ( const p of currentDirHandle.entries() )
+				content.push( p );
+			parseContent( content );
 		}
 		else {
 			fetch( url )
@@ -183,7 +161,12 @@ function resetPath( depth ) {
 		depth--;
 	}
 
-	enterDir( prev && prev.handle, prev && prev.scrollTop );
+	if ( prev && prev.handle ) {
+		currentDirHandle = prev.handle;
+		prev = null;
+	}
+
+	enterDir( prev, prev && prev.scrollTop );
 }
 
 /* ******************* Public functions: ******************* */
@@ -458,9 +441,8 @@ export function create( container, options = {} ) {
 					mounts = [ options.rootPath || defaultRoot ];
 					if ( await enterDir( mounts[0] ) === false ) {
 						mounts = [ openFolderMsg ];
+						currentPath = [];
 						serverMode = MODE_LOCAL;
-//						ui_path.innerHTML = '';
-//						ui_files.innerHTML = '';
 						updateUI();
 					}
 				}
