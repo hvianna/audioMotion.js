@@ -88,7 +88,7 @@ function enterDir( target, scrollTop ) {
 
 	let prev,
 		url,
-		handle = target instanceof FileSystemDirectoryHandle ? target : null;
+		handle = ! target || typeof target == 'string' ? null : target;
 
 	if ( handle )
 		target = handle.name;
