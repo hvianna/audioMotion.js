@@ -1743,9 +1743,6 @@ function loadNextSong() {
 		  audioEl = audioElement[ nextAudio ];
 
 	if ( song ) {
-//		if ( serverMode == SERVER_LOCAL ) {
-//			fileExplorer.getMountHandle().getFileHandle( song.dataset.file )
-//				.then( fileHandle => fileHandle.getFile() )
 		if ( song.handle ) {
 			song.handle.getFile()
 				.then( fileBlob => {
@@ -2097,8 +2094,6 @@ function loadSong( n ) {
 		playlistPos = n;
 		const song = playlist.children[ playlistPos ];
 
-//		if ( serverMode == SERVER_LOCAL ) {
-//			song.fileHandle.getFileHandle( song.dataset.file )
 		if ( song.handle )
 			song.handle.getFile().then( fileBlob => loadFileBlob( fileBlob, audioEl ) );
 		else {
@@ -2620,6 +2615,9 @@ function retrieveMetadata() {
 	if ( queueItem ) {
 		waitingMetadata++;
 		delete queueItem.dataset.retrieve;
+
+		if ( queueItem.handle )
+			return;
 
 		const uri = queueItem.dataset.file;
 
