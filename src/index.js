@@ -968,46 +968,50 @@ function addMetadata( metadata, target ) {
 
 /**
  * Add a song to the play queue
- * returns 1 if song added or 0 if queue is full
+ * returns a Promise that resolves to 1 when song added, or 0 if queue is full
  */
 function addSongToPlayQueue( fileObject, content = {} ) {
 
-	if ( queueLength() >= MAX_QUEUED_SONGS )
-		return 0;
+	return new Promise( resolve => {
+		if ( queueLength() >= MAX_QUEUED_SONGS )
+			resolve(0);
 
-	let uri = normalizeSlashes( fileObject.file );
+		let uri = normalizeSlashes( fileObject.file );
 
-	// extract file name and extension
-	const file = decodeSlashes( uri ).split('/').pop(),
-		  ext  = file.split('.').pop();
+		// extract file name and extension
+		const file = decodeSlashes( uri ).split('/').pop(),
+			  ext  = file.split('.').pop();
 
-	// create new list element
-	const newEl     = document.createElement('li'),
-		  trackData = newEl.dataset;
+		// create new list element
+		const newEl     = document.createElement('li'),
+			  trackData = newEl.dataset;
 
-	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
-	trackData.artist   = content.artist || '';
-	trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
-	trackData.duration = content.duration || '';
-	trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
+		trackData.artist   = content.artist || '';
+		trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+		trackData.duration = content.duration || '';
+		trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
 
-	newEl.handle = fileObject.handle; // for File System API accesses
+		newEl.handle = fileObject.handle; // for File System API accesses
 
-	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-	uri = uri.replace( /#/g, '%23' );
-	trackData.file = uri;
+		// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
+		uri = uri.replace( /#/g, '%23' );
+		trackData.file = uri;
 
-	playlist.appendChild( newEl );
+		playlist.appendChild( newEl );
 
-	if ( queueLength() == 1 && ! isPlaying() )
-		loadSong(0);
-	if ( playlistPos > queueLength() - 3 )
-		loadNextSong();
+		trackData.retrieve = 1; // flag this item as needing metadata
+		retrieveMetadata();
 
-	trackData.retrieve = 1; // flag this item as needing metadata
-	retrieveMetadata();
-	return 1;
+		if ( queueLength() == 1 && ! isPlaying() )
+			loadSong(0).then( () => resolve(1) );
+		else
+			resolve(1);
+
+		if ( playlistPos > queueLength() - 3 )
+			loadNextSong();
+	});
 }
 
 /**
@@ -1020,7 +1024,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	if ( ['m3u','m3u8'].includes( parsePath( fileObject.file ).extension ) )
 		ret = loadPlaylist( fileObject.file );
 	else
-		ret = new Promise( resolve => resolve( addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) ) ) );
+		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1679,13 +1683,19 @@ function keyboardControls( event ) {
  * @param {object} audio element
  * @param {object} file blob
  */
-function loadFileBlob( fileBlob, audioEl ) {
-	audioEl.src = URL.createObjectURL( fileBlob );
-	audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
+function loadFileBlob( fileBlob, audioEl, playIt ) {
+	return new Promise( resolve => {
+		audioEl.src = URL.createObjectURL( fileBlob );
+		audioEl.onloadeddata = () => {
+			if ( playIt )
+				audioEl.play();
+			resolve( true );
+		};
 
-	mm.parseBlob( fileBlob )
-		.then( metadata => addMetadata( metadata, audioEl ) )
-		.catch( e => {} );
+		mm.parseBlob( fileBlob )
+			.then( metadata => addMetadata( metadata, audioEl ) )
+			.catch( e => {} );
+	});
 }
 
 /**
@@ -1729,8 +1739,7 @@ function loadLocalFile( obj ) {
 	if ( fileBlob ) {
 		clearAudioElement();
 		const audioEl = audioElement[ currAudio ];
-		loadFileBlob( fileBlob, audioEl );
-		audioEl.play();
+		loadFileBlob( fileBlob, audioEl, true ); // load and play
 	}
 }
 
@@ -1745,10 +1754,8 @@ function loadNextSong() {
 	if ( song ) {
 		if ( song.handle ) {
 			song.handle.getFile()
-				.then( fileBlob => {
-					loadFileBlob( fileBlob, audioEl );
-					audioEl.load();
-				});
+				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
+				.then( () => audioEl.load() );
 		}
 		else {
 			audioEl.src = song.dataset.file;
@@ -1768,8 +1775,15 @@ function loadPlaylist( path ) {
 	path = normalizeSlashes( path );
 
 	return new Promise( async ( resolve ) => {
-		let	n = 0,
+		let	promises = [],
 			songInfo;
+
+		const resolveAddedSongs = () => {
+			Promise.all( promises ).then( added => {
+				const total = added.reduce( ( sum, val ) => sum + val, 0 );
+				resolve( total );
+			});
+		}
 
 		if ( ! path ) {
 			resolve( -1 );
@@ -1797,17 +1811,17 @@ function loadPlaylist( path ) {
 							if ( ! isExternalURL( line ) && line[1] != ':' && line[0] != '/' )
 								line = path + line;
 
-							n += addSongToPlayQueue( { file: queryFile( line ) }, parseTrackName( songInfo ) );
+							promises.push( addSongToPlayQueue( { file: queryFile( line ) }, parseTrackName( songInfo ) ) );
 							songInfo = '';
 						}
 						else if ( line.startsWith('#EXTINF') )
 							songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
 					});
-					resolve( n );
+					resolveAddedSongs( promises, resolve );
 				})
 				.catch( e => {
 					consoleLog( e, true );
-					resolve( n );
+					resolve( 0 );
 				});
 		}
 		else { // try to load playlist from localStorage
@@ -1815,13 +1829,14 @@ function loadPlaylist( path ) {
 			if ( Array.isArray( list ) ) {
 				list.forEach( file => {
 					file = normalizeSlashes( file );
-					n += addSongToPlayQueue( { file }, parseTrackName( parsePath( file ).baseName ) );
+					promises.push( addSongToPlayQueue( { file }, parseTrackName( parsePath( file ).baseName ) ) );
 				});
+				resolveAddedSongs( promises, resolve );
 			}
-			else
+			else {
 				consoleLog( `Unrecognized playlist file: ${path}`, true );
-
-			resolve( n );
+				resolve( 0 );
+			}
 		}
 	});
 }
@@ -2087,26 +2102,37 @@ async function loadSavedPlaylists( keyName ) {
 /**
  * Load a song into the currently active audio element
  */
-function loadSong( n ) {
-	const audioEl = audioElement[ currAudio ];
-
-	if ( playlist.children[ n ] ) {
-		playlistPos = n;
-		const song = playlist.children[ playlistPos ];
-
-		if ( song.handle )
-			song.handle.getFile().then( fileBlob => loadFileBlob( fileBlob, audioEl ) );
-		else {
-			audioEl.src = song.dataset.file;
-			addMetadata( song, audioEl );
+function loadSong( n, playIt ) {
+	return new Promise( resolve => {
+		const audioEl = audioElement[ currAudio ];
+		const finish = () => {
+			updatePlaylistUI();
+			loadNextSong();
+			resolve( true );
 		}
 
-		updatePlaylistUI();
-		loadNextSong();
-		return true;
-	}
-	else
-		return false;
+		if ( playlist.children[ n ] ) {
+			playlistPos = n;
+			const song = playlist.children[ playlistPos ];
+
+			if ( song.handle ) {
+				song.handle.getFile()
+					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
+					.then( () => finish() );
+			}
+			else {
+				audioEl.onload = () => {
+					if ( playIt )
+						audioEl.play();
+					finish();
+				};
+				audioEl.src = song.dataset.file;
+				addMetadata( song, audioEl );
+			}
+		}
+		else
+			resolve( false );
+	});
 }
 
 /**
@@ -2179,9 +2205,7 @@ function playNextSong( play ) {
 
 	if ( play ) {
 		audioElement[ currAudio ].play()
-		.then( () => {
-			loadNextSong();
-		})
+		.then( () => loadNextSong() )
 		.catch( err => {
 			if ( err.code != 20 ) {
 				consoleLog( err, true );
@@ -2242,8 +2266,7 @@ function playPreviousSong() {
  * Play a song from the play queue
  */
 function playSong( n ) {
-	if ( loadSong( n ) )
-		playPause( true );
+	loadSong( n, true );
 }
 
 /**
