@@ -1084,12 +1084,12 @@ function changeVolume( incr ) {
  * Clear audio element
  */
 function clearAudioElement( n = currAudio ) {
-	const elAudio   = audioElement[ n ],
-		  trackData = elAudio.dataset;
+	const audioEl   = audioElement[ n ],
+		  trackData = audioEl.dataset;
 
-	elAudio.removeAttribute('src');
+	loadAudioSource( audioEl, null ); // remove .src attribute
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
-	elAudio.load();
+	audioEl.load();
 
 	if ( n == currAudio )
 		setCurrentCover(); // clear coverImage and background image if needed
@@ -1678,6 +1678,24 @@ function keyboardControls( event ) {
 }
 
 /**
+ * Sets (or removes) the `src` attribute of a audio element and
+ * releases any data blob (File System API) previously in use by it
+ *
+ * @param {object} audio element
+ * @param {string} URL - if `null` completely removes the `src` attribute
+ */
+function loadAudioSource( audioEl, newSource ) {
+	const oldSource = audioEl.src || '';
+	if ( oldSource.startsWith('blob:') )
+		URL.revokeObjectURL( oldSource );
+
+	if ( ! newSource )
+		audioEl.removeAttribute('src');
+	else
+		audioEl.src = newSource;
+}
+
+/**
  * Load a file blob into an audio element
  *
  * @param {object} audio element
@@ -1685,7 +1703,7 @@ function keyboardControls( event ) {
  */
 function loadFileBlob( fileBlob, audioEl, playIt ) {
 	return new Promise( resolve => {
-		audioEl.src = URL.createObjectURL( fileBlob );
+		loadAudioSource( audioEl, URL.createObjectURL( fileBlob ) );
 		audioEl.onloadeddata = () => {
 			if ( playIt )
 				audioEl.play();
@@ -1758,7 +1776,7 @@ function loadNextSong() {
 				.then( () => audioEl.load() );
 		}
 		else {
-			audioEl.src = song.dataset.file;
+			loadAudioSource( audioEl, song.dataset.file );
 			audioEl.load();
 			addMetadata( song, audioEl );
 		}
@@ -2121,12 +2139,12 @@ function loadSong( n, playIt ) {
 					.then( () => finish() );
 			}
 			else {
-				audioEl.onload = () => {
+				loadAudioSource( audioEl, song.dataset.file );
+				audioEl.onloadeddata = () => {
 					if ( playIt )
 						audioEl.play();
 					finish();
 				};
-				audioEl.src = song.dataset.file;
 				addMetadata( song, audioEl );
 			}
 		}
