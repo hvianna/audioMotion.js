@@ -6,24 +6,28 @@
  * Copyright (C) 2019-2023 Henrique Vianna <hvianna@gmail.com>
  */
 
-const defaultRoot   = '/music',
-	  isElectron    = 'electron' in window,
-	  isWindows     = isElectron && /Windows/.test( navigator.userAgent ),
-	  openFolderMsg = 'Click to open a folder';
+const defaultRoot           = '/music',
+	  isElectron            = 'electron' in window,
+	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
+	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
+	  openFolderMsg         = 'Click to open a new folder',
+	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
 
-const MODE_NODE  = 1,  // Electron app or custom node.js file server
-	  MODE_WEB   = 0,  // standard web server with /music URL mapping
-	  MODE_LOCAL = -1; // local via File System API
+const MODE_NODE = 1,  // Electron app or custom node.js file server
+	  MODE_WEB  = 0,  // standard web server
+	  MODE_FILE = -1; // local access via file://
 
-let mounts = [],
-	currentPath = [], // array of { dir: <string>, scrollTop: <number> }
-	currentDirHandle, // for File System API
-	nodeServer = false,
+let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>, handle: <FileSystemHandle> }
+	currentDirHandle,          // for File System API accesses
+	dblClickCallback,
+	enterDirCallback,
+	mounts            = [],
+	nodeServer        = false, // using our custom server? (node server or Electron app)
 	ui_path,
 	ui_files,
-	enterDirCallback,
-	dblClickCallback,
-	serverMode;
+	serverMode,
+	useFileSystem     = false, // FileSystem API will be used on file:// mode or when /music directory is not available on the server
+	useServerMedia    = false;
 
 /**
  * Updates the file explorer user interface
@@ -47,6 +51,9 @@ function updateUI( content, scrollTop ) {
 
 		ui_files.append( li );
 	}
+
+	if ( mounts.length == 0 )
+		ui_path.innerHTML = noFileServerMsg;
 
 	// breadcrumbs
 	currentPath.forEach( ( { dir }, index ) => {
@@ -212,7 +219,7 @@ export function getFolderContents( selector = 'li' ) {
 
 	ui_files.querySelectorAll( selector ).forEach( entry => {
 		if ( ['file', 'list'].includes( entry.dataset.type ) )
-			contents.push( { file: makePath( entry.dataset.path ), type: entry.dataset.type } );
+			contents.push( { file: makePath( entry.dataset.path ), handle: entry.handle, type: entry.dataset.type } );
 	});
 	return contents;
 }
@@ -284,7 +291,7 @@ export function parseWebDirectory( content ) {
 		return arr.find( el => ( el.name || el ).match( regexp ) );
 	}
 
-	if ( serverMode == MODE_LOCAL ) {
+	if ( useFileSystem ) {
 		for ( const [ name, handle ] of content ) {
 			if ( handle instanceof FileSystemDirectoryHandle )
 				dirs.push( { name, handle } );
@@ -394,7 +401,7 @@ export function create( container, options = {} ) {
 				enterDir( item.handle || item.dataset.path );
 			else if ( item.dataset.type == 'mount' ) {
 				currentPath = [];
-				if ( serverMode == MODE_LOCAL ) {
+				if ( useFileSystem ) {
 					currentDirHandle = await window.showDirectoryPicker({ startIn: 'music' });
 					enterDir( currentDirHandle );
 				}
@@ -429,32 +436,47 @@ export function create( container, options = {} ) {
 					nodeServer = true;
 					serverMode = MODE_NODE;
 				}
-				else { // no response for our custom query, so it's probably running on a standard web server
+				else {
+					// no response for our custom query, so it's probably running on a standard web server
 					serverMode = MODE_WEB;
 				}
+
 				if ( serverMode == MODE_NODE && isElectron ) {
 					const response = await fetch( '/getMounts' );
 					mounts = await response.json();
 					setPath( await getHomePath() ); // on Electron start at user's home by default
 				}
 				else {
+					// web or custom server
 					mounts = [ options.rootPath || defaultRoot ];
-					if ( await enterDir( mounts[0] ) === false ) {
-						mounts = [ openFolderMsg ];
+					if ( await enterDir( mounts[0] ) )
+						useServerMedia = true;
+					else {
+						// no access to `/music` directory; use File System API if supported
 						currentPath = [];
-						serverMode = MODE_LOCAL;
+						if ( supportsFileSystemAPI ) {
+							mounts = [ openFolderMsg ];
+							useFileSystem = true;
+						}
+						else
+							mounts = [];
 						updateUI();
 					}
 				}
-				resolve([ serverMode, ui_files, serverMode ? content : 'Standard web server' ]);
+				resolve( { serverMode, useFileSystem, useServerMedia, filelist: ui_files, serverSignature: serverMode == MODE_WEB ? 'Standard web server' : content } );
 			})
 			.catch( err => {
+				// if the fetch fails, it's probably running in file:// mode
 				clearTimeout( startUpTimer );
-				mounts = [ openFolderMsg ];
-				serverMode = MODE_LOCAL;
-//				ui_path.innerHTML = 'No file server found.';
+				serverMode = MODE_FILE;
+				if ( supportsFileSystemAPI ) {
+					mounts = [ openFolderMsg ];
+					useFileSystem = true;
+				}
+				else
+					mounts = [];
 				updateUI();
-				resolve([ serverMode, ui_files ]);
+				resolve( { serverMode, useFileSystem, filelist: ui_files } );
 			});
 	});
 

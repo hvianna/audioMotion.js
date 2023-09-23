@@ -138,8 +138,8 @@ const RND_ALPHA       = 'alpha',
 	  RND_SPLIT       = 'split';
 
 // Server modes
-const SERVER_LOCAL  = -1, // local (file://) or web server with no URL mapping for /music
-	  SERVER_CUSTOM = 1,  // custom server (node or Electron)
+const SERVER_CUSTOM = 1,  // custom server (node or Electron)
+	  SERVER_FILE   = -1, // local access via file://
 	  SERVER_WEB    = 0;  // standard web server
 
 // Frequency scales
@@ -686,6 +686,8 @@ let audioElement = [],
 	randomModeTimer,
 	serverMode,
 	skipping = false,
+	useFileSystem,
+	useServerMedia,
 	userPresets,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
@@ -3254,7 +3256,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSaveDir :
-				if ( elSaveDir.checked && serverMode != SERVER_LOCAL )
+				if ( elSaveDir.checked && serverMode != SERVER_FILE && ! useFileSystem )
 					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
 				else
 					removeFromStorage( KEY_LAST_DIR );
@@ -3553,9 +3555,22 @@ function setUIEventListeners() {
 	// clicks on canvas toggle info display on/off
 	elOSD.addEventListener( 'click', () => toggleInfo() );
 
-	// local file upload
+	// add selected / all files buttons
+	const btnAddSelected = $('#btn_add_selected'),
+		  btnAddFolder   = $('#btn_add_folder');
+
+	if ( isElectron || useServerMedia || useFileSystem ) {
+		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
+		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
+	}
+	else {
+		btnAddSelected.style.display = 'none';
+		btnAddFolder.style.display = 'none';
+	}
+
+	// local file upload - disabled on Electron app or when using the File System API
 	const uploadBtn = $('#local_file');
-	if ( isElectron )
+	if ( isElectron || useFileSystem )
 		uploadBtn.parentElement.style.display = 'none';
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
@@ -3565,7 +3580,7 @@ function setUIEventListeners() {
 		notie.input({
 			text: 'Load audio file or stream from URL',
 			submitText: 'Load',
-			submitCallback: url => { if ( url.trim() ) addToPlayQueue( url, true ) }
+			submitCallback: url => { if ( url.trim() ) addToPlayQueue( { file: url }, true ) }
 		});
 	});
 
@@ -4244,9 +4259,6 @@ function updateRangeValue( el ) {
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
 	setRangeAtts( elSpin, 0, 3, 1 );
 
-	// Set UI event listeners
-	setUIEventListeners();
-
 	// Clear canvas messages
 	setCanvasMsg();
 
@@ -4272,26 +4284,25 @@ function updateRangeValue( el ) {
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			},
 			onEnterDir: path => {
-				if ( elSaveDir.checked && initDone && serverMode != SERVER_LOCAL ) // avoid saving the path during file explorer initialization
+				if ( elSaveDir.checked && initDone && ! useFileSystem ) // avoid saving the path during initialization or when using the File System API
 					saveToStorage( KEY_LAST_DIR, path );
 			}
 		}
-	).then( ([ status, filelist, serversignature ]) => {
-		const btnAddSelected = $('#btn_add_selected'),
-			  btnAddFolder   = $('#btn_add_folder');
+	).then( status => {
+		// set global variables
+		serverMode     = status.serverMode;
+		useFileSystem  = status.useFileSystem;
+		useServerMedia = status.useServerMedia;
 
-		serverMode = status;
+		const { filelist, serverSignature } = status;
 
-		if ( status == -1 ) {
-			const hasSupport = window.showDirectoryPicker;
-			consoleLog( `No server found${ hasSupport ? '. Using File System API' : ' and no browser support for File System API. File explorer will not be available' }.`, ! hasSupport );
-			if ( ! hasSupport ) {
-				btnAddSelected.disabled = true;
-				btnAddFolder.disabled = true;
-			}
-		}
-		else {
-			consoleLog( `${ serversignature } detected on port ${ location.port }` );
+		if ( serverMode != SERVER_FILE )
+			consoleLog( `${ serverSignature } detected on port ${ location.port }` );
+		if ( ! useServerMedia )
+			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music/ folder on server' }${ useFileSystem ? '. Using local device via File System API.' : ' and no browser support for File System API. File explorer will not be available.' }`, ! useFileSystem );
+
+		// initialize drag-and-drop in the file explorer
+		if ( isElectron || useFileSystem || useServerMedia ) {
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
@@ -4308,16 +4319,16 @@ function updateRangeValue( el ) {
 					if ( evt.to.id == 'playlist') {
 						let items = evt.items.length ? evt.items : [ evt.item ];
 						items.forEach( item => {
-							addToPlayQueue( fileExplorer.makePath( item.dataset.path ) );
+							addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle } );
 							item.remove();
 						});
 					}
 				}
 			});
-
-			btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
-			btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 		}
+
+		// Set UI event listeners
+		setUIEventListeners();
 	});
 
 	// Add events listeners for keyboard controls
