@@ -45,6 +45,7 @@ import './styles.css';
 
 const isElectron  = 'electron' in window,
 	  isWindows   = isElectron && /Windows/.test( navigator.userAgent ),
+	  supportsFileSystemAPI = !! window.showDirectoryPicker,
 	  ROUTE_FILE  = '/getFile/',   // server route to read files anywhere (Electron only)
 	  ROUTE_COVER = '/getCover/',  // server route to get a folder's cover image (Electron and legacy node server)
 	  ROUTE_SAVE  = '/savePlist/', // server route to save a file to the filesystem (Electron only)
@@ -165,6 +166,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_DISABLED_MODES = 'disabled-modes',
 	  KEY_DISABLED_PROPS = 'disabled-properties',
 	  KEY_DISPLAY_OPTS   = 'display-options',
+	  KEY_FORCE_FS_API   = 'force-filesystem',
 	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
@@ -687,8 +689,8 @@ let audioElement = [],
 	randomModeTimer,
 	serverMode,
 	skipping = false,
-	useFileSystem,
-	useServerMedia,
+	hasServerMedia,				// music directory found on web server
+	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
@@ -3263,7 +3265,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSaveDir :
-				if ( elSaveDir.checked && serverMode != SERVER_FILE && ! useFileSystem )
+				if ( elSaveDir.checked && serverMode != SERVER_FILE && ! useFileSystemAPI )
 					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
 				else
 					removeFromStorage( KEY_LAST_DIR );
@@ -3562,11 +3564,24 @@ function setUIEventListeners() {
 	// clicks on canvas toggle info display on/off
 	elOSD.addEventListener( 'click', () => toggleInfo() );
 
+	// use server/local music button
+	const btnToggleFS = $('#btn_toggle_filesystem');
+
+	if ( ! hasServerMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
+		btnToggleFS.style.display = 'none';
+	else {
+		btnToggleFS.innerText = 'Use ' + ( useFileSystemAPI ? 'server' : 'local' ) + ' music';
+		btnToggleFS.addEventListener( 'click', () => {
+			saveToStorage( KEY_FORCE_FS_API, ! useFileSystemAPI );
+			location.href = URL_ORIGIN; // reload app (removes query string parameters)
+		});
+	}
+
 	// add selected / all files buttons
 	const btnAddSelected = $('#btn_add_selected'),
 		  btnAddFolder   = $('#btn_add_folder');
 
-	if ( isElectron || useServerMedia || useFileSystem ) {
+	if ( isElectron || hasServerMedia || useFileSystemAPI ) {
 		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
 		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
 	}
@@ -3577,7 +3592,7 @@ function setUIEventListeners() {
 
 	// local file upload - disabled on Electron app or when using the File System API
 	const uploadBtn = $('#local_file');
-	if ( isElectron || useFileSystem )
+	if ( isElectron || useFileSystemAPI )
 		uploadBtn.parentElement.style.display = 'none';
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
@@ -4282,6 +4297,18 @@ function updateRangeValue( el ) {
 	// Load saved playlists
 	loadSavedPlaylists();
 
+	// Check if File System API access is requested
+	const urlParams = new URL( document.location ).searchParams,
+		  userMode  = urlParams.get('mode');
+
+	// the URL parameter `mode` can be used to override the saved/default mode
+	let forceFileSystemAPI = userMode == 'local' ? true : ( userMode == 'server' ? false : await loadFromStorage( KEY_FORCE_FS_API ) );
+
+	if ( forceFileSystemAPI === null )
+		forceFileSystemAPI = true;
+
+	saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI );
+
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
 		$('#file_explorer'),
@@ -4291,25 +4318,30 @@ function updateRangeValue( el ) {
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			},
 			onEnterDir: path => {
-				if ( elSaveDir.checked && initDone && ! useFileSystem ) // avoid saving the path during initialization or when using the File System API
+				if ( elSaveDir.checked && initDone && ! useFileSystemAPI ) // avoid saving the path during initialization or when using the File System API
 					saveToStorage( KEY_LAST_DIR, path );
-			}
+			},
+			forceFileSystemAPI
 		}
 	).then( status => {
 		// set global variables
-		serverMode     = status.serverMode;
-		useFileSystem  = status.useFileSystem;
-		useServerMedia = status.useServerMedia;
+		serverMode       = status.serverMode;
+		hasServerMedia   = status.hasServerMedia;
+		useFileSystemAPI = status.useFileSystemAPI;
 
 		const { filelist, serverSignature } = status;
 
 		if ( serverMode != SERVER_FILE )
 			consoleLog( `${ serverSignature } detected at ${ URL_ORIGIN }` );
-		if ( ! useServerMedia )
-			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music/ folder on server' }${ useFileSystem ? '. Using local device via File System API.' : ' and no browser support for File System API. File explorer will not be available.' }`, ! useFileSystem );
+		if ( ! hasServerMedia )
+			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music/ folder on server' }`, true );
+		if ( useFileSystemAPI )
+			consoleLog( 'Using local device via File System Access API.' );
+		if ( ! supportsFileSystemAPI )
+			consoleLog( 'No browser support for File System Access API. Cannot load music from local device.', true );
 
 		// initialize drag-and-drop in the file explorer
-		if ( isElectron || useFileSystem || useServerMedia ) {
+		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
@@ -4353,7 +4385,8 @@ function updateRangeValue( el ) {
 	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
-		fileExplorer.setPath( lastDir );
+		if ( ! useFileSystemAPI )
+			fileExplorer.setPath( lastDir );
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;

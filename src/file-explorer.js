@@ -27,8 +27,8 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 	ui_path,
 	ui_files,
 	serverMode,
-	useFileSystem     = false, // FileSystem API will be used on file:// mode or when /music directory is not available on the server
-	useServerMedia    = false;
+	hasServerMedia    = false, // music directory found on server
+	useFileSystemAPI  = false; // use FileSystem API (default on file:// mode or no media found on server)
 
 /**
  * Updates the file explorer user interface
@@ -292,7 +292,7 @@ export function parseWebDirectory( content ) {
 		return arr.find( el => ( el.name || el ).match( regexp ) );
 	}
 
-	if ( useFileSystem ) {
+	if ( useFileSystemAPI ) {
 		for ( const [ name, handle ] of content ) {
 			if ( handle instanceof FileSystemDirectoryHandle )
 				dirs.push( { name, handle } );
@@ -402,7 +402,7 @@ export function create( container, options = {} ) {
 				enterDir( item.handle || item.dataset.path );
 			else if ( item.dataset.type == 'mount' ) {
 				currentPath = [];
-				if ( useFileSystem ) {
+				if ( useFileSystemAPI ) {
 					currentDirHandle = await window.showDirectoryPicker({ startIn: 'music' });
 					enterDir( currentDirHandle );
 				}
@@ -450,21 +450,21 @@ export function create( container, options = {} ) {
 				else {
 					// web or custom server
 					mounts = [ options.rootPath || defaultRoot ];
-					if ( await enterDir( mounts[0] ) )
-						useServerMedia = true;
-					else {
-						// no access to `/music` directory; use File System API if supported
+					hasServerMedia = await enterDir( mounts[0] );
+
+					if ( ( options.forceFileSystemAPI && supportsFileSystemAPI ) || ! hasServerMedia ) {
+						// local file system requested or no music directory on server - use File System API if supported
 						currentPath = [];
 						if ( supportsFileSystemAPI ) {
 							mounts = [ openFolderMsg ];
-							useFileSystem = true;
+							useFileSystemAPI = true;
 						}
 						else
 							mounts = [];
 						updateUI();
 					}
 				}
-				resolve( { serverMode, useFileSystem, useServerMedia, filelist: ui_files, serverSignature: serverMode == MODE_WEB ? 'Standard web server' : content } );
+				resolve( { serverMode, useFileSystemAPI, hasServerMedia, filelist: ui_files, serverSignature: serverMode == MODE_WEB ? 'Standard web server' : content } );
 			})
 			.catch( err => {
 				// if the fetch fails, it's probably running in file:// mode
@@ -472,12 +472,12 @@ export function create( container, options = {} ) {
 				serverMode = MODE_FILE;
 				if ( supportsFileSystemAPI ) {
 					mounts = [ openFolderMsg ];
-					useFileSystem = true;
+					useFileSystemAPI = true;
 				}
 				else
 					mounts = [];
 				updateUI();
-				resolve( { serverMode, useFileSystem, filelist: ui_files } );
+				resolve( { serverMode, useFileSystemAPI, filelist: ui_files } );
 			});
 	});
 
