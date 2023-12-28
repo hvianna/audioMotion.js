@@ -48,6 +48,7 @@ const isElectron  = 'electron' in window,
 	  ROUTE_FILE  = '/getFile/',   // server route to read files anywhere (Electron only)
 	  ROUTE_COVER = '/getCover/',  // server route to get a folder's cover image (Electron and legacy node server)
 	  ROUTE_SAVE  = '/savePlist/', // server route to save a file to the filesystem (Electron only)
+	  URL_ORIGIN  = location.origin + location.pathname,
 	  VERSION     = packageJson.version;
 
 const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
@@ -818,6 +819,9 @@ const setPreset = ( key, options ) => {
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
+// check if a given url/path is a blob
+const isBlob = src => src.startsWith('blob:');
+
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
 
@@ -835,6 +839,9 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => el.dataset.active == '1';
+
+// add the URL origin to file paths in standard web server mode
+const makeURL = src => ( serverMode == SERVER_WEB && ! isBlob( src ) && ! isExternalURL( src ) ? URL_ORIGIN : '' ) + src;
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => path.replace( /\\/g, '/' );
@@ -1448,12 +1455,12 @@ function getFolderCover( uri ) {
 	return new Promise( resolve => {
 		const path = parsePath( uri ).path; // extract path (no filename)
 
-		if ( serverMode == -1 || isExternalURL( uri ) )
+		if ( serverMode == SERVER_FILE || isExternalURL( uri ) )
 			resolve(''); // nothing to do when in serverless mode or external file
 		else if ( folderImages[ path ] !== undefined )
 			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
 		else {
-			const urlToFetch = ( serverMode == 1 ) ? ROUTE_COVER + encodeSlashes( path ) : path;
+			const urlToFetch = ( serverMode == SERVER_CUSTOM ) ? ROUTE_COVER + encodeSlashes( path ) : path;
 
 			fetch( urlToFetch )
 				.then( response => {
@@ -1462,7 +1469,7 @@ function getFolderCover( uri ) {
 				.then( content => {
 					let imageUrl = '';
 					if ( content ) {
-						if ( serverMode == 1 )
+						if ( serverMode == SERVER_CUSTOM )
 							imageUrl = content;
 						else {
 							const dirContents = fileExplorer.parseWebDirectory( content );
@@ -1688,13 +1695,13 @@ function keyboardControls( event ) {
  */
 function loadAudioSource( audioEl, newSource ) {
 	const oldSource = audioEl.src || '';
-	if ( oldSource.startsWith('blob:') )
+	if ( isBlob( oldSource ) )
 		URL.revokeObjectURL( oldSource );
 
 	if ( ! newSource )
 		audioEl.removeAttribute('src');
 	else
-		audioEl.src = newSource;
+		audioEl.src = makeURL( newSource );
 }
 
 /**
@@ -1809,7 +1816,7 @@ function loadPlaylist( path ) {
 			resolve( -1 );
 		}
 		else if ( ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
-			fetch( path )
+			fetch( makeURL( path ) )
 				.then( response => {
 					if ( response.status == 200 )
 						return response.text();
@@ -2662,7 +2669,7 @@ function retrieveMetadata() {
 		if ( queueItem.handle )
 			return;
 
-		const uri = queueItem.dataset.file;
+		const uri = makeURL( queueItem.dataset.file );
 
 		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
 			.then( metadata => {
@@ -2690,7 +2697,7 @@ function retrieveMetadata() {
  */
 function revokeBlobURL( item ) {
 	const cover = item.dataset.cover;
-	if ( cover.startsWith('blob:') )
+	if ( isBlob( cover ) )
 		URL.revokeObjectURL( cover );
 }
 
@@ -4297,7 +4304,7 @@ function updateRangeValue( el ) {
 		const { filelist, serverSignature } = status;
 
 		if ( serverMode != SERVER_FILE )
-			consoleLog( `${ serverSignature } detected on port ${ location.port }` );
+			consoleLog( `${ serverSignature } detected at ${ URL_ORIGIN }` );
 		if ( ! useServerMedia )
 			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music/ folder on server' }${ useFileSystem ? '. Using local device via File System API.' : ' and no browser support for File System API. File explorer will not be available.' }`, ! useFileSystem );
 

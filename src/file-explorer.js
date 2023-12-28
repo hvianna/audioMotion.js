@@ -6,7 +6,8 @@
  * Copyright (C) 2019-2023 Henrique Vianna <hvianna@gmail.com>
  */
 
-const defaultRoot           = '/music',
+const URL_ORIGIN            = location.origin + location.pathname,
+      defaultRoot           = '/music',
 	  isElectron            = 'electron' in window,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
@@ -138,7 +139,7 @@ function enterDir( target, scrollTop ) {
 			parseContent( content );
 		}
 		else {
-			fetch( url )
+			fetch( URL_ORIGIN + url )
 				.then( response => {
 					if ( response.status == 200 ) {
 						if ( nodeServer )
@@ -231,7 +232,7 @@ export function getFolderContents( selector = 'li' ) {
  */
 export async function getHomePath() {
 
-	const response = await fetch( '/getHomeDir' ),
+	const response = await fetch( URL_ORIGIN + '/getHomeDir' ),
 		  homeDir  = await response.text();
 
 	let homePath = [];
@@ -306,7 +307,7 @@ export function parseWebDirectory( content ) {
 	else {
 		for ( const { uri, file } of parseWebIndex( content ) ) {
 			if ( uri.substring( uri.length - 1 ) == '/' ) {
-				if ( ! file.match( /parent directory/i ) ) {
+				if ( ! file.match( /(parent directory|\.\.)/i ) ) {
 					if ( file.substring( file.length - 1 ) == '/' )
 						dirs.push( file.substring( 0, file.length - 1 ) );
 					else
@@ -426,7 +427,7 @@ export function create( container, options = {} ) {
 		enterDirCallback = options.onEnterDir;
 
 	return new Promise( resolve => {
-		fetch( '/serverInfo' )
+		fetch( URL_ORIGIN + '/serverInfo' )
 			.then( response => {
 				return response.text();
 			})
@@ -442,7 +443,7 @@ export function create( container, options = {} ) {
 				}
 
 				if ( serverMode == MODE_NODE && isElectron ) {
-					const response = await fetch( '/getMounts' );
+					const response = await fetch( URL_ORIGIN + '/getMounts' );
 					mounts = await response.json();
 					setPath( await getHomePath() ); // on Electron start at user's home by default
 				}
