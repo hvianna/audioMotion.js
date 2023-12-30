@@ -41,7 +41,7 @@ function updateUI( content, scrollTop ) {
 	ui_path.innerHTML = '';
 	ui_files.innerHTML = '';
 
-	const addListItem =( item, type ) => {
+	const addListItem = ( item, type ) => {
 		const li = document.createElement('li'),
 			  fileName = item.name || item;
 
@@ -52,6 +52,7 @@ function updateUI( content, scrollTop ) {
 
 		ui_files.append( li );
 	}
+	const setFileExplorerBgImage = src => ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( src ? `, url('${ src }')` : '' );
 
 	if ( mounts.length == 0 )
 		ui_path.innerHTML = noFileServerMsg;
@@ -72,13 +73,23 @@ function updateUI( content, scrollTop ) {
 
 	// current directory contents
 	if ( content ) {
-		if ( content.dirs )
-			content.dirs.forEach( dir => addListItem( dir, 'dir' ) );
+		const { cover, dirs, files } = content;
 
-		if ( content.files )
-			content.files.forEach( file => addListItem( file, 'file' ) );
+		if ( dirs )
+			dirs.forEach( dir => addListItem( dir, 'dir' ) );
 
-		ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${ makePath( content.cover ) }')` : '' );
+		if ( files )
+			files.forEach( file => addListItem( file, 'file' ) );
+
+		if ( useFileSystemAPI && cover ) {
+			cover.handle.getFile().then( fileBlob => {
+				const imgsrc = URL.createObjectURL( fileBlob );
+				setFileExplorerBgImage( imgsrc );
+//				URL.revokeObjectURL( imgsrc );
+			});
+		}
+		else
+			setFileExplorerBgImage( cover ? makePath( cover ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -326,6 +337,7 @@ export function parseDirectory( content ) {
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
+
 	const customSort = ( a, b ) => {
 		const collator = new Intl.Collator(), // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
 			  isObject = typeof a == 'object';
