@@ -11,7 +11,7 @@ const URL_ORIGIN            = location.origin + location.pathname,
 	  isElectron            = 'electron' in window,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
-	  openFolderMsg         = 'Click to open a new folder',
+	  openFolderMsg         = 'Click to open a new root folder',
 	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
 
 const MODE_NODE = 1,  // Electron app or custom node.js file server
@@ -33,7 +33,7 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 /**
  * Updates the file explorer user interface
  *
- * @param {object} directory content returned by the node server or parseWebDirectory()
+ * @param {object} directory content returned by the node server or parseDirectory()
  * @param {number} scrollTop scroll position for the filelist container
  */
 function updateUI( content, scrollTop ) {
@@ -119,8 +119,8 @@ function enterDir( target, scrollTop ) {
 
 		const parseContent = content => {
 			if ( content !== false ) {
-				if ( ! nodeServer )
-					content = parseWebDirectory( content );
+				if ( ! nodeServer || useFileSystemAPI )
+					content = parseDirectory( content );
 				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
 				if ( enterDirCallback )
 					enterDirCallback( currentPath );
@@ -274,12 +274,12 @@ export function parseWebIndex( content ) {
 }
 
 /**
- * Parses file and directory names from a standard web server directory listing
+ * Parses filenames from standard web server or File System API directory listing
  *
  * @param {string}   content HTML body of a web server directory listing
  * @returns {object} folder/cover image, list of directories, list of files
  */
-export function parseWebDirectory( content ) {
+export function parseDirectory( content ) {
 
 	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
@@ -405,8 +405,13 @@ export function create( container, options = {} ) {
 			else if ( item.dataset.type == 'mount' ) {
 				currentPath = [];
 				if ( useFileSystemAPI ) {
-					currentDirHandle = await window.showDirectoryPicker({ startIn: 'music' });
-					enterDir( currentDirHandle );
+					try {
+						currentDirHandle = await window.showDirectoryPicker({ startIn: 'music' });
+						enterDir( currentDirHandle );
+					}
+					catch (e) {
+						// avoid console error if user cancels the directory picker window
+					}
 				}
 				else
 					enterDir( item.dataset.path );
@@ -454,7 +459,7 @@ export function create( container, options = {} ) {
 					mounts = [ options.rootPath || defaultRoot ];
 					hasServerMedia = await enterDir( mounts[0] );
 
-					if ( ( options.forceFileSystemAPI && supportsFileSystemAPI ) || ! hasServerMedia ) {
+					if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! hasServerMedia ) {
 						// local file system requested or no music directory on server - use File System API if supported
 						currentPath = [];
 						if ( supportsFileSystemAPI ) {

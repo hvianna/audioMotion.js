@@ -1471,7 +1471,7 @@ function getFolderCover( uri ) {
 						if ( serverMode == SERVER_CUSTOM )
 							imageUrl = content;
 						else {
-							const dirContents = fileExplorer.parseWebDirectory( content );
+							const dirContents = fileExplorer.parseDirectory( content );
 							if ( dirContents.cover )
 								imageUrl = dirContents.cover;
 						}
@@ -3587,9 +3587,9 @@ function setUIEventListeners() {
 		btnAddFolder.style.display = 'none';
 	}
 
-	// local file upload - disabled on Electron app or when using the File System API
+	// local file upload - disabled on Electron app or when the File System API is supported
 	const uploadBtn = $('#local_file');
-	if ( isElectron || useFileSystemAPI )
+	if ( isElectron || supportsFileSystemAPI )
 		uploadBtn.parentElement.style.display = 'none';
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
@@ -4294,17 +4294,14 @@ function updateRangeValue( el ) {
 	// Load saved playlists
 	loadSavedPlaylists();
 
-	// Check if File System API access is requested
+	// Check if `mode` URL parameter is used to request local or server filesystem
 	const urlParams = new URL( document.location ).searchParams,
 		  userMode  = urlParams.get('mode');
 
-	// the URL parameter `mode` can be used to override the saved/default mode
 	let forceFileSystemAPI = userMode == 'local' ? true : ( userMode == 'server' ? false : await loadFromStorage( KEY_FORCE_FS_API ) );
 
 	if ( forceFileSystemAPI === null )
-		forceFileSystemAPI = true;
-
-	saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI );
+		forceFileSystemAPI = true; // attempts to use the File System API by default
 
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
@@ -4331,11 +4328,14 @@ function updateRangeValue( el ) {
 		if ( serverMode != SERVER_FILE )
 			consoleLog( `${ serverSignature } detected at ${ URL_ORIGIN }` );
 		if ( ! hasServerMedia )
-			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music/ folder on server' }`, true );
+			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music directory on server' }`, true );
 		if ( useFileSystemAPI )
-			consoleLog( 'Using local device via File System Access API.' );
+			consoleLog( 'Accessing files from local device via File System Access API.' );
 		if ( ! supportsFileSystemAPI )
-			consoleLog( 'No browser support for File System Access API. Cannot load music from local device.', true );
+			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
+
+		if ( ! isElectron )
+			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
 
 		// initialize drag-and-drop in the file explorer
 		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
