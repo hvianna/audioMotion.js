@@ -828,7 +828,7 @@ const isBlob = src => src.startsWith('blob:');
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
 
 // check if a string is an external URL
-const isExternalURL = path => path.startsWith('http');
+const isExternalURL = path => path.startsWith('http') && ! path.startsWith( URL_ORIGIN );
 
 // check if an object is empty
 const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).length;
@@ -841,9 +841,6 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => el.dataset.active == '1';
-
-// add the URL origin to file paths in standard web server mode
-const makeURL = src => ( serverMode == SERVER_WEB && ! isBlob( src ) && ! isExternalURL( src ) ? URL_ORIGIN : '' ) + src;
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => path.replace( /\\/g, '/' );
@@ -1703,7 +1700,7 @@ function loadAudioSource( audioEl, newSource ) {
 	if ( ! newSource )
 		audioEl.removeAttribute('src');
 	else
-		audioEl.src = makeURL( newSource );
+		audioEl.src = newSource;
 }
 
 /**
@@ -1818,7 +1815,7 @@ function loadPlaylist( path ) {
 			resolve( -1 );
 		}
 		else if ( ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
-			fetch( makeURL( path ) )
+			fetch( path )
 				.then( response => {
 					if ( response.status == 200 )
 						return response.text();
@@ -2671,7 +2668,7 @@ function retrieveMetadata() {
 		if ( queueItem.handle )
 			return;
 
-		const uri = makeURL( queueItem.dataset.file );
+		const uri = queueItem.dataset.file;
 
 		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
 			.then( metadata => {

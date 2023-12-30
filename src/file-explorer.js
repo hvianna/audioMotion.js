@@ -78,7 +78,7 @@ function updateUI( content, scrollTop ) {
 		if ( content.files )
 			content.files.forEach( file => addListItem( file, 'file' ) );
 
-		ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${makePath( content.cover )}')` : '' );
+		ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( content.cover ? `, url('${ makePath( content.cover ) }')` : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -139,7 +139,7 @@ function enterDir( target, scrollTop ) {
 			parseContent( content );
 		}
 		else {
-			fetch( URL_ORIGIN + url )
+			fetch( url )
 				.then( response => {
 					if ( response.status == 200 ) {
 						if ( nodeServer )
@@ -204,6 +204,8 @@ export function makePath( fileName, noPrefix ) {
 		if ( ! noPrefix )
 			fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath;
 	}
+	else if ( serverMode == MODE_WEB )
+		fullPath = URL_ORIGIN + fullPath;
 
 	return fullPath;
 }
@@ -232,7 +234,7 @@ export function getFolderContents( selector = 'li' ) {
  */
 export async function getHomePath() {
 
-	const response = await fetch( URL_ORIGIN + '/getHomeDir' ),
+	const response = await fetch( '/getHomeDir' ),
 		  homeDir  = await response.text();
 
 	let homePath = [];
@@ -427,7 +429,7 @@ export function create( container, options = {} ) {
 		enterDirCallback = options.onEnterDir;
 
 	return new Promise( resolve => {
-		fetch( URL_ORIGIN + '/serverInfo' )
+		fetch( '/serverInfo' )
 			.then( response => {
 				return response.text();
 			})
@@ -443,7 +445,7 @@ export function create( container, options = {} ) {
 				}
 
 				if ( serverMode == MODE_NODE && isElectron ) {
-					const response = await fetch( URL_ORIGIN + '/getMounts' );
+					const response = await fetch( '/getMounts' );
 					mounts = await response.json();
 					setPath( await getHomePath() ); // on Electron start at user's home by default
 				}
