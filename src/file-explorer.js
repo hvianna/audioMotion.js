@@ -358,16 +358,20 @@ export function refresh() {
 /**
  * Set current path
  *
- * @param {array} path	array of { dir: <string>, scrollTop: <number> }
+ * @param {array} path	array of { dir: <string>, scrollTop: <number>, handle?: FileSystemDirectoryHandle }
+ * @param [{object}] handle	FileSystemDirectoryHandle
  * @returns {boolean}
  */
-export async function setPath( path ) {
+export async function setPath( path, handle ) {
 	if ( ! path )
 		return false;
 
 	const savedPath = [ ...currentPath ];
 
 	currentPath = path;
+
+	if ( handle )
+		currentDirHandle = handle;
 
 	const success = await enterDir();
 

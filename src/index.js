@@ -34,6 +34,7 @@ import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
+import { get, set, del } from 'idb-keyval';
 
 import Sortable, { MultiDrag } from 'sortablejs';
 Sortable.mount( new MultiDrag() );
@@ -890,6 +891,14 @@ const randomInt = ( n = 2 ) => Math.random() * n | 0;
 const removeServerEncoding = uri => {
 	const regexp = new RegExp( `^${ ROUTE_FILE }` );
 	return normalizeSlashes( decodeSlashes( uri.replace( regexp, '' ) ) );
+}
+
+// helper function to save a path to localStorage or IndexedDB
+const saveLastDir = path => {
+	if ( useFileSystemAPI )
+		set( KEY_LAST_DIR, path ); // IndexedDB
+	else if ( serverMode != SERVER_FILE )
+		saveToStorage( KEY_LAST_DIR, path );
 }
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
@@ -3262,10 +3271,12 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSaveDir :
-				if ( elSaveDir.checked && serverMode != SERVER_FILE && ! useFileSystemAPI )
-					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
-				else
+				if ( elSaveDir.checked )
+					saveLastDir( fileExplorer.getPath() );
+				else {
+					del( KEY_LAST_DIR ); // IndexedDB
 					removeFromStorage( KEY_LAST_DIR );
+				}
 
 			case elScaleX:
 				audioMotion.showScaleX = isSwitchOn( elScaleX );
@@ -4312,8 +4323,8 @@ function updateRangeValue( el ) {
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			},
 			onEnterDir: path => {
-				if ( elSaveDir.checked && initDone && ! useFileSystemAPI ) // avoid saving the path during initialization or when using the File System API
-					saveToStorage( KEY_LAST_DIR, path );
+				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
+					saveLastDir( path );
 			},
 			forceFileSystemAPI
 		}
@@ -4376,14 +4387,17 @@ function updateRangeValue( el ) {
 		positions: { alert: 'bottom' }
 	});
 
-	const lastDir = await loadFromStorage( KEY_LAST_DIR );
-
 	// Wait for all async operations to finish before loading the last used settings
-	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
+	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( async () => {
+		const lastDir    = useFileSystemAPI ? await get( KEY_LAST_DIR ) : await loadFromStorage( KEY_LAST_DIR ),
+			  rootHandle = ! Array.isArray( lastDir ) || ! lastDir[0] ? null : lastDir[0].handle;
+
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
-		if ( ! useFileSystemAPI )
-			fileExplorer.setPath( lastDir );
+
+		if ( ! useFileSystemAPI || rootHandle && await rootHandle.requestPermission() == 'granted' )
+			fileExplorer.setPath( lastDir, rootHandle ? lastDir.pop().handle : null );
+
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
