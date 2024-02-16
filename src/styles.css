@@ -841,15 +841,16 @@ kbd.wide {
 
 .breadcrumb {
 	align-self: end;
-	margin-bottom: 5px;
+	line-height: 1.2;
+	margin-bottom: 4px;
 	padding: 0 10px;
 }
-.breadcrumb::before {
+.breadcrumb:not(:empty)::before {
 	content: '\f117';
+	float: left;
 	font-family: audioMotion;
 	font-size: 16px;
 	margin-right: .25em;
-	vertical-align: middle;
 }
 .breadcrumb li {
 	cursor: pointer;
@@ -883,6 +884,13 @@ kbd.wide {
 .filelist li.current {
 	color: #06c;
 }
+.filelist li.full-panel {
+	align-items: center;
+	display: flex;
+	font-size: 2em;
+	height: 100%;
+	justify-content: center;
+}
 .filelist li.selected {
 	outline: 1px dashed #c5e2ff;
 	background: #c5e2ff;
@@ -896,7 +904,8 @@ kbd.wide {
 	font-family: audioMotion;
 	margin-right: 10px;
 }
-.filelist [data-type="dir"]::before {
+.filelist [data-type="dir"]::before,
+.filelist [data-type="request"]::before {
 	content: '\f116';
 }
 .filelist [data-path=".."]::before {

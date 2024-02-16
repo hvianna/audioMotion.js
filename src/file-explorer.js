@@ -3,7 +3,7 @@
  * File explorer module
  *
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2023 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2024 Henrique Vianna <hvianna@gmail.com>
  */
 
 const URL_ORIGIN            = location.origin + location.pathname,
@@ -12,6 +12,7 @@ const URL_ORIGIN            = location.origin + location.pathname,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
 	  openFolderMsg         = 'Click to open a new root folder',
+	  openLastFolderMsg     = 'Click to open directory',
 	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
 
 const MODE_NODE = 1,  // Electron app or custom node.js file server
@@ -22,7 +23,9 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 	currentDirHandle,          // for File System API accesses
 	dblClickCallback,
 	enterDirCallback,
+	lastDir,				   // path to last used folder (File System API mode)
 	mounts            = [],
+	needsPermission   = false, // needs to request permission on File System API to open last directory?
 	nodeServer        = false, // using our custom server? (node server or Electron app)
 	ui_path,
 	ui_files,
@@ -40,6 +43,7 @@ function updateUI( content, scrollTop ) {
 
 	ui_path.innerHTML = '';
 	ui_files.innerHTML = '';
+	ui_files.style.backgroundImage = '';
 
 	const addListItem = ( item, type ) => {
 		const li = document.createElement('li'),
@@ -62,34 +66,39 @@ function updateUI( content, scrollTop ) {
 		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : dir == '/' ? '' : '/' } `;
 	});
 
-	// mounting points
-	mounts.forEach( mount => {
-		ui_files.innerHTML += `<li data-type="mount" data-path="${mount}">[ ${mount} ]</li>`;
-	});
+	if ( needsPermission ) {
+		ui_files.innerHTML += `<li data-type="request" class="full-panel">${ openLastFolderMsg }</li>`;
+	}
+	else {
+		// mounting points
+		mounts.forEach( mount => {
+			ui_files.innerHTML += `<li data-type="mount" ${ useFileSystemAPI && ! currentDirHandle ? 'class="full-panel"' : '' } data-path="${mount}">[ ${mount} ]</li>`;
+		});
 
-	// link to parent directory
-	if ( currentPath.length > 1 )
-		ui_files.innerHTML += '<li data-type="dir" data-path="..">[ parent folder ]</li>';
+		// link to parent directory
+		if ( currentPath.length > 1 )
+			ui_files.innerHTML += '<li data-type="dir" data-path="..">[ parent folder ]</li>';
 
-	// current directory contents
-	if ( content ) {
-		const { cover, dirs, files } = content;
+		// current directory contents
+		if ( content ) {
+			const { cover, dirs, files } = content;
 
-		if ( dirs )
-			dirs.forEach( dir => addListItem( dir, 'dir' ) );
+			if ( dirs )
+				dirs.forEach( dir => addListItem( dir, 'dir' ) );
 
-		if ( files )
-			files.forEach( file => addListItem( file, 'file' ) );
+			if ( files )
+				files.forEach( file => addListItem( file, 'file' ) );
 
-		if ( useFileSystemAPI && cover ) {
-			cover.handle.getFile().then( fileBlob => {
-				const imgsrc = URL.createObjectURL( fileBlob );
-				setFileExplorerBgImage( imgsrc );
-//				URL.revokeObjectURL( imgsrc );
-			});
+			if ( useFileSystemAPI && cover ) {
+				cover.handle.getFile().then( fileBlob => {
+					const imgsrc = URL.createObjectURL( fileBlob );
+					setFileExplorerBgImage( imgsrc );
+	//				URL.revokeObjectURL( imgsrc );
+				});
+			}
+			else
+				setFileExplorerBgImage( cover ? makePath( cover ) : '' );
 		}
-		else
-			setFileExplorerBgImage( cover ? makePath( cover ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -114,12 +123,13 @@ function enterDir( target, scrollTop ) {
 
 	if ( target ) {
 		if ( target == '..' ) {
-			prev = currentPath.pop();
-			if ( prev.handle )
-				handle = prev.handle;
+			prev = currentPath.pop(); // remove last directory from currentPath; `prev` is used to restore scrollTop
+			const parent = currentPath[ currentPath.length - 1 ];
+			if ( parent && parent.handle )
+				handle = parent.handle;
 		}
 		else
-			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle: currentDirHandle } );
+			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle } );
 	}
 
 	ui_files.innerHTML = '<li>Loading...</li>';
@@ -180,8 +190,9 @@ function resetPath( depth ) {
 		depth--;
 	}
 
-	if ( prev && prev.handle ) {
-		currentDirHandle = prev.handle;
+	const parent = currentPath[ currentPath.length - 1 ];
+	if ( parent && parent.handle ) {
+		currentDirHandle = parent.handle;
 		prev = null;
 	}
 
@@ -359,19 +370,19 @@ export function refresh() {
  * Set current path
  *
  * @param {array} path	array of { dir: <string>, scrollTop: <number>, handle?: FileSystemDirectoryHandle }
- * @param [{object}] handle	FileSystemDirectoryHandle
  * @returns {boolean}
  */
-export async function setPath( path, handle ) {
+export async function setPath( path ) {
 	if ( ! path )
 		return false;
 
-	const savedPath = [ ...currentPath ];
+	const savedPath = [ ...currentPath ],
+		  finalDir  = path[ path.length - 1 ];
 
 	currentPath = path;
 
-	if ( handle )
-		currentDirHandle = handle;
+	if ( finalDir && finalDir.handle )
+		currentDirHandle = finalDir.handle;
 
 	const success = await enterDir();
 
@@ -418,6 +429,12 @@ export function create( container, options = {} ) {
 		if ( item && item.nodeName == 'LI' ) {
 			if ( item.dataset.type == 'dir' )
 				enterDir( item.handle || item.dataset.path );
+			else if ( item.dataset.type == 'request' ) {
+				if ( await lastDir[0].handle.requestPermission() == 'granted' ) {
+					needsPermission = false;
+					setPath( lastDir );
+				}
+			}
 			else if ( item.dataset.type == 'mount' ) {
 				currentPath = [];
 				if ( useFileSystemAPI ) {
@@ -481,6 +498,9 @@ export function create( container, options = {} ) {
 						if ( supportsFileSystemAPI ) {
 							mounts = [ openFolderMsg ];
 							useFileSystemAPI = true;
+							lastDir = options.lastDir;
+							if ( Array.isArray( lastDir ) && lastDir[0] )
+								needsPermission = true;
 						}
 						else
 							mounts = [];

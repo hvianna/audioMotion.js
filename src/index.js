@@ -12,7 +12,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2023 Henrique Avila Vianna
+ * @copyright (c) 2018-2024 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -4326,7 +4326,8 @@ function updateRangeValue( el ) {
 				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
 					saveLastDir( path );
 			},
-			forceFileSystemAPI
+			forceFileSystemAPI,
+			lastDir: await get( KEY_LAST_DIR )
 		}
 	).then( status => {
 		// set global variables
@@ -4389,14 +4390,11 @@ function updateRangeValue( el ) {
 
 	// Wait for all async operations to finish before loading the last used settings
 	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( async () => {
-		const lastDir    = useFileSystemAPI ? await get( KEY_LAST_DIR ) : await loadFromStorage( KEY_LAST_DIR ),
-			  rootHandle = ! Array.isArray( lastDir ) || ! lastDir[0] ? null : lastDir[0].handle;
-
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
 
-		if ( ! useFileSystemAPI || rootHandle && await rootHandle.requestPermission() == 'granted' )
-			fileExplorer.setPath( lastDir, rootHandle ? lastDir.pop().handle : null );
+		if ( ! useFileSystemAPI )
+			fileExplorer.setPath( await loadFromStorage( KEY_LAST_DIR ) );
 
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
