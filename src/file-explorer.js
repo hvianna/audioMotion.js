@@ -463,18 +463,20 @@ export function create( container, options = {} ) {
 				}
 			}
 			else if ( item.dataset.type == 'mount' ) {
-				currentPath = [];
 				if ( useFileSystemAPI ) {
 					try {
 						currentDirHandle = await window.showDirectoryPicker({ startIn: 'music' });
+						currentPath = []; // not cleared if directory picker is cancelled by user
 						enterDir( currentDirHandle );
 					}
 					catch (e) {
-						// avoid console error if user cancels the directory picker window
+						// avoid console error when user cancels the directory picker window
 					}
 				}
-				else
+				else {
+					currentPath = [];
 					enterDir( item.dataset.path );
+				}
 			}
 		}
 	});
