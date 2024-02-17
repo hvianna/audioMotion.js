@@ -250,6 +250,33 @@ export function getFolderContents( selector = 'li' ) {
 }
 
 /**
+ * Resolve a given filename and return the corresponding FileSystemFileHandle
+ *
+ * @param {string} path to filename (must be relative to currentPath)
+ * @returns {FileSystemFileHandle}
+ */
+export async function getHandle( pathname ) {
+	const workPath   = [ ...currentPath ],
+		  targetPath = pathname.split('/');
+
+	let handle = workPath[ workPath.length - 1 ].handle;
+
+	while ( targetPath.length > 1 ) {
+		const dirName = targetPath.shift();
+		if ( dirName == '..' ) {
+			workPath.pop();
+			handle = workPath[ workPath.length - 1 ].handle;
+		}
+		else {
+			handle = await handle.getDirectoryHandle( dirName );
+			workPath.push( { handle } );
+		}
+	}
+
+	return await handle.getFileHandle( targetPath.shift() );
+}
+
+/**
  * Returns user's home path (for Electron only)
  *
  * @returns {array} array of { dir: <string>, scrollTop: <number> }

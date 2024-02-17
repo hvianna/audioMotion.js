@@ -1039,7 +1039,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	let ret;
 
 	if ( ['m3u','m3u8'].includes( parsePath( fileObject.file ).extension ) )
-		ret = loadPlaylist( fileObject.file );
+		ret = loadPlaylist( fileObject );
 	else
 		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) );
 
@@ -1805,13 +1805,12 @@ function loadNextSong() {
 /**
  * Load a playlist file into the play queue
  */
-function loadPlaylist( path ) {
+function loadPlaylist( fileObject ) {
 
-	path = normalizeSlashes( path );
+	let path = normalizeSlashes( fileObject.file );
 
 	return new Promise( async ( resolve ) => {
-		let	promises = [],
-			songInfo;
+		let	promises = [];
 
 		const resolveAddedSongs = () => {
 			Promise.all( promises ).then( added => {
@@ -1820,44 +1819,70 @@ function loadPlaylist( path ) {
 			});
 		}
 
+		const parsePlaylistContent = async content => {
+			if ( ! elLoadedPlist.dataset.path )
+				setLoadedPlaylist( path );
+
+			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
+
+			let songInfo;
+
+			for ( let line of content.split(/[\r\n]+/) ) {
+				if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+					line = normalizeSlashes( line );
+					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
+						songInfo = parsePath( line ).baseName;
+
+					let handle;
+
+					// if it's an external URL just add it to the queue as is
+					if ( ! isExternalURL( line ) ) {
+						if ( useFileSystemAPI ) {
+							handle = await fileExplorer.getHandle( line );
+							if ( ! handle )
+								consoleLog( `Cannot resolve file handle for ${ line }`, true );
+						}
+						// if it's not an absolute path, prepend the current path to it
+						if ( line[1] != ':' && line[0] != '/' )
+							line = path + line;
+					}
+
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ) ) );
+					songInfo = '';
+				}
+				else if ( line.startsWith('#EXTINF') )
+					songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+			}
+			resolveAddedSongs();
+		}
+
 		if ( ! path ) {
 			resolve( -1 );
 		}
 		else if ( ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
-			fetch( path )
-				.then( response => {
-					if ( response.status == 200 )
-						return response.text();
-					else
-						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
-				})
-				.then( content => {
-					if ( ! elLoadedPlist.dataset.path )
-						setLoadedPlaylist( path );
-					path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
-
-					content.split(/[\r\n]+/).forEach( line => {
-						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-							line = normalizeSlashes( line );
-							if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
-								songInfo = parsePath( line ).baseName;
-
-							// if it's not an external URL or absolute path, add the current path to it
-							if ( ! isExternalURL( line ) && line[1] != ':' && line[0] != '/' )
-								line = path + line;
-
-							promises.push( addSongToPlayQueue( { file: queryFile( line ) }, parseTrackName( songInfo ) ) );
-							songInfo = '';
-						}
-						else if ( line.startsWith('#EXTINF') )
-							songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+			if ( fileObject.handle ) {
+				fileObject.handle.getFile()
+					.then( fileBlob => fileBlob.text() )
+					.then( parsePlaylistContent )
+					.catch( e => {
+						consoleLog( e, true );
+						resolve( 0 );
 					});
-					resolveAddedSongs( promises, resolve );
-				})
-				.catch( e => {
-					consoleLog( e, true );
-					resolve( 0 );
-				});
+			}
+			else {
+				fetch( path )
+					.then( response => {
+						if ( response.status == 200 )
+							return response.text();
+						else
+							consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+					})
+					.then( parsePlaylistContent )
+					.catch( e => {
+						consoleLog( e, true );
+						resolve( 0 );
+					});
+			}
 		}
 		else { // try to load playlist from localStorage
 			const list = await loadFromStorage( 'pl_' + path );
@@ -1866,7 +1891,7 @@ function loadPlaylist( path ) {
 					file = normalizeSlashes( file );
 					promises.push( addSongToPlayQueue( { file }, parseTrackName( parsePath( file ).baseName ) ) );
 				});
-				resolveAddedSongs( promises, resolve );
+				resolveAddedSongs();
 			}
 			else {
 				consoleLog( `Unrecognized playlist file: ${path}`, true );
@@ -3561,7 +3586,7 @@ function setUIEventListeners() {
 
 	if ( ! isElectron ) {
 		$('#load_playlist').addEventListener( 'click', () => {
-			loadPlaylist( elPlaylists.value ).then( n => {
+			loadPlaylist( { file: elPlaylists.value } ).then( n => {
 				const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
 				notie.alert({ text, time: 5 });
 			});
