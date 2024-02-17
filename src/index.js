@@ -12,7 +12,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2023 Henrique Avila Vianna
+ * @copyright (c) 2018-2024 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@ import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
+import { get, set, del } from 'idb-keyval';
 
 import Sortable, { MultiDrag } from 'sortablejs';
 Sortable.mount( new MultiDrag() );
@@ -45,9 +46,11 @@ import './styles.css';
 
 const isElectron  = 'electron' in window,
 	  isWindows   = isElectron && /Windows/.test( navigator.userAgent ),
+	  supportsFileSystemAPI = !! window.showDirectoryPicker,
 	  ROUTE_FILE  = '/getFile/',   // server route to read files anywhere (Electron only)
 	  ROUTE_COVER = '/getCover/',  // server route to get a folder's cover image (Electron and legacy node server)
 	  ROUTE_SAVE  = '/savePlist/', // server route to save a file to the filesystem (Electron only)
+	  URL_ORIGIN  = location.origin + location.pathname,
 	  VERSION     = packageJson.version;
 
 const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
@@ -137,6 +140,11 @@ const RND_ALPHA       = 'alpha',
 	  RND_ROUND       = 'round',
 	  RND_SPLIT       = 'split';
 
+// Server modes
+const SERVER_CUSTOM = 1,  // custom server (node or Electron)
+	  SERVER_FILE   = -1, // local access via file://
+	  SERVER_WEB    = 0;  // standard web server
+
 // Frequency scales
 const SCALE_BARK   = 'bark',
 	  SCALE_LINEAR = 'linear',
@@ -159,6 +167,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_DISABLED_MODES = 'disabled-modes',
 	  KEY_DISABLED_PROPS = 'disabled-properties',
 	  KEY_DISPLAY_OPTS   = 'display-options',
+	  KEY_FORCE_FS_API   = 'force-filesystem',
 	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
@@ -679,8 +688,10 @@ let audioElement = [],
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
-	serverMode, 				// 1 = custom server; 0 = standard web server; -1 = local (file://) mode
+	serverMode,
 	skipping = false,
+	hasServerMedia,				// music directory found on web server
+	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
@@ -811,11 +822,14 @@ const setPreset = ( key, options ) => {
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
+// check if a given url/path is a blob
+const isBlob = src => src.startsWith('blob:');
+
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
 
 // check if a string is an external URL
-const isExternalURL = path => path.startsWith('http');
+const isExternalURL = path => path.startsWith('http') && ! path.startsWith( URL_ORIGIN );
 
 // check if an object is empty
 const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).length;
@@ -879,6 +893,14 @@ const removeServerEncoding = uri => {
 	return normalizeSlashes( decodeSlashes( uri.replace( regexp, '' ) ) );
 }
 
+// helper function to save a path to localStorage or IndexedDB
+const saveLastDir = path => {
+	if ( useFileSystemAPI )
+		set( KEY_LAST_DIR, path ); // IndexedDB
+	else if ( serverMode != SERVER_FILE )
+		saveToStorage( KEY_LAST_DIR, path );
+}
+
 // format a value in seconds to a string in the format 'hh:mm:ss'
 const secondsToTime = secs => {
 	if ( secs == Infinity || secs == -1 )
@@ -910,11 +932,11 @@ const setRangeAtts = ( element, min, max, step = 1 ) => {
 /**
  * Adds a batch of files to the queue and displays total songs added when finished
  *
- * @param files {array} array of objects with a 'file' property
+ * @param files {array} array of objects with a 'file' property (and optional 'handle' property)
  * @param [autoplay] {boolean}
  */
 function addBatchToPlayQueue( files, autoplay = false ) {
-	const promises = files.map( entry => addToPlayQueue( entry.file, autoplay ) );
+	const promises = files.map( entry => addToPlayQueue( entry, autoplay ) );
 	Promise.all( promises ).then( added => {
 		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
 			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
@@ -963,57 +985,63 @@ function addMetadata( metadata, target ) {
 
 /**
  * Add a song to the play queue
- * returns 1 if song added or 0 if queue is full
+ * returns a Promise that resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( uri, content = {} ) {
+function addSongToPlayQueue( fileObject, content = {} ) {
 
-	if ( queueLength() >= MAX_QUEUED_SONGS )
-		return 0;
+	return new Promise( resolve => {
+		if ( queueLength() >= MAX_QUEUED_SONGS )
+			resolve(0);
 
-	uri = normalizeSlashes( uri );
+		let uri = normalizeSlashes( fileObject.file );
 
-	// extract file name and extension
-	const file = decodeSlashes( uri ).split('/').pop(),
-		  ext  = file.split('.').pop();
+		// extract file name and extension
+		const file = decodeSlashes( uri ).split('/').pop(),
+			  ext  = file.split('.').pop();
 
-	// create new list element
-	const newEl     = document.createElement('li'),
-		  trackData = newEl.dataset;
+		// create new list element
+		const newEl     = document.createElement('li'),
+			  trackData = newEl.dataset;
 
-	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
-	trackData.artist   = content.artist || '';
-	trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
-	trackData.duration = content.duration || '';
-	trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
+		trackData.artist   = content.artist || '';
+		trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+		trackData.duration = content.duration || '';
+		trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
 
-	// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-	uri = uri.replace( /#/g, '%23' );
-	trackData.file = uri;
+		newEl.handle = fileObject.handle; // for File System API accesses
 
-	playlist.appendChild( newEl );
+		// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
+		uri = uri.replace( /#/g, '%23' );
+		trackData.file = uri;
 
-	if ( queueLength() == 1 && ! isPlaying() )
-		loadSong(0);
-	if ( playlistPos > queueLength() - 3 )
-		loadNextSong();
+		playlist.appendChild( newEl );
 
-	trackData.retrieve = 1; // flag this item as needing metadata
-	retrieveMetadata();
-	return 1;
+		trackData.retrieve = 1; // flag this item as needing metadata
+		retrieveMetadata();
+
+		if ( queueLength() == 1 && ! isPlaying() )
+			loadSong(0).then( () => resolve(1) );
+		else
+			resolve(1);
+
+		if ( playlistPos > queueLength() - 3 )
+			loadNextSong();
+	});
 }
 
 /**
  * Add a song or playlist to the play queue
  */
-function addToPlayQueue( file, autoplay = false ) {
+function addToPlayQueue( fileObject, autoplay = false ) {
 
 	let ret;
 
-	if ( ['m3u','m3u8'].includes( parsePath( file ).extension ) )
-		ret = loadPlaylist( file );
+	if ( ['m3u','m3u8'].includes( parsePath( fileObject.file ).extension ) )
+		ret = loadPlaylist( fileObject );
 	else
-		ret = new Promise( resolve => resolve( addSongToPlayQueue( file, parseTrackName( parsePath( file ).baseName ) ) ) );
+		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1073,12 +1101,12 @@ function changeVolume( incr ) {
  * Clear audio element
  */
 function clearAudioElement( n = currAudio ) {
-	const elAudio   = audioElement[ n ],
-		  trackData = elAudio.dataset;
+	const audioEl   = audioElement[ n ],
+		  trackData = audioEl.dataset;
 
-	elAudio.removeAttribute('src');
+	loadAudioSource( audioEl, null ); // remove .src attribute
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
-	elAudio.load();
+	audioEl.load();
 
 	if ( n == currAudio )
 		setCurrentCover(); // clear coverImage and background image if needed
@@ -1435,12 +1463,12 @@ function getFolderCover( uri ) {
 	return new Promise( resolve => {
 		const path = parsePath( uri ).path; // extract path (no filename)
 
-		if ( serverMode == -1 || isExternalURL( uri ) )
+		if ( serverMode == SERVER_FILE || isExternalURL( uri ) )
 			resolve(''); // nothing to do when in serverless mode or external file
 		else if ( folderImages[ path ] !== undefined )
 			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
 		else {
-			const urlToFetch = ( serverMode == 1 ) ? ROUTE_COVER + encodeSlashes( path ) : path;
+			const urlToFetch = ( serverMode == SERVER_CUSTOM ) ? ROUTE_COVER + encodeSlashes( path ) : path;
 
 			fetch( urlToFetch )
 				.then( response => {
@@ -1449,10 +1477,10 @@ function getFolderCover( uri ) {
 				.then( content => {
 					let imageUrl = '';
 					if ( content ) {
-						if ( serverMode == 1 )
+						if ( serverMode == SERVER_CUSTOM )
 							imageUrl = content;
 						else {
-							const dirContents = fileExplorer.parseWebDirectory( content );
+							const dirContents = fileExplorer.parseDirectory( content );
 							if ( dirContents.cover )
 								imageUrl = dirContents.cover;
 						}
@@ -1667,6 +1695,45 @@ function keyboardControls( event ) {
 }
 
 /**
+ * Sets (or removes) the `src` attribute of a audio element and
+ * releases any data blob (File System API) previously in use by it
+ *
+ * @param {object} audio element
+ * @param {string} URL - if `null` completely removes the `src` attribute
+ */
+function loadAudioSource( audioEl, newSource ) {
+	const oldSource = audioEl.src || '';
+	if ( isBlob( oldSource ) )
+		URL.revokeObjectURL( oldSource );
+
+	if ( ! newSource )
+		audioEl.removeAttribute('src');
+	else
+		audioEl.src = newSource;
+}
+
+/**
+ * Load a file blob into an audio element
+ *
+ * @param {object} audio element
+ * @param {object} file blob
+ */
+function loadFileBlob( fileBlob, audioEl, playIt ) {
+	return new Promise( resolve => {
+		loadAudioSource( audioEl, URL.createObjectURL( fileBlob ) );
+		audioEl.onloadeddata = () => {
+			if ( playIt )
+				audioEl.play();
+			resolve( true );
+		};
+
+		mm.parseBlob( fileBlob )
+			.then( metadata => addMetadata( metadata, audioEl ) )
+			.catch( e => {} );
+	});
+}
+
+/**
  * Load a JSON-encoded object from localStorage
  *
  * @param {string} item key
@@ -1702,21 +1769,12 @@ function loadGradientIntoCurrentGradient(gradientKey) {
  * Load a music file from the user's computer
  */
 function loadLocalFile( obj ) {
-
 	const fileBlob = obj.files[0];
 
 	if ( fileBlob ) {
 		clearAudioElement();
-
 		const audioEl = audioElement[ currAudio ];
-
-		audioEl.src = URL.createObjectURL( fileBlob );
-		audioEl.play();
-		audioEl.onload = () => URL.revokeObjectURL( audioEl.src );
-
-		mm.parseBlob( fileBlob )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
+		loadFileBlob( fileBlob, audioEl, true ); // load and play
 	}
 }
 
@@ -1729,9 +1787,16 @@ function loadNextSong() {
 		  audioEl = audioElement[ nextAudio ];
 
 	if ( song ) {
-		audioEl.src = song.dataset.file;
-		audioEl.load();
-		addMetadata( song, audioEl );
+		if ( song.handle ) {
+			song.handle.getFile()
+				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
+				.then( () => audioEl.load() );
+		}
+		else {
+			loadAudioSource( audioEl, song.dataset.file );
+			audioEl.load();
+			addMetadata( song, audioEl );
+		}
 	}
 
 	skipping = false; // finished skipping track
@@ -1740,65 +1805,98 @@ function loadNextSong() {
 /**
  * Load a playlist file into the play queue
  */
-function loadPlaylist( path ) {
+function loadPlaylist( fileObject ) {
 
-	path = normalizeSlashes( path );
+	let path = normalizeSlashes( fileObject.file );
 
 	return new Promise( async ( resolve ) => {
-		let	n = 0,
-			songInfo;
+		let	promises = [];
+
+		const resolveAddedSongs = () => {
+			Promise.all( promises ).then( added => {
+				const total = added.reduce( ( sum, val ) => sum + val, 0 );
+				resolve( total );
+			});
+		}
+
+		const parsePlaylistContent = async content => {
+			if ( ! elLoadedPlist.dataset.path )
+				setLoadedPlaylist( path );
+
+			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
+
+			let songInfo;
+
+			for ( let line of content.split(/[\r\n]+/) ) {
+				if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+					line = normalizeSlashes( line );
+					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
+						songInfo = parsePath( line ).baseName;
+
+					let handle;
+
+					// if it's an external URL just add it to the queue as is
+					if ( ! isExternalURL( line ) ) {
+						if ( useFileSystemAPI ) {
+							handle = await fileExplorer.getHandle( line );
+							if ( ! handle )
+								consoleLog( `Cannot resolve file handle for ${ line }`, true );
+						}
+						// if it's not an absolute path, prepend the current path to it
+						if ( line[1] != ':' && line[0] != '/' )
+							line = path + line;
+					}
+
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ) ) );
+					songInfo = '';
+				}
+				else if ( line.startsWith('#EXTINF') )
+					songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+			}
+			resolveAddedSongs();
+		}
 
 		if ( ! path ) {
 			resolve( -1 );
 		}
 		else if ( ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
-			fetch( path )
-				.then( response => {
-					if ( response.status == 200 )
-						return response.text();
-					else
-						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
-				})
-				.then( content => {
-					if ( ! elLoadedPlist.dataset.path )
-						setLoadedPlaylist( path );
-					path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
-
-					content.split(/[\r\n]+/).forEach( line => {
-						if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-							line = normalizeSlashes( line );
-							if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
-								songInfo = parsePath( line ).baseName;
-
-							// if it's not an external URL or absolute path, add the current path to it
-							if ( ! isExternalURL( line ) && line[1] != ':' && line[0] != '/' )
-								line = path + line;
-
-							n += addSongToPlayQueue( queryFile( line ), parseTrackName( songInfo ) );
-							songInfo = '';
-						}
-						else if ( line.startsWith('#EXTINF') )
-							songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+			if ( fileObject.handle ) {
+				fileObject.handle.getFile()
+					.then( fileBlob => fileBlob.text() )
+					.then( parsePlaylistContent )
+					.catch( e => {
+						consoleLog( e, true );
+						resolve( 0 );
 					});
-					resolve( n );
-				})
-				.catch( e => {
-					consoleLog( e, true );
-					resolve( n );
-				});
+			}
+			else {
+				fetch( path )
+					.then( response => {
+						if ( response.status == 200 )
+							return response.text();
+						else
+							consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+					})
+					.then( parsePlaylistContent )
+					.catch( e => {
+						consoleLog( e, true );
+						resolve( 0 );
+					});
+			}
 		}
 		else { // try to load playlist from localStorage
 			const list = await loadFromStorage( 'pl_' + path );
 			if ( Array.isArray( list ) ) {
-				list.forEach( item => {
-					item = normalizeSlashes( item );
-					n += addSongToPlayQueue( item, parseTrackName( parsePath( item ).baseName ) );
+				list.forEach( file => {
+					file = normalizeSlashes( file );
+					promises.push( addSongToPlayQueue( { file }, parseTrackName( parsePath( file ).baseName ) ) );
 				});
+				resolveAddedSongs();
 			}
-			else
+			else {
 				consoleLog( `Unrecognized playlist file: ${path}`, true );
-
-			resolve( n );
+				resolve( 0 );
+			}
 		}
 	});
 }
@@ -2064,21 +2162,37 @@ async function loadSavedPlaylists( keyName ) {
 /**
  * Load a song into the currently active audio element
  */
-function loadSong( n ) {
-	const audioEl = audioElement[ currAudio ];
+function loadSong( n, playIt ) {
+	return new Promise( resolve => {
+		const audioEl = audioElement[ currAudio ];
+		const finish = () => {
+			updatePlaylistUI();
+			loadNextSong();
+			resolve( true );
+		}
 
-	if ( playlist.children[ n ] ) {
-		playlistPos = n;
-		const song = playlist.children[ playlistPos ];
-		audioEl.src = song.dataset.file;
-		addMetadata( song, audioEl );
+		if ( playlist.children[ n ] ) {
+			playlistPos = n;
+			const song = playlist.children[ playlistPos ];
 
-		updatePlaylistUI();
-		loadNextSong();
-		return true;
-	}
-	else
-		return false;
+			if ( song.handle ) {
+				song.handle.getFile()
+					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
+					.then( () => finish() );
+			}
+			else {
+				loadAudioSource( audioEl, song.dataset.file );
+				audioEl.onloadeddata = () => {
+					if ( playIt )
+						audioEl.play();
+					finish();
+				};
+				addMetadata( song, audioEl );
+			}
+		}
+		else
+			resolve( false );
+	});
 }
 
 /**
@@ -2151,9 +2265,7 @@ function playNextSong( play ) {
 
 	if ( play ) {
 		audioElement[ currAudio ].play()
-		.then( () => {
-			loadNextSong();
-		})
+		.then( () => loadNextSong() )
 		.catch( err => {
 			if ( err.code != 20 ) {
 				consoleLog( err, true );
@@ -2214,8 +2326,7 @@ function playPreviousSong() {
  * Play a song from the play queue
  */
 function playSong( n ) {
-	if ( loadSong( n ) )
-		playPause( true );
+	loadSong( n, true );
 }
 
 /**
@@ -2588,6 +2699,9 @@ function retrieveMetadata() {
 		waitingMetadata++;
 		delete queueItem.dataset.retrieve;
 
+		if ( queueItem.handle )
+			return;
+
 		const uri = queueItem.dataset.file;
 
 		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
@@ -2616,7 +2730,7 @@ function retrieveMetadata() {
  */
 function revokeBlobURL( item ) {
 	const cover = item.dataset.cover;
-	if ( cover.startsWith('blob:') )
+	if ( isBlob( cover ) )
 		URL.revokeObjectURL( cover );
 }
 
@@ -3183,9 +3297,11 @@ function setProperty( elems, save = true ) {
 
 			case elSaveDir :
 				if ( elSaveDir.checked )
-					saveToStorage( KEY_LAST_DIR, fileExplorer.getPath() );
-				else
+					saveLastDir( fileExplorer.getPath() );
+				else {
+					del( KEY_LAST_DIR ); // IndexedDB
 					removeFromStorage( KEY_LAST_DIR );
+				}
 
 			case elScaleX:
 				audioMotion.showScaleX = isSwitchOn( elScaleX );
@@ -3470,7 +3586,7 @@ function setUIEventListeners() {
 
 	if ( ! isElectron ) {
 		$('#load_playlist').addEventListener( 'click', () => {
-			loadPlaylist( elPlaylists.value ).then( n => {
+			loadPlaylist( { file: elPlaylists.value } ).then( n => {
 				const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
 				notie.alert({ text, time: 5 });
 			});
@@ -3481,9 +3597,35 @@ function setUIEventListeners() {
 	// clicks on canvas toggle info display on/off
 	elOSD.addEventListener( 'click', () => toggleInfo() );
 
-	// local file upload
+	// use server/local music button
+	const btnToggleFS = $('#btn_toggle_filesystem');
+
+	if ( ! hasServerMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
+		btnToggleFS.style.display = 'none';
+	else {
+		btnToggleFS.innerText = 'Use ' + ( useFileSystemAPI ? 'server' : 'local' ) + ' music';
+		btnToggleFS.addEventListener( 'click', () => {
+			saveToStorage( KEY_FORCE_FS_API, ! useFileSystemAPI );
+			location.href = URL_ORIGIN; // reload app (removes query string parameters)
+		});
+	}
+
+	// add selected / all files buttons
+	const btnAddSelected = $('#btn_add_selected'),
+		  btnAddFolder   = $('#btn_add_folder');
+
+	if ( isElectron || hasServerMedia || useFileSystemAPI ) {
+		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
+		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
+	}
+	else {
+		btnAddSelected.style.display = 'none';
+		btnAddFolder.style.display = 'none';
+	}
+
+	// local file upload - disabled on Electron app or when the File System API is supported
 	const uploadBtn = $('#local_file');
-	if ( isElectron )
+	if ( isElectron || supportsFileSystemAPI )
 		uploadBtn.parentElement.style.display = 'none';
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
@@ -3493,7 +3635,7 @@ function setUIEventListeners() {
 		notie.input({
 			text: 'Load audio file or stream from URL',
 			submitText: 'Load',
-			submitCallback: url => { if ( url.trim() ) addToPlayQueue( url, true ) }
+			submitCallback: url => { if ( url.trim() ) addToPlayQueue( { file: url }, true ) }
 		});
 	});
 
@@ -4172,9 +4314,6 @@ function updateRangeValue( el ) {
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
 	setRangeAtts( elSpin, 0, 3, 1 );
 
-	// Set UI event listeners
-	setUIEventListeners();
-
 	// Clear canvas messages
 	setCanvasMsg();
 
@@ -4191,32 +4330,52 @@ function updateRangeValue( el ) {
 	// Load saved playlists
 	loadSavedPlaylists();
 
+	// Check if `mode` URL parameter is used to request local or server filesystem
+	const urlParams = new URL( document.location ).searchParams,
+		  userMode  = urlParams.get('mode');
+
+	let forceFileSystemAPI = userMode == 'local' ? true : ( userMode == 'server' ? false : await loadFromStorage( KEY_FORCE_FS_API ) );
+
+	if ( forceFileSystemAPI === null )
+		forceFileSystemAPI = true; // attempts to use the File System API by default
+
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
 		$('#file_explorer'),
 		{
-			onDblClick: ( file, event ) => {
-				addBatchToPlayQueue( [ { file } ], true );
+			onDblClick: ( fileObject, event ) => {
+				addBatchToPlayQueue( [ fileObject ], true );
 				event.target.classList.remove( 'selected', 'sortable-chosen' );
 			},
 			onEnterDir: path => {
-				if ( elSaveDir.checked && initDone ) // avoid saving the path during file explorer initialization
-					saveToStorage( KEY_LAST_DIR, path );
-			}
+				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
+					saveLastDir( path );
+			},
+			forceFileSystemAPI,
+			lastDir: await get( KEY_LAST_DIR )
 		}
-	).then( ([ status, filelist, serversignature ]) => {
-		const btnAddSelected = $('#btn_add_selected'),
-			  btnAddFolder   = $('#btn_add_folder');
+	).then( status => {
+		// set global variables
+		serverMode       = status.serverMode;
+		hasServerMedia   = status.hasServerMedia;
+		useFileSystemAPI = status.useFileSystemAPI;
 
-		serverMode = status;
+		const { filelist, serverSignature } = status;
 
-		if ( status == -1 ) {
-			consoleLog( 'No server found. File explorer will not be available.', true );
-			btnAddSelected.disabled = true;
-			btnAddFolder.disabled = true;
-		}
-		else {
-			consoleLog( `${ serversignature } detected on port ${ location.port }` );
+		if ( serverMode != SERVER_FILE )
+			consoleLog( `${ serverSignature } detected at ${ URL_ORIGIN }` );
+		if ( ! hasServerMedia )
+			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music directory on server' }`, true );
+		if ( useFileSystemAPI )
+			consoleLog( 'Accessing files from local device via File System Access API.' );
+		if ( ! supportsFileSystemAPI )
+			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
+
+		if ( ! isElectron )
+			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
+
+		// initialize drag-and-drop in the file explorer
+		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
@@ -4233,16 +4392,16 @@ function updateRangeValue( el ) {
 					if ( evt.to.id == 'playlist') {
 						let items = evt.items.length ? evt.items : [ evt.item ];
 						items.forEach( item => {
-							addToPlayQueue( fileExplorer.makePath( item.dataset.path ) );
+							addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle } );
 							item.remove();
 						});
 					}
 				}
 			});
-
-			btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
-			btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue(	fileExplorer.getFolderContents() ) );
 		}
+
+		// Set UI event listeners
+		setUIEventListeners();
 	});
 
 	// Add events listeners for keyboard controls
@@ -4254,13 +4413,14 @@ function updateRangeValue( el ) {
 		positions: { alert: 'bottom' }
 	});
 
-	const lastDir = await loadFromStorage( KEY_LAST_DIR );
-
 	// Wait for all async operations to finish before loading the last used settings
-	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( () => {
+	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( async () => {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
-		fileExplorer.setPath( lastDir );
+
+		if ( ! useFileSystemAPI )
+			fileExplorer.setPath( await loadFromStorage( KEY_LAST_DIR ) );
+
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
