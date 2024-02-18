@@ -1,6 +1,6 @@
 {
   "name": "audioMotion",
-  "version": "23.8.0-beta.1",
+  "version": "24.2.0-beta.0",
   "private": true,
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
@@ -12,7 +12,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "server": "node src/web-server.js",
-    "pkg": "pkg . --out-path ./bin/"
+    "pkg": "pkg . --out-path ./bin/",
+    "web": "npx http-server"
   },
   "bin": "src/web-server.js",
   "pkg": {
@@ -82,7 +83,7 @@
     "@electron-forge/maker-rpm": "^6.2.1",
     "@electron-forge/maker-squirrel": "^6.2.1",
     "@electron/asar": "^3.2.4",
-    "audiomotion-analyzer": "^4.1.0",
+    "audiomotion-analyzer": "^4.4.0",
     "buffer": "^6.0.3",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
