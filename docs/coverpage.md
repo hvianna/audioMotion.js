@@ -7,7 +7,7 @@
 - Several modes, color gradients and optional effects
 - Fullscreen and PIP high-resolution graphics @60fps
 
-[Demo](https://demo.audiomotion.me)
+[Web App](https://audiomotion.app)
 [About](/#about)
 [Get Started](/#getting-started)
 

@@ -24,45 +24,24 @@
 
 ?> **For developers:**<br>Check out [**audioMotion-analyzer**](https://audiomotion.dev) for easy integration of audioMotion's full-featured spectrum analyzer into your own Javascript projects!
 
-## Demo
-
-> ▶ **[https://demo.audiomotion.me](https://demo.audiomotion.me)**
-
-The demo site includes a few sample songs, radio streams and background images and videos ([credits here](#resources-used-in-the-demo-site)).
-
-You can also upload audio files from your PC and use the microphone input.
-
-Also check out our [**YouTube channel**](https://audiomotion.me/yt) for some cool songs visualized with audioMotion!
-
 ## Getting started
 
-Download the latest version from the [**Releases page**](https://github.com/hvianna/audioMotion.js/releases/latest).
+Click the button below to open the app:
 
-Binaries are available for Windows, Linux and macOS (Intel x64) - these are not signed, so you'll get the usual warnings from your operating system.
+> [![Button Icon]][Link]
 
-Verify the integrity of binaries using the commands below. Check the generated checksums against the ones provided in the release page.
+[Link]: https://audiomotion.app 'click to open web app'
 
-+ Windows:
-```
-certutil -hashfile "audioMotion-23.8.0 Setup" md5
-certutil -hashfile "audioMotion-23.8.0 Setup" sha256
-```
+[Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
 
-+ Linux:
-```
-md5sum filename
-sha256sum filename
-```
 
-+ MacOS:
-```
-md5 filename
-shasum -a 256 filename
-```
+**Use a Chromium-based browser to be able to play music from your hard drive.**<br>
+Works on Chrome and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
 
-?> You don't need binaries to run **audioMotion** in a web browser. Check [Running as a Web App](webapp.md) for more information.
+The app also includes a few server-hosted songs and some online radio streams ([credits here](#resources-used-in-the-demo-site)).<br>
+Click the **[ Use server music ]** button to switch to server mode.
 
-If you want to build your own binaries, check the [Building](building.md) page.
+Also check out our [**YouTube channel**](https://audiomotion.me/yt) for some cool songs visualized with audioMotion!
 
 ## Credits
 
@@ -80,6 +59,7 @@ Some of audioMotion's great features are provided by these awesome open-source l
 
 * [buffer](https://www.npmjs.com/package/buffer) - Node.js Buffer API, for the browser
 * [express](https://www.npmjs.com/package/express) - fast, unopinionated, minimalist web framework for node
+* [idb-keyval](https://www.npmjs.com/package/idb-keyval) - super-simple promise-based keyval store implemented with IndexedDB
 * [music-metadata-browser](https://www.npmjs.com/package/music-metadata-browser) - stream and file based music metadata parser for the browser
 * [notie](https://www.npmjs.com/package/notie) - clean and simple notification, input, and selection suite for javascript, with no dependencies
 * [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
@@ -144,7 +124,7 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2023 [Henrique Avila Vianna](https://henriquevianna.com)<br>
+audioMotion.js copyright (c) 2018-2024 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
 
 ---
