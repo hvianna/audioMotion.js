@@ -331,7 +331,7 @@ export function parseWebIndex( content ) {
 export function parseDirectory( content ) {
 
 	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
-	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8)$/i;
+	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|mkv|mpg|webm|mp4|avi|mov)$/i;
 
 	let files = [],
 		dirs  = [],
