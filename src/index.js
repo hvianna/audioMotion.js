@@ -172,7 +172,8 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
 	  KEY_PLAYLISTS      = 'playlists',
-	  KEY_SENSITIVITY    = 'sensitivity-presets';
+	  KEY_SENSITIVITY    = 'sensitivity-presets',
+	  PLAYLIST_PREFIX    = 'pl_';
 
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty slot',
@@ -819,6 +820,9 @@ const setPreset = ( key, options ) => {
 	presets[ index ].options = options;
 }
 
+// get the list of keys/names for playlists stored in localStorage or indexedDB; returns a promise
+const getStoredPlaylists = () => useFileSystemAPI ? get( KEY_PLAYLISTS ) : loadFromStorage( KEY_PLAYLISTS );
+
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
@@ -1242,14 +1246,21 @@ function deletePlaylist( index ) {
 			submitText: 'Delete',
 			submitCallback: async () => {
 				const keyName   = elPlaylists[ index ].value,
-					  playlists = await loadFromStorage( KEY_PLAYLISTS );
+					  key       = PLAYLIST_PREFIX + keyName,
+					  playlists = await getStoredPlaylists();
 
-				if ( playlists ) {
+				if ( playlists )
 					delete playlists[ keyName ];
+
+				if ( useFileSystemAPI ) { // indexedDB
+					del( key );
+					await set( KEY_PLAYLISTS, playlists );
+				}
+				else {
+					localStorage.removeItem( key );
 					saveToStorage( KEY_PLAYLISTS, playlists );
 				}
 
-				localStorage.removeItem( `pl_${keyName}` );
 				notie.alert({ text: 'Playlist deleted' });
 				loadSavedPlaylists();
 			},
@@ -1885,11 +1896,14 @@ function loadPlaylist( fileObject ) {
 			}
 		}
 		else { // try to load playlist from localStorage
-			const list = await loadFromStorage( 'pl_' + path );
+			const key  = PLAYLIST_PREFIX + path,
+				  list = useFileSystemAPI ? await get( key ) : await loadFromStorage( key );
+
 			if ( Array.isArray( list ) ) {
-				list.forEach( file => {
-					file = normalizeSlashes( file );
-					promises.push( addSongToPlayQueue( { file }, parseTrackName( parsePath( file ).baseName ) ) );
+				list.forEach( entry => {
+					const file   = normalizeSlashes( entry.file || entry ),
+						  handle = entry.handle;
+					promises.push( addSongToPlayQueue( { file, handle }, parseTrackName( parsePath( file ).baseName ) ) );
 				});
 				resolveAddedSongs();
 			}
@@ -2115,7 +2129,7 @@ async function loadSavedPlaylists( keyName ) {
 
 	// load playlists from localStorage
 
-	const playlists = await loadFromStorage( KEY_PLAYLISTS );
+	const playlists = await getStoredPlaylists();
 
 	if ( playlists ) {
 		Object.keys( playlists ).forEach( key => {
@@ -3773,21 +3787,33 @@ async function storePlaylist( name, update = true ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-			const playlists = await loadFromStorage( KEY_PLAYLISTS ) || {};
+			const playlists = await getStoredPlaylists() || {};
 
 			while ( playlists.hasOwnProperty( safename ) )
 				safename += '_1';
 
 			playlists[ safename ] = name;
 
-			saveToStorage( KEY_PLAYLISTS, playlists );
+			if ( useFileSystemAPI )
+				await set( KEY_PLAYLISTS, playlists );
+			else
+				saveToStorage( KEY_PLAYLISTS, playlists );
+
 			loadSavedPlaylists( safename );
 		}
 
 		let songs = [];
-		playlist.childNodes.forEach( item => songs.push( item.dataset.file ) );
 
-		saveToStorage( 'pl_' + safename, songs );
+		for ( const item of playlist.childNodes )
+			songs.push( useFileSystemAPI ? { file: item.dataset.file, handle: item.handle } : item.dataset.file );
+
+		const key = PLAYLIST_PREFIX + safename;
+
+		if ( useFileSystemAPI )
+			await set( key, songs );
+		else
+			saveToStorage( key, songs );
+
 		notie.alert({ text: `Playlist saved!` });
 	}
 }
@@ -4327,9 +4353,6 @@ function updateRangeValue( el ) {
 	// Set audio source to built-in player
 	setSource();
 
-	// Load saved playlists
-	loadSavedPlaylists();
-
 	// Check if `mode` URL parameter is used to request local or server filesystem
 	const urlParams = new URL( document.location ).searchParams,
 		  userMode  = urlParams.get('mode');
@@ -4373,6 +4396,9 @@ function updateRangeValue( el ) {
 
 		if ( ! isElectron )
 			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
+
+		// Load saved playlists
+		loadSavedPlaylists();
 
 		// initialize drag-and-drop in the file explorer
 		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
