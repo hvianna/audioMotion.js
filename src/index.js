@@ -957,9 +957,10 @@ function addMetadata( metadata, target ) {
 		  common     = metadata.common,
 		  format     = metadata.format;
 
-	if ( sourceData ) 	// metadata is a dataset (playqueue item) - just copy the data to target element
+	if ( sourceData ) { // if `metadata` has a dataset it's a playqueue item; just copy the data to target element
 		Object.assign( trackData, sourceData );
-	else {				// parse metadata read from file
+	}
+	else {				// otherwise, it's metadata read from file; we need to parse it and populate the dataset
 		trackData.artist = common.artist || trackData.artist;
 		trackData.title  = common.title || trackData.title;
 		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
@@ -1737,10 +1738,6 @@ function loadFileBlob( fileBlob, audioEl, playIt ) {
 				audioEl.play();
 			resolve( true );
 		};
-
-		mm.parseBlob( fileBlob )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
 	});
 }
 
@@ -1786,6 +1783,9 @@ function loadLocalFile( obj ) {
 		clearAudioElement();
 		const audioEl = audioElement[ currAudio ];
 		loadFileBlob( fileBlob, audioEl, true ); // load and play
+		mm.parseBlob( fileBlob )
+			.then( metadata => addMetadata( metadata, audioEl ) )
+			.catch( e => {} );
 	}
 }
 
@@ -1798,6 +1798,7 @@ function loadNextSong() {
 		  audioEl = audioElement[ nextAudio ];
 
 	if ( song ) {
+		addMetadata( song, audioEl );
 		if ( song.handle ) {
 			song.handle.getFile()
 				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
@@ -1806,7 +1807,6 @@ function loadNextSong() {
 		else {
 			loadAudioSource( audioEl, song.dataset.file );
 			audioEl.load();
-			addMetadata( song, audioEl );
 		}
 	}
 
@@ -2188,6 +2188,7 @@ function loadSong( n, playIt ) {
 		if ( playlist.children[ n ] ) {
 			playlistPos = n;
 			const song = playlist.children[ playlistPos ];
+			addMetadata( song, audioEl );
 
 			if ( song.handle ) {
 				song.handle.getFile()
@@ -2201,7 +2202,6 @@ function loadSong( n, playIt ) {
 						audioEl.play();
 					finish();
 				};
-				addMetadata( song, audioEl );
 			}
 		}
 		else
@@ -2710,32 +2710,46 @@ function retrieveMetadata() {
 	const queueItem = Array.from( playlist.children ).find( el => el.dataset.retrieve );
 
 	if ( queueItem ) {
-		waitingMetadata++;
-		delete queueItem.dataset.retrieve;
-
-		if ( queueItem.handle )
-			return;
 
 		const uri = queueItem.dataset.file;
 
-		mm.fetchFromUrl( uri, { skipPostHeaders: true } )
-			.then( metadata => {
-				if ( metadata ) {
-					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					syncMetadataToAudioElements( queueItem );
-					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( uri ).then( cover => {
-							queueItem.dataset.cover = cover;
-							syncMetadataToAudioElements( queueItem );
-						});
-					}
+		const consumeMetadata = metadata => {
+			if ( metadata ) {
+				addMetadata( metadata, queueItem ); // add metadata to play queue item
+				syncMetadataToAudioElements( queueItem );
+				if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+					getFolderCover( uri ).then( cover => {
+						queueItem.dataset.cover = cover;
+						syncMetadataToAudioElements( queueItem );
+					});
 				}
-			})
-			.catch( e => {} ) // fail silently
-			.finally( () => {
-				waitingMetadata--;
-				retrieveMetadata(); // call back to continue processing the queue
-			});
+			}
+		}
+
+		const processNext = () => {
+			waitingMetadata--;
+			retrieveMetadata(); // call again to continue processing the queue
+		}
+
+		waitingMetadata++;
+		delete queueItem.dataset.retrieve;
+
+		if ( queueItem.handle ) {
+			queueItem.handle.getFile()
+				.then( fileBlob => {
+					mm.parseBlob( fileBlob )
+						.then( consumeMetadata )
+						.catch( e => {} );
+				})
+				.catch( e => {} )
+				.finally( processNext );
+		}
+		else {
+			mm.fetchFromUrl( uri, { skipPostHeaders: true } )
+				.then( consumeMetadata )
+				.catch( e => {} )
+				.finally( processNext );
+		}
 	}
 }
 
