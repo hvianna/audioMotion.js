@@ -966,8 +966,11 @@ function addMetadata( metadata, target ) {
 		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
 		trackData.codec  = format ? format.codec || format.container : trackData.codec;
 
-		if ( format && format.bitsPerSample )
-			trackData.quality = ( format.sampleRate / 1000 | 0 ) + 'KHz / ' + format.bitsPerSample + 'bits';
+		if ( format && ( format.bitsPerSample || format.sampleRate ) ) {
+			trackData.quality = ( format.sampleRate ? ( format.sampleRate / 1000 | 0 ) + 'KHz' : '' ) +
+							    ( format.sampleRate && format.bitsPerSample ? ' / ' : '' ) +
+							    ( format.bitsPerSample ? format.bitsPerSample + 'bits' : '' );
+		}
 		else if ( format.bitrate )
 			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
 		else
