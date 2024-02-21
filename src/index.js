@@ -995,7 +995,7 @@ function addMetadata( metadata, target ) {
  * Add a song to the play queue
  * returns a Promise that resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( fileObject, content = {} ) {
+function addSongToPlayQueue( fileObject, content = {}, autoplay ) {
 
 	return new Promise( resolve => {
 		if ( queueLength() >= MAX_QUEUED_SONGS )
@@ -1029,8 +1029,8 @@ function addSongToPlayQueue( fileObject, content = {} ) {
 		trackData.retrieve = 1; // flag this item as needing metadata
 		retrieveMetadata();
 
-		if ( queueLength() == 1 && ! isPlaying() )
-			loadSong(0).then( () => resolve(1) );
+		if ( ( autoplay || queueLength() == 1 ) && ! isPlaying() )
+			loadSong( 0, autoplay ).then( () => resolve(1) );
 		else
 			resolve(1);
 
@@ -1047,9 +1047,9 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	let ret;
 
 	if ( ['m3u','m3u8'].includes( parsePath( fileObject.file ).extension ) )
-		ret = loadPlaylist( fileObject );
+		ret = loadPlaylist( fileObject, autoplay );
 	else
-		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) );
+		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ), autoplay );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1819,7 +1819,7 @@ function loadNextSong() {
 /**
  * Load a playlist file into the play queue
  */
-function loadPlaylist( fileObject ) {
+function loadPlaylist( fileObject, autoplay = false ) {
 
 	let path = normalizeSlashes( fileObject.file );
 
@@ -1861,7 +1861,8 @@ function loadPlaylist( fileObject ) {
 							line = path + line;
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ) ) );
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ), autoplay ) );
+					autoplay = false; // disable it after adding the first song
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
