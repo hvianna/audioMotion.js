@@ -966,12 +966,16 @@ function addMetadata( metadata, target ) {
 		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
 		trackData.codec  = format ? format.codec || format.container : trackData.codec;
 
-		if ( format && ( format.bitsPerSample || format.sampleRate ) ) {
+		// for track quality info, metadata is prioritized in the following order, according to availability:
+		// 1. sampleRate (optional) + bitsPerSample (present)        - ex.: 48KHz / 16bits | 16bits
+		// 2. bitrate (present) + codecProfile (optional)            - ex.: 128K CBR | 128K
+		// 3. only sampleRate or bitsPerSample, whichever is present - ex.: 48KHz | 16bits
+		if ( format && ( format.bitsPerSample || ( format.sampleRate && ! format.bitrate ) ) ) {
 			trackData.quality = ( format.sampleRate ? ( format.sampleRate / 1000 | 0 ) + 'KHz' : '' ) +
 							    ( format.sampleRate && format.bitsPerSample ? ' / ' : '' ) +
 							    ( format.bitsPerSample ? format.bitsPerSample + 'bits' : '' );
 		}
-		else if ( format.bitrate )
+		else if ( format && format.bitrate )
 			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
 		else
 			trackData.quality = '';
