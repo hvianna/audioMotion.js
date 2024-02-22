@@ -2723,7 +2723,7 @@ async function retrieveMetadata() {
 			if ( metadata ) {
 				addMetadata( metadata, queueItem ); // add metadata to play queue item
 				syncMetadataToAudioElements( queueItem );
-				if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+				if ( ! queueItem.handle && ! ( metadata.common.picture && metadata.common.picture.length ) ) {
 					getFolderCover( uri ).then( cover => {
 						queueItem.dataset.cover = cover;
 						syncMetadataToAudioElements( queueItem );
