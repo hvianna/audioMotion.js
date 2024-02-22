@@ -1795,7 +1795,7 @@ function loadLocalFile( obj ) {
 /**
  * Loads next song into the audio element not currently in use
  */
-function loadNextSong() {
+async function loadNextSong() {
 	const next    = ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0,
 		  song    = playlist.children[ next ],
 		  audioEl = audioElement[ nextAudio ];
@@ -1803,6 +1803,7 @@ function loadNextSong() {
 	if ( song ) {
 		addMetadata( song, audioEl );
 		if ( song.handle ) {
+			await song.handle.requestPermission();
 			song.handle.getFile()
 				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
 				.then( () => audioEl.load() );
@@ -2181,7 +2182,7 @@ async function loadSavedPlaylists( keyName ) {
  * Load a song into the currently active audio element
  */
 function loadSong( n, playIt ) {
-	return new Promise( resolve => {
+	return new Promise( async resolve => {
 		const audioEl = audioElement[ currAudio ];
 		const finish = () => {
 			updatePlaylistUI();
@@ -2195,6 +2196,7 @@ function loadSong( n, playIt ) {
 			addMetadata( song, audioEl );
 
 			if ( song.handle ) {
+				await song.handle.requestPermission();
 				song.handle.getFile()
 					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
 					.then( () => finish() );
@@ -2285,7 +2287,7 @@ function playNextSong( play ) {
 		audioElement[ currAudio ].play()
 		.then( () => loadNextSong() )
 		.catch( err => {
-			if ( err.code != 20 ) {
+			if ( err.code != 20 ) { // play interrupted by another request
 				consoleLog( err, true );
 				loadNextSong();
 				playNextSong( true );
@@ -2705,7 +2707,7 @@ function renderColorRow(index, stop) {
 /**
  * Retrieve metadata for files in the play queue
  */
-function retrieveMetadata() {
+async function retrieveMetadata() {
 	// leave when we already have enough concurrent requests pending
 	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
 		return;
@@ -2739,6 +2741,7 @@ function retrieveMetadata() {
 		delete queueItem.dataset.retrieve;
 
 		if ( queueItem.handle ) {
+			await queueItem.handle.requestPermission();
 			queueItem.handle.getFile()
 				.then( fileBlob => {
 					mm.parseBlob( fileBlob )
