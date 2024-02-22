@@ -3246,6 +3246,8 @@ function setProperty( elems, save = true ) {
 
 			case elLinkGrads:
 				toggleGradients();
+				if ( isSwitchOn( elLinkGrads ) )
+					setProperty( elGradient, false );
 				break;
 
 			case elLoRes:
