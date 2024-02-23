@@ -548,7 +548,23 @@ const gradients = {
 				{ pos: 1, color: '#0f3443' }
 			  ], disabled: false },
 	prism:    { name: 'Prism', disabled: false },
+	prism_old: { name: 'Prism (legacy)', colorStops: [
+				'hsl( 0, 100%, 50% )',
+				'hsl( 60, 100%, 50% )',
+				'hsl( 120, 100%, 50% )',
+				'hsl( 180, 100%, 50% )',
+				'hsl( 240, 100%, 50% )'
+			  ], disabled: true },
 	rainbow:  { name: 'Rainbow', disabled: false },
+	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
+				'hsl( 0, 100%, 50% )',
+				'hsl( 60, 100%, 50% )',
+				'hsl( 120, 100%, 50% )',
+				'hsl( 180, 100%, 47% )',
+				'hsl( 240, 100%, 58% )',
+				'hsl( 300, 100%, 50% )',
+				'hsl( 360, 100%, 50% )'
+			  ], disabled: true },
 	shahabi:  { name: 'Shahabi', bgColor: '#060613', colorStops: [
 				{ pos: .1, color: '#66ff00' },
 				{ pos: 1, color: '#a80077' }
@@ -1937,7 +1953,7 @@ async function loadPreferences() {
 			data.forEach( option => {
 				// if `option` is not an object, `disabled` is inferred true - for compatibility with legacy versions
 				const { value, disabled } = typeof option == 'object' ? option : { value: option, disabled: true } ;
-				const opt = optionList.find( item => item.value == value );
+				const opt = Array.isArray( optionList ) ? optionList.find( item => item.value == value ) : optionList[ value ];
 				if ( opt )
 					opt.disabled = disabled;
 			});
@@ -1976,12 +1992,7 @@ async function loadPreferences() {
 	}
 
 	// Load disabled gradients preference
-	const disabledGradients = await loadFromStorage( KEY_DISABLED_GRADS );
-	if ( Array.isArray( disabledGradients ) ) {
-		disabledGradients.forEach( key => {
-			gradients[ key ].disabled = true;
-		});
-	}
+	parseDisabled( await loadFromStorage( KEY_DISABLED_GRADS ), gradients );
 
 	// Load disabled random properties preference
 	parseDisabled( await loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
@@ -2883,7 +2894,7 @@ function savePreferences( key ) {
 		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
 
 	if ( ! key || key == KEY_DISABLED_GRADS )
-		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).filter( key => gradients[ key ].disabled ) );
+		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).map( key => ( { value: key, disabled: gradients[ key ].disabled } ) ) );
 
 	if (! key || key == KEY_CUSTOM_GRADS) {
 		const customGradients = {};
@@ -4376,8 +4387,9 @@ function updateRangeValue( el ) {
 
 	// Register custom gradients
 	Object.keys( gradients ).forEach( key => {
-		if ( gradients[ key ].colorStops )
-			audioMotion.registerGradient( key, { bgColor: gradients[ key ].bgColor, colorStops: gradients[ key ].colorStops } );
+		const { bgColor, dir, colorStops } = gradients[ key ];
+		if ( colorStops )
+			audioMotion.registerGradient( key, { bgColor, dir, colorStops } );
 	});
 	populateGradients();
 
