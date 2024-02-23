@@ -179,6 +179,9 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
 
+// other misc constants
+const ERR_ABORT = 20; // error code for AbortError
+
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
@@ -2291,7 +2294,8 @@ function playNextSong( play ) {
 		audioElement[ currAudio ].play()
 		.then( () => loadNextSong() )
 		.catch( err => {
-			if ( err.code != 20 ) { // play interrupted by another request
+			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
+			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
 				loadNextSong();
 				playNextSong( true );
@@ -2318,8 +2322,8 @@ function playPause( play ) {
 	}
 	else
 		audioElement[ currAudio ].play().catch( err => {
-			// ignore AbortError - when play promise is interrupted by a new load request or call to pause()
-			if ( err.code != 20 ) {
+			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
+			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true )
 				playNextSong( true );
 			}
