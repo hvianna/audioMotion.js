@@ -46,7 +46,6 @@ import './styles.css';
 
 const isElectron  = 'electron' in window,
 	  isWindows   = isElectron && /Windows/.test( navigator.userAgent ),
-	  supportsFileSystemAPI = !! window.showDirectoryPicker,
 	  ROUTE_FILE  = '/getFile/',   // server route to read files anywhere (Electron only)
 	  ROUTE_COVER = '/getCover/',  // server route to get a folder's cover image (Electron and legacy node server)
 	  ROUTE_SAVE  = '/savePlist/', // server route to save a file to the filesystem (Electron only)
@@ -99,6 +98,29 @@ const COLOR_GRADIENT = 'gradient',
 	  COLOR_INDEX    = 'bar-index',
 	  COLOR_LEVEL    = 'bar-level';
 
+// Error codes
+const ERR_ABORT = 20; // AbortError
+
+// File mode access options
+const FILEMODE_SERVER = 'server',
+	  FILEMODE_LOCAL  = 'local';
+
+// localStorage keys
+const KEY_CUSTOM_GRADS   = 'custom-grads',
+	  KEY_CUSTOM_PRESET  = 'custom-preset',
+	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
+	  KEY_DISABLED_GRADS = 'disabled-gradients',
+	  KEY_DISABLED_MODES = 'disabled-modes',
+	  KEY_DISABLED_PROPS = 'disabled-properties',
+	  KEY_DISPLAY_OPTS   = 'display-options',
+	  KEY_FORCE_FS_API   = 'force-filesystem',
+	  KEY_GENERAL_OPTS   = 'general-settings',
+	  KEY_LAST_CONFIG    = 'last-config',
+	  KEY_LAST_DIR       = 'last-dir',
+	  KEY_PLAYLISTS      = 'playlists',
+	  KEY_SENSITIVITY    = 'sensitivity-presets',
+	  PLAYLIST_PREFIX    = 'pl_';
+
 // Visualization modes
 const MODE_DISCRETE    = '0',
 	  MODE_AREA        = '10',
@@ -140,16 +162,23 @@ const RND_ALPHA       = 'alpha',
 	  RND_ROUND       = 'round',
 	  RND_SPLIT       = 'split';
 
-// Server modes
-const SERVER_CUSTOM = 1,  // custom server (node or Electron)
-	  SERVER_FILE   = -1, // local access via file://
-	  SERVER_WEB    = 0;  // standard web server
-
 // Frequency scales
 const SCALE_BARK   = 'bark',
 	  SCALE_LINEAR = 'linear',
 	  SCALE_LOG    = 'log',
 	  SCALE_MEL    = 'mel';
+
+// Server modes
+const SERVER_CUSTOM = 1,  // custom server (node or Electron)
+	  SERVER_FILE   = -1, // local access via file://
+	  SERVER_WEB    = 0;  // standard web server
+
+// Server configuration file
+const SERVERCFG_FILE     = 'config.json',
+	  SERVERCFG_DEFAULTS = {
+	  	defaultAccessMode: FILEMODE_LOCAL,
+		enableFileSystemAPI: true
+	  };
 
 // Weighting filters
 const WEIGHT_NONE = '',
@@ -159,28 +188,9 @@ const WEIGHT_NONE = '',
 	  WEIGHT_D    = 'D',
 	  WEIGHT_468  = '468';
 
-// localStorage keys
-const KEY_CUSTOM_GRADS   = 'custom-grads',
-	  KEY_CUSTOM_PRESET  = 'custom-preset',
-	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
-	  KEY_DISABLED_GRADS = 'disabled-gradients',
-	  KEY_DISABLED_MODES = 'disabled-modes',
-	  KEY_DISABLED_PROPS = 'disabled-properties',
-	  KEY_DISPLAY_OPTS   = 'display-options',
-	  KEY_FORCE_FS_API   = 'force-filesystem',
-	  KEY_GENERAL_OPTS   = 'general-settings',
-	  KEY_LAST_CONFIG    = 'last-config',
-	  KEY_LAST_DIR       = 'last-dir',
-	  KEY_PLAYLISTS      = 'playlists',
-	  KEY_SENSITIVITY    = 'sensitivity-presets',
-	  PLAYLIST_PREFIX    = 'pl_';
-
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
-
-// other misc constants
-const ERR_ABORT = 20; // error code for AbortError
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -699,6 +709,7 @@ let audioElement = [],
 	currentGradient = null,     // gradient that is currently loaded in gradient editor
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
+	hasServerMedia,				// music directory found on web server
 	isFastSearch = false,
 	isMicSource,				// flag for microphone input in use
 	micStream,
@@ -710,7 +721,7 @@ let audioElement = [],
 	randomModeTimer,
 	serverMode,
 	skipping = false,
-	hasServerMedia,				// music directory found on web server
+	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.json)
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
@@ -4396,14 +4407,30 @@ function updateRangeValue( el ) {
 	// Set audio source to built-in player
 	setSource();
 
+	// Load server configuration options from config.json
+	const response = await fetch( SERVERCFG_FILE );
+
+	let serverConfig = response.status == 200 ? await response.text() : null;
+	try {
+		serverConfig = JSON.parse( serverConfig );
+	}
+	catch( err ) {
+		consoleLog( `Error parsing ${ SERVERCFG_FILE } - ${ err }`, true );
+		serverConfig = {};
+	}
+
+	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
+
+	supportsFileSystemAPI = serverConfig.enableFileSystemAPI && !! window.showDirectoryPicker;
+
 	// Check if `mode` URL parameter is used to request local or server filesystem
 	const urlParams = new URL( document.location ).searchParams,
 		  userMode  = urlParams.get('mode');
 
-	let forceFileSystemAPI = userMode == 'local' ? true : ( userMode == 'server' ? false : await loadFromStorage( KEY_FORCE_FS_API ) );
+	let forceFileSystemAPI = serverConfig.enableFileSystemAPI && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
-		forceFileSystemAPI = true; // attempts to use the File System API by default
+		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
 
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
@@ -4434,7 +4461,7 @@ function updateRangeValue( el ) {
 			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music directory on server' }`, true );
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
-		if ( ! supportsFileSystemAPI )
+		if ( ! supportsFileSystemAPI && serverConfig.enableFileSystemAPI )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
 
 		if ( ! isElectron )
