@@ -1,8 +1,23 @@
 # Changelog
 
-## version 24.2-beta.0
+## version 24.2-beta.1
 
 > Updated source code is in the `dev` branch
+
+### Added: <!-- {docsify-ignore} -->
+
++ Save and load playlists in local mode (File System API) - these are stored in the browser's IndexedDB storage;
++ **Prism (legacy)** and **Rainbow (legacy)** gradients - disabled by default, enabled them in the Config panel;
++ Basic support for video file extensions (audio playback only) - thanks **@JesusGod-Pope666-Info** for the [suggestion](https://github.com/hvianna/audioMotion.js/discussions/40).
+
+### Improved: <!-- {docsify-ignore} -->
+
++ Fixed retrieving metadata for queued songs when using the File System API;
++ Improved autoplay start time when adding an m3u playlist to the play queue;
++ Update the right-channel gradient selection when the LINK button is activated.
+
+
+## version 24.2-beta.0
 
 A little over two years ago, I started working on turning audioMotion into a native application using **Electron**, but then I realized it
 would be a pain to keep up with the constant framework updates and huge dependency tree.
