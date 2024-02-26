@@ -24,7 +24,7 @@ jobs:
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
           FOLDER: public/music
-        uses: jayanta525/github-pages-directory-listing@v4.0.0
+      - uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
           FOLDER: public/backgrounds
       - name: Run shell script
