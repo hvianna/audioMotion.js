@@ -16,12 +16,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Create CNAME file
-        uses: 1arp/create-a-file-action@0.4.4
-        with:
-          path: 'public'
-          isAbsolutePath: false
-          file: 'CNAME'
-          content: 'audiomotion.app'
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "public/CNAME"
+          FILE_DATA: "audiomotion.app"
       - name: Run shell script
         run: |
           git config user.name "$USERNAME"
