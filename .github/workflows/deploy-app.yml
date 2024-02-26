@@ -15,25 +15,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Create CNAME file
-        uses: "finnp/create-file-action@master"
-        env:
-          FILE_NAME: "public/CNAME"
-          FILE_DATA: "audiomotion.app"
-      - name: Create _config.yml file
-        uses: "finnp/create-file-action@master"
-        env:
-          FILE_NAME: "public/_config.yml"
-          FILE_DATA: 'include: [".well-known"]'
-      - name: Create brave-rewards-verification.txt file
-        uses: "finnp/create-file-action@master"
-        env:
-          FILE_NAME: "public/.well-known/brave-rewards-verification.txt"
-          FILE_DATA: |
-            This is a Brave Creators publisher verification file.
-
-            Domain: audiomotion.app
-            Token: ddbc4cddcf21685fd67a05d53d95d4f420f67190cb38ec7b6250e3fb8cb7d6cf
+      - name: Create files
+          run: |
+            echo "audiomotion.app" > public/CNAME
+            echo -e "include: [\".well-known\"]\n" > public/_config.yml
+            echo -e "This is a Brave Creators publisher verification file.\n\nDomain: audiomotion.app\nToken: ddbc4cddcf21685fd67a05d53d95d4f420f67190cb38ec7b6250e3fb8cb7d6cf\n" > public/.well-known/brave-rewards-verification.txt
       - name: Generate Directory Listings
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
