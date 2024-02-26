@@ -1,0 +1,26 @@
+name: Deploy app
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Run shell script
+        run: |
+          git mv docs public
+          git commit -m "Move docs folder into public folder"
+          git subtree split --prefix public -b gh-pages
+          git push -f origin gh-pages:gh-pages
+      - name: Create CNAME file
+        uses: EndBug/add-and-commit@v7
+        with:
+          add: 'CNAME'
+          branch: 'gh-pages'
+          message: 'Create CNAME file'
+          file_content: 'audiomotion.app'
