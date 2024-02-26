@@ -20,12 +20,17 @@ jobs:
         env:
           FILE_NAME: "public/CNAME"
           FILE_DATA: "audiomotion.app"
+      - name: Generate Directory Listings
+        uses: jayanta525/github-pages-directory-listing@v4.0.0
+        with:
+          FOLDER: public/music
+          FOLDER: public/backgrounds
       - name: Run shell script
         run: |
           git config user.name "$USERNAME"
           git config user.email "$USERNAME@$ADDRESS_SUFFIX"
           git mv docs public
-          git add public/CNAME
+          git add *
           git commit -m "Deploy app"
           git subtree split --prefix public -b gh-pages
           git push -f origin gh-pages:gh-pages
