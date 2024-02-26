@@ -15,6 +15,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Create CNAME file
+        uses: 1arp/create-a-file-action@0.4.4
+        with:
+          path: 'public'
+          isAbsolutePath: false
+          file: 'CNAME'
+          content: 'audiomotion.app'
       - name: Run shell script
         run: |
           git config user.name "$USERNAME"
@@ -23,10 +30,3 @@ jobs:
           git commit -m "Move docs folder into public folder"
           git subtree split --prefix public -b gh-pages
           git push -f origin gh-pages:gh-pages
-      - name: Create CNAME file
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: 'CNAME'
-          branch: 'gh-pages'
-          message: 'Create CNAME file'
-          file_content: 'audiomotion.app'
