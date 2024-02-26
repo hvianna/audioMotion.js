@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Run shell script
         run: |
           git mv docs public
@@ -18,7 +18,7 @@ jobs:
           git subtree split --prefix public -b gh-pages
           git push -f origin gh-pages:gh-pages
       - name: Create CNAME file
-        uses: EndBug/add-and-commit@v7
+        uses: EndBug/add-and-commit@v9
         with:
           add: 'CNAME'
           branch: 'gh-pages'
