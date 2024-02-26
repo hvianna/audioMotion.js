@@ -19,8 +19,6 @@
 * Visual file explorer and play queue with drag-and-drop functionality
 * Support for M3U playlists (`m3u` and `m3u8` file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
-* Lightweight custom file server — also works on standard web servers with minimal configuration
-* Client runs on any modern browser (tested on Chrome, Firefox, Opera and Safari)
 
 ?> **For developers:**<br>Check out [**audioMotion-analyzer**](https://audiomotion.dev) for easy integration of audioMotion's full-featured spectrum analyzer into your own Javascript projects!
 
@@ -33,7 +31,6 @@ Click the button below to open the web app:
 [Link]: https://audiomotion.app 'click to open web app'
 
 [Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
-
 
 **Use a Chromium-based browser to be able to play music from your hard drive.**<br>
 Works on Chrome and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
