@@ -1,5 +1,9 @@
 name: Deploy app
 
+env:
+  USERNAME: ${{ github.actor }}
+  ADDRESS_SUFFIX: users.noreply.github.com
+
 on:
   push:
     branches:
@@ -13,6 +17,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Run shell script
         run: |
+          git config user.name "$USERNAME"
+          git config user.email "$USERNAME@$ADDRESS_SUFFIX"
           git mv docs public
           git commit -m "Move docs folder into public folder"
           git subtree split --prefix public -b gh-pages
