@@ -25,6 +25,7 @@ jobs:
           git config user.name "$USERNAME"
           git config user.email "$USERNAME@$ADDRESS_SUFFIX"
           git mv docs public
-          git commit -m "Move docs folder into public folder"
+          git add public/CNAME
+          git commit -m "Deploy app"
           git subtree split --prefix public -b gh-pages
           git push -f origin gh-pages:gh-pages
