@@ -38,7 +38,9 @@ Works on Chrome and Edge by default. On Brave you'll need to enable it in `chrom
 The app also includes a few server-hosted songs and some online radio streams ([credits here](#resources-used-in-the-demo-site)).<br>
 Click the **[ Use server music ]** button to switch to server mode.
 
-Also check out our [**YouTube channel**](https://audiomotion.me/yt) for some cool songs visualized with audioMotion!
+Also check out our [**YouTube channel**](https://youtube.com/@audioMotionJS) for some cool songs visualized with audioMotion!
+
+?> See the [User's Manual](users-manual.md) for the complete documentation of audioMotion's features and settings.
 
 ## Credits
 
