@@ -17,7 +17,7 @@
 body {
 	background: var(--metal-gradient);
 	font-family: 'Sofia Sans Semi Condensed', sans-serif;
-	font-size: 14px;
+	font-size: 16px;
 	line-height: 1;
 	margin: 0;
 }
@@ -132,7 +132,7 @@ a.button:visited {
 	box-shadow: 1px 1px 2px #0008;
 	color: #444;
 	display: inline-block;
-	font-size: 12px;
+	font-size: 13px;
 	margin: 0 5px;
 	position: relative;
 	transition: 150ms ease-in;
@@ -287,7 +287,7 @@ a.button:visited {
 }
 .player-area .config-label {
 	color: #333;
-	font-size: 11px;
+	font-size: 12px;
 	font-weight: 600;
 }
 .player-area .config-label.help {
@@ -504,7 +504,7 @@ a.button:visited {
 }
 .playqueue-bar strong {
 	align-self: center;
-	font-size: 16px;
+	font-size: 1.2em;
 	font-weight: 600;
 }
 
@@ -515,7 +515,8 @@ a.button:visited {
 	padding: 20px 0;
 }
 .file-panel p {
-	margin: .75em 0;
+	font-size: .92em;
+	margin: .7em 0;
 }
 
 .button-column {
@@ -775,6 +776,10 @@ form[data-prop] label:last-of-type::before {
 .shortcuts {
 	width: 600px;
 }
+.shortcuts h2 {
+	font-size: 1.1em;
+	font-weight: 600;
+}
 
 .kbd-table {
 	width: 100%;
@@ -794,11 +799,11 @@ kbd {
 	color: #333;
 	display: inline-block;
 	font-family: 'JetBrains Mono', monospace;
-	font-size: 12px;
+	font-size: .85em;
 	font-weight: 600;
-	height: 20px;
+	height: 1.6em;
 	line-height: 1.2;
-	min-width: 20px;
+	min-width: 1.6em;
 	padding: 2px 4px;
 	text-align: center;
 	white-space: nowrap;
@@ -827,6 +832,9 @@ kbd.wide {
 
 #playlist_panel {
 	grid-template-rows: auto auto 1fr 40px;
+}
+#playlist_panel button {
+	font-size: .92em;
 }
 
 #file_explorer p {
@@ -872,13 +880,13 @@ kbd.wide {
 	border: 1px solid #ccc;
 	box-shadow: inset 0 0 3px #0004;
 	overflow: auto;
-	padding: 0;
+	padding: .25em 0;
 	vertical-align: top;
 }
 .filelist li {
 	cursor: pointer;
 	line-height: 1.6;
-	padding: 0 .75em;
+	padding: 0 .5em;
 	white-space: nowrap;
 }
 .filelist li.current {
@@ -1020,7 +1028,7 @@ kbd.wide {
 	background: var(--audioMotion-gradient);
 	background-clip: text;
 	display: inline;
-	font: 36px 'Orbitron', sans-serif;
+	font: 3em 'Orbitron', sans-serif;
 	margin: 0;
 	text-shadow: none;
 	-webkit-background-clip: text;
