@@ -177,7 +177,7 @@ const SERVER_CUSTOM = 1,  // custom server (node or Electron)
 const SERVERCFG_FILE     = 'config.json',
 	  SERVERCFG_DEFAULTS = {
 	  	defaultAccessMode: FILEMODE_LOCAL,
-		enableFileSystemAPI: true
+		enableLocalAccess: true
 	  };
 
 // Weighting filters
@@ -4421,13 +4421,13 @@ function updateRangeValue( el ) {
 
 	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
 
-	supportsFileSystemAPI = serverConfig.enableFileSystemAPI && !! window.showDirectoryPicker;
+	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
 	// Check if `mode` URL parameter is used to request local or server filesystem
 	const urlParams = new URL( document.location ).searchParams,
 		  userMode  = urlParams.get('mode');
 
-	let forceFileSystemAPI = serverConfig.enableFileSystemAPI && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
+	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
 		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
@@ -4461,7 +4461,7 @@ function updateRangeValue( el ) {
 			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music directory on server' }`, true );
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
-		if ( ! supportsFileSystemAPI && serverConfig.enableFileSystemAPI )
+		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
 
 		if ( ! isElectron )

@@ -1,4 +1,4 @@
 {
 	"defaultAccessMode": "local",
-	"enableFileSystemAPI": true
+	"enableLocalAccess": true
 }
