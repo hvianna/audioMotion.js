@@ -1,6 +1,6 @@
 * [Home](/ "audioMotion")
 * [User's Manual](/users-manual "User's Manual | audioMotion")
-* [Running as a Web App](/webapp "Running as a Web App | audioMotion")
+* [Self-hosting audioMotion](/server "Self-hosting audioMotion | audioMotion")
 * [Building](/building "Building | audioMotion")
 * [Known issues](/known-issues "Known issues | audioMotion")
 * [Changelog](/Changelog "Changelog | audioMotion")

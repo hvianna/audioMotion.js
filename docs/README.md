@@ -2,22 +2,21 @@
 
 ![audioMotion-header](img/audioMotion-header.png)
 
-> **audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you **see your music!** ♪♫🤩<br>
+> **audioMotion** is a music player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
 > It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 ## Features
 
-* High-resolution real-time dual channel audio spectrum analyzer
+* Dual channel high-resolution real-time audio spectrum analyzer
 * Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
 * Decibel and linear amplitude scales, with customizable sensitivity
 * Optional A, B, C, D and ITU-R 468 weighting filters
-* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial visualization
+* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial spectrum
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
-* HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
-* Visual file explorer and play queue with drag-and-drop functionality
-* Support for M3U playlists (`m3u` and `m3u8` file extensions)
+* Music player for audio and video file formats (codec support may vary depending on browser and operating system)
+* Support for M3U playlists (.m3u and .m3u8 file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 
 ?> **For developers:**<br>Check out [**audioMotion-analyzer**](https://audiomotion.dev) for easy integration of audioMotion's full-featured spectrum analyzer into your own Javascript projects!
@@ -106,7 +105,7 @@ And all the developers and artists, for the following resources:
   * ["Spell"](https://archive.org/details/Straw_Fields-8753) by [Rolemusic](http://rolemusic.sawsquarenoise.com/) - Licensed under [Creative Commons: By Attribution NonCommercial ShareAlike 3.0 US License](https://creativecommons.org/licenses/by-nc-sa/3.0/us/)
   * ["The Factory"](https://archive.org/details/The_Factory-3613) by [Multifaros](http://multifaros.info.se/) - Licensed under [Creative Commons: By Attribution 3.0 US License](https://creativecommons.org/licenses/by/3.0/us/)
   * ["We Come Together"](https://archive.org/details/ShMusic-DigitalMemories) by [Lukhash](https://lukhash.com) - Licensed under [Creative Commons: By Attribution NonCommercial NoDerivatives 3.0 License](https://creativecommons.org/licenses/by-nc-nd/3.0/)
-  * Web radios: [Classic FM](https://classicfm.com), [Dance Wave!](https://dancewave.online), [Ibiza Global Radio](https://ibizaglobalradio.com), [jazz 4 ever](http://jazz4ever.net), [Nightride FM](https://nightride.fm)
+  * Web radios: [Capital FM](https://capital.fm), [Classic FM](https://classicfm.com), [Costa del Mar](https://cdmradio.net), [Ibiza Global Radio](https://ibizaglobalradio.com), [jazz 4 ever](http://jazz4ever.net), [Nightride FM](https://nightride.fm)
 
 ### References <!-- {docsify-ignore} -->
 

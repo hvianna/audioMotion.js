@@ -40,10 +40,14 @@ It is completely free, open-source software, created out of my passion for the g
 
 ## Contributing
 
-* For bug reports or feature requests, feel free to [open an issue](https://github.com/hvianna/audioMotion.js/issues);
-* If you'd like to submit a Pull Request, please branch it off the project's `dev` branch - that makes it easier for me to incorporate your changes in a future release.
+I kindly request that you only [open an issue](https://github.com/hvianna/audioMotion.js/issues) for submitting **bug reports**.
 
-> Please note that this is a hobby project that I work on in my free time, so it may take me some time to respond to inquiries.
+Please use the [**Discussions**](https://github.com/hvianna/audioMotion.js/discussions) section on GitHub to send **feature requests**,
+questions, suggestions or any other feedback.
+
+If you'd like to submit a Pull Request, please branch it off the project's `dev` branch - that makes it easier for me to incorporate your changes in a future release.
+
+> Please note that this is a hobby project that I work on in my free time, so it may take me a while to respond to inquiries sometimes.
 
 ## License
 

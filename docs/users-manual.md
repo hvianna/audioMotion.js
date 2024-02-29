@@ -83,6 +83,18 @@ You can save the current play queue by clicking the **Save as...** button. The p
 
 The **Save** button will update a previously loaded playlist (filename appears above the play queue) with the current queue contents.
 
+Saved playlists appear in the playlist selection box.
+
+Select a playlist and click one of the buttons:
+
+| Button | Action |
+|:-------|:-------|
+| **Load** | Load the selected playlist, **adding** its contents to the end of the current queue |
+| **Save** | Update the selected playlist with the current queue contents |
+| **Delete** | Permanently delete the selected playlist |
+
+!> **Playlists, Presets and Custom gradients** are saved to the browser's storage and will only be accessible in the same browser they were saved.
+
 ## Settings Panel
 
 ### Load and Save Presets
@@ -295,8 +307,14 @@ Presets for low, normal and high sensitivity can be customized in the [Config pa
 
 <div class="settings-panel highlight-weighting"></div>
 
+[Weighting filter](https://en.wikipedia.org/wiki/Weighting_filter) applied to frequency data for spectrum visualization.
 
+Each filter applies a different curve of gain/attenuation to specific frequency ranges, but the general idea is to adjust the
+visualization of frequencies to which the human ear is more or less sensitive.
 
+![weighting-filters-curves](img/weighting-filters-curves.png)
+
+?> Weighting filters **do NOT** affect the audio output.
 
 ### Channel Layout
 
@@ -304,8 +322,8 @@ Presets for low, normal and high sensitivity can be customized in the [Config pa
 
 Selects single or dual channel display, with different layout options:
 
-| Channel Layout | Description | Example |
-|----------------|-------------|---------|
+| Channel Layout | Description |
+|----------------|-------------|
 | **SINGL** | Single channel analyzer, representing the combined output of both left and right channels.
 | **COMB**  | Dual channel analyzer, both channels overlaid. Works best with [**Line Graph** mode](#analyzer-mode) or [**OUTLINE**](#switches) switch on.
 | **HORIZ** | Dual channel, side by side - see [Mirror](#mirror) for additional layout options.

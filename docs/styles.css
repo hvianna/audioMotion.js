@@ -37,6 +37,10 @@ img {
 	max-width: 100%;
 }
 
+strong code {
+	font-weight: bold !important;
+}
+
 .cover h1 span {
 	background: var(--audioMotion-gradient);
 	background-clip: text;
