@@ -5,10 +5,13 @@
 	--cover-background-mask-color: #000;
 	--cover-background-mask-opacity: .5;
 	--cover-blockquote-color: #f0f0f0;
+	--cover-blockquote-font-size: 2rem;
+	--cover-button-background: #023c;
 	--cover-color: #ccc;
 	--cover-button-color: hsl( var(--theme-hue), var(--theme-saturation), 80% );
 	--cover-button-border: 1px solid var(--cover-button-color);
-	--cover-heading-font-size-max: 80;
+	--cover-heading-font-size-min: 42;
+	--cover-heading-font-size-max: 100;
 	--sidebar-name-font-family: Orbitron, var(--base-font-family);
 	--sidebar-name-font-weight: 900;
 }
@@ -54,6 +57,16 @@ strong code {
 
 .cover ul {
 	margin: 2em 0;
+}
+
+.cover blockquote p {
+	font-style: italic;
+	margin-top: 0;
+}
+
+.cover blockquote strong {
+	color: inherit;
+	font-weight: 700;
 }
 
 .sidebar > h1 .app-name-link {
