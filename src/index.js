@@ -850,9 +850,6 @@ const setPreset = ( key, options ) => {
 	presets[ index ].options = options;
 }
 
-// get the list of keys/names for playlists stored in localStorage or indexedDB; returns a promise
-const getStoredPlaylists = () => useFileSystemAPI ? get( KEY_PLAYLISTS ) : loadFromStorage( KEY_PLAYLISTS );
-
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
@@ -1285,19 +1282,14 @@ function deletePlaylist( index ) {
 			submitCallback: async () => {
 				const keyName   = elPlaylists[ index ].value,
 					  key       = PLAYLIST_PREFIX + keyName,
-					  playlists = await getStoredPlaylists();
+					  playlists = await get( KEY_PLAYLISTS );
 
 				if ( playlists )
 					delete playlists[ keyName ];
 
-				if ( useFileSystemAPI ) { // indexedDB
-					del( key );
-					await set( KEY_PLAYLISTS, playlists );
-				}
-				else {
-					localStorage.removeItem( key );
-					saveToStorage( KEY_PLAYLISTS, playlists );
-				}
+				// delete playlist from indexedDB and update list of playlists
+				await del( key );
+				await set( KEY_PLAYLISTS, playlists );
 
 				notie.alert({ text: 'Playlist deleted' });
 				loadSavedPlaylists();
@@ -1934,13 +1926,12 @@ function loadPlaylist( fileObject, autoplay = false ) {
 					});
 			}
 		}
-		else { // try to load playlist from localStorage
-			const key  = PLAYLIST_PREFIX + path,
-				  list = useFileSystemAPI ? await get( key ) : await loadFromStorage( key );
+		else { // try to load playlist from indexedDB
+			const list = await get( PLAYLIST_PREFIX + path );
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const file   = normalizeSlashes( entry.file || entry ),
+					const file   = normalizeSlashes( entry.file ),
 						  handle = entry.handle;
 					promises.push( addSongToPlayQueue( { file, handle }, parseTrackName( parsePath( file ).baseName ) ) );
 				});
@@ -2148,7 +2139,8 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 }
 
 /**
- * Load playlists from localStorage and legacy playlists.cfg file
+ * Load playlists from indexedDB and legacy playlists.cfg file
+ * @param [string] key name of the currently selected playlist
  */
 async function loadSavedPlaylists( keyName ) {
 
@@ -2161,18 +2153,40 @@ async function loadSavedPlaylists( keyName ) {
 	item.selected = true;
 	elPlaylists.options[ elPlaylists.options.length ] = item;
 
-	// load playlists from localStorage
+	// load list of playlists from indexedDB
+	let playlists = await get( KEY_PLAYLISTS );
 
-	const playlists = await getStoredPlaylists();
+	// migrate playlists from localStorage (for compatibility with versions up to 24.2-beta.1)
+	const oldPlaylists = await loadFromStorage( KEY_PLAYLISTS );
 
+	if ( oldPlaylists ) {
+		for ( const key of Object.keys( oldPlaylists ) ) {
+			const plKey    = PLAYLIST_PREFIX + key,
+				  contents = await loadFromStorage( plKey );
+
+			let songs = [];
+			for ( const file of contents )
+				songs.push( { file } );
+
+			await set( plKey, songs );  // save playlist to indexedDB
+			removeFromStorage( plKey );
+
+			playlists[ key ] = oldPlaylists[ key ];
+		}
+
+		await set( KEY_PLAYLISTS, playlists ); // save updated list to indexedDB
+		removeFromStorage( KEY_PLAYLISTS );
+	}
+
+	// add playlists to the selection box
 	if ( playlists ) {
-		Object.keys( playlists ).forEach( key => {
+		for ( const key of Object.keys( playlists ) ) {
 			const item = new Option( playlists[ key ], key );
 			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
 			elPlaylists.options[ elPlaylists.options.length ] = item;
-		});
+		}
 	}
 
 	// try to load legacy playlists.cfg file
@@ -3809,7 +3823,7 @@ function stop() {
 }
 
 /**
- * Store a playlist in localStorage
+ * Store a playlist in indexedDB
  */
 async function storePlaylist( name, update = true ) {
 
@@ -3840,32 +3854,26 @@ async function storePlaylist( name, update = true ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
-			const playlists = await getStoredPlaylists() || {};
+			let playlists = await get( KEY_PLAYLISTS ) || {},
+				attempt   = 0,
+				basename  = safename;
 
-			while ( playlists.hasOwnProperty( safename ) )
-				safename += '_1';
+			while ( playlists.hasOwnProperty( safename ) && attempt < 100 ) {
+				safename = basename + '_' + attempt;
+				attempt++;
+			}
 
 			playlists[ safename ] = name;
-
-			if ( useFileSystemAPI )
-				await set( KEY_PLAYLISTS, playlists );
-			else
-				saveToStorage( KEY_PLAYLISTS, playlists );
-
+			await set( KEY_PLAYLISTS, playlists ); // save list to indexedDB
 			loadSavedPlaylists( safename );
 		}
 
 		let songs = [];
 
 		for ( const item of playlist.childNodes )
-			songs.push( useFileSystemAPI ? { file: item.dataset.file, handle: item.handle } : item.dataset.file );
+			songs.push( { file: item.dataset.file, handle: item.handle } );
 
-		const key = PLAYLIST_PREFIX + safename;
-
-		if ( useFileSystemAPI )
-			await set( key, songs );
-		else
-			saveToStorage( key, songs );
+		await set( PLAYLIST_PREFIX + safename, songs ); // save playlist to indexedDB
 
 		notie.alert({ text: `Playlist saved!` });
 	}
@@ -4464,11 +4472,10 @@ function updateRangeValue( el ) {
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
 
-		if ( ! isElectron )
+		if ( ! isElectron ) {
 			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
-
-		// Load saved playlists
-		loadSavedPlaylists();
+			loadSavedPlaylists();
+		}
 
 		// initialize drag-and-drop in the file explorer
 		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
