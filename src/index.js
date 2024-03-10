@@ -105,7 +105,7 @@ const ERR_ABORT = 20; // AbortError
 const FILEMODE_SERVER = 'server',
 	  FILEMODE_LOCAL  = 'local';
 
-// localStorage keys
+// localStorage / indexedDB keys
 const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
@@ -118,6 +118,7 @@ const KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
 	  KEY_PLAYLISTS      = 'playlists',
+	  KEY_PLAYQUEUE      = 'playqueue',
 	  KEY_SENSITIVITY    = 'sensitivity-presets',
 	  PLAYLIST_PREFIX    = 'pl_';
 
@@ -243,6 +244,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elRepeat        = $('#repeat'),
 	  elRoundBars     = $('#round_bars'),
 	  elSaveDir       = $('#save_dir'),
+	  elSaveQueue     = $('#save_queue'),
 	  elScaleX        = $('#scaleX'),
 	  elScaleY        = $('#scaleY'),
 	  elSensitivity   = $('#sensitivity'),
@@ -674,7 +676,7 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSmoothing ];
+const generalOptionsElements = [ elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
 	fftSize  : 8192,
@@ -682,6 +684,7 @@ const generalOptionsDefaults = {
 	maxFPS   : 60,
 	pipRatio : 2.35,
 	saveDir  : true,
+	saveQueue: true,
 	smoothing: .7,
 }
 
@@ -875,7 +878,7 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 const isSwitchOn = el => el.dataset.active == '1';
 
 // normalize slashes in path to Linux format
-const normalizeSlashes = path => path.replace( /\\/g, '/' );
+const normalizeSlashes = path => typeof path == 'string' ? path.replace( /\\/g, '/' ) : path;
 
 // returns a string with the current status of a UI switch
 const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
@@ -972,6 +975,7 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
 			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
 		notie.alert({ text, time: 5 });
+		storePlayQueue( true );
 	});
 }
 
@@ -1901,7 +1905,7 @@ function loadPlaylist( fileObject, autoplay = false ) {
 		if ( ! path ) {
 			resolve( -1 );
 		}
-		else if ( ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
+		else if ( typeof path == 'string' && ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
 			if ( fileObject.handle ) {
 				fileObject.handle.getFile()
 					.then( fileBlob => fileBlob.text() )
@@ -1926,8 +1930,8 @@ function loadPlaylist( fileObject, autoplay = false ) {
 					});
 			}
 		}
-		else { // try to load playlist from indexedDB
-			const list = await get( PLAYLIST_PREFIX + path );
+		else { // try to load playlist or last play queue from indexedDB
+			const list = await get( path === true ? KEY_PLAYQUEUE : PLAYLIST_PREFIX + path );
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
@@ -2836,14 +2840,14 @@ function saveGradient() {
 function savePlaylist( index ) {
 
 	if ( elPlaylists[ index ].value == '' )
-		storePlaylist();
+		storePlayQueue();
 	else if ( ! elPlaylists[ index ].dataset.isLocal )
 		notie.alert({ text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
 	else
 		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
 			submitText: 'Overwrite',
 			submitCallback: () => {
-				storePlaylist( elPlaylists[ index ].value );
+				storePlayQueue( elPlaylists[ index ].value );
 			},
 			cancelCallback: () => {
 				notie.alert({ text: 'Canceled' });
@@ -2962,6 +2966,7 @@ function savePreferences( key ) {
 			maxFPS   : elMaxFPS.value,
 			pipRatio : elPIPRatio.value,
 			saveDir  : elSaveDir.checked,
+			saveQueue: elSaveQueue.checked,
 			smoothing: elSmoothing.value
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
@@ -3122,12 +3127,13 @@ function setCurrentCover() {
  * Set general configuration options
  */
 function setGeneralOptions( options ) {
-	elFFTsize.value   = options.fftSize;
-	elFsHeight.value  = options.fsHeight;
-	elMaxFPS.value    = options.maxFPS;
-	elPIPRatio.value  = options.pipRatio;
-	elSaveDir.checked = options.saveDir;
-	elSmoothing.value = options.smoothing;
+	elFFTsize.value     = options.fftSize;
+	elFsHeight.value    = options.fsHeight;
+	elMaxFPS.value      = options.maxFPS;
+	elPIPRatio.value    = options.pipRatio;
+	elSaveDir.checked   = options.saveDir;
+	elSaveQueue.checked = options.saveQueue;
+	elSmoothing.value   = options.smoothing;
 }
 
 /**
@@ -3376,13 +3382,21 @@ function setProperty( elems, save = true ) {
 				audioMotion.roundBars = isSwitchOn( elRoundBars );
 				break;
 
-			case elSaveDir :
+			case elSaveDir:
 				if ( elSaveDir.checked )
 					saveLastDir( fileExplorer.getPath() );
 				else {
 					del( KEY_LAST_DIR ); // IndexedDB
 					removeFromStorage( KEY_LAST_DIR );
 				}
+				break;
+
+			case elSaveQueue:
+				if ( elSaveQueue.checked )
+					storePlayQueue( true );
+				else
+					del( KEY_PLAYQUEUE );
+				break;
 
 			case elScaleX:
 				audioMotion.showScaleX = isSwitchOn( elScaleX );
@@ -3656,10 +3670,11 @@ function setUIEventListeners() {
 		else
 			savePlaylist( elPlaylists.selectedIndex );
 	});
-	$('#create_playlist').addEventListener( 'click', () => isElectron ? savePlayqueueToServer() : storePlaylist() );
+	$('#create_playlist').addEventListener( 'click', () => isElectron ? savePlayqueueToServer() : storePlayQueue() );
 	$('#btn_clear').addEventListener( 'click', () => {
 		clearPlayQueue();
 		setLoadedPlaylist();
+		storePlayQueue( true );
 	});
 
 	// hide unused playlist components depending on which server we're running
@@ -3719,7 +3734,12 @@ function setUIEventListeners() {
 		notie.input({
 			text: 'Load audio file or stream from URL',
 			submitText: 'Load',
-			submitCallback: url => { if ( url.trim() ) addToPlayQueue( { file: url }, true ) }
+			submitCallback: url => {
+				if ( url.trim() ) {
+					addToPlayQueue( { file: url }, true );
+					storePlayQueue( true );
+				}
+			}
 		});
 	});
 
@@ -3826,34 +3846,27 @@ function stop() {
 }
 
 /**
- * Store a playlist in indexedDB
+ * Store the contents of the play queue into a playlist in indexedDB
+ *
+ * @param {String|Boolean} playlist name or _true_ to save to the last used play queue
+ * @param {Boolean} true to force overwritting an existing playlist
  */
-async function storePlaylist( name, update = true ) {
+async function storePlayQueue( name, update = true ) {
 
-	if ( queueLength() == 0 ) {
-		notie.alert({ text: 'Queue is empty!' });
+	const isSaveQueue = name == true;
+
+	if ( isSaveQueue && ! elSaveQueue.checked )
 		return;
-	}
 
-	if ( ! name ) {
-		notie.input({
-			text: 'Give this playlist a name:',
-			submitText: 'Save',
-			submitCallback: value => {
-				if ( value )
-					storePlaylist( value, false );
-			},
-			cancelCallback: () => {
-				notie.alert({ text: 'Canceled' });
-			}
-		});
+	if ( queueLength() == 0 && ! isSaveQueue ) {
+		notie.alert({ text: 'Queue is empty!' });
 		return;
 	}
 
 	if ( name ) {
 		let safename = name;
 
-		if ( ! update ) {
+		if ( ! isSaveQueue && ! update ) {
 			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
 			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
 
@@ -3876,9 +3889,24 @@ async function storePlaylist( name, update = true ) {
 		for ( const item of playlist.childNodes )
 			songs.push( { file: item.dataset.file, handle: item.handle } );
 
-		await set( PLAYLIST_PREFIX + safename, songs ); // save playlist to indexedDB
-
-		notie.alert({ text: `Playlist saved!` });
+		if ( isSaveQueue )
+			set( KEY_PLAYQUEUE, songs );
+		else
+			set( PLAYLIST_PREFIX + safename, songs ).then( () => notie.alert({ text: `Playlist saved!` }) );
+	}
+	else {
+		notie.input({
+			text: 'Give this playlist a name:',
+			submitText: 'Save',
+			submitCallback: value => {
+				if ( value )
+					storePlayQueue( value, false );
+			},
+			cancelCallback: () => {
+				notie.alert({ text: 'Canceled' });
+			}
+		});
+		return;
 	}
 }
 
@@ -4246,6 +4274,7 @@ function updateRangeValue( el ) {
 			if ( evt.newIndex == 0 && ! isPlaying() )
 				loadSong(0);
 			loadNextSong();
+			storePlayQueue( true );
 		}
 	});
 
@@ -4474,8 +4503,10 @@ function updateRangeValue( el ) {
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
 
-		if ( ! isElectron )
+		if ( ! isElectron ) {
 			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
+			loadSavedPlaylists();
+		}
 
 		// initialize drag-and-drop in the file explorer
 		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
@@ -4492,12 +4523,14 @@ function updateRangeValue( el ) {
 				selectedClass: 'selected',
 				sort: false,
 				onEnd: evt => {
-					if ( evt.to.id == 'playlist') {
-						let items = evt.items.length ? evt.items : [ evt.item ];
+					if ( evt.to.id == 'playlist' ) {
+						let items    = evt.items.length ? evt.items : [ evt.item ],
+							promises = [];
 						items.forEach( item => {
-							addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle } );
+							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle } ) );
 							item.remove();
 						});
+						Promise.all( promises ).then( () => storePlayQueue( true ) );
 					}
 				}
 			});
@@ -4528,8 +4561,8 @@ function updateRangeValue( el ) {
 		const enterLastDir = () => {
 			if ( lastDir )
 				fileExplorer.setPath( lastDir );
-			if ( ! isElectron )
-				loadSavedPlaylists();
+			if ( elSaveQueue.checked )
+				loadPlaylist( { file: true } ); // load last play queue
 		}
 
 		// helper function - request user permission to access local device (File System API)

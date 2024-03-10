@@ -474,6 +474,13 @@ a.button:visited {
 	width: 75px;
 }
 
+.general-settings label {
+	margin: .5em 0;
+}
+.general-settings label input {
+	margin: 0 !important;
+}
+
 .config-label {
 	font-weight: 600;
 }
