@@ -12,7 +12,6 @@ const URL_ORIGIN            = location.origin + location.pathname,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
 	  openFolderMsg         = 'Click to open a new root folder',
-	  openLastFolderMsg     = 'Click to open directory',
 	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
 
 const MODE_NODE = 1,  // Electron app or custom node.js file server
@@ -23,9 +22,7 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 	currentDirHandle,          // for File System API accesses
 	dblClickCallback,
 	enterDirCallback,
-	lastDir,				   // path to last used folder (File System API mode)
 	mounts            = [],
-	needsPermission   = false, // needs to request permission on File System API to open last directory?
 	nodeServer        = false, // using our custom server? (node server or Electron app)
 	ui_path,
 	ui_files,
@@ -66,39 +63,34 @@ function updateUI( content, scrollTop ) {
 		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : dir == '/' ? '' : '/' } `;
 	});
 
-	if ( needsPermission ) {
-		ui_files.innerHTML += `<li data-type="request" class="full-panel">${ openLastFolderMsg }</li>`;
-	}
-	else {
-		// mounting points
-		mounts.forEach( mount => {
-			ui_files.innerHTML += `<li data-type="mount" ${ useFileSystemAPI && ! currentDirHandle ? 'class="full-panel"' : '' } data-path="${mount}">[ ${mount} ]</li>`;
-		});
+	// mounting points
+	mounts.forEach( mount => {
+		ui_files.innerHTML += `<li data-type="mount" ${ useFileSystemAPI && ! currentDirHandle ? 'class="full-panel"' : '' } data-path="${mount}">[ ${mount} ]</li>`;
+	});
 
-		// link to parent directory
-		if ( currentPath.length > 1 )
-			ui_files.innerHTML += '<li data-type="dir" data-path="..">[ parent folder ]</li>';
+	// link to parent directory
+	if ( currentPath.length > 1 )
+		ui_files.innerHTML += '<li data-type="dir" data-path="..">[ parent folder ]</li>';
 
-		// current directory contents
-		if ( content ) {
-			const { cover, dirs, files } = content;
+	// current directory contents
+	if ( content ) {
+		const { cover, dirs, files } = content;
 
-			if ( dirs )
-				dirs.forEach( dir => addListItem( dir, 'dir' ) );
+		if ( dirs )
+			dirs.forEach( dir => addListItem( dir, 'dir' ) );
 
-			if ( files )
-				files.forEach( file => addListItem( file, 'file' ) );
+		if ( files )
+			files.forEach( file => addListItem( file, 'file' ) );
 
-			if ( useFileSystemAPI && cover ) {
-				cover.handle.getFile().then( fileBlob => {
-					const imgsrc = URL.createObjectURL( fileBlob );
-					setFileExplorerBgImage( imgsrc );
-	//				URL.revokeObjectURL( imgsrc );
-				});
-			}
-			else
-				setFileExplorerBgImage( cover ? makePath( cover ) : '' );
+		if ( useFileSystemAPI && cover ) {
+			cover.handle.getFile().then( fileBlob => {
+				const imgsrc = URL.createObjectURL( fileBlob );
+				setFileExplorerBgImage( imgsrc );
+//				URL.revokeObjectURL( imgsrc );
+			});
 		}
+		else
+			setFileExplorerBgImage( cover ? makePath( cover ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -456,12 +448,6 @@ export function create( container, options = {} ) {
 		if ( item && item.nodeName == 'LI' ) {
 			if ( item.dataset.type == 'dir' )
 				enterDir( item.handle || item.dataset.path );
-			else if ( item.dataset.type == 'request' ) {
-				if ( await lastDir[0].handle.requestPermission() == 'granted' ) {
-					needsPermission = false;
-					setPath( lastDir );
-				}
-			}
 			else if ( item.dataset.type == 'mount' ) {
 				if ( useFileSystemAPI ) {
 					try {
@@ -527,9 +513,6 @@ export function create( container, options = {} ) {
 						if ( supportsFileSystemAPI ) {
 							mounts = [ openFolderMsg ];
 							useFileSystemAPI = true;
-							lastDir = options.lastDir;
-							if ( Array.isArray( lastDir ) && lastDir[0] )
-								needsPermission = true;
 						}
 						else
 							mounts = [];

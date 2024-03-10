@@ -1774,7 +1774,7 @@ function loadFileBlob( fileBlob, audioEl, playIt ) {
  * Load a JSON-encoded object from localStorage
  *
  * @param {string} item key
- * @returns {object} parsed object
+ * @returns {Promise} a promise that resolves to the parsed object
  */
 async function loadFromStorage( key ) {
 	return JSON.parse( isElectron ? await electron.api( 'storage-get', key ) : localStorage.getItem( key ) );
@@ -4452,8 +4452,7 @@ function updateRangeValue( el ) {
 				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
 					saveLastDir( path );
 			},
-			forceFileSystemAPI,
-			lastDir: await get( KEY_LAST_DIR )
+			forceFileSystemAPI
 		}
 	).then( status => {
 		// set global variables
@@ -4472,10 +4471,8 @@ function updateRangeValue( el ) {
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
 
-		if ( ! isElectron ) {
+		if ( ! isElectron )
 			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
-			loadSavedPlaylists();
-		}
 
 		// initialize drag-and-drop in the file explorer
 		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
@@ -4521,8 +4518,32 @@ function updateRangeValue( el ) {
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( 'last', false, true );
 
-		if ( ! useFileSystemAPI )
-			fileExplorer.setPath( await loadFromStorage( KEY_LAST_DIR ) );
+		const filesPanel = $('#files_panel'),
+			  lastDir    = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) );
+
+		// helper function - enter last used directory and load saved playlists
+		const enterLastDir = () => {
+			if ( lastDir )
+				fileExplorer.setPath( lastDir );
+			if ( ! isElectron )
+				loadSavedPlaylists();
+		}
+
+		// helper function - request user permission to access local device (File System API)
+		const requestPermission = async () => {
+			if ( await lastDir[0].handle.requestPermission() == 'granted' ) {
+				filesPanel.classList.remove('locked');
+				window.removeEventListener( 'click', requestPermission );
+				enterLastDir();
+			}
+		}
+
+		if ( useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted' ) {
+			filesPanel.classList.add('locked');
+			window.addEventListener( 'click', requestPermission );
+		}
+		else
+			enterLastDir();
 
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );

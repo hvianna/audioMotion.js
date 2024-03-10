@@ -76,7 +76,7 @@ header ul:last-child {
     justify-self: right;
 }
 
-h1 {
+header h1 {
 	background-clip: text;
 	background-color: #0008;
 	color: transparent;
@@ -513,6 +513,7 @@ a.button:visited {
 	margin: 0 auto;
 	max-width: 1400px;
 	padding: 20px 0;
+	position: relative;
 }
 .file-panel p {
 	font-size: .92em;
@@ -929,6 +930,41 @@ kbd.wide {
 	content: '\f102';
 }
 
+.locked-panel {
+	align-items: center;
+	background: linear-gradient( 90deg, transparent, #000d 2%, #000d 98%, transparent );
+	color: #ccc;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	justify-content: center;
+	opacity: 0;
+	pointer-events: none;
+	position: absolute;
+	transition: .35s all;
+	width: 100%;
+	z-index: 1;
+}
+.locked-panel h1 {
+	font-size: 3em;
+	margin: .25em 0;
+}
+.locked-panel p {
+	font-size: 1em;
+}
+.locked-panel p strong {
+	color: #fff;
+	font-weight: 600;
+}
+.locked-panel svg {
+	fill: #ccc;
+	width: 3em;
+}
+.locked .locked-panel {
+	opacity: 1;
+	pointer-events: all;
+}
+
 #playlist li {
 	position: relative;
 }
@@ -1029,8 +1065,6 @@ kbd.wide {
 	background-clip: text;
 	display: inline;
 	font: 3em 'Orbitron', sans-serif;
-	margin: 0;
-	text-shadow: none;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
