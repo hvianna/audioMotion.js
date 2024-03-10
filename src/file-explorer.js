@@ -411,6 +411,24 @@ export async function setPath( path ) {
 	return success;
 }
 
+/**
+ * Switch between server and local mode
+ *
+ * @param {object} new path
+ */
+export function switchMode( newPath ) {
+	useFileSystemAPI = ! useFileSystemAPI;
+
+	currentPath = [];
+	currentDirHandle = null;
+	mounts = [ useFileSystemAPI ? openFolderMsg : defaultRoot ];
+
+	if ( newPath )
+		setPath( newPath );
+	else
+		updateUI();
+}
+
 
 /**
  * Constructor function

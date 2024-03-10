@@ -3679,15 +3679,18 @@ function setUIEventListeners() {
 	elOSD.addEventListener( 'click', () => toggleInfo() );
 
 	// use server/local music button
-	const btnToggleFS = $('#btn_toggle_filesystem');
+	const btnToggleFS = $('#btn_toggle_filesystem'),
+		  setToggleButtonText = () => btnToggleFS.innerText = `Switch to ${ useFileSystemAPI ? 'Server' : 'Device' }`;
 
 	if ( ! hasServerMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
 		btnToggleFS.style.display = 'none';
 	else {
-		btnToggleFS.innerText = 'Use ' + ( useFileSystemAPI ? 'server' : 'local' ) + ' music';
-		btnToggleFS.addEventListener( 'click', () => {
-			saveToStorage( KEY_FORCE_FS_API, ! useFileSystemAPI );
-			location.href = URL_ORIGIN; // reload app (removes query string parameters)
+		setToggleButtonText();
+		btnToggleFS.addEventListener( 'click', async () => {
+			useFileSystemAPI = ! useFileSystemAPI;
+			saveToStorage( KEY_FORCE_FS_API, useFileSystemAPI );
+			fileExplorer.switchMode( await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) ) );
+			setToggleButtonText();
 		});
 	}
 
