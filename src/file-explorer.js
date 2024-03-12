@@ -22,6 +22,7 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 	currentDirHandle,          // for File System API accesses
 	dblClickCallback,
 	enterDirCallback,
+	fileExtensions    = /.*/,
 	mounts            = [],
 	nodeServer        = false, // using our custom server? (node server or Electron app)
 	ui_path,
@@ -322,8 +323,7 @@ export function parseWebIndex( content ) {
  */
 export function parseDirectory( content ) {
 
-	const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
-	const audioExtensions = /\.(mp3|flac|m4a|aac|ogg|wav|m3u|m3u8|mkv|mpg|webm|mp4|avi|mov)$/i;
+	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
 
 	let files = [],
 		dirs  = [],
@@ -331,7 +331,7 @@ export function parseDirectory( content ) {
 
 	// helper function
 	const findImg = ( arr, pattern ) => {
-		const regexp = new RegExp( `${pattern}.*${imageExtensions.source}`, 'i' );
+		const regexp = new RegExp( `${pattern}.*${coverExtensions.source}`, 'i' );
 		return arr.find( el => ( el.name || el ).match( regexp ) );
 	}
 
@@ -340,9 +340,9 @@ export function parseDirectory( content ) {
 			if ( handle instanceof FileSystemDirectoryHandle )
 				dirs.push( { name, handle } );
 			else if ( handle instanceof FileSystemFileHandle ) {
-				if ( name.match( imageExtensions ) )
+				if ( name.match( coverExtensions ) )
 					imgs.push( { name, handle } );
-				else if ( name.match( audioExtensions ) )
+				if ( name.match( fileExtensions ) )
 					files.push( { name, handle } );
 			}
 		}
@@ -358,9 +358,9 @@ export function parseDirectory( content ) {
 				}
 			}
 			else {
-				if ( file.match( imageExtensions ) )
+				if ( file.match( coverExtensions ) )
 					imgs.push( file );
-				else if ( file.match( audioExtensions ) )
+				if ( file.match( fileExtensions ) )
 					files.push( file );
 			}
 		}
@@ -383,6 +383,15 @@ export function parseDirectory( content ) {
  */
 export function refresh() {
 	enterDir( null, ui_files.scrollTop );
+}
+
+/**
+ * Set or change the file extensions recognized by the file explorer
+ *
+ * @param {array}
+ */
+export function setFileExtensions( validExtensions ) {
+	fileExtensions = new RegExp( '\\.(' + validExtensions.join('|') + ')$', 'i' );
 }
 
 /**
@@ -498,6 +507,9 @@ export function create( container, options = {} ) {
 
 	if ( typeof options.onEnterDir == 'function' )
 		enterDirCallback = options.onEnterDir;
+
+	if ( options.fileExtensions )
+		setFileExtensions( options.fileExtensions );
 
 	return new Promise( resolve => {
 		fetch( '/serverInfo' )

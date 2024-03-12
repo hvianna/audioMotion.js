@@ -101,6 +101,12 @@ const COLOR_GRADIENT = 'gradient',
 // Error codes
 const ERR_ABORT = 20; // AbortError
 
+// Recognized file extensions
+const FILE_EXT_IMAGE = ['jpg','jpeg','webp','avif','png','gif','bmp'],
+	  FILE_EXT_MUSIC = ['mp3','flac','m4a','aac','ogg','wav'],
+	  FILE_EXT_PLIST = ['m3u','m3u8'],
+	  FILE_EXT_VIDEO = ['mkv','mpg','webm','mp4','avi','mov'];
+
 // File mode access options
 const FILEMODE_SERVER = 'server',
 	  FILEMODE_LOCAL  = 'local';
@@ -210,6 +216,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
+	  elEnableVideo   = $('#enable_video'),
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
@@ -676,16 +683,17 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elEnableVideo, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
-	fftSize  : 8192,
-	fsHeight : 100,
-	maxFPS   : 60,
-	pipRatio : 2.35,
-	saveDir  : true,
-	saveQueue: true,
-	smoothing: .7,
+	enableVideo: false,
+	fftSize    : 8192,
+	fsHeight   : 100,
+	maxFPS     : 60,
+	pipRatio   : 2.35,
+	saveDir    : true,
+	saveQueue  : true,
+	smoothing  : .7,
 }
 
 const maxFpsOptions = [
@@ -1081,7 +1089,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 
 	let ret;
 
-	if ( ['m3u','m3u8'].includes( parsePath( fileObject.file ).extension ) )
+	if ( FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
 		ret = loadPlaylist( fileObject, autoplay );
 	else
 		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ), autoplay );
@@ -1905,7 +1913,7 @@ function loadPlaylist( fileObject, autoplay = false ) {
 		if ( ! path ) {
 			resolve( -1 );
 		}
-		else if ( typeof path == 'string' && ['m3u','m3u8'].includes( parsePath( path ).extension ) ) {
+		else if ( typeof path == 'string' && FILE_EXT_PLIST.includes( parsePath( path ).extension ) ) {
 			if ( fileObject.handle ) {
 				fileObject.handle.getFile()
 					.then( fileBlob => fileBlob.text() )
@@ -2961,13 +2969,14 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
-			fftSize  : elFFTsize.value,
-			fsHeight : elFsHeight.value,
-			maxFPS   : elMaxFPS.value,
-			pipRatio : elPIPRatio.value,
-			saveDir  : elSaveDir.checked,
-			saveQueue: elSaveQueue.checked,
-			smoothing: elSmoothing.value
+			enableVideo: elEnableVideo.checked,
+			fftSize    : elFFTsize.value,
+			fsHeight   : elFsHeight.value,
+			maxFPS     : elMaxFPS.value,
+			pipRatio   : elPIPRatio.value,
+			saveDir    : elSaveDir.checked,
+			saveQueue  : elSaveQueue.checked,
+			smoothing  : elSmoothing.value
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -3127,13 +3136,14 @@ function setCurrentCover() {
  * Set general configuration options
  */
 function setGeneralOptions( options ) {
-	elFFTsize.value     = options.fftSize;
-	elFsHeight.value    = options.fsHeight;
-	elMaxFPS.value      = options.maxFPS;
-	elPIPRatio.value    = options.pipRatio;
-	elSaveDir.checked   = options.saveDir;
-	elSaveQueue.checked = options.saveQueue;
-	elSmoothing.value   = options.smoothing;
+	elEnableVideo.checked = options.enableVideo;
+	elFFTsize.value       = options.fftSize;
+	elFsHeight.value      = options.fsHeight;
+	elMaxFPS.value        = options.maxFPS;
+	elPIPRatio.value      = options.pipRatio;
+	elSaveDir.checked     = options.saveDir;
+	elSaveQueue.checked   = options.saveQueue;
+	elSmoothing.value     = options.smoothing;
 }
 
 /**
@@ -3242,6 +3252,11 @@ function setProperty( elems, save = true ) {
 
 			case elColorMode:
 				audioMotion.colorMode = getControlValue( elColorMode );
+				break;
+
+			case elEnableVideo:
+				fileExplorer.setFileExtensions( [ ...FILE_EXT_MUSIC, ...FILE_EXT_PLIST, ...( elEnableVideo.checked ? FILE_EXT_VIDEO : [] ) ] );
+				fileExplorer.refresh();
 				break;
 
 			case elFillAlpha:
@@ -4400,8 +4415,8 @@ function updateRangeValue( el ) {
 	const bgDirPromise = fetch( BG_DIRECTORY )
 		.then( response => response.text() )
 		.then( content => {
-			const imageExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
-				  videoExtensions = /\.(mp4|webm|mov)$/i;
+			const imageExtensions = new RegExp( '\\.(' + FILE_EXT_IMAGE.join('|') + ')$', 'i' ),
+				  videoExtensions = new RegExp( '\\.(' + FILE_EXT_VIDEO.join('|') + ')$', 'i' );
 
 			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
 				if ( imageExtensions.test( file ) )
@@ -4484,6 +4499,7 @@ function updateRangeValue( el ) {
 				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
 					saveLastDir( path );
 			},
+			fileExtensions: [ ...FILE_EXT_MUSIC, ...FILE_EXT_PLIST, ...( elEnableVideo.checked ? FILE_EXT_VIDEO : [] ) ],
 			forceFileSystemAPI
 		}
 	).then( status => {
