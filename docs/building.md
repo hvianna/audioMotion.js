@@ -24,3 +24,39 @@ npm run build
 
 This will generate the files `audioMotion.js`, `vendors.js` and `styles.css` into the [public/](../public) folder.
 
+
+## Making the binaries
+
+!> This section refers to the native application built with Electron, which development is currently on hold.
+
+Source code specific to the Electron app is in the `app/` directory.
+
+After building the web app, you can generate the full application with:
+
+```
+npm run package
+```
+
+This uses Electron Forge to create the native application files in the `out/` folder.
+
+You can then generate the binaries / executables with:
+
+```
+npm run make
+```
+
+This will create a distributable installer in the `out/make/` folder.
+
+The project's `package.json` includes configurations for generating distributables for Windows, Linux (Debian and RedHat), and macOS.
+
+Platform requirements:
+
+Maker    | Target platform | Platform required for building
+---------|-----------------|-------------------------------
+squirrel | Windows         | Windows machine, or Linux or macOS machine with `mono` and `wine` installed
+deb      | Debian          | Linux or macOS machine with the `fakeroot` and `dpkg` packages installed
+rpm      | RedHat          | Linux machine with the `rpm` or `rpm-build` packages installed
+dmg      | macOS           | macOS machine with Xcode installed
+
+Please refer to Electron Forge's [Makers documentation](https://www.electronforge.io/config/makers) for additional information and other available platforms.
+
