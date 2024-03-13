@@ -500,7 +500,7 @@ const presets = [
 			showFPS      : 0,
 			showPeaks    : 1,
 			showScaleX   : 1,
-			showScaleY   : 1,
+			showScaleY   : 0,
 			showSong     : 1,
 			spin         : 2,
 			splitGrad    : 0,
@@ -664,7 +664,7 @@ const sensitivityDefaults = [
 const infoDisplayDefaults = {
 	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
 	track : 10,   // display time (secs) on track change
-	end   : 0,    // display time (secs) at the end of the song
+	end   : 10,   // display time (secs) at the end of the song
 	covers: true, // show album covers in song information
 	count : true  // show song number and play queue count
 }
