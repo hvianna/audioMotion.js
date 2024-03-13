@@ -3718,9 +3718,14 @@ function setUIEventListeners() {
 		setToggleButtonText();
 		btnToggleFS.addEventListener( 'click', async () => {
 			useFileSystemAPI = ! useFileSystemAPI;
-			saveToStorage( KEY_FORCE_FS_API, useFileSystemAPI );
-			fileExplorer.switchMode( await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) ) );
-			setToggleButtonText();
+			const lastDir = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) );
+			if ( ! useFileSystemAPI || ! lastDir || await lastDir[0].handle.requestPermission() == 'granted' ) {
+				fileExplorer.switchMode( lastDir );
+				setToggleButtonText();
+				saveToStorage( KEY_FORCE_FS_API, useFileSystemAPI );
+			}
+			else // revert on permission deny
+				useFileSystemAPI = false;
 		});
 	}
 
@@ -4573,12 +4578,12 @@ function updateRangeValue( el ) {
 		const filesPanel = $('#files_panel'),
 			  lastDir    = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) );
 
-		// helper function - enter last used directory and load saved playlists
+		// helper function - enter last used directory and load saved play queue
 		const enterLastDir = () => {
 			if ( lastDir )
 				fileExplorer.setPath( lastDir );
 			if ( elSaveQueue.checked )
-				loadPlaylist( { file: true } ); // load last play queue
+				loadPlaylist( { file: true } );
 		}
 
 		// helper function - request user permission to access local device (File System API)
