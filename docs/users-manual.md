@@ -314,7 +314,7 @@ visualization of frequencies to which the human ear is more or less sensitive.
 
 ![weighting-filters-curves](img/weighting-filters-curves.png)
 
-?> Weighting filters **do NOT** affect the audio output.
+?> Weighting filters **do NOT** affect audio output. Some filters may impact performance, due to increased real-time data processing.
 
 ### Channel Layout
 
@@ -329,7 +329,7 @@ Selects single or dual channel display, with different layout options:
 | **HORIZ** | Dual channel, side by side - see [Mirror](#mirror) for additional layout options.
 | **VERT**  | Dual channel, left channel at the top half of the canvas and right channel at the bottom.
 
-This setting does NOT affect the audio output of stereo songs.
+The channel layout setting does NOT affect stereo audio output.
 
 ### Switches
 
@@ -338,7 +338,7 @@ This setting does NOT affect the audio output of stereo songs.
 | Switch      | Description |
 |:------------|:------------|
 | **INFO**    | Toggle on-screen display of song information on every track change
-| **PEAKS**   | Toggle display of amplitude peaks for each frequency
+| **PEAKS**   | Toggle display of amplitude peaks
 | **SCALE&nbsp;X** | Toggle display of scale on the horizontal axis (frequency)
 | **NOTES**   | Switch between musical notes and frequency values for the labels displayed in the horizontal axis scale
 | **SCALE&nbsp;Y** | Toggle display of scale on the vertical axis (level/volume)
@@ -346,15 +346,13 @@ This setting does NOT affect the audio output of stereo songs.
 | **ANSI**    | Switch between [ANSI/IEC preferred frequencies](https://archive.org/details/gov.law.ansi.s1.11.2004) and [equal-tempered scale](http://hyperphysics.phy-astr.gsu.edu/hbase/Music/et.html) to generate octave bands
 | **FPS**     | Toggle display of current frame rate at the top right corner
 | **FLAT**    | Switch between outlined (on) or shadowed (off) text for messages displayed on canvas (shadowed mode may affect performance on some graphics cards)
-| **LO-RES**  | Toggle low resolution rendering to improve rendering speed (especially useful for 4K+ displays)
-
-| Switch      | Description | Example |
-|:------------|:------------|:-------:|
-| **ALPHA**   | Toggle varying bar transparency - the higher the bar amplitude the more opaque it is | <img src="img/alpha-on-off.webp" width="360">
-| **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height (no effect with RADIAL) | <img src="img/screenshot5.png" width="360">
-| **LEDS**    | Toggle vintage LED effect for the analyzer bars | <img src="img/leds.png" width="360">
-| **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings | <img src="img/outline.png" width="360">
-| **RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This mode disables both LEDS and LUMI effects.** | <img src="img/screenshot7.png" width="360">
+| **LO-RES**  | Toggle low resolution mode (may improve performance, especially on 4K+ displays)
+| **ALPHA**   | Toggle variable bar transparency - the higher the bar amplitude the more opaque it is
+| **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height (no effect with RADIAL)
+| **LEDS**    | Toggle LED effect for the analyzer bars (bands modes only, no effect with RADIAL)
+| **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings (bands modes only)
+| **RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.**
+| **ROUND**   | Toggle rounded corners at the top of analyzer bars (bands modes only)
 
 
 ## Console
@@ -430,7 +428,11 @@ You can also use the **Shift** + **Up** and **Down** arrows to adjust the analyz
 **Maximum frame rate (FPS)** allows you to control the maximum animation frame rate, in frames per second.
 'Unlimited' will try to match your monitor's refresh rate, but may result in high CPU usage.
 
-**Remember last music folder**, when checked, will cause the file explorer to start in the last previously used folder, when opening audioMotion again.
+**Show video files** - whether or not to show video files in the file explorer.
+
+**Remember play queue contents** - whether or not to automatically restore the contents of the play queue the next time you open audioMotion.
+
+**Remember last music folder** - whether or not to start the file explorer in the last previously used folder the next time you open audioMotion.
 
 The **Reset to defaults** button will reset all settings in this section to their default values.
 
