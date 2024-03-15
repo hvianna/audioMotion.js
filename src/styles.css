@@ -471,7 +471,8 @@ a.button:visited {
 .general-settings input[type="number"],
 .general-settings input[type="range"],
 .general-settings select {
-	width: 75px;
+	margin: 2px 0;
+	width: 90px;
 }
 
 .general-settings label {

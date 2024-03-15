@@ -53,8 +53,7 @@ const isElectron  = 'electron' in window,
 	  VERSION     = packageJson.version;
 
 const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
-	  MAX_BG_MEDIA_FILES    = 20,			// max number of media files (images and videos) selectable as background
-	  MAX_METADATA_REQUESTS = 4,
+	  MAX_METADATA_REQUESTS = 4,	// max concurrent metadata requests
 	  MAX_QUEUED_SONGS      = 1000;
 
 // Background option values
@@ -63,6 +62,11 @@ const BG_DEFAULT = '0',
 	  BG_COVER   = '2',
 	  BG_IMAGE   = '3',
 	  BG_VIDEO   = '4';
+
+// Backgrounds folder options
+const BGFOLDER_NONE   = '0',
+	  BGFOLDER_SERVER = '1',
+	  BGFOLDER_LOCAL  = '2';
 
 // Background image fit option values
 const BGFIT_ADJUST   = '0',
@@ -111,8 +115,9 @@ const FILE_EXT_IMAGE = ['jpg','jpeg','webp','avif','png','gif','bmp'],
 const FILEMODE_SERVER = 'server',
 	  FILEMODE_LOCAL  = 'local';
 
-// localStorage / indexedDB keys
-const KEY_CUSTOM_GRADS   = 'custom-grads',
+// localStorage and indexedDB keys
+const KEY_BG_DIR_HANDLE  = 'bgDir',
+	  KEY_CUSTOM_GRADS   = 'custom-grads',
 	  KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
 	  KEY_DISABLED_GRADS = 'disabled-gradients',
@@ -212,6 +217,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elBarSpace      = $('#bar_space'),
 	  elBgImageDim    = $('#bg_img_dim'),
 	  elBgImageFit    = $('#bg_img_fit'),
+	  elBgLocation    = $('#bg_location'),
+	  elBgMaxItems    = $('#bg_max_items'),
 	  elChnLayout     = $('#channel_layout'),
 	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
@@ -683,9 +690,11 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elEnableVideo, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elBgLocation, elBgMaxItems, elEnableVideo, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
+	bgLocation : BGFOLDER_SERVER,
+	bgMaxItems : 20,
 	enableVideo: false,
 	fftSize    : 8192,
 	fsHeight   : 100,
@@ -2044,6 +2053,14 @@ async function loadPreferences() {
 
 	populateSelect( elMaxFPS, maxFpsOptions );
 
+	populateSelect( elBgLocation, [
+		[ BGFOLDER_NONE,   'Disable' ],
+		[ BGFOLDER_SERVER, 'Server' ],
+		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local device' ] : [] ) ]
+	]);
+
+	setRangeAtts( elBgMaxItems, 0, 100 );
+
 	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
 	return isLastSession;
@@ -2406,6 +2423,38 @@ function playSong( n ) {
 }
 
 /**
+ * Populate background selection
+ * uses `bgImages` and `bgVideos` globals
+ */
+function populateBackgrounds() {
+	// basic background options
+	let bgOptions = [
+		{ value: BG_COVER,   text: 'Album cover'      },
+		{ value: BG_BLACK,   text: 'Black'            },
+		{ value: BG_DEFAULT, text: 'Gradient default' }
+	];
+
+	const basicCount = bgOptions.length,
+		  imageCount = bgImages.length,
+		  videoCount = bgVideos.length;
+
+	// add image and video files from the backgrounds folder
+	bgOptions = [
+		...bgOptions,
+		...bgImages.map( ( item, idx ) => ({ value: BG_IMAGE + item.name, text: '🖼️ ' + item.name, idx }) ),
+		...bgVideos.map( ( item, idx ) => ({ value: BG_VIDEO + item.name, text: '🎬 ' + item.name, idx }) )
+	].slice( 0, basicCount + +elBgMaxItems.value ); // coerce field value to number
+
+	if ( videoCount )
+		bgOptions.splice( basicCount, 0, { value: BG_VIDEO, text: 'Random video' } );
+
+	if ( imageCount )
+		bgOptions.splice( basicCount, 0, { value: BG_IMAGE, text: 'Random image' } );
+
+	populateSelect( elBackground, bgOptions ); // add more background options
+}
+
+/**
  * Populate a custom radio buttons element
  *
  * @param element {object}
@@ -2510,20 +2559,22 @@ function populateGradients() {
  * Populate a select element
  *
  * @param element {object}
- * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
- * @param keep {boolean}  whether to keep existing content
+ * @param options {array} array of `[ value, text ]` arrays or `{ value, text, disabled?, idx? }` objects
  */
-function populateSelect( element, options, keep ) {
-	const oldValue = element.value,
-		  isObject = ! Array.isArray( options[0] );
+function populateSelect( element, options ) {
+	const oldValue = element.value;
 
-	if ( ! keep )
-		deleteChildren( element );
+	if ( ! Array.isArray( options ) )
+		options = [ options ]; // ensure options is an array
 
-	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
+	deleteChildren( element );
+
+	for ( const item of options.filter( i => i && ! i.disabled ) ) {
 		const option = new Option( item.text || item[1], item.value || item[0] );
 		if ( item[0] === null )
 			option.disabled = true;
+		if ( item.idx !== undefined )
+			option.idx = item.idx; // index to bgImages or bgVideos arrays (for backgrounds select element only)
 		element[ element.options.length ] = option;
 	}
 
@@ -2761,6 +2812,71 @@ function renderColorRow(index, stop) {
 }
 
 /**
+ * Retrieve image and video files from the selected backgrounds folder
+ * Data is stored in the `bgImages` and `bgVideos` global arrays
+ */
+async function retrieveBackgrounds() {
+	const bgLocation = elBgLocation.value,
+		  imageExtensions = new RegExp( '\\.(' + FILE_EXT_IMAGE.join('|') + ')$', 'i' ),
+		  videoExtensions = new RegExp( '\\.(' + FILE_EXT_VIDEO.join('|') + ')$', 'i' );
+
+	bgImages = [];
+	bgVideos = [];
+
+	if ( bgLocation == BGFOLDER_SERVER ) {
+		try {
+			const response = await fetch( BG_DIRECTORY ),
+				  content  = await response.text();
+
+			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
+				const name = parsePath( file ).baseName,
+					  url  = BG_DIRECTORY + '/' + encodeURIComponent( file );
+
+				if ( imageExtensions.test( file ) )
+					bgImages.push( { name, url } );
+				else if ( videoExtensions.test( file ) )
+					bgVideos.push( { name, url } );
+			}
+		}
+		catch( e ) {} // fail silently (possibly directory not found on server)
+	}
+	else if ( bgLocation == BGFOLDER_LOCAL ) {
+		const bgDirHandle = await get( KEY_BG_DIR_HANDLE );
+
+		try {
+			if ( bgDirHandle ) {
+				for await ( const [ name, handle ] of bgDirHandle.entries() ) {
+					if ( handle instanceof FileSystemFileHandle ) {
+						const isImage = imageExtensions.test( name ),
+							  isVideo = videoExtensions.test( name );
+
+						if ( isImage || isVideo ) {
+							const file = await handle.getFile(),
+								  url  = URL.createObjectURL( file );
+
+							if ( isImage )
+								bgImages.push( { name, url } );
+							else
+								bgVideos.push( { name, url } );
+						}
+					}
+				}
+			}
+		}
+		catch( e ) {} // needs permission to access local device
+	}
+
+	if ( bgLocation != BGFOLDER_NONE ) {
+		const imageCount = bgImages.length,
+			  videoCount = bgVideos.length;
+
+		consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
+	}
+
+	populateBackgrounds();
+}
+
+/**
  * Retrieve metadata for files in the play queue
  */
 async function retrieveMetadata() {
@@ -2969,6 +3085,8 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
+			bgLocation : elBgLocation.value,
+			bgMaxItems : elBgMaxItems.value,
 			enableVideo: elEnableVideo.checked,
 			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
@@ -3136,6 +3254,8 @@ function setCurrentCover() {
  * Set general configuration options
  */
 function setGeneralOptions( options ) {
+	elBgLocation.value    = options.bgLocation;
+	elBgMaxItems.value    = options.bgMaxItems;
 	elEnableVideo.checked = options.enableVideo;
 	elFFTsize.value       = options.fftSize;
 	elFsHeight.value      = options.fsHeight;
@@ -3193,9 +3313,8 @@ function setProperty( elems, save = true ) {
 
 			case elBackground:
 				const bgOption  = elBackground.value[0],
+					  index     = elBackground[ elBackground.selectedIndex ].idx,
 					  isOverlay = bgOption != BG_DEFAULT && bgOption != BG_BLACK;
-
-				let filename = elBackground.value.slice(1);
 
 				audioMotion.overlay = isOverlay;
 				audioMotion.showBgColor = bgOption == BG_DEFAULT;
@@ -3204,22 +3323,19 @@ function setProperty( elems, save = true ) {
 					setBackgroundImage(); // clear background image
 					elVideo.style.display = ''; // enable display of video layer
 
-					if ( ! filename )
-						filename = bgVideos[ randomInt( bgVideos.length ) ]; // pick a new random video from the list
+					// if there's no index, pick a random video from the array
+					const url = bgVideos[ index === undefined ? randomInt( bgVideos.length ) : index ].url;
 
-					if ( ! decodeURIComponent( elVideo.src ).endsWith( filename ) ) // avoid restarting the video if it's the same file already in use
-						elVideo.src = BG_DIRECTORY + '/' + encodeURIComponent( filename );
+					if ( ! elVideo.src.endsWith( url ) ) // avoid restarting the video if it's the same file already in use
+						elVideo.src = url;
 				}
 				else {
 					elVideo.style.display = 'none'; // hide video layer
 					if ( isOverlay ) {
-						if ( bgOption == BG_IMAGE && ! filename )
-							filename = bgImages[ randomInt( bgImages.length ) ];
-
-						if ( filename )
-							filename = BG_DIRECTORY + '/' + encodeURIComponent( filename );
-
-						setBackgroundImage( filename || coverImage.src );
+						if ( bgOption == BG_COVER )
+							setBackgroundImage( coverImage.src );
+						else
+							setBackgroundImage( bgImages[ index === undefined ? randomInt( bgImages.length ) : index ].url );
 					}
 					else
 						setBackgroundImage();
@@ -3239,6 +3355,29 @@ function setProperty( elems, save = true ) {
 
 			case elBgImageDim:
 				elDim.style.background = `rgba(0,0,0,${ 1 - elBgImageDim.value })`;
+				break;
+
+			case elBgLocation:
+				if ( elBgLocation.value == BGFOLDER_LOCAL ) {
+					window.showDirectoryPicker({ startIn: 'pictures' })
+						.then( handle => {
+							set( KEY_BG_DIR_HANDLE, handle );
+						})
+						.catch( e => {
+							// disable if user denies access
+							elBgLocation.value = BGFOLDER_NONE;
+							del( KEY_BG_DIR_HANDLE );
+						})
+						.finally( () => retrieveBackgrounds() );
+				}
+				else {
+					del( KEY_BG_DIR_HANDLE );
+					retrieveBackgrounds();
+				}
+				break;
+
+			case elBgMaxItems:
+				populateBackgrounds();
 				break;
 
 			case elBarSpace:
@@ -4263,6 +4402,31 @@ function updateRangeValue( el ) {
 
 	$('#version').innerText = VERSION;
 
+	// Load server configuration options from config.json
+	const response = await fetch( SERVERCFG_FILE );
+
+	let serverConfig = response.status == 200 ? await response.text() : null;
+	try {
+		serverConfig = JSON.parse( serverConfig );
+	}
+	catch( err ) {
+		consoleLog( `Error parsing ${ SERVERCFG_FILE } - ${ err }`, true );
+		serverConfig = {};
+	}
+
+	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
+
+	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
+
+	// Check if `mode` URL parameter is used to request local or server filesystem
+	const urlParams = new URL( document.location ).searchParams,
+		  userMode  = urlParams.get('mode');
+
+	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
+
+	if ( forceFileSystemAPI === null )
+		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
+
 	// Load preferences from localStorage
 	if ( isElectron )
 		consoleLog( `Reading user preferences from ${ await electron.api('storage-info') }` );
@@ -4380,12 +4544,6 @@ function updateRangeValue( el ) {
 		[ '2', 'Full' ]
 	]);
 
-	populateSelect(	elBackground, [
-		[ BG_COVER,   'Album cover'      ],
-		[ BG_BLACK,   'Black'            ],
-		[ BG_DEFAULT, 'Gradient default' ]
-	]);
-
 	populateSelect( elBgImageFit, bgFitOptions );
 
 	populateCustomRadio( elMirror, [
@@ -4416,38 +4574,6 @@ function updateRangeValue( el ) {
 		[ COLOR_LEVEL,    'Level' ]
 	]);
 
-	// Check the backgrounds directory for additional background options (images and videos)
-	const bgDirPromise = fetch( BG_DIRECTORY )
-		.then( response => response.text() )
-		.then( content => {
-			const imageExtensions = new RegExp( '\\.(' + FILE_EXT_IMAGE.join('|') + ')$', 'i' ),
-				  videoExtensions = new RegExp( '\\.(' + FILE_EXT_VIDEO.join('|') + ')$', 'i' );
-
-			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
-				if ( imageExtensions.test( file ) )
-					bgImages.push( file );
-				else if ( videoExtensions.test( file ) )
-					bgVideos.push( file );
-			}
-
-			const imageCount = bgImages.length,
-				  videoCount = bgVideos.length,
-				  bgOptions  = bgImages.map( fn => [ BG_IMAGE + fn, '🖼️ ' + parsePath( fn ).baseName ] ).concat(
-							   bgVideos.map( fn => [ BG_VIDEO + fn, '🎬 ' + parsePath( fn ).baseName ] )
-							   ).slice( 0, MAX_BG_MEDIA_FILES );
-
-			if ( videoCount )
-				bgOptions.splice( 0, 0, [ BG_VIDEO, 'Random video' ] );
-
-			if ( imageCount )
-				bgOptions.splice( 0, 0, [ BG_IMAGE, 'Random image' ] );
-
-			consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
-
-			populateSelect( elBackground, bgOptions, true ); // add more background options
-		})
-		.catch( e => {} ); // fail silently
-
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
 	setRangeAtts( elLineWidth, 1, 3, .5 );
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
@@ -4466,31 +4592,6 @@ function updateRangeValue( el ) {
 
 	// Set audio source to built-in player
 	setSource();
-
-	// Load server configuration options from config.json
-	const response = await fetch( SERVERCFG_FILE );
-
-	let serverConfig = response.status == 200 ? await response.text() : null;
-	try {
-		serverConfig = JSON.parse( serverConfig );
-	}
-	catch( err ) {
-		consoleLog( `Error parsing ${ SERVERCFG_FILE } - ${ err }`, true );
-		serverConfig = {};
-	}
-
-	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
-
-	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
-
-	// Check if `mode` URL parameter is used to request local or server filesystem
-	const urlParams = new URL( document.location ).searchParams,
-		  userMode  = urlParams.get('mode');
-
-	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
-
-	if ( forceFileSystemAPI === null )
-		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
 
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
@@ -4571,13 +4672,7 @@ function updateRangeValue( el ) {
 	});
 
 	// Wait for all async operations to finish before loading the last used settings
-	Promise.all( [ bgDirPromise, fileExplorerPromise ] ).then( async () => {
-		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
-		loadPreset( 'last', false, true );
-
-		const filesPanel = $('#files_panel'),
-			  lastDir    = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) );
-
+	Promise.all( [ retrieveBackgrounds(), fileExplorerPromise ] ).then( async () => {
 		// helper function - enter last used directory and load saved play queue
 		const enterLastDir = () => {
 			if ( lastDir )
@@ -4588,14 +4683,28 @@ function updateRangeValue( el ) {
 
 		// helper function - request user permission to access local device (File System API)
 		const requestPermission = async () => {
-			if ( await lastDir[0].handle.requestPermission() == 'granted' ) {
+			const isClear = ( ! isBgDirLocked || await bgDirHandle.requestPermission() == 'granted' ) &&
+							( ! isLastDirLocked || await lastDir[0].handle.requestPermission() == 'granted' );
+
+			if ( isClear ) {
 				filesPanel.classList.remove('locked');
 				window.removeEventListener( 'click', requestPermission );
+				if ( isBgDirLocked )
+					retrieveBackgrounds();
 				enterLastDir();
 			}
 		}
 
-		if ( useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted' ) {
+		const filesPanel      = $('#files_panel'),
+			  lastDir         = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) ),
+			  bgDirHandle     = await get( KEY_BG_DIR_HANDLE ),
+			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
+			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
+
+		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
+		loadPreset( 'last', false, true );
+
+		if ( isBgDirLocked || isLastDirLocked ) {
 			filesPanel.classList.add('locked');
 			window.addEventListener( 'click', requestPermission );
 		}
