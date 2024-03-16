@@ -2892,46 +2892,42 @@ async function retrieveMetadata() {
 
 	if ( queueItem ) {
 
-		const uri = queueItem.dataset.file;
-
-		const consumeMetadata = metadata => {
-			if ( metadata ) {
-				addMetadata( metadata, queueItem ); // add metadata to play queue item
-				syncMetadataToAudioElements( queueItem );
-				if ( ! queueItem.handle && ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-					getFolderCover( uri ).then( cover => {
-						queueItem.dataset.cover = cover;
-						syncMetadataToAudioElements( queueItem );
-					});
-				}
-			}
-		}
-
-		const processNext = () => {
-			waitingMetadata--;
-			retrieveMetadata(); // call again to continue processing the queue
-		}
+		let uri    = queueItem.dataset.file,
+			revoke = false;
 
 		waitingMetadata++;
 		delete queueItem.dataset.retrieve;
 
-		if ( queueItem.handle ) {
-			await queueItem.handle.requestPermission();
-			queueItem.handle.getFile()
-				.then( fileBlob => {
-					mm.parseBlob( fileBlob )
-						.then( consumeMetadata )
-						.catch( e => {} );
-				})
-				.catch( e => {} )
-				.finally( processNext );
+		queryMetadata: {
+			if ( queueItem.handle ) {
+				if ( await queueItem.handle.requestPermission() != 'granted' )
+					break queryMetadata;
+
+				uri = URL.createObjectURL( await queueItem.handle.getFile() );
+				revoke = true;
+			}
+
+			try {
+				const metadata = await mm.fetchFromUrl( uri, { skipPostHeaders: true } );
+				if ( metadata ) {
+					addMetadata( metadata, queueItem ); // add metadata to play queue item
+					syncMetadataToAudioElements( queueItem );
+					if ( ! queueItem.handle && ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+						getFolderCover( uri ).then( cover => {
+							queueItem.dataset.cover = cover;
+							syncMetadataToAudioElements( queueItem );
+						});
+					}
+				}
+			}
+			catch( e ) {}
+
+			if ( revoke )
+				URL.revokeObjectURL( uri );
 		}
-		else {
-			mm.fetchFromUrl( uri, { skipPostHeaders: true } )
-				.then( consumeMetadata )
-				.catch( e => {} )
-				.finally( processNext );
-		}
+
+		waitingMetadata--;
+		retrieveMetadata(); // call again to continue processing the queue
 	}
 }
 
