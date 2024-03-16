@@ -5,9 +5,9 @@ If you'd like to host the audioMotion app in your own web server:
 + Clone the [project from GitHub](https://github.com/hvianna/audioMotion.js) or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/).
 + Copy the `public` folder to the document root of your web server - you can rename it to anything you want;
 + Add your music files to the `music` folder (or create an **alias** to map the `/music` URL to another folder - see [configuration examples](#server-configuration-examples) below);
-+ Add image and video files to the `backgrounds` folder, to be used as [background options](users-manual.md#background) in the player Settings.
++ Add image and video files to the `backgrounds` folder, to be used as [Background](users-manual.md#background) options.
 
-?> Directory listing must be enabled for the file explorer to work - the included `.htaccess` file should do the trick if you're using an Apache-compatible web server.
+?> Directory listing must be enabled for the file explorer to work - the included `.htaccess` file should be enough if you're using an Apache-compatible web server.
 
 !> **Playlists, Presets and Custom gradients** are saved to the browser's storage and will only be accessible in the same browser they were saved.
 The storage is also tied to the server **address and port**, so if any of those change, data saved on a different address/port won't be accessible.

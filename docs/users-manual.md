@@ -56,6 +56,8 @@ The file explorer allows you to navigate through the music folder shared by the 
 
 Supported file extensions are **flac**, **m4a**, **mp3**, **ogg** and **wav** for music files, and **m3u** or **m3u8** for playlists.
 
+You can also enable support for video file extensions in [Config panel - General settings](#general-settings).
+
 Any image file found in the current folder will be shown in the background of the file explorer, giving preference to filenames containing the words *cover*,
 *folder* or *front* (in this order).
 
@@ -65,10 +67,11 @@ You can drag and drop selected files into the play queue, or use the buttons:
 
 | button | action |
 |:-------|:-------|
-| **Upload file** | Play any music file from your computer, even if it's not in the shared folder. Uploaded files can't be added to queue or saved to playlists. |
-| **Add from URL** | Load a remote audio file or stream from an URL |
-| **Add selected** | Add currently selected files in the file explorer to the play queue |
-| **Add all files** | Add all files in the current folder to the play queue |
+**Switch to Server / Device** | Switches between browsing music folders on your local device or hosted on the server. *(Requires [browser support](known-issues.md))*
+**Add selected**  | Add currently selected files in the file explorer to the play queue
+**Add all files** | Add all files in the current folder to the play queue
+**Add from URL**  | Load a remote audio file or stream from an URL
+**Upload file**   | Play individual music files from your device. Uploaded files can't be added to queue or saved to playlists.<br>*(Only displayed on browsers that do not support local file access)*
 
 ### Using the play queue and playlists <!-- {docsify-ignore} -->
 
@@ -79,9 +82,9 @@ Press *Delete* (*Backspace* on Mac) to remove selected songs from the queue.
 
 Use the **Clear** button to clear the queue.
 
-You can save the current play queue by clicking the **Save as...** button. The playlist will be saved to the folder currently open in the file explorer.
+By default, the contents of the play queue are automatically restored the next time you open audioMotion. You can disabled this feature in [Config panel - General settings](#general-settings).
 
-The **Save** button will update a previously loaded playlist (filename appears above the play queue) with the current queue contents.
+You can also save the play queue contents to a named playlist by clicking the **Save as...** button.
 
 Saved playlists appear in the playlist selection box.
 
@@ -89,32 +92,43 @@ Select a playlist and click one of the buttons:
 
 | Button | Action |
 |:-------|:-------|
-| **Load** | Load the selected playlist, **adding** its contents to the end of the current queue |
-| **Save** | Update the selected playlist with the current queue contents |
-| **Delete** | Permanently delete the selected playlist |
+**Save**       | Update the selected playlist with the current queue contents
+**Save as...** | Saves the current queue contents to a new playlist
+**Load**       | Load the selected playlist, **adding** its contents to the end of the current queue
+**Delete**     | Permanently delete the selected playlist
 
-!> **Playlists, Presets and Custom gradients** are saved to the browser's storage and will only be accessible in the same browser they were saved.
+!> Playlists are saved to the browser's storage and will only be accessible in the same browser they were saved.
 
 ## Settings Panel
+
+Click **Settings** in the top panel buttons to open the Settings Panel.
+
+![ui-buttons-settings](img/UI_main_buttons_settings.png)
 
 ### Load and Save Presets
 
 <div class="settings-panel highlight-preset"></div>
 
-audioMotion comes with 6 built-in presets that showcase different features of the analyzer, plus 9 slots for user-defined presets.
+Click the **Load** button to load a preset.
 
-Click the **Load** button to load a preset. User-defined presets can also be loaded by pressing the numbers **1** to **9** in the keyboard.
-You can also quickly select random settings by pressing **0** in the keyboard.
+**audioMotion comes with 6 built-in presets that showcase different features of the analyzer, plus 9 slots for user-defined presets.**
 
-The **Demo** preset will pick new visualization settings when loaded and will set [**Randomize**](#randomize) to 15 seconds, so it's a great way to quickly overview all of audioMotion's features!
+The **Demo** preset will choose random visualization settings when loaded and will set [**Randomize**](#randomize) to 15 seconds, so it's a great way to quickly overview all of audioMotion's features!
+
+You can also quickly pick random settings anytime, by pressing **0** in the keyboard.
 
 Your last configuration will be automatically restored the next time you open audioMotion.
 You can manually load the **Last session** preset to undo any changes made during the current session.
 
-The **Restore defaults** preset resets all options to their initial values, as in the first time you run audioMotion.
+The **Restore defaults** preset resets all analyzer settings to their initial values, as in the first time you run audioMotion.
 
-Click the **Save / Edit** button to save, update or delete a favorite configuration in one of the user-defined slots.
-Presets can also be saved to a slot by holding **Shift** and pressing the numbers **1** to **9** in the keyboard.
+Click the **Save / Edit** button to save, update or delete a favorite configuration in one of the **user preset slots.**
+
+The current settings can also be saved to a user slot by holding **Shift** and pressing the numbers **1** to **9** in the keyboard.
+
+Quickly load a user preset by pressing the corresponding slot number in the keyboard (**1** to **9**).
+
+!> User presets are saved to the browser's storage and will only be accessible in the same browser they were saved.
 
 ### Randomize
 
@@ -171,7 +185,7 @@ You can also select the visualization mode using the **M** and **Shift + M** key
 
 Select the color gradients used for the analyzer graphs. You can also change gradients using the **G** and **Shift + G** keyboard shortcuts.
 
-You can disable specific gradients and **create your own gradients** in the [Config panel](#config-panel).
+You can disable specific gradients and **create your own gradients** in [Config - Add Gradient](#enabled-gradients).
 
 The **LINK** and **SPLIT** switches control some specific features when using a dual [Channel Layout](#channel-layout):
 
@@ -213,12 +227,12 @@ Selects the analyzer background.
 | **Random image** | Selects a random image from the backgrounds folder<sup> (2)</sup> |
 | **Random video** | Selects a random video from the backgrounds folder<sup> (2)</sup> |
 
-<sup>**( 1 )**</sup> Album covers will be preferably retrieved from song metadata. When a picture is not found in the metadata, **audioMotion** will look for image files (jpg, png, gif, webp, avif or bmp)
+<sup>**( 1 )**</sup> Album covers will be preferably retrieved from the file's metadata. When a picture is not found in the metadata, **audioMotion** will look for image files
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
 
-<sup>**( 2 )**</sup> If you use the `-b` option when [starting **audioMotion**](/#getting-started), image and video files in the provided folder
-can also be used as background. All media files found in the first level folder (no subfolders) can be selected by the *Random image* or *Random video* options,
-and the first 20 files will also be directly available in the selection box.
+<sup>**( 2 )**</sup> The web app includes a few built-in background images and videos. You can select your own backgrounds folder in [Config - General settings](#general-settings).
+By default, only the first 20 files will be directly available in the selection box, but this number can also be configured in the General settings.
+For larger amounts of files, use the *Random image* and *Random video* options to randomly pick an image or video, among **all** files found in the backgrounds folder.
 
 See also [Background Image Fit](#background-image-fit) and [Background Dim](#background-dim) settings for additional options for background images and videos.
 
@@ -357,16 +371,20 @@ The channel layout setting does NOT affect stereo audio output.
 
 ## Console
 
-![console](img/console.png)
+Click **Console** in the top panel buttons to open the Console.
+
+![ui-buttons-console](img/UI_main_buttons_console.png)
 
 The console records several useful information, like audio and video settings, configuration changes and error messages.
+
+![console](img/console.png)
 
 
 ## Config Panel
 
 Click **Config** in the top panel buttons to open the Config Panel.
 
-![ui-buttons](img/UI_main_buttons.png)
+![ui-buttons-config](img/UI_main_buttons_config.png)
 
 ### Enabled Analyzer Modes
 
@@ -388,6 +406,8 @@ Click the **Add Gradient** button to create a new color gradient, or click any c
 
 At least two colors are required to create a gradient, but you can add as many colors as you like.
 The **offset** must be a number between 0 and 1 - use it to adjust the position of each color inside the gradient.
+
+!> Custom gradients are saved to the browser's storage and will only be accessible in the same browser they were saved.
 
 ### Enabled options for Background Image Fit
 
@@ -425,16 +445,23 @@ After entering PIP, the window can be resized and the selected aspect ratio will
 
 You can also use the **Shift** + **Up** and **Down** arrows to adjust the analyzer height during fullscreen visualization.
 
-**Maximum frame rate (FPS)** allows you to control the maximum animation frame rate, in frames per second.
-'Unlimited' will try to match your monitor's refresh rate, but may result in high CPU usage.
+**Maximum frame rate (FPS)** controls the maximum animation frame rate, in frames per second.
+'Unlimited' will try to match your monitor's refresh rate, but may increase CPU usage.
 
-**Show video files** - whether or not to show video files in the file explorer.
+**Backgrounds folder location** selects the source for images and videos that can be used as [Background](#background) options, or disable external background media.
+
+Only files found in the selected folder will be loaded - subfolders are ignored.<br>
+Loading backgrounds from the local device requires support for the *File System Access API*, which is [currently only available on Chromium-based browsers](known-issues.md).
+
+**Maximum background items** controls the maximum number of media files that can be directly selected in the [Background](#background) setting.
+
+**Allow video files** - whether or not to show video files in the file explorer.
 
 **Remember play queue contents** - whether or not to automatically restore the contents of the play queue the next time you open audioMotion.
 
 **Remember last music folder** - whether or not to start the file explorer in the last previously used folder the next time you open audioMotion.
 
-The **Reset to defaults** button will reset all settings in this section to their default values.
+The **Reset to defaults** button will reset all settings above to their default values.
 
 ### Sensitivity presets
 
@@ -450,7 +477,12 @@ The **Linear boost** value is used to perform an *n*th-root operation to amplify
 
 ### On-screen information display options
 
-Customize how long song information is displayed on screen, on different events, and toggle display of albums covers and track count.
+![config-osd-options](img/config-osd-options.png)
+
+Customize how long information is displayed on screen when user requests it by clicking the analyzer or via keyboard shortcut (**D** key),
+and also on song beginning and end.
+
+You can also toggle the display of album covers and track.
 
 
 ## Keyboard shortcuts
@@ -459,21 +491,24 @@ The following keyboard shortcuts that can be used to control the player and chan
 
 | key | action |
 |:----|:-------|
+**0** | pick random values for all [settings affected by Randomize](#settings-affected-by-randomize)
+**1** - **9** | load a User Preset
+**Shift** **1** - **9** | save current settings to a User Preset slot
 **Up** / **Down** arrows | volume up / down<br>**Shift** = increase / reduce analyzer height on fullscreen
 **Left** / **Right** arrows | previous / next song \| **hold** for rewind / fast forward<br>**Shift** = balance left / right
 **Space** | play / pause
-**Shift+A** / **A** | cycle through auto gradient and Randomize options
-**B** | cycle through Background options
-**Shift+B** | cycle through background Image Fit options
+**Shift+A** / **A** | change [Randomize](#randomize) interval
+**B** | cycle through [Background](#background)
+**Shift+B** | cycle through [Background Image Fit](#background-image-fit) options
 **C** | toggle Radial analyzer
 **D** | display song information; press again for settings info and again to hide<br>(alternatively, click on analyzer)
 **E** | shuffle play queue
-**F** | toggle fullscreen mode
+**F** | toggle fullscreen
 **Shift+G** / **G** | select previous / next gradient
 **H** | toggle FPS display
-**I** | toggle info display at track start/end
-**L** | toggle LED effect on analyzer bars
-**Shift+M** / **M** | select previous / next visualization mode
+**I** | toggle information display at track start/end
+**L** | toggle LEDs effect on analyzer bars
+**Shift+M** / **M** | select previous / next [Analyzer Mode](#analyzer-mode)
 **Shift+N** / **N** | reduce / increase analyzer sensitivity
 **O** | toggle low-resolution mode
 **P** | toggle peaks display
@@ -481,4 +516,4 @@ The following keyboard shortcuts that can be used to control the player and chan
 **Shift+S** / **S** | toggle display of frequency and level scales
 **T** | toggle flat / shadowed text for on-screen display
 **U** | toggle luminance bars effect
-**Shift+X** / **X** | select previous / next reflex style
+**Shift+X** / **X** | select previous / next [Reflex](#reflex) style
