@@ -1078,8 +1078,11 @@ function addSongToPlayQueue( fileObject, content = {}, autoplay ) {
 
 		playlist.appendChild( newEl );
 
-		trackData.retrieve = 1; // flag this item as needing metadata
-		retrieveMetadata();
+		if ( ! FILE_EXT_VIDEO.includes( ext ) ) {
+			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
+			trackData.retrieve = 1; // flag this item as needing metadata
+			retrieveMetadata();
+		}
 
 		if ( ( autoplay || queueLength() == 1 ) && ! isPlaying() )
 			loadSong( 0, autoplay ).then( () => resolve(1) );
