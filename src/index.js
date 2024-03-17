@@ -1292,7 +1292,7 @@ function deleteGradient() {
 	savePreferences(KEY_DISABLED_GRADS); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
 
 	currentGradient = null;
-	location.href = '/#config';
+	location.href = '#config';
 }
 
 /**
@@ -2299,7 +2299,7 @@ function openGradientEdit(key) {
 	renderGradientEditor();
 	$('#btn-save-gradient').innerText = 'Save';
 	$('#btn-delete-gradient').style.display = 'block';
-	location.href = '/#gradient-editor';
+	location.href = '#gradient-editor';
 }
 
 /**
@@ -2331,7 +2331,7 @@ function openGradientEditorNew() {
 	$('#btn-save-gradient').innerText = 'Add';
 	$('#btn-delete-gradient').style.display = 'none'; // don't show delete button while editing a new gradient
 
-	location.href = '/#gradient-editor';
+	location.href = '#gradient-editor';
 }
 
 /**
@@ -2955,7 +2955,7 @@ function saveGradient() {
 	savePreferences(KEY_CUSTOM_GRADS);
 
 	currentGradient = null;
-	location.href = '/#config';
+	location.href = '#config';
 }
 
 /**
