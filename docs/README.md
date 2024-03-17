@@ -32,10 +32,10 @@ Click the button below to open the web app:
 [Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
 
 **Use a Chromium-based browser to be able to play music from your hard drive.**<br>
-Works on Chrome and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
+Works on Chrome, Opera and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
 
 The app also includes a few server-hosted songs and some online radio streams ([credits here](#resources-used-in-the-demo-site)).<br>
-Click the **[ Use server music ]** button to switch to server mode.
+Click the [**Switch to Server**](users-manual.md#file-explorer-and-play-queue) button to switch to server mode.
 
 Also check out our [**YouTube channel**](https://youtube.com/@audioMotionJS) for some cool songs visualized with audioMotion!
 
