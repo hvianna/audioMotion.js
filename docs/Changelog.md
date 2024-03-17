@@ -1,13 +1,34 @@
 # Changelog
 
-## version 24.2-beta.1
+## version 24.3-beta.0
 
 > Updated source code is in the `dev` branch
+
+?> **Try it in the [web app](https://audiomotion.app).**
+
+### Added: <!-- {docsify-ignore} -->
+
++ Option to select a local folder as source of background images and videos, in [Config - General settings](users-manual.md#general-settings) (requires [File System Access API support](known-issues.md));
++ More new options in [Config - General settings](users-manual.md#general-settings):
+  + customize how many individual media files appear as selectable backgrounds;
+  + remember the contents of the play queue between sessions;
+  + enable/disable showing video files in the file explorer;
++ Enabled some server-side configuration options via `config.json` file - see [Self-hosting audioMotion](server.md).
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ The play queue (and stored playlists) can now mix files hosted on the server with ones from the local device;
++ Minor changes to default settings: Scale-Y off and track info displayed at both the start and end of the song;
++ Increased font sizes in the player main panel and help screen;
++ [Updated documentation](https://audiomotion.app/docs).
+
+
+## version 24.2-beta.1
 
 ### Added: <!-- {docsify-ignore} -->
 
 + Save and load playlists in local mode (File System API) - these are stored in the browser's IndexedDB storage;
-+ **Prism (legacy)** and **Rainbow (legacy)** gradients - disabled by default, enabled them in the Config panel;
++ **Prism (legacy)** and **Rainbow (legacy)** gradients - disabled by default, enable them in the Config panel;
 + Basic support for video file extensions (audio playback only) - thanks **@JesusGod-Pope666-Info** for the [suggestion](https://github.com/hvianna/audioMotion.js/discussions/40).
 
 ### Improved: <!-- {docsify-ignore} -->
