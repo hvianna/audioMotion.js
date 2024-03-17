@@ -1962,7 +1962,8 @@ function loadPlaylist( fileObject, autoplay = false ) {
 				resolveAddedSongs();
 			}
 			else {
-				consoleLog( `Unrecognized playlist file: ${path}`, true );
+				if ( path !== true ) // avoid error message if no play queue found on storage
+					consoleLog( `Unrecognized playlist file: ${path}`, true );
 				resolve( 0 );
 			}
 		}
