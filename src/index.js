@@ -223,7 +223,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
-	  elEnableVideo   = $('#enable_video'),
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
@@ -690,12 +689,11 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elBgLocation, elBgMaxItems, elEnableVideo, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 20,
-	enableVideo: false,
 	fftSize    : 8192,
 	fsHeight   : 100,
 	maxFPS     : 60,
@@ -862,14 +860,6 @@ const getSelectedGradients = () => {
 	return `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
 }
 
-// update configuration options from an existing preset
-const setPreset = ( key, options ) => {
-	const index = getPresetIndex( key );
-	if ( index == -1 )
-		return;
-	presets[ index ].options = options;
-}
-
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
@@ -894,6 +884,9 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => el.dataset.active == '1';
 
+// check if a video file is loaded in the current audio element
+const isVideoLoaded = () => FILE_EXT_VIDEO.includes( parsePath( audioElement[ currAudio ].dataset.file ).extension );
+
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => typeof path == 'string' ? path.replace( /\\/g, '/' ) : path;
 
@@ -902,6 +895,9 @@ const onOff = el => isSwitchOn( el ) ? 'ON' : 'OFF';
 
 // parse a path and return its individual parts
 const parsePath = uri => {
+	if ( typeof uri != 'string' )
+		return {};
+
 	const fullPath  = removeServerEncoding( uri ),
 		  lastSlash = fullPath.lastIndexOf('/') + 1,
 		  path      = fullPath.slice( 0, lastSlash ), // path only
@@ -969,6 +965,14 @@ const secondsToTime = secs => {
 	str += ( lead + ( secs / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( secs % 60 | 0 ) ).slice(-2);
 
 	return str;
+}
+
+// update configuration options from an existing preset
+const setPreset = ( key, options ) => {
+	const index = getPresetIndex( key );
+	if ( index == -1 )
+		return;
+	presets[ index ].options = options;
 }
 
 // set attributes of "range" or "number" input elements
@@ -1767,7 +1771,9 @@ function keyboardControls( event ) {
  * @param {string} URL - if `null` completely removes the `src` attribute
  */
 function loadAudioSource( audioEl, newSource ) {
-	const oldSource = audioEl.src || '';
+	const oldSource = audioEl.src || '',
+		  isCurrentElement = audioEl == audioElement[ currAudio ];
+
 	if ( isBlob( oldSource ) )
 		URL.revokeObjectURL( oldSource );
 
@@ -1775,21 +1781,28 @@ function loadAudioSource( audioEl, newSource ) {
 		audioEl.removeAttribute('src');
 	else
 		audioEl.src = newSource;
+
+	audioEl.style.display = isVideoLoaded() && isCurrentElement ? '' : 'none';
+	if ( isCurrentElement )
+		setOverlay(); // adjust overlay for video playback or background media
 }
 
 /**
  * Load a file blob into an audio element
  *
- * @param {object} audio element
- * @param {object} file blob
+ * @param {object}    audio element
+ * @param {object}    file blob
+ * @param {boolean}   `true` to start playing
+ * @returns {Promise} resolves to a string containing the URL created for the blob
  */
 function loadFileBlob( fileBlob, audioEl, playIt ) {
 	return new Promise( resolve => {
-		loadAudioSource( audioEl, URL.createObjectURL( fileBlob ) );
+		const url = URL.createObjectURL( fileBlob );
+		loadAudioSource( audioEl, url );
 		audioEl.onloadeddata = () => {
 			if ( playIt )
 				audioEl.play();
-			resolve( true );
+			resolve( url );
 		};
 	});
 }
@@ -1835,8 +1848,12 @@ function loadLocalFile( obj ) {
 	if ( fileBlob ) {
 		clearAudioElement();
 		const audioEl = audioElement[ currAudio ];
-		loadFileBlob( fileBlob, audioEl, true ); // load and play
-		mm.parseBlob( fileBlob )
+		audioEl.dataset.file = fileBlob.name;
+		audioEl.dataset.title = parsePath( fileBlob.name ).baseName;
+
+		// load and play
+		loadFileBlob( fileBlob, audioEl, true )
+			.then( url => mm.fetchFromUrl( url ) )
 			.then( metadata => addMetadata( metadata, audioEl ) )
 			.catch( e => {} );
 	}
@@ -2255,7 +2272,11 @@ async function loadSavedPlaylists( keyName ) {
 }
 
 /**
- * Load a song into the currently active audio element
+ * Load a song from the queue into the currently active audio element
+ *
+ * @param {number}    index to the desired play queue element
+ * @param {boolean}   `true` to start playing
+ * @returns {Promise} resolves to a boolean indicating success or failure (invalid queue index)
  */
 function loadSong( n, playIt ) {
 	return new Promise( async resolve => {
@@ -3087,7 +3108,6 @@ function savePreferences( key ) {
 		const generalOptions = {
 			bgLocation : elBgLocation.value,
 			bgMaxItems : elBgMaxItems.value,
-			enableVideo: elEnableVideo.checked,
 			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
@@ -3256,7 +3276,6 @@ function setCurrentCover() {
 function setGeneralOptions( options ) {
 	elBgLocation.value    = options.bgLocation;
 	elBgMaxItems.value    = options.bgMaxItems;
-	elEnableVideo.checked = options.enableVideo;
 	elFFTsize.value       = options.fftSize;
 	elFsHeight.value      = options.fsHeight;
 	elMaxFPS.value        = options.maxFPS;
@@ -3290,6 +3309,25 @@ function setLoadedPlaylist( path = '' ) {
 }
 
 /**
+ * Set overlay options, based on selected background and current media content (audio or video)
+ *
+ * @return {boolean} overlay status
+ */
+function setOverlay() {
+	const bgOption  = elBackground.value[0],
+		  isVideo   = isVideoLoaded(),
+		  isOverlay = isVideo || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
+
+	audioMotion.overlay = isOverlay;
+	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
+
+	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)'; // enable/disable background image
+	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : ''; // enable/disable background video layer
+
+	return isOverlay;
+}
+
+/**
  * Set audioMotion properties
  *
  * @param elems {object|array} a DOM element object or array of objects
@@ -3314,14 +3352,10 @@ function setProperty( elems, save = true ) {
 			case elBackground:
 				const bgOption  = elBackground.value[0],
 					  index     = elBackground[ elBackground.selectedIndex ].idx,
-					  isOverlay = bgOption != BG_DEFAULT && bgOption != BG_BLACK;
-
-				audioMotion.overlay = isOverlay;
-				audioMotion.showBgColor = bgOption == BG_DEFAULT;
+					  isOverlay = setOverlay(); // configures overlay for video playback or background media
 
 				if ( bgOption == BG_VIDEO ) {
 					setBackgroundImage(); // clear background image
-					elVideo.style.display = ''; // enable display of video layer
 
 					// if there's no index, pick a random video from the array
 					const url = bgVideos[ index === undefined ? randomInt( bgVideos.length ) : index ].url;
@@ -3330,7 +3364,6 @@ function setProperty( elems, save = true ) {
 						elVideo.src = url;
 				}
 				else {
-					elVideo.style.display = 'none'; // hide video layer
 					if ( isOverlay ) {
 						if ( bgOption == BG_COVER )
 							setBackgroundImage( coverImage.src );
@@ -3391,11 +3424,6 @@ function setProperty( elems, save = true ) {
 
 			case elColorMode:
 				audioMotion.colorMode = getControlValue( elColorMode );
-				break;
-
-			case elEnableVideo:
-				fileExplorer.setFileExtensions( [ ...FILE_EXT_MUSIC, ...FILE_EXT_PLIST, ...( elEnableVideo.checked ? FILE_EXT_VIDEO : [] ) ] );
-				fileExplorer.refresh();
 				break;
 
 			case elFillAlpha:
@@ -4605,7 +4633,7 @@ function updateRangeValue( el ) {
 				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
 					saveLastDir( path );
 			},
-			fileExtensions: [ ...FILE_EXT_MUSIC, ...FILE_EXT_PLIST, ...( elEnableVideo.checked ? FILE_EXT_VIDEO : [] ) ],
+			fileExtensions: [ ...FILE_EXT_MUSIC, ...FILE_EXT_PLIST, ...FILE_EXT_VIDEO ],
 			forceFileSystemAPI
 		}
 	).then( status => {
