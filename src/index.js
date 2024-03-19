@@ -1771,8 +1771,7 @@ function keyboardControls( event ) {
  * @param {string} URL - if `null` completely removes the `src` attribute
  */
 function loadAudioSource( audioEl, newSource ) {
-	const oldSource = audioEl.src || '',
-		  isCurrentElement = audioEl == audioElement[ currAudio ];
+	const oldSource = audioEl.src || '';
 
 	if ( isBlob( oldSource ) )
 		URL.revokeObjectURL( oldSource );
@@ -1782,9 +1781,7 @@ function loadAudioSource( audioEl, newSource ) {
 	else
 		audioEl.src = newSource;
 
-	audioEl.style.display = isVideoLoaded() && isCurrentElement ? '' : 'none';
-	if ( isCurrentElement )
-		setOverlay(); // adjust overlay for video playback or background media
+	setOverlay(); // adjust overlay for video playback or background media
 }
 
 /**
@@ -2376,8 +2373,8 @@ function playNextSong( play ) {
 
 	play |= isPlaying();
 
-	currAudio = nextAudio;
-	nextAudio = ! currAudio | 0;
+	[ currAudio, nextAudio ] = [ nextAudio, currAudio ];
+	setOverlay();
 	setCurrentCover();
 
 	if ( play ) {
@@ -3318,11 +3315,15 @@ function setOverlay() {
 		  isVideo   = isVideoLoaded(),
 		  isOverlay = isVideo || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
 
+	// set visibility of video elements
+	for ( const i of [0,1] )
+		audioElement[ i ].style.display = isVideo && i == currAudio ? '' : 'none';
+
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
 
 	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)'; // enable/disable background image
-	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : ''; // enable/disable background video layer
+	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : ''; // set visibility of background video layer
 
 	return isOverlay;
 }
