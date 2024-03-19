@@ -3316,8 +3316,8 @@ function setOverlay() {
 		  isOverlay = isVideo || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
 
 	// set visibility of video elements
-	for ( const i of [0,1] )
-		audioElement[ i ].style.display = isVideo && i == currAudio ? '' : 'none';
+	for ( const audioEl of audioElement )
+		audioEl.style.display = isVideo && audioEl == audioElement[ currAudio ] ? '' : 'none';
 
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
