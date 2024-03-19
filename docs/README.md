@@ -8,14 +8,13 @@
 ## Features
 
 * Dual channel high-resolution real-time audio spectrum analyzer
-* Media player for audio and video file formats (codec support may vary depending on browser and operating system)
+* Multimedia player lets you use images and videos as backgrounds to your music, or watch music videos with the spectrum analyzer on top
 * Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
 * Decibel and linear amplitude scales, with customizable sensitivity
 * Optional A, B, C, D and ITU-R 468 weighting filters
 * Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial spectrum
-* Use a folder of selected images and videos as backgrounds to your music, or play music videos with the analyzer on top!
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
 * Support for M3U playlists (.m3u and .m3u8 file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
