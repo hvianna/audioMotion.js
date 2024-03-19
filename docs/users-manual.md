@@ -52,18 +52,7 @@ Your volume and balance settings will be automatically restored next time you op
 
 ![files-panel](img/files-panel.png)
 
-The file explorer allows you to navigate through the music folder shared by the server.
-
-Supported file extensions are **flac**, **m4a**, **mp3**, **ogg** and **wav** for music files, and **m3u** or **m3u8** for playlists.
-
-You can also enable support for video file extensions in [Config panel - General settings](#general-settings).
-
-Any image file found in the current folder will be shown in the background of the file explorer, giving preference to filenames containing the words *cover*,
-*folder* or *front* (in this order).
-
-Double-click a music or playlist file to quickly add it to the queue. Hold *Ctrl* to select multiple files, or *Shift* to select a range of files.
-
-You can drag and drop selected files into the play queue, or use the buttons:
+The **file explorer** allows you to navigate through folders and files on your device or on the server.
 
 | button | action |
 |:-------|:-------|
@@ -72,6 +61,21 @@ You can drag and drop selected files into the play queue, or use the buttons:
 **Add all files** | Add all files in the current folder to the play queue
 **Add from URL**  | Load a remote audio file or stream from an URL
 **Upload file**   | Play individual music files from your device. Uploaded files can't be added to queue or saved to playlists.<br>*(Only displayed on browsers that do not support local file access)*
+
+**Double-click** a file to quickly add it to the play queue.
+
+Hold *Ctrl* to select multiple files, or *Shift* to select a range of files, then **drag and drop** selected files into the play queue, or use the **Add selected** button.
+
+The first image found in the current folder will be shown in the background of the file explorer, with precedence given to filenames containing the words *cover*,
+*folder* or *front* (in this order).
+
+Supported file extensions are:
++ for music: **flac**, **m4a**, **mp3**, **ogg** and **wav**;
++ for video: **mkv**, **mpg**, **webm**, **mp4**, **avi** and **mov**;
++ for images: **jpg**, **jpeg**, **webp**, **avif**, **png**, **gif** and **bmp**;
++ for playlists: **m3u** and **m3u8**.
+
+*Actual codec support may vary depending on browser and operating system.*
 
 ### Using the play queue and playlists <!-- {docsify-ignore} -->
 
@@ -82,7 +86,7 @@ Press *Delete* (*Backspace* on Mac) to remove selected songs from the queue.
 
 Use the **Clear** button to clear the queue.
 
-By default, the contents of the play queue are automatically restored the next time you open audioMotion. You can disabled this feature in [Config panel - General settings](#general-settings).
+The contents of the play queue are automatically restored the next time you open audioMotion. You can disable this feature in [Config panel - General settings](#general-settings).
 
 You can also save the play queue contents to a named playlist by clicking the **Save as...** button.
 
@@ -230,9 +234,8 @@ Selects the analyzer background.
 <sup>**( 1 )**</sup> Album covers will be preferably retrieved from the file's metadata. When a picture is not found in the metadata, **audioMotion** will look for image files
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
 
-<sup>**( 2 )**</sup> The web app includes a few built-in background images and videos. You can select your own backgrounds folder in [Config - General settings](#general-settings).
-By default, only the first 20 files will be directly available in the selection box, but this number can also be configured in the General settings.
-For larger amounts of files, use the *Random image* and *Random video* options to randomly pick an image or video, among **all** files found in the backgrounds folder.
+<sup>**( 2 )**</sup> The web app includes a few built-in background images and videos. **You can select your own backgrounds folder in [Config - General settings](#general-settings).**
+You can also customize how many files will be directly available in the selection box, but for large amounts of files use the *Random image* and *Random video* options to randomly choose among **all** files found in the backgrounds folder.
 
 See also [Background Image Fit](#background-image-fit) and [Background Dim](#background-dim) settings for additional options for background images and videos.
 
@@ -351,35 +354,18 @@ The channel layout setting does NOT affect stereo audio output.
 
 <div class="settings-panel highlight-switches"></div>
 
-| Switch      | Description |
-|:------------|:------------|
-| **INFO**    | Toggle on-screen display of song information on every track change
-| **PEAKS**   | Toggle display of amplitude peaks
-| **SCALE&nbsp;X** | Toggle display of scale on the horizontal axis (frequency)
-| **NOTES**   | Switch between musical notes and frequency values for the labels displayed in the horizontal axis scale
-| **SCALE&nbsp;Y** | Toggle display of scale on the vertical axis (level/volume)
-| **LINEAR**  | Switch between linear scale and decibels (logarithmic) to represent bar amplitudes
-| **ANSI**    | Switch between [ANSI/IEC preferred frequencies](https://archive.org/details/gov.law.ansi.s1.11.2004) and [equal-tempered scale](http://hyperphysics.phy-astr.gsu.edu/hbase/Music/et.html) to generate octave bands
-| **FPS**     | Toggle display of current frame rate at the top right corner
-| **FLAT**    | Switch between outlined (on) or shadowed (off) text for messages displayed on canvas (shadowed mode may affect performance on some graphics cards)
-| **LO-RES**  | Toggle low resolution mode (may improve performance, especially on 4K+ displays)
-| **ALPHA**   | Toggle variable bar transparency - the higher the bar amplitude the more opaque it is
-| **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height (no effect with RADIAL)
-| **LEDS**    | Toggle LED effect for the analyzer bars (bands modes only, no effect with RADIAL)
-| **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings (bands modes only)
-| **RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.**
-| **ROUND**   | Toggle rounded corners at the top of analyzer bars (bands modes only)
+Switches toggle additional effects and alternative measurement, informational and performance features.
 
-
-## Console
-
-Click **Console** in the top panel buttons to open the Console.
-
-![ui-buttons-console](img/UI_main_buttons_console.png)
-
-The console records several useful information, like audio and video settings, configuration changes and error messages.
-
-![console](img/console.png)
+| Switch    | Description | Switch    | Description |
+|:----------|:------------|:----------|:------------|
+**INFO**    | Toggle on-screen display of song information on every track change | **PEAKS**   | Toggle display of amplitude peaks
+**SCALE&nbsp;X** | Toggle display of scale on the horizontal axis (frequency)    | **NOTES**   | Switch between musical notes and frequency values for the labels displayed in the horizontal axis scale
+**SCALE&nbsp;Y** | Toggle display of scale on the vertical axis (level/volume)   | **LINEAR**  | Switch between linear scale and decibels (logarithmic) to represent bar amplitudes
+**ANSI**    | Switch between [ANSI/IEC preferred frequencies](https://archive.org/details/gov.law.ansi.s1.11.2004) and [equal-tempered scale](http://hyperphysics.phy-astr.gsu.edu/hbase/Music/et.html) to generate octave bands | **FPS**     | Toggle display of current frame rate at the top right corner
+**FLAT**    | Switch between outlined (on) or shadowed (off) text for messages displayed on canvas  | **LO-RES**  | Toggle low resolution mode *(may improve performance, especially on 4K+ displays)*
+**ALPHA**   | Toggle variable bar transparency - the higher the bar amplitude the more opaque it is | **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*
+**LEDS**    | Toggle LED effect for the analyzer bars *(bands modes only, no effect with RADIAL)*   | **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings *(bands modes only)*
+**RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.** | **ROUND**   | Toggle rounded corners at the top of analyzer bars *(bands modes only)*
 
 
 ## Config Panel
@@ -485,17 +471,28 @@ and also on song beginning and end.
 You can also toggle the display of album covers and track.
 
 
+## Console
+
+Click **Console** in the top panel buttons to open the Console.
+
+![ui-buttons-console](img/UI_main_buttons_console.png)
+
+The console records several useful information, like audio and video settings, configuration changes and error messages.
+
+![console](img/console.png)
+
+
 ## Keyboard shortcuts
 
-The following keyboard shortcuts that can be used to control the player and change some visualization settings without leaving fullscreen:
+The following keyboard shortcuts can be used to control the player and change some visualization settings without leaving fullscreen:
 
 | key | action |
 |:----|:-------|
 **0** | pick random values for all [settings affected by Randomize](#settings-affected-by-randomize)
 **1** - **9** | load a User Preset
-**Shift** **1** - **9** | save current settings to a User Preset slot
-**Up** / **Down** arrows | volume up / down<br>**Shift** = increase / reduce analyzer height on fullscreen
-**Left** / **Right** arrows | previous / next song \| **hold** for rewind / fast forward<br>**Shift** = balance left / right
+**Shift** + **1** - **9** | save current settings to a User Preset slot
+**Up** / **Down** arrows | volume up / down<br>**Shift:** increase / reduce analyzer height on fullscreen
+**Left** / **Right** arrows | previous / next song - **hold** for rewind / fast forward<br>**Shift:** balance left / right
 **Space** | play / pause
 **Shift+A** / **A** | change [Randomize](#randomize) interval
 **B** | cycle through [Background](#background)

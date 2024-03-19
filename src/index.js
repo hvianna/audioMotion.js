@@ -1799,6 +1799,7 @@ function loadFileBlob( fileBlob, audioEl, playIt ) {
 		audioEl.onloadeddata = () => {
 			if ( playIt )
 				audioEl.play();
+			audioEl.onloadeddata = null;
 			resolve( url );
 		};
 	});
@@ -2300,6 +2301,7 @@ function loadSong( n, playIt ) {
 				audioEl.onloadeddata = () => {
 					if ( playIt )
 						audioEl.play();
+					audioEl.onloadeddata = null;
 					finish();
 				};
 			}

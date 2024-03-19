@@ -6,7 +6,7 @@
  * Copyright (C) 2019-2024 Henrique Vianna <hvianna@gmail.com>
  */
 
-const URL_ORIGIN            = location.origin + location.pathname,
+const URL_ORIGIN            = location.origin + ( location.pathname == '/' ? '' : location.pathname ),
       defaultRoot           = '/music',
 	  isElectron            = 'electron' in window,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
