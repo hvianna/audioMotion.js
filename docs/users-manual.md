@@ -18,7 +18,7 @@
 
 ![ui-source](img/UI_source.png)
 
-Move the **Source** switch to the **MIC** position to visualize audio from your microphone instead of the music player.
+Move the **Source** switch to the **MIC** position to capture audio from your microphone instead of the media player.
 When MIC is selected, the Speakers are automatically turned off to prevent feedback loops from the speakers.
 If you're using headphones you can safely turn the Speakers on to listen to the microphone audio.
 
@@ -238,6 +238,8 @@ See also [Background Image Fit](#background-image-fit) and [Background Dim](#bac
 
 You can cycle through the available options using the **B** keyboard shortcut.
 
+?> **When a video file is loaded on the player** the Background setting has no effect, but you can still adjust the [Background Dim](#background-dim).
+
 ### Background Image Fit
 
 <div class="settings-panel highlight-bgimagefit"></div>
@@ -266,7 +268,7 @@ Effects can be selectively disabled in the [Config panel](#config-panel).
 
 <div class="settings-panel highlight-background-dim"></div>
 
-When [Background](#background) is set to an image (including the Album cover) or video, this option adjusts the brightness of the background.
+When a video file is playing, or the [Background](#background) is set to an image, video or album cover, this option **adjusts the brightness of the background.**
 
 ### Reflex
 
@@ -454,8 +456,6 @@ Only files found in the selected folder will be loaded - subfolders are ignored.
 Loading backgrounds from the local device requires support for the *File System Access API*, which is [currently only available on Chromium-based browsers](known-issues.md).
 
 **Maximum background items** controls the maximum number of media files that can be directly selected in the [Background](#background) setting.
-
-**Allow video files** - whether or not to show video files in the file explorer.
 
 **Remember play queue contents** - whether or not to automatically restore the contents of the play queue the next time you open audioMotion.
 
