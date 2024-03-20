@@ -1662,6 +1662,7 @@ function keyboardControls( event ) {
 						if ( ! isPlaying() )
 							clearAudioElement();
 					}
+					storePlayQueue( true );
 					break;
 				case 'Space': 		// play / pause
 					setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
@@ -4034,6 +4035,7 @@ function shufflePlayQueue() {
 	}
 
 	playSong(0);
+	storePlayQueue( true );
 }
 
 /**
