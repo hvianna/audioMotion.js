@@ -469,6 +469,21 @@ a.button:visited {
 	grid-row: span 5;
 }
 
+.link-to-docs {
+	border: 2px dotted green;
+	border-radius: 50%;
+	color: green;
+	display: inline-block;
+	height: 1.25em;
+	margin-left: .5em;
+	text-align: center;
+	text-decoration: none;
+	width: 1.25em;
+}
+.link-to-docs::before {
+	content: '?';
+}
+
 .general-settings input[type="number"],
 .general-settings input[type="range"],
 .general-settings select {
