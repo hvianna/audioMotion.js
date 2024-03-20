@@ -2,12 +2,13 @@
 
 ![audioMotion-header](img/audioMotion-header.png)
 
-> **audioMotion** is a music player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
+> **audioMotion** is a media player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
 > It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 ## Features
 
 * Dual channel high-resolution real-time audio spectrum analyzer
+* Multimedia player lets you use images and videos as backgrounds to your music, or watch music videos with the spectrum analyzer on top
 * Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
@@ -15,7 +16,6 @@
 * Optional A, B, C, D and ITU-R 468 weighting filters
 * Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial spectrum
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
-* Music player for audio and video file formats (codec support may vary depending on browser and operating system)
 * Support for M3U playlists (.m3u and .m3u8 file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 
@@ -31,7 +31,7 @@ Click the button below to open the web app:
 
 [Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
 
-**Use a Chromium-based browser to be able to play music from your hard drive.**<br>
+**Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
 Works on Chrome, Opera and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
 
 The app also includes a few server-hosted songs and some online radio streams ([credits here](#resources-used-in-the-demo-site)).<br>

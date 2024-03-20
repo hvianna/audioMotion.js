@@ -71,14 +71,13 @@
 					<div class="warp-wall warp-wall-back"></div>
 				</div>
 			</div>
-			<video id="video" autoplay loop muted></video>
+			<video id="video" autoplay loop muted disablepictureinpicture></video>
+			<video id="player0" preload="auto" crossorigin="anonymous" disablepictureinpicture></video>
+			<video id="player1" preload="auto" crossorigin="anonymous" disablepictureinpicture></video>
 			<div id="bg_dim" class="bg-dim"></div>
 			<div id="analyzer" class="analyzer"></div>
 			<canvas id="osd" class="osd"></canvas>
 		</div>
-
-		<audio id="player0" preload="auto" crossorigin="anonymous"></audio>
-		<audio id="player1" preload="auto" crossorigin="anonymous"></audio>
 
 		<header class="grid grid-3-cols align-center center">
 			<ul>
@@ -428,7 +427,7 @@
 			<div class="help">
 				<label class="button">
 					Upload file
-					<input id="local_file" type="file" accept="audio/*">
+					<input id="local_file" type="file" accept="audio/*,video/*">
 				</label>
 				<span class="tooltip">Upload an audio file from your computer and play it</span>
 			</div>
@@ -509,7 +508,6 @@
 				<input id="bg_max_items" type="number">
 
 				<p></p>
-				<p class="colspan-2"><label><input type="checkbox" id="enable_video"> Allow video files (audio playback only)</label></p>
 				<p class="colspan-2"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
 				<p class="colspan-2"><label><input type="checkbox" id="save_dir"> Remember last music folder</label></p>
 

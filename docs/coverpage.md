@@ -3,7 +3,7 @@
 
 > **SEE** YOUR MUSIC!
 
-- Music player and dual channel real-time audio spectrum analyzer
+- Media player and dual channel real-time audio spectrum analyzer
 - Visualize discrete FFT frequencies or up to 240 frequency bands
 - Several modes, color gradients and optional effects
 - Fullscreen and Picture-In-Picture high-resolution graphics @60fps
