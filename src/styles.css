@@ -313,7 +313,7 @@ a.button:visited {
 	overflow: hidden;
 	position: relative;
 	text-align: center;
-	transition: height .25s;
+	transition: height 1s;
 }
 .bg-container.repeat {
 	background-repeat: repeat-x;

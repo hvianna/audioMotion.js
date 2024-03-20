@@ -4146,14 +4146,25 @@ function toggleConsole( force ) {
  * @param {boolean} `true` to show the files panel, otherwise hide it
  */
 function toggleFilesPanel( show ) {
-	elFilesPanel.style.display = show ? '' : 'none';
-	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
+	const body = document.body;
+	body.style.overflowY = 'hidden';
 
-	// when hiding, also close the console and the settings panel
-	if ( ! show ) {
+	if ( show )
+		elFilesPanel.style.display = '';
+	else {
+		// when hiding, also close the console and the settings panel
 		toggleConsole( false );
 		toggleSettingsPanel( false );
 	}
+
+	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
+
+	// wait for the container transition to end, before hiding the files panel and restoring overflow on body
+	elContainer.addEventListener( 'transitionend', () => {
+		if ( elContainer.style.height )
+			elFilesPanel.style.display = 'none';
+		body.style.overflowY = '';
+	}, { once: true } );
 }
 
 /**
