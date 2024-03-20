@@ -212,6 +212,7 @@ const $  = document.querySelector.bind( document ),
 const elAlphaBars     = $('#alpha_bars'),
 	  elAnalyzer      = $('#analyzer'),			// analyzer canvas container
 	  elAnsiBands     = $('#ansi_bands'),
+	  elAutoHide      = $('#auto_hide'),
 	  elBackground    = $('#background'),
 	  elBalance       = $('#balance'),
 	  elBarSpace      = $('#bar_space'),
@@ -225,6 +226,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
+	  elFilesPanel    = $('#files_panel'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
 	  elFreqScale     = $('#freq_scale'),
@@ -269,11 +271,13 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSource        = $('#source'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
+	  elToggleConsole = $('#toggle_console'),
+	  elToggleSettings= $('#toggle_settings'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
 	  elVolume        = $('#volume'),
- 	  elWarp          = $('#warp'),				// "warp" effect layer
- 	  elWeighting     = $('#weighting');
+	  elWarp          = $('#warp'),				// "warp" effect layer
+	  elWeighting     = $('#weighting');
 
 // Configuration presets
 const presets = [
@@ -689,9 +693,10 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
+	autoHide   : true,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 20,
 	fftSize    : 8192,
@@ -3105,6 +3110,7 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_GENERAL_OPTS ) {
 		const generalOptions = {
+			autoHide   : elAutoHide.checked,
 			bgLocation : elBgLocation.value,
 			bgMaxItems : elBgMaxItems.value,
 			fftSize    : elFFTsize.value,
@@ -3273,15 +3279,16 @@ function setCurrentCover() {
  * Set general configuration options
  */
 function setGeneralOptions( options ) {
-	elBgLocation.value    = options.bgLocation;
-	elBgMaxItems.value    = options.bgMaxItems;
-	elFFTsize.value       = options.fftSize;
-	elFsHeight.value      = options.fsHeight;
-	elMaxFPS.value        = options.maxFPS;
-	elPIPRatio.value      = options.pipRatio;
-	elSaveDir.checked     = options.saveDir;
-	elSaveQueue.checked   = options.saveQueue;
-	elSmoothing.value     = options.smoothing;
+	elAutoHide.checked  = options.autoHide;
+	elBgLocation.value  = options.bgLocation;
+	elBgMaxItems.value  = options.bgMaxItems;
+	elFFTsize.value     = options.fftSize;
+	elFsHeight.value    = options.fsHeight;
+	elMaxFPS.value      = options.maxFPS;
+	elPIPRatio.value    = options.pipRatio;
+	elSaveDir.checked   = options.saveDir;
+	elSaveQueue.checked = options.saveQueue;
+	elSmoothing.value   = options.smoothing;
 }
 
 /**
@@ -3350,6 +3357,10 @@ function setProperty( elems, save = true ) {
 
 			case elAnsiBands:
 				audioMotion.ansiBands = isSwitchOn( elAnsiBands );
+				break;
+
+			case elAutoHide:
+				toggleFilesPanel( true );
 				break;
 
 			case elBackground:
@@ -3699,20 +3710,20 @@ function setVolume( value ) {
 function setUIEventListeners() {
 
 	// open/close settings panel
-	const elToggleSettings = $('#toggle_settings');
 	elToggleSettings.addEventListener( 'click', () => {
-		$('#settings').classList.toggle('active', elToggleSettings.classList.toggle('active') );
+		toggleFilesPanel( true );
+		toggleSettingsPanel();
 	});
-	$('.settings-close').addEventListener( 'click', () => elToggleSettings.click() );
+	$('.settings-close').addEventListener( 'click', () => toggleSettingsPanel() );
 
 	// open/close console
-	const elToggleConsole = $('#toggle_console');
 	elToggleConsole.addEventListener( 'click', () => {
-		$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle('active') );
+		toggleFilesPanel( true );
+		toggleConsole();
 		elToggleConsole.classList.remove('warning');
 		consoleLog(); // update scroll only
 	});
-	$('#console-close').addEventListener( 'click', () => elToggleConsole.click() );
+	$('#console-close').addEventListener( 'click', () => toggleConsole() );
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 
 	// settings switches
@@ -3989,7 +4000,6 @@ function setUIEventListeners() {
 	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
 	$('#btn-delete-gradient').addEventListener('click', deleteGradient );
 
-
 	$('#new-gradient-bkgd').addEventListener('input', (e) => {
 		currentGradient.bgColor = e.target.value;
 	});
@@ -4000,7 +4010,16 @@ function setUIEventListeners() {
 
 	$('#new-gradient-horizontal').addEventListener('input', (e) => {
 		currentGradient.dir = e.target.checked ? 'h' : undefined;
-	})
+	});
+
+	elContainer.addEventListener( 'mouseenter', () => {
+		if ( elAutoHide.checked )
+			toggleFilesPanel( false );
+	});
+	$('.player-area').addEventListener( 'mouseleave', () => {
+		if ( elAutoHide.checked )
+			toggleFilesPanel( true );
+	});
 }
 
 /**
@@ -4111,6 +4130,31 @@ function syncMetadataToAudioElements( source ) {
 }
 
 /**
+ * Open/close the Console
+ *
+ * @param {boolean} desired state - if undefined, inverts the current state
+ */
+function toggleConsole( force ) {
+	$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle( 'active', force ) );
+}
+
+/**
+ * Show/hide the files panel (for auto-hide feature) and adjust the canvas height
+ *
+ * @param {boolean} `true` to show the files panel, otherwise hide it
+ */
+function toggleFilesPanel( show ) {
+	elFilesPanel.style.display = show ? '' : 'none';
+	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
+
+	// when hiding, also close the console and the settings panel
+	if ( ! show ) {
+		toggleConsole( false );
+		toggleSettingsPanel( false );
+	}
+}
+
+/**
  * Toggle display of song and settings information on canvas
  */
 function toggleInfo() {
@@ -4152,6 +4196,15 @@ function toggleMute( mute ) {
 		audioMotion.disconnectOutput();
 	else
 		audioMotion.connectOutput();
+}
+
+/**
+ * Open/close the Settings panel
+ *
+ * @param {boolean} desired state - if undefined, inverts the current state
+ */
+function toggleSettingsPanel( force ) {
+	$('#settings').classList.toggle( 'active', elToggleSettings.classList.toggle( 'active', force ) );
 }
 
 /**
@@ -4718,7 +4771,7 @@ function updateRangeValue( el ) {
 							( ! isLastDirLocked || await lastDir[0].handle.requestPermission() == 'granted' );
 
 			if ( isClear ) {
-				filesPanel.classList.remove('locked');
+				elFilesPanel.classList.remove('locked');
 				window.removeEventListener( 'click', requestPermission );
 				if ( isBgDirLocked )
 					retrieveBackgrounds();
@@ -4726,8 +4779,7 @@ function updateRangeValue( el ) {
 			}
 		}
 
-		const filesPanel      = $('#files_panel'),
-			  lastDir         = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) ),
+		const lastDir         = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) ),
 			  bgDirHandle     = await get( KEY_BG_DIR_HANDLE ),
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
 			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
@@ -4736,7 +4788,7 @@ function updateRangeValue( el ) {
 		loadPreset( 'last', false, true );
 
 		if ( isBgDirLocked || isLastDirLocked ) {
-			filesPanel.classList.add('locked');
+			elFilesPanel.classList.add('locked');
 			window.addEventListener( 'click', requestPermission );
 		}
 		else
