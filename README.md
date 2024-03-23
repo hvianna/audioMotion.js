@@ -1,6 +1,6 @@
 ![audioMotion-header](docs/img/audioMotion-header.png)
 
-**audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you **see your music!** ♪♫🤩<br>
+**audioMotion** is a media player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
 It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
