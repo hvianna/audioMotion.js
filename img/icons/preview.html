@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>audioMotion glyphs preview</title>
+  <link rel="stylesheet" href="preview/preview.css"/>
+  <script src="preview/zepto.min.js"></script>
+  <script src="preview/preview.js"></script>
+  <link rel="stylesheet" href="css/styles.min.css"/>
+  <script type="text/javascript">
+    window.Icons8 = {
+      icons: ["back-arrow","console","favorite","favorite-2","gear-outline","hard-drive","mic","mic-2","mic-3","music-album","music-album-2","music-note-outline","opened-folder","opened-folder-2","pause-button","play-button","playlist","previous-track","previous-track-2","repeat","repeat-2","save","save-as","shuffle","shuffle-2","simple-arrow","skip-this-track","skip-this-track-2","stage-mic","stop-symbol","track-list","trash","vertical-settings-mixer","warn","warn-2"],
+      sizes: ["16", "21", "25", "36", "50", "60", "72", "100"],
+      activeSize: 50,
+    };
+  </script>
+</head>
+
+<body>
+  <article class="c-page js-page">
+    <header class="c-header">
+      <div class="b-container">
+        <div class="b-section">
+          <a class="b-item b-logo" href="https://icons8.com" target="_blank">
+            <svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24,10c0-1.657-1.343-3-3-3c-0.68,0-1.301,0.235-1.804,0.617C18.467,6.641,17.312,6,16,6  s-2.467,0.641-3.196,1.617C12.301,7.235,11.68,7,11,7c-1.657,0-3,1.343-3,3H6v12h3v3.134C8.701,25.307,8.5,25.63,8.5,26  c0,0.552,0.447,1,1,1c0.841,0,1.5-0.682,1.5-1.552V22h1v3.134c-0.299,0.173-0.5,0.496-0.5,0.866c0,0.552,0.447,1,1,1  c0.841,0,1.5-0.682,1.5-1.552V22h4v3.134c-0.299,0.173-0.5,0.496-0.5,0.866c0,0.552,0.447,1,1,1c0.841,0,1.5-0.682,1.5-1.552V22h1  v3.134c-0.299,0.173-0.5,0.496-0.5,0.866c0,0.552,0.447,1,1,1c0.841,0,1.5-0.682,1.5-1.552V22h3V10H24z M24,20H8v-8h16V20z M15,16  c0-0.552,0.448-1,1-1s1,0.448,1,1c0,0.552-0.448,1-1,1S15,16.552,15,16z M19,16c0-0.552,0.448-1,1-1s1,0.448,1,1  c0,0.552-0.448,1-1,1S19,16.552,19,16z M11,16c0-0.552,0.448-1,1-1s1,0.448,1,1c0,0.552-0.448,1-1,1S11,16.552,11,16z" fill="currentColor"></path>
+            </svg>
+            Icons8
+          </a>
+        </div>
+
+        <nav class="b-section">
+          <span class="b-item">Usage:</span>
+          <a class="b-item b-usage-button js-usage-example-link" data-example="css">CSS</a>
+          <a class="b-item b-usage-button js-usage-example-link" data-example="less">LESS</a>
+          <a class="b-item b-usage-button js-usage-example-link" data-example="scss">SCSS</a>
+        </nav>
+      </div>
+    </header>
+    <section class="b-content c-main">
+      <div class="b-container">
+        <header>
+          <h1>
+            audioMotion
+            <small>(35 glyphs)</small>
+          </h1>
+        </header>
+        <div class="b-panel">
+          <div class="b-panel-item c-search">
+            <input type="text" autocomplete="off" placeholder="Search" class="b-search-input js-search-input">
+            <button class="b-search-btn"></button>
+          </div>
+          <div class="b-panel-item">
+            <div class="b-panel-item c-tabs js-tabs js-section-tabs">
+              <span class="b-tab m-active" data-value="grid">Grid</span>
+              <span class="b-tab" data-value="cheatsheet">Cheatsheet</span>
+              <span class="b-tab" data-value="details">Details</span>
+            </div>
+            <div class="b-panel-item c-tabs js-tabs js-size-tabs">
+              
+              <span class="b-tab " data-value="16">16</span>
+              
+              <span class="b-tab " data-value="21">21</span>
+              
+              <span class="b-tab " data-value="25">25</span>
+              
+              <span class="b-tab " data-value="36">36</span>
+              
+              <span class="b-tab m-active" data-value="50">50</span>
+              
+              <span class="b-tab " data-value="60">60</span>
+              
+              <span class="b-tab " data-value="72">72</span>
+              
+              <span class="b-tab " data-value="100">100</span>
+              
+            </div>
+            <div class="b-panel-item c-tabs">
+              <span class="b-tab js-toggle-preview-chars">Pp</span>
+            </div>
+            <div class="b-panel-item c-tabs">
+              <span class="b-tab js-toggle-editor">Editor</span>
+            </div>
+          </div>
+
+          <div class="c-editor-panel js-editor">
+            <div class="b-toolbar">
+              <input class="b-font-size-input js-font-size-input" type="text" title="Font size" autocomplete="off" placeholder="font size" value="1em">
+              <select class="b-font-family-selector js-font-family-selector">
+                <option style="font-family: serif;">serif</option>
+                <option style="font-family: 'Times New Roman, serif';">Times New Roman</option>
+                <option style="font-family: Times, serif;">Times</option>
+                <option style="font-family: Georgia, serif;">Georgia</option>
+                <option style="font-family: sans-serif;">sans-serif</option>
+                <option style="font-family: Arial, sans-serif;">Arial</option>
+                <option style="font-family: Helvetica, sans-serif;">Helvetica</option>
+                <option style="font-family: Impact, sans-serif;">Impact</option>
+                <option style="font-family: Tahoma, sans-serif;">Tahoma</option>
+                <option style="font-family: Verdana, sans-serif;">Verdana</option>
+                <option style="font-family: Geneva, sans-serif;">Geneva</option>
+                <option style="font-family: 'Lucida Sans Unicode', sans-serif;">Lucida Sans Unicode</option>
+                <option style="font-family: 'Lucida Grande',sans-serif;">Lucida Grande</option>
+                <option style="font-family: monospace;">monospace</option>
+                <option style="font-family: Courier, monospace;">Courier</option>
+                <option style="font-family: 'Courier New', monospace;">Courier New</option>
+                <option style="font-family: 'Lucida Console',monospace;">Lucida Console</option>
+                <option style="font-family: Monaco, monospace;">Monaco</option>
+              </select>
+            </div>
+            
+            <textarea class="b-textarea js-textarea" contenteditable="true" style="font-size: 1em; font-family: audioMotion;">Sample: &#xf119; &amp; Text</textarea>
+          </div>
+        </div>
+        <div class="c-grid js-grid" data-size="50" data-mode="grid">
+          
+            
+            <div class="c-icon js-icon" data-name="back-arrow">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-back-arrow"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-back-arrow"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf119;"/>
+                <pre class="b-selector"><code><strong>.icons8-back-arrow</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-back-arrow</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf119;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf119;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf119;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="console">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-console"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-console"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf11c;"/>
+                <pre class="b-selector"><code><strong>.icons8-console</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-console</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf11c;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf11c;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf11c;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="favorite">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-favorite"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-favorite"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf121;"/>
+                <pre class="b-selector"><code><strong>.icons8-favorite</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-favorite</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf121;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf121;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf121;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="favorite-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-favorite-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-favorite-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf122;"/>
+                <pre class="b-selector"><code><strong>.icons8-favorite-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-favorite-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf122;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf122;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf122;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="gear-outline">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-gear-outline"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-gear-outline"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf11b;"/>
+                <pre class="b-selector"><code><strong>.icons8-gear-outline</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-gear-outline</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf11b;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf11b;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf11b;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="hard-drive">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-hard-drive"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-hard-drive"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf115;"/>
+                <pre class="b-selector"><code><strong>.icons8-hard-drive</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-hard-drive</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf115;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf115;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf115;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="mic">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-mic"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-mic"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf106;"/>
+                <pre class="b-selector"><code><strong>.icons8-mic</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-mic</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf106;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf106;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf106;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="mic-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-mic-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-mic-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf107;"/>
+                <pre class="b-selector"><code><strong>.icons8-mic-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-mic-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf107;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf107;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf107;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="mic-3">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-mic-3"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-mic-3"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf108;"/>
+                <pre class="b-selector"><code><strong>.icons8-mic-3</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-mic-3</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf108;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf108;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf108;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="music-album">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-music-album"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-music-album"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf113;"/>
+                <pre class="b-selector"><code><strong>.icons8-music-album</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-music-album</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf113;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf113;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf113;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="music-album-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-music-album-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-music-album-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf114;"/>
+                <pre class="b-selector"><code><strong>.icons8-music-album-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-music-album-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf114;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf114;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf114;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="music-note-outline">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-music-note-outline"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-music-note-outline"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf118;"/>
+                <pre class="b-selector"><code><strong>.icons8-music-note-outline</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-music-note-outline</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf118;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf118;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf118;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="opened-folder">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-opened-folder"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-opened-folder"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf116;"/>
+                <pre class="b-selector"><code><strong>.icons8-opened-folder</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-opened-folder</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf116;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf116;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf116;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="opened-folder-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-opened-folder-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-opened-folder-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf117;"/>
+                <pre class="b-selector"><code><strong>.icons8-opened-folder-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-opened-folder-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf117;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf117;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf117;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="pause-button">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-pause-button"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-pause-button"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf10c;"/>
+                <pre class="b-selector"><code><strong>.icons8-pause-button</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-pause-button</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf10c;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf10c;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf10c;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="play-button">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-play-button"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-play-button"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf10b;"/>
+                <pre class="b-selector"><code><strong>.icons8-play-button</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-play-button</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf10b;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf10b;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf10b;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="playlist">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-playlist"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-playlist"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf103;"/>
+                <pre class="b-selector"><code><strong>.icons8-playlist</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-playlist</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf103;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf103;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf103;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="previous-track">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-previous-track"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-previous-track"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf109;"/>
+                <pre class="b-selector"><code><strong>.icons8-previous-track</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-previous-track</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf109;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf109;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf109;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="previous-track-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-previous-track-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-previous-track-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf10e;"/>
+                <pre class="b-selector"><code><strong>.icons8-previous-track-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-previous-track-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf10e;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf10e;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf10e;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="repeat">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-repeat"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-repeat"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf104;"/>
+                <pre class="b-selector"><code><strong>.icons8-repeat</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-repeat</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf104;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf104;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf104;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="repeat-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-repeat-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-repeat-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf110;"/>
+                <pre class="b-selector"><code><strong>.icons8-repeat-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-repeat-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf110;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf110;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf110;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="save">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-save"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-save"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf11e;"/>
+                <pre class="b-selector"><code><strong>.icons8-save</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-save</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf11e;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf11e;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf11e;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="save-as">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-save-as"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-save-as"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf11f;"/>
+                <pre class="b-selector"><code><strong>.icons8-save-as</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-save-as</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf11f;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf11f;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf11f;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="shuffle">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-shuffle"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-shuffle"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf105;"/>
+                <pre class="b-selector"><code><strong>.icons8-shuffle</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-shuffle</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf105;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf105;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf105;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="shuffle-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-shuffle-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-shuffle-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf111;"/>
+                <pre class="b-selector"><code><strong>.icons8-shuffle-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-shuffle-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf111;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf111;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf111;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="simple-arrow">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-simple-arrow"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-simple-arrow"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf11a;"/>
+                <pre class="b-selector"><code><strong>.icons8-simple-arrow</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-simple-arrow</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf11a;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf11a;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf11a;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="skip-this-track">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-skip-this-track"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-skip-this-track"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf10a;"/>
+                <pre class="b-selector"><code><strong>.icons8-skip-this-track</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-skip-this-track</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf10a;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf10a;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf10a;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="skip-this-track-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-skip-this-track-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-skip-this-track-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf10f;"/>
+                <pre class="b-selector"><code><strong>.icons8-skip-this-track-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-skip-this-track-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf10f;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf10f;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf10f;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="stage-mic">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-stage-mic"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-stage-mic"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf112;"/>
+                <pre class="b-selector"><code><strong>.icons8-stage-mic</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-stage-mic</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf112;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf112;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf112;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="stop-symbol">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-stop-symbol"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-stop-symbol"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf10d;"/>
+                <pre class="b-selector"><code><strong>.icons8-stop-symbol</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-stop-symbol</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf10d;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf10d;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf10d;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="track-list">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-track-list"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-track-list"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf102;"/>
+                <pre class="b-selector"><code><strong>.icons8-track-list</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-track-list</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf102;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf102;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf102;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="trash">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-trash"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-trash"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf120;"/>
+                <pre class="b-selector"><code><strong>.icons8-trash</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-trash</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf120;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf120;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf120;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="vertical-settings-mixer">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-vertical-settings-mixer"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf11d;"/>
+                <pre class="b-selector"><code><strong>.icons8-vertical-settings-mixer</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-vertical-settings-mixer</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf11d;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf11d;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf11d;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="warn">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-warn"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-warn"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf100;"/>
+                <pre class="b-selector"><code><strong>.icons8-warn</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-warn</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf100;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf100;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf100;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+            
+            <div class="c-icon js-icon" data-name="warn-2">
+              <div class="b-sizes">
+                
+                  <span class="b-size" data-size="16"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="21"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="25"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="36"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="50"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="60"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="72"><i class="icons8-warn-2"></i></span>
+                
+                  <span class="b-size" data-size="100"><i class="icons8-warn-2"></i></span>
+                
+              </div>
+              <div class="b-usage">
+                <input class="b-cheatcode icons8 js-cheatcode" value="&#xf101;"/>
+                <pre class="b-selector"><code><strong>.icons8-warn-2</strong></code></pre>
+                <pre><code>&lt;i class="<strong>icons8-warn-2</strong>"&gt;&lt;/i&gt;</code></pre>
+                <pre class="b-glyph"><code><strong>&amp;#xf101;</strong></code></pre>
+                <pre><code>&lt;i <strong>data-icons8="&amp;#xf101;"</strong>&gt;&lt;/i&gt;</code></pre>
+                <pre><code>&lt;i class="<strong>icons8"</strong>&gt;&amp;#xf101;&lt;/i&gt;</code></pre>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    </section>
+    <footer class="c-footer">
+      <div class="b-container">
+        <div>
+          Made with love by <a href="https://icons8.com">Icons8</a> using <a href="https://github.com/FontCustom/fontcustom">FontCustom</a>.
+        </div>
+        <div class="b-social">
+          <a href="https://github.com/icons8/">GitHub</a>
+          <a href="https://twitter.com/icons_8">Twitter</a>
+          <a href="https://www.facebook.com/Icons8?ref=hl">Facebook</a>
+          <a href="https://plus.google.com/+Icons8">Google+</a>
+        </div>
+      </div>
+    </footer>
+    <div class="c-popup-wrapper js-popup-wrapper">
+      <div class="b-dimmer js-dimmer"></div>
+      <div class="b-popup">
+        <a class="b-close js-popup-close">
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.0" x="0px" y="0px" viewBox="0 0 32 32"><path style="text-indent:0;text-align:start;line-height:normal;text-transform:none;block-progression:tb;-inkscape-font-specification:Bitstream Vera Sans" d="M 7.21875 5.78125 L 5.78125 7.21875 L 14.5625 16 L 5.78125 24.78125 L 7.21875 26.21875 L 16 17.4375 L 24.78125 26.21875 L 26.21875 24.78125 L 17.4375 16 L 26.21875 7.21875 L 24.78125 5.78125 L 16 14.5625 L 7.21875 5.78125 z"></path></svg>
+        </a>
+        <div class="js-popup"></div>
+      </div>
+    </div>
+    
+    <div class="hidden js-usage-example" data-example="css">
+      <h2>CSS</h2>
+      <p>Unzip your copy of web-font into your project. In the <code>&lt;<span class="tag">head</span>&gt;</code> of your html add link to CSS file:</p>
+      <pre><code>&lt;link rel="stylesheet" href="<strong>path/to/your-font/css/styles.min.css</strong>"&gt;</code></pre>
+      <p>In html you may insert icons like that:</p>
+      <pre><code>&lt;i class="<strong>icons8-back-arrow</strong>"&gt;&lt;/i&gt;
+&lt;i <strong>data-icons8="&amp;#xf119;"</strong>&gt;&lt;/i&gt;
+&lt;i <strong>class="icons8"</strong>&gt;<strong>&amp;#xf119;</strong>&lt;/i&gt;</code></pre>
+    </div>
+    <div class="hidden js-usage-example" data-example="less">
+      <h2>Basic LESS</h2>
+      <p>Unzip your copy of web-font into your project. In your LESS file <code>@<span class="keyword">import</span></code> LESS styles from web-font:</p>
+      <pre><code>@import "<strong>path/to/your-font/less/styles.less</strong>";</code></pre>
+      <h2>Advanced LESS</h2>
+      <pre><code>@import "path/to/your-font/less/variables.less";
+@import "path/to/your-font/less/core.less";
+@import "path/to/your-font/less/paths.less";
+@import "path/to/your-font/less/icons.less";
+
+// make glyph alias with custom behavior
+.some-new-icon:after { // &lt;i class="<strong>some-new-icon</strong>"&gt;&lt;/i&gt; is the same as &lt;i class="<strong>icons8-back-arrow</strong>"&gt;&lt;/i&gt;
+  .icons8-font();
+  font-size: 2em; // modify something, size or color maybe
+  content: @icons8-var-back-arrow;
+}
+</code></pre>
+    </div>
+    <div class="hidden js-usage-example" data-example="scss">
+      <h2>Basic SCSS</h2>
+      <p>Unzip your copy of web-font into your project. In your SCSS file <code>@import</code> SCSS styles from web-font:</p>
+      <pre><code>@import "<strong>path/to/your-font/scss/styles.scss</strong>";</code></pre>
+      <h2>Advanced SCSS</h2>
+      <pre><code>@import "path/to/your-font/scss/variables";
+@import "path/to/your-font/scss/core";
+@import "path/to/your-font/scss/paths";
+@import "path/to/your-font/scss/icons";
+
+// make glyph alias with custom behavior
+.some-new-icon:after { // &lt;i class="<strong>some-new-icon</strong>"&gt;&lt;/i&gt; is the same as &lt;i class="<strong>icons8-back-arrow</strong>"&gt;&lt;/i&gt;
+  @include icons8-font();
+  font-size: 2em; // modify something, size or color maybe
+  content: $icons8-var-back-arrow;
+}
+</code></pre>
+    </div>
+  </article>
+</body>
+</html>
