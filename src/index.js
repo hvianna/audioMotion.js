@@ -4534,9 +4534,14 @@ function updateRangeValue( el ) {
 	$('#version').innerText = VERSION;
 
 	// Load server configuration options from config.json
-	const response = await fetch( SERVERCFG_FILE );
+	let response;
 
-	let serverConfig = response.status == 200 ? await response.text() : null;
+	try {
+		response = await fetch( SERVERCFG_FILE );
+	}
+	catch( e ) {}
+
+	let serverConfig = response && response.status == 200 ? await response.text() : null;
 	try {
 		serverConfig = JSON.parse( serverConfig );
 	}
