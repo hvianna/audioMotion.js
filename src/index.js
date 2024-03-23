@@ -7,7 +7,7 @@
  *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
  *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
  *
- * audioMotion | High-resolution real-time audio spectrum analyzer and music player
+ * audioMotion | High-resolution real-time audio spectrum analyzer and media player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -496,8 +496,10 @@ const presets = [
 			linkGrads    : 0,
 			loRes        : 0,
 			lumiBars     : 0,
+			micSource    : 0,
 			mirror       : 0,
 			mode         : MODE_DISCRETE,
+			mute         : 0,
 			noShadow     : 1,
 			noteLabels   : 0,
 			outlineBars  : 0,
@@ -734,7 +736,6 @@ let audioElement = [],
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	hasServerMedia,				// music directory found on web server
 	isFastSearch = false,
-	isMicSource,				// flag for microphone input in use
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
@@ -2127,10 +2128,14 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 			}
 			else if ( el.classList.contains('switch') )
 				el.dataset.active = +val;
-			else if ( el == elVolume )
-				setVolume( val );
 			else if ( el == elBalance )
 				setBalance( val );
+			else if ( el == elMute )
+				toggleMute( val );
+			else if ( el == elSource )
+				setSource( val );
+			else if ( el == elVolume )
+				setVolume( val );
 			else {
 				el.value = val;
 				if ( el.selectedIndex == -1 ) // fix invalid values in select elements
@@ -2365,7 +2370,7 @@ function openGradientEditorNew() {
  */
 function playNextSong( play ) {
 
-	if ( skipping || isMicSource || playlistPos > queueLength() - 1 )
+	if ( skipping || elSource.checked || playlistPos > queueLength() - 1 )
 		return true;
 
 	skipping = true;
@@ -2408,7 +2413,7 @@ function playNextSong( play ) {
  * Player play/pause control
  */
 function playPause( play ) {
-	if ( isMicSource )
+	if ( elSource.checked )
 		return;
 	if ( isPlaying() && ! play ) {
 		audioElement[ currAudio ].pause();
@@ -2622,7 +2627,7 @@ function populateSelect( element, options ) {
  * @param [force] {boolean} force change even when not playing
  *                (default true for microphone input, false otherwise )
  */
-function randomizeSettings( force = isMicSource ) {
+function randomizeSettings( force = elSource.checked ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
@@ -3341,8 +3346,8 @@ function setOverlay() {
 /**
  * Set audioMotion properties
  *
- * @param elems {object|array} a DOM element object or array of objects
- * @param [save] {boolean} true to save current settings to last used preset
+ * @param {object|array} a DOM element object or array of objects
+ * @param {boolean} `true` (default) to save current settings to last used preset
  */
 function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
@@ -3390,6 +3395,10 @@ function setProperty( elems, save = true ) {
 				}
 				break;
 
+			case elBarSpace:
+				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getControlValue( elBarSpace );
+				break;
+
 			case elBgImageFit:
 				const bgFit  = elBgImageFit.value,
 					  isWarp = bgFit == BGFIT_WARP || bgFit == BGFIT_WARP_ANI || bgFit == BGFIT_WARP_ROT;
@@ -3428,10 +3437,6 @@ function setProperty( elems, save = true ) {
 				populateBackgrounds();
 				break;
 
-			case elBarSpace:
-				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getControlValue( elBarSpace );
-				break;
-
 			case elChnLayout:
 				audioMotion.channelLayout = getControlValue( elChnLayout );
 				toggleGradients();
@@ -3450,19 +3455,16 @@ function setProperty( elems, save = true ) {
 				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 				break;
 
+			case elFPS:
+				audioMotion.showFPS = isSwitchOn( elFPS );
+				break;
+
 			case elFreqScale:
 				audioMotion.frequencyScale = getControlValue( elFreqScale );
 				break;
 
 			case elFsHeight:
 				elAnalyzer.style.height = `${elFsHeight.value}%`;
-				break;
-
-			case elRangeMin:
-			case elRangeMax:
-				while ( +elRangeMax.value <= +elRangeMin.value )
-					elRangeMax.selectedIndex++;
-				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
 			case elGradient:
@@ -3506,6 +3508,10 @@ function setProperty( elems, save = true ) {
 				audioMotion.maxFPS = elMaxFPS.value;
 				break;
 
+			case elMirror:
+				audioMotion.mirror = getControlValue( elMirror );
+				break;
+
 			case elMode:
 				const mode = elMode.value;
 				if ( ! [ MODE_AREA, MODE_LINE ].includes( mode ) )
@@ -3525,8 +3531,8 @@ function setProperty( elems, save = true ) {
 				setProperty( elBarSpace, false );
 				break;
 
-			case elMirror:
-				audioMotion.mirror = getControlValue( elMirror );
+			case elMute:
+				toggleMute();
 				break;
 
 			case elNoteLabels:
@@ -3556,6 +3562,13 @@ function setProperty( elems, save = true ) {
 				if ( option > 1 )
 					randomModeTimer = setInterval( randomizeSettings, 2500 * option );
 
+				break;
+
+			case elRangeMin:
+			case elRangeMax:
+				while ( +elRangeMax.value <= +elRangeMin.value )
+					elRangeMax.selectedIndex++;
+				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
 			case elReflex:
@@ -3612,10 +3625,6 @@ function setProperty( elems, save = true ) {
 				audioMotion.linearBoost = $(`.linear-boost[data-preset="${sensitivity}"]`).value;
 				break;
 
-			case elFPS:
-				audioMotion.showFPS = isSwitchOn( elFPS );
-				break;
-
 			case elShowPeaks:
 				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
 				break;
@@ -3623,6 +3632,21 @@ function setProperty( elems, save = true ) {
 			case elSmoothing:
 				audioMotion.smoothing = elSmoothing.value;
 				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
+				break;
+
+			case elSource:
+				const isMic = elSource.checked;
+				save = false; // last config will be updated by the callback
+				setSource( isMic, success => {
+					if ( isMic && success ) {
+						// mute the output to avoid feedback loop from the microphone
+						wasMuted = elMute.checked;
+						toggleMute( true );
+					}
+					else if ( ! isMic )
+						toggleMute( !! wasMuted ); // false if undefined
+					updateLastConfig();
+				});
 				break;
 
 			case elSpin:
@@ -3652,10 +3676,14 @@ function setProperty( elems, save = true ) {
 
 /**
  * Change audio input source
+ *
+ * @param {boolean}  `true` for microphone source
+ * @param {function} callback (passed boolean indicating success of request)
  */
-async function setSource() {
-	// set global variable
-	isMicSource = elSource.checked;
+async function setSource( isMicSource, callback ) {
+
+	// update UI control value, when setting via preset definition
+	elSource.checked = isMicSource;
 
 	if ( isMicSource ) {
 		// try to get access to user's microphone
@@ -3667,20 +3695,23 @@ async function setSource() {
 				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
 				if ( isPlaying() )
 					audioElement[ currAudio ].pause();
-				// mute the output to avoid feedback loop from the microphone
-				wasMuted = elMute.checked;
-				toggleMute( true );
 				audioMotion.connectInput( micStream );
 				consoleLog( 'Audio source set to microphone' );
 			})
 			.catch( err => {
 				consoleLog( `Could not change audio source - ${err}`, true );
-				elSource.checked = isMicSource = false;
+				elSource.checked = false;
+			})
+			.finally( () => {
+				if ( callback )
+					callback( elSource.checked );
 			});
 		}
 		else {
 			consoleLog( 'Cannot access user microphone', true );
-			elSource.checked = isMicSource = false;
+			elSource.checked = false;
+			if ( callback )
+				callback( false );
 		}
 	}
 	else {
@@ -3688,9 +3719,10 @@ async function setSource() {
 			audioMotion.disconnectInput( micStream );
 			micStream.mediaStream.getTracks()[0].stop(); // stop (release) stream
 			micStream = null;
-			toggleMute( wasMuted );
 		}
 		consoleLog( 'Audio source set to built-in player' );
+		if ( callback )
+			callback( true );
 	}
 
 }
@@ -3749,10 +3781,6 @@ function setUIEventListeners() {
 			});
 		}
 	});
-
-	// audio source selection and speakers mute
-	elSource.addEventListener( 'change', setSource );
-	elMute.addEventListener( 'change', () => toggleMute() );
 
 	// helper debounce function - thanks https://www.freecodecamp.org/news/javascript-debounce-example/
 	const debounce = ( func, timeout = 300 ) => {
@@ -4224,7 +4252,13 @@ function toggleSettingsPanel( force ) {
  * Update last used configuration
  */
 function updateLastConfig() {
-	saveToStorage( KEY_LAST_CONFIG, { ...getCurrentSettings(), volume: elVolume.dataset.value, balance: elBalance.dataset.value } );
+	saveToStorage( KEY_LAST_CONFIG, {
+		...getCurrentSettings(),
+		balance  : elBalance.dataset.value,
+		micSource: elSource.checked,
+		mute     : elMute.checked,
+		volume   : elVolume.dataset.value,
+	});
 }
 
 /**
@@ -4402,7 +4436,7 @@ function updateRangeValue( el ) {
 				drawText( `Repeat is ${ onOff( elRepeat ) }`, rightPos, topLine2, maxWidthTop );
 			}
 
-			if ( isMicSource ) {
+			if ( elSource.checked ) {
 				canvasCtx.textAlign = 'left';
 				canvasCtx.font = largeFont;
 				drawText( 'MIC source', baseSize, bottomLine2, maxWidthBot );
@@ -4686,9 +4720,6 @@ function updateRangeValue( el ) {
 			audioMotion.registerGradient( key, { bgColor, dir, colorStops } );
 	});
 	populateGradients();
-
-	// Set audio source to built-in player
-	setSource();
 
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(

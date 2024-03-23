@@ -12,7 +12,7 @@
  *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
  *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
  *
- * audioMotion | High-resolution real-time audio spectrum analyzer and music player
+ * audioMotion | High-resolution real-time audio spectrum analyzer and media player
  *
  * https://github.com/hvianna/audioMotion.js
  *
@@ -44,7 +44,7 @@
 	<meta property="og:title" content="audioMotion">
 	<meta property="og:image" content="https://audiomotion.app/docs/img/audioMotion-header.png">
 	<meta property="og:site_name" content="audioMotion">
-	<meta property="og:description" content="High-resolution real-time audio spectrum analyzer and music player">
+	<meta property="og:description" content="High-resolution real-time audio spectrum analyzer and media player">
 	<meta property="og:type" content="website">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="twitter:site" content="@HenriqueVianna">
@@ -99,7 +99,7 @@
 			<div class="controls-left">
 				<div>
 					<div class="config-label">SOURCE</div>
-					<input class="slider" type="checkbox" id="source">
+					<input class="slider" type="checkbox" id="source" data-prop="micSource">
 					<label class="slider" for="source">
 						<span class="slider-on">PLAYER</span>
 						<span class="slider-off">MIC</span>
@@ -108,7 +108,7 @@
 
 				<div>
 					<div class="config-label">SPEAKERS</div>
-					<input class="slider" type="checkbox" id="mute">
+					<input class="slider" type="checkbox" id="mute" data-prop="mute">
 					<label class="slider on-off" for="mute">
 						<span class="slider-on">ON</span>
 						<span class="slider-off">OFF</span>
