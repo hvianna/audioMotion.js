@@ -1062,7 +1062,7 @@ function addMetadata( metadata, target ) {
  * Add a song to the play queue
  * returns a Promise that resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( fileObject, content = {}, autoplay ) {
+function addSongToPlayQueue( fileObject, content = {} ) {
 
 	return new Promise( resolve => {
 		if ( queueLength() >= MAX_QUEUED_SONGS )
@@ -1099,8 +1099,8 @@ function addSongToPlayQueue( fileObject, content = {}, autoplay ) {
 			retrieveMetadata();
 		}
 
-		if ( ( autoplay || queueLength() == 1 ) && ! isPlaying() )
-			loadSong( 0, autoplay ).then( () => resolve(1) );
+		if ( queueLength() == 1 && ! isPlaying() )
+			loadSong(0).then( () => resolve(1) );
 		else
 			resolve(1);
 
@@ -1117,9 +1117,9 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	let ret;
 
 	if ( FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
-		ret = loadPlaylist( fileObject, autoplay );
+		ret = loadPlaylist( fileObject );
 	else
-		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ), autoplay );
+		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1897,7 +1897,7 @@ async function loadNextSong() {
 /**
  * Load a playlist file into the play queue
  */
-function loadPlaylist( fileObject, autoplay = false ) {
+function loadPlaylist( fileObject ) {
 
 	let path = normalizeSlashes( fileObject.file );
 
@@ -1939,8 +1939,7 @@ function loadPlaylist( fileObject, autoplay = false ) {
 							line = path + line;
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ), autoplay ) );
-					autoplay = false; // disable it after adding the first song
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ) ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
