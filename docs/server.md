@@ -12,20 +12,42 @@ If you'd like to host the audioMotion app in your own web server:
 !> **Playlists, Presets and Custom gradients** are saved to the browser's storage and will only be accessible in the same browser they were saved.
 The storage is also tied to the server **address and port**, so if any of those change, data saved on a different address/port won't be accessible.
 
-## config.json file <!-- {docsify-ignore} -->
+## config.json file
 
-A _config.json_ file in the same directory as audioMotion's _index.html_ allows you to configure some server options.
-You can use the **config.json.dist** file included in the `public` directory as a reference (copy it or rename it to _config.json_).
+A **config.json** file in the same directory as audioMotion's _index.html_ allows you to configure some server options.
+
+```config.json
+{
+  "defaultAccessMode": "local",
+  "enableLocalAccess": true,
+  "mediaPanel": "open"
+}
+```
 
 | option | values (default in bold) | description |
-|--------|---------------------------------|-------------|
+|--------|--------------------------|-------------|
 | **defaultAccessMode** | **`"local"`** \| `"server"` | Initial (first run) file access mode - user's device or /music directory on server
 | **enableLocalAccess** | **`true`** \| `false` | Whether or not to enable access to local device (*true* allows user to switch between local or server)
+| **mediaPanel**        | **`"open"`** \| `"close"` | Initial state of the [Media Panel](users-manual.md#media-panel) (*"close"* expands the analyzer area)
 
+## URL parameters
 
-## Server configuration examples <!-- {docsify-ignore} -->
+The following URL parameters can also be used when accessing audioMotion:
 
-The examples below configure audioMotion to run at server port 8000 and map the /music URL to a different directory.
+| parameter | possible values | description |
+|-----------|-----------------|-------------|
+| **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
+| **mediaPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the configuration on server
+
+Use an **&** character to separate multiple parameters. Example usage:
+
+[https://audiomotion.app?mode=server](https://audiomotion.app?mode=server)
+
+[https://audiomotion.app?mode=local&mediaPanel=close](https://audiomotion.app?mode=local&mediaPanel=close)
+
+## Server configuration examples
+
+The examples below configure the server to use port 8000 for audioMotion, and map the */music* URL to a different directory outside its document root.
 
 ### Apache: <!-- {docsify-ignore} -->
 

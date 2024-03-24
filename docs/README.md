@@ -31,7 +31,7 @@ Click the button below to open the web app:
 Works on Chrome, Opera and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
 
 If you don't have any music files at hand, the app also includes a few songs and some online radio streams.<br>
-Click the [**Switch to Server**](users-manual.md#file-explorer-and-play-queue) button to browse server-hosted content.
+Click the [**Switch to Server**](users-manual.md#media-panel) button to browse server-hosted content.
 
 Also check out our [**YouTube channel**](https://youtube.com/@audioMotionJS) for some cool songs visualized with audioMotion!
 

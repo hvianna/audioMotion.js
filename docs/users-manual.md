@@ -50,11 +50,15 @@ Balance can also be adjusted with **Shift** + **Left** and **Right** arrow keys,
 
 Balance and volume settings will be automatically restored next time you open **audioMotion**.
 
-## File explorer and play queue
+## Media Panel
 
 ![files-panel](img/files-panel.png)
 
-The **file explorer** allows you to navigate through folders and files on your device or on the server.
+The Media Panel houses the **File Explorer** and the **Play Queue.**
+
+### File Explorer
+
+The **File Explorer** allows you to navigate through folders and files on your device or on the server.
 
 | button | action |
 |:-------|:-------|
@@ -62,7 +66,7 @@ The **file explorer** allows you to navigate through folders and files on your d
 **Add selected**  | Add currently selected files in the file explorer to the play queue
 **Add all files** | Add all files in the current folder to the play queue
 **Add from URL**  | Load a remote audio file or stream from an URL
-**Upload file**   | Play individual music files from your device. Uploaded files can't be added to queue or saved to playlists.<br>*(Only displayed on browsers that do not support local file access)*
+**Upload file**   | Play individual music files from your device. Uploaded files can't be queued or saved to playlists.<br>*(Only displayed on browsers that do not support local file access)*
 
 **Double-click** a file to quickly add it to the play queue.
 
@@ -79,7 +83,7 @@ Supported file extensions are:
 
 *Actual codec support may vary depending on browser and operating system.*
 
-### Using the play queue and playlists <!-- {docsify-ignore} -->
+### Using the play queue and playlists
 
 Double-click a queued song to play it.
 
@@ -445,11 +449,11 @@ Loading backgrounds from the local device requires support for the *File System 
 
 **Maximum background items** controls the maximum number of media files that can be directly selected in the [Background](#background) setting.
 
-**Auto-hide file panel on analyzer hover** - check to automatically hide the file explorer / play queue panel, when you move the mouse over the analyzer.
+**Auto-hide media panel on analyzer hover** automatically hides the media panel (file explorer and play queue) when you move the mouse cursor over the analyzer.
 
-**Remember play queue contents** - check to automatically restore the contents of the play queue the next time you open audioMotion.
+**Remember play queue contents** automatically restores the contents of the play queue the next time you open audioMotion.
 
-**Remember last music folder** - check to start the file explorer in the last previously used folder the next time you open audioMotion.
+**Remember last music folder** makes the file explorer open in the last previously used folder after starting audioMotion.
 
 The **Reset to defaults** button will reset all settings above to their default values.
 

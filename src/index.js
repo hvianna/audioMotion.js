@@ -146,6 +146,14 @@ const MODE_DISCRETE    = '0',
 	  MODE_OCTAVE_12TH = '2',
 	  MODE_OCTAVE_24TH = '1';
 
+// Valid values for the `mediaPanel` URL parameter and config.json option
+const PANEL_CLOSE = 'close',
+	  PANEL_OPEN  = 'open';
+
+// User presets placeholders
+const PRESET_EMPTY  = 'Empty slot',
+	  PRESET_NONAME = 'No description';
+
 // Reflex options
 const REFLEX_OFF  = '0',
 	  REFLEX_ON   = '1',
@@ -185,11 +193,12 @@ const SERVER_CUSTOM = 1,  // custom server (node or Electron)
 	  SERVER_FILE   = -1, // local access via file://
 	  SERVER_WEB    = 0;  // standard web server
 
-// Server configuration file
+// Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.json',
 	  SERVERCFG_DEFAULTS = {
 	  	defaultAccessMode: FILEMODE_LOCAL,
-		enableLocalAccess: true
+		enableLocalAccess: true,
+		mediaPanel       : PANEL_OPEN
 	  };
 
 // Weighting filters
@@ -199,10 +208,6 @@ const WEIGHT_NONE = '',
 	  WEIGHT_C    = 'C',
 	  WEIGHT_D    = 'D',
 	  WEIGHT_468  = '468';
-
-// User presets placeholders
-const PRESET_EMPTY  = 'Empty slot',
-	  PRESET_NONAME = 'No description';
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -226,7 +231,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
-	  elFilesPanel    = $('#files_panel'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
 	  elFreqScale     = $('#freq_scale'),
@@ -242,6 +246,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elLoRes         = $('#lo_res'),
 	  elLumiBars      = $('#lumi_bars'),
 	  elMaxFPS        = $('#max_fps'),
+	  elMediaPanel    = $('#files_panel'),
 	  elMirror        = $('#mirror'),
 	  elMode          = $('#mode'),
 	  elMute          = $('#mute'),
@@ -3366,7 +3371,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elAutoHide:
-				toggleFilesPanel( true );
+				toggleMediaPanel( true );
 				break;
 
 			case elBackground:
@@ -3741,17 +3746,30 @@ function setVolume( value ) {
  * NOTE: this is called only once during initialization
  */
 function setUIEventListeners() {
+	// open/close media panel (auto-hide)
+	elContainer.addEventListener( 'mouseenter', () => {
+		if ( elAutoHide.checked )
+			toggleMediaPanel( false );
+	});
+	$('.player-area').addEventListener( 'mouseleave', () => toggleMediaPanel( true ) );
+
+	// wait for the transition on the analyzer container to end, before hiding the media panel and restoring overflow on body
+	elContainer.addEventListener( 'transitionend', () => {
+		if ( elContainer.style.height )
+			elMediaPanel.style.display = 'none';
+		document.body.style.overflowY = '';
+	});
 
 	// open/close settings panel
 	elToggleSettings.addEventListener( 'click', () => {
-		toggleFilesPanel( true );
+		toggleMediaPanel( true );
 		toggleSettingsPanel();
 	});
 	$('.settings-close').addEventListener( 'click', () => toggleSettingsPanel() );
 
 	// open/close console
 	elToggleConsole.addEventListener( 'click', () => {
-		toggleFilesPanel( true );
+		toggleMediaPanel( true );
 		toggleConsole();
 		elToggleConsole.classList.remove('warning');
 		consoleLog(); // update scroll only
@@ -4040,15 +4058,6 @@ function setUIEventListeners() {
 	$('#new-gradient-horizontal').addEventListener('input', (e) => {
 		currentGradient.dir = e.target.checked ? 'h' : undefined;
 	});
-
-	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked )
-			toggleFilesPanel( false );
-	});
-	$('.player-area').addEventListener( 'mouseleave', () => {
-		if ( elAutoHide.checked )
-			toggleFilesPanel( true );
-	});
 }
 
 /**
@@ -4169,16 +4178,15 @@ function toggleConsole( force ) {
 }
 
 /**
- * Show/hide the files panel (for auto-hide feature) and adjust the canvas height
+ * Show/hide the media panel (for auto-hide feature) and adjust the canvas height
  *
- * @param {boolean} `true` to show the files panel, otherwise hide it
+ * @param {boolean} `true` to show the media panel, otherwise hide it
  */
-function toggleFilesPanel( show ) {
-	const body = document.body;
-	body.style.overflowY = 'hidden';
+function toggleMediaPanel( show ) {
+	document.body.style.overflowY = 'hidden';
 
 	if ( show )
-		elFilesPanel.style.display = '';
+		elMediaPanel.style.display = '';
 	else {
 		// when hiding, also close the console and the settings panel
 		toggleConsole( false );
@@ -4186,13 +4194,6 @@ function toggleFilesPanel( show ) {
 	}
 
 	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
-
-	// wait for the container transition to end, before hiding the files panel and restoring overflow on body
-	elContainer.addEventListener( 'transitionend', () => {
-		if ( elContainer.style.height )
-			elFilesPanel.style.display = 'none';
-		body.style.overflowY = '';
-	}, { once: true } );
 }
 
 /**
@@ -4554,14 +4555,18 @@ function updateRangeValue( el ) {
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
-	// Check if `mode` URL parameter is used to request local or server filesystem
-	const urlParams = new URL( document.location ).searchParams,
-		  userMode  = urlParams.get('mode');
+	// Read URL parameters
+	const urlParams      = new URL( document.location ).searchParams,
+		  userMode       = urlParams.get('mode'),
+		  userMediaPanel = urlParams.get('mediaPanel');
 
 	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
 		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
+
+	if ( userMediaPanel == PANEL_CLOSE || ( serverConfig.mediaPanel == PANEL_CLOSE && userMediaPanel != PANEL_OPEN ) )
+		toggleMediaPanel( false );
 
 	// Load preferences from localStorage
 	if ( isElectron )
@@ -4820,7 +4825,7 @@ function updateRangeValue( el ) {
 							( ! isLastDirLocked || await lastDir[0].handle.requestPermission() == 'granted' );
 
 			if ( isClear ) {
-				elFilesPanel.classList.remove('locked');
+				elMediaPanel.classList.remove('locked');
 				window.removeEventListener( 'click', requestPermission );
 				if ( isBgDirLocked )
 					retrieveBackgrounds();
@@ -4837,7 +4842,7 @@ function updateRangeValue( el ) {
 		loadPreset( 'last', false, true );
 
 		if ( isBgDirLocked || isLastDirLocked ) {
-			elFilesPanel.classList.add('locked');
+			elMediaPanel.classList.add('locked');
 			window.addEventListener( 'click', requestPermission );
 		}
 		else
