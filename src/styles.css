@@ -323,6 +323,7 @@ a.button:visited {
 }
 .bg-container:fullscreen {
 	position: relative !important;
+	transition: none;
 }
 .bg-container:fullscreen .analyzer {
 	top: 50%;
