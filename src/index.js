@@ -4297,7 +4297,7 @@ function updateRangeValue( el ) {
 		bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
 		bottomLine2 = height - baseSize * 2.8;	// song title
 		bottomLine3 = height - baseSize * 1.6;	// album title, time
-		maxWidthBot = width - baseSize * 7;		// maximum width for artist and song name
+		maxWidthBot = width - baseSize * 8;		// maximum width for artist and song name
 
 		normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
 		largeFont   = `bold ${baseSize}px sans-serif`;
