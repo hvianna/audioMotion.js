@@ -146,6 +146,11 @@ const MODE_DISCRETE    = '0',
 	  MODE_OCTAVE_12TH = '2',
 	  MODE_OCTAVE_24TH = '1';
 
+// Options for OSD font size
+const OSD_SIZE_S = '0',
+	  OSD_SIZE_M = '1',
+	  OSD_SIZE_L = '2';
+
 // Valid values for the `mediaPanel` URL parameter and config.json option
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
@@ -254,6 +259,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elNoteLabels    = $('#note_labels'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
+	  elOSDFontSize   = $('#osd_font_size'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
 	  elRadial        = $('#radial'),
@@ -700,13 +706,14 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
 	autoHide   : true,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 20,
 	fftSize    : 8192,
+	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
 	pipRatio   : 2.35,
@@ -755,6 +762,21 @@ let audioElement = [],
 	userPresets,
 	waitingMetadata = 0,
 	wasMuted;					// mute status before switching to microphone input
+
+// for on-screen info display
+let baseSize,
+	coverSize,
+	centerPos,
+	rightPos,
+	topLine1,
+	topLine2,
+	bottomLine1,
+	bottomLine2,
+	bottomLine3,
+	maxWidthTop,
+	maxWidthBot,
+	normalFont,
+	largeFont;
 
 const canvasCtx  = elOSD.getContext('2d'),
 	  coverImage = new Image(),	// cover image for the currently playing song (for canvas rendering)
@@ -1207,6 +1229,32 @@ function clearPlayQueue() {
 
 	clearAudioElement( nextAudio );
 	updatePlaylistUI();
+}
+
+/**
+ * Recalculate global variables and resize the canvas used for OSD
+ */
+function computeFontSizes( instance = audioMotion ) {
+
+	const factors = [ 24, 17, 13.5 ], // approx. 45px, 64px, 80px for 1080px canvas (baseSize)
+		  dPR     = instance.pixelRatio,
+		  height  = elOSD.height = elContainer.clientHeight * dPR, // resize OSD canvas
+		  width   = elOSD.width  = elContainer.clientWidth * dPR;
+
+	baseSize    = Math.max( 12, Math.min( width, height ) / factors[ +elOSDFontSize.value ] );
+	coverSize   = baseSize * 3;				// cover image size
+	centerPos   = width / 2;
+	rightPos    = width - baseSize;
+	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
+	topLine2    = topLine1 * 1.8;			// auto gradient, Randomize & repeat status
+	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
+	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
+	bottomLine2 = height - baseSize * 2.8;	// song title
+	bottomLine3 = height - baseSize * 1.6;	// album title, time
+	maxWidthBot = width - baseSize * 8;		// maximum width for artist and song name
+
+	normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
+	largeFont   = `bold ${baseSize}px sans-serif`;
 }
 
 /**
@@ -2090,6 +2138,12 @@ async function loadPreferences() {
 	]);
 
 	setRangeAtts( elBgMaxItems, 0, 100 );
+
+	populateSelect( elOSDFontSize, [
+		[ OSD_SIZE_S, 'Small'  ],
+		[ OSD_SIZE_M, 'Medium' ],
+		[ OSD_SIZE_L, 'Large'  ]
+	]);
 
 	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
@@ -3295,6 +3349,7 @@ function setGeneralOptions( options ) {
 	elFFTsize.value     = options.fftSize;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
+	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
@@ -3541,6 +3596,10 @@ function setProperty( elems, save = true ) {
 
 			case elNoteLabels:
 				audioMotion.noteLabels = isSwitchOn( elNoteLabels );
+				break;
+
+			case elOSDFontSize:
+				computeFontSizes();
 				break;
 
 			case elOutline:
@@ -4276,41 +4335,22 @@ function updateRangeValue( el ) {
  * ------------------------------------------------------------------------------------------------
  */
 ( async function() {
-	// variables for on-screen info display
-	let baseSize, coverSize, centerPos, rightPos, topLine1, topLine2, bottomLine1, bottomLine2, bottomLine3, maxWidthTop, maxWidthBot, normalFont, largeFont;
 
 	// Callback function to handle canvas size changes (onCanvasResize)
 	const showCanvasInfo = ( reason, instance ) => {
-		// resize OSD canvas
-		const dPR    = instance.pixelRatio,
-			  width  = elOSD.width  = elContainer.clientWidth * dPR,
-			  height = elOSD.height = elContainer.clientHeight * dPR;
-
-		// recalculate variables used for info display
-		baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
-		coverSize   = baseSize * 3;				// cover image size
-		centerPos   = width / 2;
-		rightPos    = width - baseSize;
-		topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
-		topLine2    = topLine1 * 1.8;			// auto gradient, Randomize & repeat status
-		maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
-		bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
-		bottomLine2 = height - baseSize * 2.8;	// song title
-		bottomLine3 = height - baseSize * 1.6;	// album title, time
-		maxWidthBot = width - baseSize * 8;		// maximum width for artist and song name
-
-		normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
-		largeFont   = `bold ${baseSize}px sans-serif`;
+		// resize OSD canvas and recalculate variables used for info display
+		// note: the global `audioMotion` object is not set yet during the `create` event, so we must pass the instance
+		computeFontSizes( instance );
 
 		let msg;
 
 		switch ( reason ) {
 			case 'create':
-				consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
+				consoleLog( `Display resolution: ${ instance.fsWidth } x ${ instance.fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
 				msg = 'Canvas created';
 				break;
 			case 'lores':
-				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
+				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${ instance.dPR })`;
 				break;
 			case 'fschange':
 				msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
@@ -4341,6 +4381,9 @@ function updateRangeValue( el ) {
 	 */
 	const displayCanvasMsg = ( instance, data ) => {
 
+		if ( ! audioElement.length )
+			return; // initialization not finished yet
+
 		const audioEl    = audioElement[ currAudio ],
 			  trackData  = audioEl.dataset,
 			  remaining  = audioEl.duration - audioEl.currentTime,
@@ -4348,7 +4391,7 @@ function updateRangeValue( el ) {
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
 			  noShadow   = isSwitchOn( elNoShadow ),
-			  pixelRatio = audioMotion.pixelRatio,
+			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
 		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
@@ -4367,7 +4410,7 @@ function updateRangeValue( el ) {
 			let size;
 
 			if ( bgImageFit == BGFIT_PULSE )
-				size = ( audioMotion.getEnergy() * 70 | 0 ) - 25;
+				size = ( instance.getEnergy() * 70 | 0 ) - 25;
 			else {
 				const songProgress = audioEl.currentTime / audioEl.duration;
 				size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
