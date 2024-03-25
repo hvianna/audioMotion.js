@@ -4281,32 +4281,10 @@ function updateRangeValue( el ) {
 
 	// Callback function to handle canvas size changes (onCanvasResize)
 	const showCanvasInfo = ( reason, instance ) => {
-		let msg;
-
 		// resize OSD canvas
 		const dPR    = instance.pixelRatio,
 			  width  = elOSD.width  = elContainer.clientWidth * dPR,
 			  height = elOSD.height = elContainer.clientHeight * dPR;
-
-		switch ( reason ) {
-			case 'create':
-				consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
-				msg = 'Canvas created';
-				break;
-			case 'lores':
-				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
-				break;
-			case 'fschange':
-				msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
-				break;
-			case 'resize':
-				msg = 'Window resized';
-				break;
-			case 'user' :
-				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
-		}
-
-		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
 
 		// recalculate variables used for info display
 		baseSize    = Math.min( width, height ) / 17; // ~64px for 1080px canvas
@@ -4323,6 +4301,29 @@ function updateRangeValue( el ) {
 
 		normalFont  = `bold ${ baseSize * .7 }px sans-serif`;
 		largeFont   = `bold ${baseSize}px sans-serif`;
+
+		let msg;
+
+		switch ( reason ) {
+			case 'create':
+				consoleLog( `Display resolution: ${instance.fsWidth} x ${instance.fsHeight} px (pixelRatio: ${window.devicePixelRatio})` );
+				msg = 'Canvas created';
+				break;
+			case 'lores':
+				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${dPR})`;
+				break;
+			case 'fschange':
+				msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
+				break;
+			case 'user' :
+				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
+				break;
+			default:
+				// don't display any message for window/canvas resizing
+				return;
+		}
+
+		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
 	}
 
 	/**
