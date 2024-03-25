@@ -7,7 +7,7 @@
  *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
  *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
  *
- * audioMotion | High-resolution real-time audio spectrum analyzer and media player
+ * audioMotion | media player and real-time audio spectrum analyzer
  *
  * https://github.com/hvianna/audioMotion.js
  *
