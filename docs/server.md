@@ -37,7 +37,7 @@ The following URL parameters can also be used when accessing audioMotion:
 | parameter | possible values | description |
 |-----------|-----------------|-------------|
 | **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
-| **mediaPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the configuration on server
+| **mediaPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the server configuration
 
 Use an **&** character to separate multiple parameters. Example usage:
 

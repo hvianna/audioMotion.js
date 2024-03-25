@@ -496,14 +496,17 @@
 				<h3 class="colspan-2">General settings:
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=general-settings" target="_blank"></a>
 				</h3>
+				<p>Background files listed (max):</p>
+				<input id="bg_max_items" type="number">
+
+				<p>Backgrounds folder location:</p>
+				<select id="bg_location"></select>
+
 				<p>FFT size:</p>
 				<select id="fft_size"></select>
 
-				<p>Smoothing over time:</p>
+				<p>FFT smoothing over time:</p>
 				<input id="smoothing" type="number">
-
-				<p>PIP aspect ratio:</p>
-				<select id="pip_ratio"></select>
 
 				<p>Fullscren height (%):</p>
 				<input id="fs_height" type="number">
@@ -511,19 +514,16 @@
 				<p>Maximum frame rate (FPS):</p>
 				<select id="max_fps"></select>
 
-				<p>Backgrounds folder location:</p>
-				<select id="bg_location"></select>
-
-				<p>Maximum background items:</p>
-				<input id="bg_max_items" type="number">
-
 				<p>On-screen display font size:</p>
 				<select id="osd_font_size"></select>
 
+				<p>PIP aspect ratio:</p>
+				<select id="pip_ratio"></select>
+
 				<p></p>
 				<p class="colspan-2"><label><input type="checkbox" id="auto_hide"> Auto-hide media panel on analyzer hover</label></p>
-				<p class="colspan-2"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
 				<p class="colspan-2"><label><input type="checkbox" id="save_dir"> Remember last music folder</label></p>
+				<p class="colspan-2"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
 
 				<p class="colspan-2"><br><button id="reset_general">Reset to defaults</button></p>
 			</div>

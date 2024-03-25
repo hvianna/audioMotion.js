@@ -422,38 +422,40 @@ So if you want to randomize only among your custom presets, uncheck everything e
 
 ![config-general-settings](img/config-general-settings.png)
 
-**FFT Size** is the number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+**Background files listed (max)** controls the maximum number of media files that can be directly selected in the [Background](#background) setting.
+
+**Backgrounds folder location** selects the source for images and videos that can be used as [Background](#background) options, or disables external background media.
+
+Only files found in the selected folder will be loaded - subfolders are ignored.<br>
+Loading backgrounds from the local device requires support for the *File System Access API*, which is [currently only available on Chromium-based browsers](known-issues.md).
+
+**FFT size** is the number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
 
 Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
 The default value of **8192** usually provides the best cost/benefit ratio for both domains.
 
-**Smoothing over time** is the averaging factor used to smooth FFT data between analysis frames.
+**FFT smoothing over time** is the averaging factor used to smooth FFT data between analysis frames.
 
 Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
 Increase it if the analyzer animation looks too "jumpy".
 
-**PIP window aspect ratio** selects the aspect ratio of the Picture-In-Picture window.
-After entering PIP, the window can be resized and the selected aspect ratio will be preserved.
-
-**Fullscreen Height** adjusts the height of the analyzer when in fullscreen. This can be used to provide a wider look to the analyzer.
+**Fullscreen height (%)** adjusts the height of the analyzer when in fullscreen. This can be used to provide a wider look to the analyzer.
 
 You can also use the **Shift** + **Up** and **Down** arrows to adjust the analyzer height during fullscreen visualization.
 
 **Maximum frame rate (FPS)** controls the maximum animation frame rate, in frames per second.
 'Unlimited' will try to match your monitor's refresh rate, but may increase CPU usage.
 
-**Backgrounds folder location** selects the source for images and videos that can be used as [Background](#background) options, or disable external background media.
+**On-screen display font size** controls the font size used for information displayed on canvas.
 
-Only files found in the selected folder will be loaded - subfolders are ignored.<br>
-Loading backgrounds from the local device requires support for the *File System Access API*, which is [currently only available on Chromium-based browsers](known-issues.md).
-
-**Maximum background items** controls the maximum number of media files that can be directly selected in the [Background](#background) setting.
+**PIP window aspect ratio** selects the aspect ratio of the Picture-In-Picture window.
+After entering PIP, the window can be resized and the selected aspect ratio will be preserved.
 
 **Auto-hide media panel on analyzer hover** automatically hides the media panel (file explorer and play queue) when you move the mouse cursor over the analyzer.
 
-**Remember play queue contents** automatically restores the contents of the play queue the next time you open audioMotion.
-
 **Remember last music folder** makes the file explorer open in the last previously used folder after starting audioMotion.
+
+**Remember play queue contents** automatically restores the contents of the play queue the next time you open audioMotion.
 
 The **Reset to defaults** button will reset all settings above to their default values.
 

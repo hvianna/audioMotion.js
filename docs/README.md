@@ -25,10 +25,10 @@
 
 Click the button below to open the web app:
 
-<a href="https://audiomotion.app" target="_blank"><img src="https://img.shields.io/badge/audioMotion.app-ff3e37?style=flat&logoColor=white&logo=Soundcharts" height="48"></a>
+<a href="https://audiomotion.app" target="_blank"><img src="https://img.shields.io/badge/audioMotion.app-ff3e37?style=flat" height="48"></a>
 
 **Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
-Works on Chrome, Opera and Edge by default. On Brave you'll need to enable it in `chrome://flags/#file-system-access-api`.
+Works on Chrome, Opera and Edge by default. On Brave you'll need to enable this feature in `chrome://flags/#file-system-access-api`.
 
 If you don't have any music files at hand, the app also includes a few songs and some online radio streams.<br>
 Click the [**Switch to Server**](users-manual.md#media-panel) button to browse server-hosted content.
@@ -43,7 +43,7 @@ Also check out our [**YouTube channel**](https://youtube.com/@audioMotionJS) for
 
 I would like to thank:
 
-My wife **Virginia**, for her never-ending love and support! 💞
+My wife **Virginia**, for the endless love and support! 💞
 
 [Yuji Koike](http://ykcircus.com), for his great [Soniq Viewer for iOS](https://itunes.apple.com/us/app/soniq-viewer/id448343005), which inspired me to create **audioMotion.**
 
