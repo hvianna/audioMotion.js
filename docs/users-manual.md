@@ -156,11 +156,11 @@ This setting is effective only when an [octave bands mode](#analyzer-mode) is se
 
 | Bar Spacing | Description |
 |-------------|-------------|
-**Legacy** | ~1px spacing between analyzer bars
-**Narrow** | 10% spacing, 90% bar width (default)
-**Regular** | 25% spacing, 75% bar width
-**Wide** | 50% spacing, 50% bar width
-**Extra wide** | 75% spacing, 25% bar width
+**MIN** | ~1px spacing between analyzer bars
+**10**  | 10% spacing, 90% bar width (default)
+**25**  | 25% spacing, 75% bar width
+**50**  | 50% spacing, 50% bar width
+**75**  | 75% spacing, 25% bar width
 
 ### Line Width and Fill Opacity
 
@@ -201,8 +201,8 @@ The **LINK** and **SPLIT** switches control some specific features when using a 
 
 | Switch    | Description |
 |:----------|:------------|
-| **LINK**  | Uses the same gradient for both analyzer channels
-| **SPLIT** | Splits the gradient between both channels, so each channel will have different colors (VERT channel layout only)
+| **LINK**  | Uses the same gradient for both analyzer channels.
+| **SPLIT** | Splits the gradient between both channels (**VERT** [channel layout](#channel-layout) only), so each channel will use different colors.
 
 ### Color Mode
 

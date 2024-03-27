@@ -10,7 +10,7 @@ It is completely free, open-source software, created out of my passion for the g
 
 ![screenshot2](docs/img/screenshot2.png)
 
-* High-resolution real-time dual channel audio spectrum analyzer
+* Dual channel high-resolution real-time audio spectrum analyzer
 * Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
@@ -26,13 +26,12 @@ It is completely free, open-source software, created out of my passion for the g
 > **For developers:**<br>
 > Check out [**audioMotion-analyzer**](https://audiomotion.dev) for easy integration of audioMotion's full-featured spectrum analyzer into your own Javascript projects!
 
-## Web App
+## Access the web app
 
-[![Button Icon]][Link]
+<a href="https://audiomotion.app" target="_blank" title="open web app"><img src="https://img.shields.io/badge/audioMotion.app-ff3e37?style=flat" height="48"></a>
 
-[Link]: https://audiomotion.app 'click to open web app'
-
-[Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
+**Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
+Works on Chrome, Opera and Edge by default. On Brave you'll need to enable this feature in `chrome://flags/#file-system-access-api`.
 
 ## Documentation
 
