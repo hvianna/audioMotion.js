@@ -7,7 +7,7 @@
  */
 
 const URL_ORIGIN            = location.origin + location.pathname.slice( 0, location.pathname.lastIndexOf('/') ),
-      defaultRoot           = '/music',
+	  defaultRoot           = '/music',
 	  isElectron            = 'electron' in window,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
@@ -195,6 +195,26 @@ function resetPath( depth ) {
 /* ******************* Public functions: ******************* */
 
 /**
+ * Convert special characters into URL-safe codes
+ *
+ * @param {string} uri
+ * @returns {string}
+ */
+export function encodeChars( uri ) {
+	return uri.replace( /[#%&]/g, m => ( { '#':'%23', '%':'%25', '&':'%26' }[ m ] ) );
+}
+
+/**
+ * Decode URL-encoded characters
+ *
+ * @param {string} encoded uri
+ * @returns {string}
+ */
+export function decodeChars( uri ) {
+	return uri.replace( /%2[356]/g, m => ( { '%23':'#', '%25':'%', '%26':'&' }[ m ] ) );
+}
+
+/**
  * Generates full path for a file or directory
  *
  * @param {string} fileName
@@ -212,7 +232,8 @@ export function makePath( fileName, noPrefix ) {
 	if ( fileName )
 		fullPath += fileName;
 
-	fullPath = fullPath.replace( /#/g, '%23' ); // replace any '#' character in the filename for its URL-safe code
+ 	// convert special characters into their URL-safe codes
+	fullPath = encodeChars( fullPath );
 
 	if ( isElectron ) {
 		fullPath = fullPath.replace( /\//g, '%2f' );
@@ -299,7 +320,7 @@ export function getPath() {
  * Parses the list of files off a web server directory index
  *
  * @param {string}  content HTML body of a web server directory listing
- * @returns {array} an array of objects representing each link found in the listing, with its full uri and filename only
+ * @returns {array} an array of { url, file } objects representing the full path and the filename only, for each link found in the listing
  */
 export function parseWebIndex( content ) {
 
@@ -308,8 +329,12 @@ export function parseWebIndex( content ) {
 	let listing = [];
 
 	for ( const entry of entries ) {
-		const [ , uri, file ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i );
-		listing.push( { uri, file } );
+		const url   = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i )[1],
+			  isDir = url.slice(-1) == '/',
+			  // extract dir/file names from the url to avoid encoded html-entities like `&#x26;` (also removes final slash from dir name)
+			  file  = decodeURIComponent( url.slice( url.lastIndexOf( '/', isDir ? url.length - 2 : undefined ) + 1, isDir ? -1 : undefined ) );
+
+		listing.push( { url, file } );
 	}
 
 	return listing;
@@ -348,13 +373,10 @@ export function parseDirectory( content ) {
 		}
 	}
 	else {
-		for ( const { uri, file } of parseWebIndex( content ) ) {
-			if ( uri.substring( uri.length - 1 ) == '/' ) {
+		for ( const { url, file } of parseWebIndex( content ) ) {
+			if ( url.slice( -1 ) == '/' ) {
 				if ( ! file.match( /(parent directory|\.\.)/i ) ) {
-					if ( file.substring( file.length - 1 ) == '/' )
-						dirs.push( file.substring( 0, file.length - 1 ) );
-					else
-						dirs.push( file );
+					dirs.push( file );
 				}
 			}
 			else {

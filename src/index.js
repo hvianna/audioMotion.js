@@ -1082,13 +1082,19 @@ function addMetadata( metadata, target ) {
 
 /**
  * Add a song to the play queue
- * returns a Promise that resolves to 1 when song added, or 0 if queue is full
+ *
+ * @param {object} { file, handle }
+ * @param {object} { artist, duration, title }
+ * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( fileObject, content = {} ) {
+function addSongToPlayQueue( fileObject, content ) {
 
 	return new Promise( resolve => {
 		if ( queueLength() >= MAX_QUEUED_SONGS )
 			resolve(0);
+
+		if ( ! content )
+			content = parseTrackName( parsePath( fileExplorer.decodeChars( fileObject.file ) ).baseName );
 
 		let uri = normalizeSlashes( fileObject.file );
 
@@ -1103,15 +1109,12 @@ function addSongToPlayQueue( fileObject, content = {} ) {
 		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
 		trackData.artist   = content.artist || '';
-		trackData.title    = content.title || file.replace( /%23/g, '#' ) || uri.slice( uri.lastIndexOf('//') + 2 );
+		trackData.title    = content.title || fileExplorer.decodeChars( file ) || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
 		trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
 
-		newEl.handle = fileObject.handle; // for File System API accesses
-
-		// replace any '#' character in the filename for its URL-safe code (for content coming from playlist files)
-		uri = uri.replace( /#/g, '%23' );
-		trackData.file = uri;
+		trackData.file     = uri; 				// for web server access
+		newEl.handle       = fileObject.handle; // for File System API access
 
 		playlist.appendChild( newEl );
 
@@ -1141,7 +1144,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	if ( FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
 		ret = loadPlaylist( fileObject );
 	else
-		ret = addSongToPlayQueue( fileObject, parseTrackName( parsePath( fileObject.file ).baseName ) );
+		ret = addSongToPlayQueue( fileObject );
 
 	// when promise resolved, if autoplay requested start playing the first added song
 	ret.then( n => {
@@ -1982,6 +1985,7 @@ function loadPlaylist( fileObject ) {
 							if ( ! handle )
 								consoleLog( `Cannot resolve file handle for ${ line }`, true );
 						}
+						line = fileExplorer.encodeChars( line ); // encode special characters into URL-safe codes
 						// if it's not an absolute path, prepend the current path to it
 						if ( line[1] != ':' && line[0] != '/' )
 							line = path + line;
@@ -2031,7 +2035,7 @@ function loadPlaylist( fileObject ) {
 				list.forEach( entry => {
 					const file   = normalizeSlashes( entry.file ),
 						  handle = entry.handle;
-					promises.push( addSongToPlayQueue( { file, handle }, parseTrackName( parsePath( file ).baseName ) ) );
+					promises.push( addSongToPlayQueue( { file, handle } ) );
 				});
 				resolveAddedSongs();
 			}
@@ -2921,10 +2925,8 @@ async function retrieveBackgrounds() {
 			const response = await fetch( BG_DIRECTORY ),
 				  content  = await response.text();
 
-			for ( const { file } of fileExplorer.parseWebIndex( content ) ) {
-				const name = parsePath( file ).baseName,
-					  url  = BG_DIRECTORY + '/' + encodeURIComponent( file );
-
+			for ( const { url, file } of fileExplorer.parseWebIndex( content ) ) {
+				const name = parsePath( file ).baseName;
 				if ( imageExtensions.test( file ) )
 					bgImages.push( { name, url } );
 				else if ( videoExtensions.test( file ) )
