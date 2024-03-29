@@ -6,8 +6,7 @@
  * Copyright (C) 2019-2024 Henrique Vianna <hvianna@gmail.com>
  */
 
-const URL_ORIGIN            = location.origin + location.pathname.slice( 0, location.pathname.lastIndexOf('/') ),
-	  defaultRoot           = '/music',
+const defaultRoot           = '/music',
 	  isElectron            = 'electron' in window,
 	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
@@ -240,8 +239,8 @@ export function makePath( fileName, noPrefix ) {
 		if ( ! noPrefix )
 			fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath;
 	}
-	else if ( serverMode == MODE_WEB )
-		fullPath = URL_ORIGIN + fullPath;
+	else if ( serverMode == MODE_WEB && fullPath[0] == '/' )
+		fullPath = fullPath.slice(1); // make path relative to page origin
 
 	return fullPath;
 }
