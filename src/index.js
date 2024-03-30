@@ -2928,9 +2928,9 @@ async function retrieveBackgrounds() {
 			for ( const { url, file } of fileExplorer.parseWebIndex( content ) ) {
 				const name = parsePath( file ).baseName;
 				if ( imageExtensions.test( file ) )
-					bgImages.push( { name, url } );
+					bgImages.push( { name, url: BG_DIRECTORY + '/' + url } );
 				else if ( videoExtensions.test( file ) )
-					bgVideos.push( { name, url } );
+					bgVideos.push( { name, url: BG_DIRECTORY + '/' + url } );
 			}
 		}
 		catch( e ) {} // fail silently (possibly directory not found on server)

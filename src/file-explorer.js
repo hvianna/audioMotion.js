@@ -53,7 +53,7 @@ function updateUI( content, scrollTop ) {
 
 		ui_files.append( li );
 	}
-	const setFileExplorerBgImage = src => ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( src ? `, url('${ src }')` : '' );
+	const setBgImage = src => ui_files.style.backgroundImage = 'linear-gradient( #fff9 0%, #fff9 100% )' + ( src ? `, url('${ src }')` : '' );
 
 	if ( mounts.length == 0 )
 		ui_path.innerHTML = noFileServerMsg;
@@ -82,15 +82,10 @@ function updateUI( content, scrollTop ) {
 		if ( files )
 			files.forEach( file => addListItem( file, 'file' ) );
 
-		if ( useFileSystemAPI && cover ) {
-			cover.handle.getFile().then( fileBlob => {
-				const imgsrc = URL.createObjectURL( fileBlob );
-				setFileExplorerBgImage( imgsrc );
-//				URL.revokeObjectURL( imgsrc );
-			});
-		}
+		if ( cover && cover.handle )
+			cover.handle.getFile().then( fileBlob => setBgImage( URL.createObjectURL( fileBlob ) ) );
 		else
-			setFileExplorerBgImage( cover ? makePath( cover ) : '' );
+			setBgImage( cover ? makePath( cover ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -328,10 +323,12 @@ export function parseWebIndex( content ) {
 	let listing = [];
 
 	for ( const entry of entries ) {
-		const url   = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i )[1],
-			  isDir = url.slice(-1) == '/',
+		const link  = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i )[1],
+			  isDir = link.slice(-1) == '/',
+			  // we can only rely on the last directory name being present, because of webserver differences (absolute or relative links)
+			  url   = link.slice( link.lastIndexOf( '/', isDir ? link.length - 2 : undefined ) + 1 ),
 			  // extract dir/file names from the url to avoid encoded html-entities like `&#x26;` (also removes final slash from dir name)
-			  file  = decodeURIComponent( url.slice( url.lastIndexOf( '/', isDir ? url.length - 2 : undefined ) + 1, isDir ? -1 : undefined ) );
+			  file  = decodeURIComponent( url.slice( 0, isDir ? -1 : undefined ) );
 
 		listing.push( { url, file } );
 	}
