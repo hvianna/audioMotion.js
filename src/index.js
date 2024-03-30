@@ -106,8 +106,8 @@ const COLOR_GRADIENT = 'gradient',
 const ERR_ABORT = 20; // AbortError
 
 // Recognized file extensions
-const FILE_EXT_IMAGE = ['jpg','jpeg','webp','avif','png','gif','bmp'],
-	  FILE_EXT_MUSIC = ['mp3','flac','m4a','aac','ogg','wav'],
+const FILE_EXT_AUDIO = ['mp3','flac','m4a','aac','ogg','wav'],
+	  FILE_EXT_IMAGE = ['jpg','jpeg','webp','avif','png','gif','bmp'],
 	  FILE_EXT_PLIST = ['m3u','m3u8'],
 	  FILE_EXT_VIDEO = ['mkv','mpg','webm','mp4','avi','mov'];
 
@@ -1093,32 +1093,27 @@ function addSongToPlayQueue( fileObject, content ) {
 		if ( queueLength() >= MAX_QUEUED_SONGS )
 			resolve(0);
 
-		if ( ! content )
-			content = parseTrackName( parsePath( fileExplorer.decodeChars( fileObject.file ) ).baseName );
-
-		let uri = normalizeSlashes( fileObject.file );
-
-		// extract file name and extension
-		const file = decodeSlashes( uri ).split('/').pop(),
-			  ext  = file.split('.').pop();
-
-		// create new list element
-		const newEl     = document.createElement('li'),
+		const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
+			  uri       = normalizeSlashes( fileObject.file ),
+			  newEl     = document.createElement('li'), // create new list element
 			  trackData = newEl.dataset;
 
 		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
+		if ( ! content )
+			content = parseTrackName( baseName );
+
 		trackData.artist   = content.artist || '';
-		trackData.title    = content.title || fileExplorer.decodeChars( file ) || uri.slice( uri.lastIndexOf('//') + 2 );
+		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
-		trackData.codec    = ( ext !== file ) ? ext.toUpperCase() : '';
+		trackData.codec    = extension.toUpperCase();
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
 
 		playlist.appendChild( newEl );
 
-		if ( ! FILE_EXT_VIDEO.includes( ext ) ) {
+		if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
 			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
 			trackData.retrieve = 1; // flag this item as needing metadata
 			retrieveMetadata();
@@ -4788,7 +4783,7 @@ function updateRangeValue( el ) {
 				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
 					saveLastDir( path );
 			},
-			fileExtensions: [ ...FILE_EXT_MUSIC, ...FILE_EXT_PLIST, ...FILE_EXT_VIDEO ],
+			fileExtensions: [ ...FILE_EXT_AUDIO, ...FILE_EXT_PLIST, ...FILE_EXT_VIDEO ],
 			forceFileSystemAPI
 		}
 	).then( status => {
