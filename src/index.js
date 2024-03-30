@@ -54,7 +54,7 @@ const isElectron  = 'electron' in window,
 
 const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
 	  MAX_METADATA_REQUESTS = 4,	// max concurrent metadata requests
-	  MAX_QUEUED_SONGS      = 1000;
+	  MAX_QUEUED_SONGS      = 2000;
 
 // Background option values
 const BG_DEFAULT = '0',
@@ -1090,8 +1090,10 @@ function addMetadata( metadata, target ) {
 function addSongToPlayQueue( fileObject, content ) {
 
 	return new Promise( resolve => {
-		if ( queueLength() >= MAX_QUEUED_SONGS )
+		if ( queueLength() >= MAX_QUEUED_SONGS ) {
 			resolve(0);
+			return;
+		}
 
 		const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
 			  uri       = normalizeSlashes( fileObject.file ),
