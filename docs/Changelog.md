@@ -1,109 +1,56 @@
 # Changelog
 
-## version 24.3-beta.0
+## version 24.3
 
-> Updated source code is in the `dev` branch
+📢 **audioMotion** is now an [online web app](https://audiomotion.app) that can play **music and video** directly from your device! No download necessary.
 
-?> **Try it in the [web app](https://audiomotion.app).**
 
 ### Added: <!-- {docsify-ignore} -->
 
-+ Option to select a local folder as source of background images and videos, in [Config - General settings](users-manual.md#general-settings) (requires [File System Access API support](known-issues.md));
-+ More new options in [Config - General settings](users-manual.md#general-settings):
-  + customize how many individual media files appear as selectable backgrounds;
-  + remember the contents of the play queue between sessions;
-  + enable/disable showing video files in the file explorer;
-+ Enabled some server-side configuration options via `config.json` file - see [Self-hosting audioMotion](server.md).
++ Support for the File System Access API, allowing the web app to read files from your local device (depends on [browser support](known-issues.md));
++ **Video playback** - [suggested](https://github.com/hvianna/audioMotion.js/discussions/40) by **@JesusGod-Pope666-Info**;
++ *Bark*, *Mel* and linear [**frequency scales**](users-manual.md#frequency-scale) (\*\*) - suggested by **@TF3RDL** ([here](https://github.com/hvianna/audioMotion-analyzer/issues/30)) and **@hsnam95** ([here](https://github.com/hvianna/audioMotion.js/issues/34));
++ [Frequency **weighting filters**](users-manual.md#weighting) (\*\*);
++ New [dual-channel layouts](users-manual.md#channel-layout): horizontal (side-by-side channels) and combined (overlaid channels) - [suggested](https://github.com/hvianna/audioMotion-analyzer/issues/38) by **@TF3RDL**;
++ Allow selecting **different [gradients](users-manual.md#gradients) for each channel,** when using a dual-channel layout;
++ New [**bar coloring modes**](users-manual.md#color-mode): by level (bar amplitude) and by index (bar position);
++ Press **0** (zero) to quickly randomize analyzer settings;
++ [**ANSI** switch](users-manual.md#switches) to use IEC/ANSI preferred frequencies for octave bands - [suggested](https://github.com/hvianna/audioMotion.js/issues/28) by **@jonathan-annett**;
++ [**LINEAR** switch](users-manual.md#switches) to use **linear amplitude** values, instead of decibels (\*\*);
++ [**NOTES** switch](users-manual.md#switches) to display **musical note labels** in the X-axis scale;
++ [**ROUND** switch](users-manual.md#switches) to render analyzer bars wih **rounded corners** on top;
++ [Config options](users-manual.md#general-settings) to customize the **backgrounds folder** and how many individual media files appear in the Background options;
++ [Config option](users-manual.md#general-settings) to limit the maximum frame-rate;
++ [Config option](users-manual.md#general-settings) to adjust on-screen display font size - [suggested](https://github.com/hvianna/audioMotion.js/issues/44) by **@kimycai**;
++ [Config option](users-manual.md#general-settings) to **auto-hide the media panel**, expanding the analyzer area;
++ [Config options](users-manual.md#general-settings) to remember the contents of the play queue and the last used folder between sessions;
++ Enabled some server-side configuration options via `config.json` file - see [Self-hosting audioMotion](server.md);
+
+\*\* Special thanks to **@TF3RDL** for the [code snippets](https://github.com/hvianna/audioMotion-analyzer/issues/30) which helped immensely in the implementation of these features!
 
 ### Changed & improved: <!-- {docsify-ignore} -->
 
-+ The play queue (and stored playlists) can now mix files hosted on the server with ones from the local device;
-+ Minor changes to default settings: Scale-Y off and track info displayed at both the start and end of the song;
-+ Increased font sizes in the player main panel and help screen;
-+ [Updated documentation](https://audiomotion.app/docs).
-
-
-## version 24.2-beta.1
-
-### Added: <!-- {docsify-ignore} -->
-
-+ Save and load playlists in local mode (File System API) - these are stored in the browser's IndexedDB storage;
-+ **Prism (legacy)** and **Rainbow (legacy)** gradients - disabled by default, enable them in the Config panel;
-+ Basic support for video file extensions (audio playback only) - thanks **@JesusGod-Pope666-Info** for the [suggestion](https://github.com/hvianna/audioMotion.js/discussions/40).
-
-### Improved: <!-- {docsify-ignore} -->
-
-+ Fixed retrieving metadata for queued songs when using the File System API;
-+ Improved autoplay start time when adding an m3u playlist to the play queue;
-+ Update the right-channel gradient selection when the LINK button is activated.
-
-
-## version 24.2-beta.0
-
-A little over two years ago, I started working on turning audioMotion into a native application using **Electron**, but then I realized it
-would be a pain to keep up with the constant framework updates and huge dependency tree.
-
-Then, I wanted to believe **File System Access API** was gaining traction for wider browser adoption and thought it would be really cool
-to have an official audioMotion web app that everyone could use to play their own music without needing to download or install anything, while
-also being easier for me to maintain. So I began adding support for that too. Turns out, it's 2024 and this API is still supported by Chromium only.
-
-In the meantime, I've found out that some people were actually using audioMotion as a self-hosted web app and, since this is also how I use
-it myself on my old NAS, I wanted to keep the app working on any standard web server as well.
-
-**TL;DR -** audioMotion code is now more complex than ever, but lately I simply haven't had the time or energy to work on it as much as I'd
-like to, so I still don't have a stable version working 100% as I want.
-
-However, this version does have a lot of new cool features added since the last public release, and my wife and I have been using it at home,
-and she keeps telling me I need to publish it.
-
-So.. there you have it!
-
-**Check the new web app:**
-
-[![Button Icon]][Link]
-
-[Link]: https://audiomotion.app 'click to open web app'
-
-[Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
-
-> **⚠️ This is BETA software! Expect bugs!**
-
-### Known limitations: <!-- {docsify-ignore} -->
-
-+ Access to local device works only on Chromium-based browsers, due to currently limited [File System Access API support](https://caniuse.com/native-filesystem-api)<br>should work on Chrome and Edge by default; on Brave you'll need to enable it in `chrome://flags/#file-system-access-api`
-+ Saving and loading playlists on File System API mode doesn't work yet;
-+ Documentation isn't fully updated yet.
-
-### Added: <!-- {docsify-ignore} -->
-
-+ Support to File System Access API, allows the web app to play music from your local device;
-+ *Bark*, *Mel* and linear frequency scales for improved visualization of mid-range and high frequencies;
-+ Frequency weighting filters;
-+ New dual-channel layouts: horizontal (side-by-side channels) and combined (overlaid channels);
-+ New bar coloring modes: by level (bar amplitude) and by index (bar position);
-+ Rounded corner bars (optional);
-+ Option to display musical note labels in the X-axis scale;
-+ Option to use linear amplitude values, instead of dB;
-+ Option to use IEC/ANSI preferred frequencies for octave bands;
-+ Allow selecting different gradients for the left and right channels, when using a dual-channel layout;
-+ Playlists can now be saved to the hard disk (native app only).
-
-### Changed / improved: <!-- {docsify-ignore} -->
-
-+ The **Prism** and **Rainbow** gradients have been updated with softer colors;
-+ The custom preset funcionality now provides 9 slots for saving your favorite presets;
-+ The **Smoothing** setting has been moved to [General settings](users-manual.md#general-settings), and the default value changed to 0.7 (from 0.5);
-+ Random Mode has been renamed to **Randomize** and it's now possible to remove the *Mode* from the settings randomized;
-+ The **AUTO** gradient button/functionality has been removed - check *Gradients* under [Settings affected by Randomize]() to have new gradient(s) selected when *Randomize* is active;
-+ The **STEREO** button has been replaced by the **Channel Layout** setting;
-+ Added more options to the minimum and maximum values in the frequency range;
++ User preset funcionality now provides 9 slots for saving your favorite analyzer configurations;
++ **Prism** and **Rainbow** gradients have been updated with softer colors (the old versions can be enabled in the Config panel);
++ Random Mode has been renamed to **Randomize** and it's now possible to remove the *Analyzer Mode* from the randomized settings;
++ **AUTO** gradient functionality has been changed to *Gradients* option under [Settings affected by Randomize](users-manual.md#settings-affected-by-randomize);
++ **PEAKS** now work for *Line* and *Area graph* analyzer modes in *Radial* view;
++ **STEREO** switch has been replaced by the **Channel Layout** setting;
++ Peaks hold and decay times are now more consistent on varying frame rates;
++ Improved frequency scale labeling (label font size slightly reduced in fullscreen);
++ Play queue size limit increased to 2000 files;
++ **Smoothing** setting has been moved to [General settings](users-manual.md#general-settings);
++ Added more options to the minimum and maximum values in the [Frequency range](users-manual.md#frequency-range);
++ New default settings: 20Hz - 20kHz frequency range, FFT smoothing set to 0.7, Scale-Y off and info displayed at both the start and end of the song;
 + New fonts for the user interface and internal console;
 + New custom UI controls to replace standard range inputs and radio buttons;
-+ audioMotion can now run from a subdirectory in web server mode.
++ If you are [self-hosting audioMotion](server.md), it can now run from any subdirectory (no need to use a virtual host or custom port);
++ [Updated documentation](https://audiomotion.app/docs);
 
 ### Fixed: <!-- {docsify-ignore} -->
 
-+ Reflex not working on PIP mode on some circumstances.
++ Reflex not working on PIP mode on some circumstances;
++ Some special characters in file/directory names preventing files from being loaded.
 
 
 ## version 21.11
