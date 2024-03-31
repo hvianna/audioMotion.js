@@ -4492,11 +4492,8 @@ function updateRangeValue( el ) {
 
 				// song/queue count
 				const totalSongs = queueLength();
-				if ( totalSongs && elShowCount.checked ) {
-					const padDigits = ( '' + totalSongs ).length,
-						  counter   = `Track ${ ( '' + ( playlistPos + 1 ) ).padStart( padDigits, '0' ) } of ${ totalSongs }`;
-					drawText( counter, rightPos, bottomLine1 - baseSize );
-				}
+				if ( totalSongs && elShowCount.checked )
+					drawText( `Track ${ playlistPos + 1 } of ${ totalSongs }`, rightPos, bottomLine1 - baseSize );
 
 				// artist name
 				canvasCtx.textAlign = 'left';
