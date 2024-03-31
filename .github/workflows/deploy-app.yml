@@ -21,7 +21,7 @@ jobs:
           echo -e "include: [\".well-known\"]\n" > public/_config.yml
           mkdir public/.well-known
           echo -e "This is a Brave Creators publisher verification file.\n\nDomain: audiomotion.app\nToken: ddbc4cddcf21685fd67a05d53d95d4f420f67190cb38ec7b6250e3fb8cb7d6cf\n" > public/.well-known/brave-rewards-verification.txt
-          sed -i '/<link rel=\"icon\"/a \\\t<link rel=\"manifest\" href=\"manifest.json\">' public/index.html
+          sed -i '/<link rel=\"icon\"/a <link rel=\"manifest\" href=\"manifest.json\">' public/index.html
       - name: Generate Directory Listings
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
