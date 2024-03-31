@@ -39,6 +39,7 @@
 + Peaks hold and decay times are now more consistent on varying frame rates;
 + Improved frequency scale labeling (label font size slightly reduced in fullscreen);
 + Play queue size limit increased to 2000 files;
++ [Source and Speakers](users-manual.md#source-and-speakers) settings are now automatically restored between sessions - [suggested](https://github.com/hvianna/audioMotion.js/discussions/48) by **@dieterstoll**;
 + **Smoothing** setting has been moved to [General settings](users-manual.md#general-settings);
 + Added more options to the minimum and maximum values in the [Frequency range](users-manual.md#frequency-range);
 + New default settings: 20Hz - 20kHz frequency range, FFT smoothing set to 0.7, Scale-Y off and info displayed at both the start and end of the song;
