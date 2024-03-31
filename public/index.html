@@ -4,12 +4,19 @@
 	<meta charset="utf-8">
 <!--
 /**
- * audioMotion.js
- * High-resolution real-time spectrum analyzer and music player
+ *                    ░    ░          ░     ░                ░
+ *                    ░               ░░   ░░         ░
+ *   ░░░   ░   ░   ░░░░   ░░    ░░░   ░ ░ ░ ░   ░░░  ░░░    ░░    ░░░   ░░░░
+ *      ▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒  ▒  ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *   ▒▒▒▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒     ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
+ *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
+ *
+ * audioMotion | media player and real-time audio spectrum analyzer
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * Copyright (c) 2018-2021 Henrique Avila Vianna <hvianna@gmail.com>
+ * Copyright (c) 2018-2024 Henrique Avila Vianna <hvianna@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,19 +32,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
  -->
-	<title>audioMotion.js</title>
+	<title>audioMotion</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="fonts/styles.css">
 	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="img/icons/css/styles.css">
 	<link rel="icon" type="image/png" sizes="32x32" href="img/favicon32.png">
 	<link rel="apple-touch-icon" href="img/favicon256.png">
-	<link href="https://fonts.googleapis.com/css?family=Orbitron:900&display=swap" rel="stylesheet">
  	<meta name="msapplication-TileImage" content="img/favicon256.png">
-	<meta property="og:url" content="https://audiomotion.me">
-	<meta property="og:title" content="audioMotion.js">
-	<meta property="og:image" content="https://audiomotion.me/docs/img/audioMotion-header.png">
-	<meta property="og:site_name" content="audioMotion.js">
-	<meta property="og:description" content="High-resolution real-time spectrum analyzer and music player written in JavaScript">
+	<meta name="description" content="audioMotion | media player and real-time audio spectrum analyzer">
+	<meta property="og:url" content="https://audiomotion.app">
+	<meta property="og:title" content="audioMotion">
+	<meta property="og:image" content="https://audiomotion.app/docs/img/audioMotion-header.png">
+	<meta property="og:site_name" content="audioMotion">
+	<meta property="og:description" content="media player and real-time audio spectrum analyzer">
 	<meta property="og:type" content="website">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="twitter:site" content="@HenriqueVianna">
@@ -64,14 +72,13 @@
 					<div class="warp-wall warp-wall-back"></div>
 				</div>
 			</div>
-			<video id="video" autoplay loop muted></video>
+			<video id="video" autoplay loop muted disablepictureinpicture></video>
+			<video id="player0" preload="auto" crossorigin="anonymous" disablepictureinpicture></video>
+			<video id="player1" preload="auto" crossorigin="anonymous" disablepictureinpicture></video>
 			<div id="bg_dim" class="bg-dim"></div>
 			<div id="analyzer" class="analyzer"></div>
 			<canvas id="osd" class="osd"></canvas>
 		</div>
-
-		<audio id="player0" preload="auto" crossorigin="anonymous"></audio>
-		<audio id="player1" preload="auto" crossorigin="anonymous"></audio>
 
 		<header class="grid grid-3-cols align-center center">
 			<ul>
@@ -93,7 +100,7 @@
 			<div class="controls-left">
 				<div>
 					<div class="config-label">SOURCE</div>
-					<input class="slider" type="checkbox" id="source">
+					<input class="slider" type="checkbox" id="source" data-prop="micSource">
 					<label class="slider" for="source">
 						<span class="slider-on">PLAYER</span>
 						<span class="slider-off">MIC</span>
@@ -102,7 +109,7 @@
 
 				<div>
 					<div class="config-label">SPEAKERS</div>
-					<input class="slider" type="checkbox" id="mute">
+					<input class="slider" type="checkbox" id="mute" data-prop="mute">
 					<label class="slider on-off" for="mute">
 						<span class="slider-on">ON</span>
 						<span class="slider-off">OFF</span>
@@ -113,17 +120,17 @@
 
 			<ul class="player-controls">
 				<li class="button help" id="btn_play"><i class="icons8-play-button"></i><i class="icons8-pause-button"></i>
-					<span class="tooltip">Play / Pause | <kbd>Spacebar</kbd></span>
+					<span class="tooltip">Play / Pause <kbd>Spacebar</kbd></span>
 				<li class="button help" id="btn_prev"><i class="icons8-previous-track-2"></i>
-					<span class="tooltip">Previous song / Rewind (Hold) | <kbd>&larr;</kbd></span>
+					<span class="tooltip">Previous song / Rewind (Hold) <kbd class="narrow">&lt;-</kbd></span>
 				<li class="button help" id="btn_stop"><i class="icons8-stop-symbol"></i>
 					<span class="tooltip">Stop</span>
 				<li class="button help" id="btn_next"><i class="icons8-skip-this-track-2"></i>
-					<span class="tooltip">Next song / Fast forward (Hold) |	<kbd>&rarr;</kbd></span>
+					<span class="tooltip">Next song / Fast forward (Hold) <kbd class="narrow">-&gt;</kbd></span>
 				<li class="button help" id="btn_shuf"><i class="icons8-shuffle"></i>
-					<span class="tooltip">Shuffle queue | <kbd>E</kbd></span>
+					<span class="tooltip">Shuffle queue <kbd>E</kbd></span>
 				<li class="button switch help" id="repeat"><i class="icons8-repeat"></i>
-					<span class="tooltip">Repeat queue | <kbd>R</kbd></span>
+					<span class="tooltip">Repeat queue <kbd>R</kbd></span>
 			</ul>
 
 			<div class="controls-right">
@@ -146,35 +153,37 @@
 
 		<div class="controls">
 		<!-- COLUMN 1 -->
-			<div>
-				<span class="config-label help"><u>M</u>ode
-					<span class="tooltip">
-					Visualization mode.<br>Disable undesired modes in Config.
+			<div class="column">
+				<div class="flex preset-controls">
+					<span class="help"><button id="load_preset">Load</button>
+						<span class="tooltip">Load a configuration preset</span>
 					</span>
-				</span>
-				<select id="mode" data-prop="mode"></select>
+					<span class="help"><button id="btn_save">Save / Edit</button>
+						<span class="tooltip">Save current settings to a User Preset and manage saved presets</span>
+					</span>
+				</div>
 			</div>
 
 			<div>
-				<span class="config-label help">R<u>a</u>ndom mode
+				<span class="config-label help">R<u>a</u>ndomize
 					<span class="tooltip">
-					Randomize visualization mode on track change or time interval
+					Randomize settings on track change or time interval
 					</span>
 				</span>
 				<select id="random_mode" data-prop="randomMode"></select>
 			</div>
 
 			<div>
-				<span class="config-label help">Bar spacing
+				<span class="config-label help">Bar Spacing
 					<span class="tooltip">
-						Octave bands modes only<br><em>(no effect when LUMI is on)</em>
+						Bar spacing for band modes<br><em>(no effect when LUMI is on)</em>
 					</span>
 				</span>
-				<select id="bar_space" data-prop="barSpace"></select>
+				<form id="bar_space" data-prop="barSpace"></form>
 			</div>
 
 			<div>
-				<span class="config-label help">Line width
+				<span class="config-label help">Line Width
 					<span class="tooltip">
 						Line width for Line Graph mode and Outline effect
 					</span>
@@ -184,7 +193,7 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Fill opacity
+				<span class="config-label help">Fill Opacity
 					<span class="tooltip">
 						Fill opacity for Line Graph mode and Outline effect
 					</span>
@@ -194,36 +203,42 @@
 			</div>
 
 		<!-- COLUMN 2 -->
-			<div class="rowspan-2">
-				<span class="config-label help"><u>G</u>radient
+			<div class="column">
+				<span class="config-label help">Analyzer <u>M</u>ode
 					<span class="tooltip">
-						Color gradient for the analyzer bars. Disable undesired gradients in Config.
+					Visualization mode.<br>Enable/disable modes in Config.
 					</span>
 				</span>
-				<select id="gradient" data-prop="gradient"></select>
-
-				<ul class="switch-bar">
-					<li class="switch" id="cycle_grad" data-prop="cycleGrad"><u>A</u>UTO
-						<span class="tooltip">Select next gradient automatically on each track change</span>
-					<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
-						<span class="tooltip">In Stereo, split the gradient so both channels have the same colors</span>
-				</ul>
+				<select id="mode" data-prop="mode"></select>
 			</div>
 
 			<div class="rowspan-2">
-				<span class="config-label">Effects</span>
+				<span class="config-label help"><u>G</u>radients
+					<span class="tooltip">
+						Gradients for left and right channels. Enable/disable gradients in Config.
+					</span>
+				</span>
+
+				<div class="flex align-center">
+					<select id="gradient" data-prop="gradient"></select>
+					<select id="gradientRight" data-prop="gradientRight"></select>
+				</div>
+
 				<ul class="switch-bar">
-					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
-						<span class="tooltip">Apply a LED effect to the analyzer bars <em>(octave bands modes only)</em></span>
-					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
-						<span class="tooltip">Show full height bars with varying luminance <em>(octave bands modes only)</em></span>
-					<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
-						<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
-					<li class="switch" id="outline" data-prop="outlineBars">Outline
-						<span class="tooltip">Outlined bars <em>(octave bands modes only)</em></span>
-					<li class="switch" id="radial" data-prop="radial">RADIAL
-						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> | <kbd>C</kbd></span>
+					<li class="switch" id="link_grads" data-prop="linkGrads">LINK
+						<span class="tooltip">Gradient selection affects both channels</span>
+					<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
+						<span class="tooltip">Split gradients in two different parts<br><em>(for Dual / Vertical channel layout)</em></span>
 				</ul>
+			</div>
+
+			<div>
+				<span class="config-label help">Color Mode
+					<span class="tooltip">
+						Bar coloring mode
+					</span>
+				</span>
+				<form id="color_mode" data-prop="colorMode"></form>
 			</div>
 
 			<div>
@@ -237,7 +252,7 @@
 			</div>
 
 		<!-- COLUMN 3 -->
-			<div>
+			<div class="column">
 				<span class="config-label help"><u>B</u>ackground
 					<span class="tooltip">
 					Select background option
@@ -247,16 +262,16 @@
 			</div>
 
 			<div>
-				<span class="config-label help">Bg image fit
+				<span class="config-label help">Background Image Fit
 					<span class="tooltip">
-						Adjust the size and position of the background image | <kbd>Shift</kbd><kbd>B</kbd>
+						Adjust the size and position of the background image <kbd>Shift</kbd><kbd>B</kbd>
 					</span>
 				</span>
 				<select id="bg_img_fit" data-prop="bgImageFit"></select>
 			</div>
 
 			<div>
-				<span class="config-label help">Background dim
+				<span class="config-label help">Background Dim
 					<span class="tooltip">
 						Adjust the intensity of the background image or video
 					</span>
@@ -271,7 +286,7 @@
 					Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
 					</span>
 				</span>
-				<select id="reflex" data-prop="reflex"></select>
+				<form id="reflex" data-prop="reflex"></form>
 			</div>
 
 			<div>
@@ -280,22 +295,13 @@
 					Horizontal mirroring effect
 					</span>
 				</span>
-				<select id="mirror" data-prop="mirror"></select>
+				<form id="mirror" data-prop="mirror"></form>
 			</div>
 
 		<!-- COLUMN 4 -->
-			<div>
-				<span class="config-label help">Se<u>n</u>sitivity
-					<span class="tooltip">
-					Improve visualization of songs too quiet or too loud. Customize in Config.
-					</span>
-				</span>
-				<select id="sensitivity" data-prop="sensitivity"></select>
-			</div>
-
-			<div>
+			<div class="column">
 				<span class="config-label help">Frequency Range
-					<span class="tooltip">Lowest and highest frequencies represented in the X-axis</span>
+					<span class="tooltip">Lowest and highest frequencies displayed in the X-axis</span>
 				</span>
 				<div class="flex align-center">
 					<select id="freq_min" data-prop="freqMin"></select>
@@ -304,65 +310,87 @@
 				</div>
 			</div>
 
-			<div class="rowspan-2">
-				<span class="config-label help">Smoothing
-					<span class="tooltip">
-					Lower values make the analyzer respond faster to changes
-					</span>
+			<div>
+				<span class="config-label help">Frequency Scale
+					<span class="tooltip">Select how frequencies are represented in the X-axis</span>
 				</span>
-				<div class="value"></div>
-				<input type="range" id="smoothing" data-prop="smoothing">
+				<form id="freq_scale" data-prop="freqScale"></form>
 			</div>
 
 			<div>
-				<span class="config-label help">Fullscr height
+				<span class="config-label help">Se<u>n</u>sitivity
 					<span class="tooltip">
-					Fullscreen analyzer height (%)<br><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd>
+					Improve visualization of songs too quiet or too loud. Customize in Config.
 					</span>
 				</span>
-				<div class="value"></div>
-				<input id="fs_height" type="range" data-prop="fsHeight">
+				<form id="sensitivity" data-prop="sensitivity"></form>
+			</div>
+
+			<div>
+				<span class="config-label help">Weighting
+					<span class="tooltip">
+					Select frequency weighthing filter
+					</span>
+				</span>
+				<form id="weighting" data-prop="weighting"></form>
+			</div>
+
+			<div>
+				<span class="config-label help">Channel Layout
+					<span class="tooltip">
+					Select the number and layout of analyzer channels
+					</span>
+				</span>
+				<form id="channel_layout" data-prop="channelLayout"></form>
 			</div>
 
 		<!-- COLUMN 5 -->
-			<div class="rowspan-3">
-				<span class="config-label">Switches</span>
+			<div class="column rowspan-5">
+				<span class="config-label help">Switches
+					<span class="tooltip">General visualization and performance options</span>
+				</span>
 
-				<ul class="switch-bar rowspan-2">
-					<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
-						<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
-					<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
-						<span class="tooltip">Toggle level (dB) scale on the Y-axis</span>
+				<ul class="switch-bar">
 					<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
 						<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
 					<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 						<span class="tooltip">Hold peak levels for a short time</span>
+
+					<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
+						<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
+					<li class="switch" id="note_labels" data-prop="noteLabels">NOTES
+						<span class="tooltip">Labels on the X-axis show musical notes instead of frequencies</span>
+
+					<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
+						<span class="tooltip">Toggle level (amplitude) scale on the Y-axis</span>
+					<li class="switch" id="linear_amplitude" data-prop="linearAmpl">LINEAR
+						<span class="tooltip">Use linear values (instead of dB) for bar amplitudes</span>
+
+					<li class="switch" id="ansi_bands" data-prop="ansiBands">ANSI
+						<span class="tooltip">Use ANSI/IEC preferred frequencies for octave bands</span>
+					<li class="switch" id="fps" data-prop="showFPS">FPS
+						<span class="tooltip">Display current frame rate <kbd>H</kbd></span>
+
 					<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
 						<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 					<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 						<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-					<li class="switch" id="stereo" data-prop="stereo">Stereo
-						<span class="tooltip">Toggle Stereo analyzer</span>
-					<li class="switch" id="fps" data-prop="showFPS">FPS
-						<span class="tooltip">Display current frame rate | <kbd>H</kbd></span>
-				</ul>
-			</div>
 
-			<div class="rowspan-2">
-				<span class="config-label help">Preset
-					<span class="tooltip">
-						Load a configuration preset.<br>
-						<strong>"Last session"</strong> restores last used configuration settings.
-					</span>
-				</span>
-				<select id="preset"></select>
-				<div class="flex">
-					<button id="load_preset">Load</button>
-					<span class="help">
-						<button id="btn_save">Save</button>
-						<span class="tooltip">Save current settings to the <strong>"Custom"</strong> preset.</span>
-					</span>
-				</div>
+					<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
+						<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
+					<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
+						<span class="tooltip">Show full height bars with varying luminance <em>(bands modes only)</em></span>
+
+					<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
+						<span class="tooltip">Vintage LED bars effect <em>(bands modes only)</em></span>
+					<li class="switch" id="outline" data-prop="outlineBars">Outline
+						<span class="tooltip">Outlined bars <em>(bands modes only)</em></span>
+
+					<li class="switch" id="radial" data-prop="radial">RADIAL
+						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+					<li class="switch" id="round_bars" data-prop="roundBars">ROUND
+						<span class="tooltip">Rounded tip bars <em>(bands modes only)</em></span>
+				</ul>
 			</div>
 
 		</div> <!-- .controls -->
@@ -370,21 +398,19 @@
 	</div> <!-- #settings -->
 
 	<div id="files_panel" class="file-panel grid">
+		<div class="locked-panel">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V256c0 17.7 14.3 32 32 32s32-14.3 32-32V32zM143.5 120.6c13.6-11.3 15.4-31.5 4.1-45.1s-31.5-15.4-45.1-4.1C49.7 115.4 16 181.8 16 256c0 132.5 107.5 240 240 240s240-107.5 240-240c0-74.2-33.8-140.6-86.6-184.6c-13.6-11.3-33.8-9.4-45.1 4.1s-9.4 33.8 4.1 45.1c38.9 32.3 63.5 81 63.5 135.4c0 97.2-78.8 176-176 176s-176-78.8-176-176c0-54.4 24.7-103.1 63.5-135.4z"/></svg>
+			<h1>Click to allow access to your device</h1>
+			<p>Choose <strong>Allow on every visit</strong> in the permission options to avoid this message in the future.</p>
+		</div>
+
 		<div id="file_explorer" class="grid">
 			<p class="center">Double-click to queue file / <kbd>Ctrl</kbd> & <kbd>Shift</kbd> to multi select</p>
 		</div>
 
 		<div class="button-column">
-			<div class="help">
-				<label class="button">
-					Upload file
-					<input id="local_file" type="file" accept="audio/*">
-				</label>
-				<span class="tooltip">Upload an audio file from your computer and play it</span>
-			</div>
-
-			<div class="help"><button id="btn_load_url">Add from URL</button>
-				<span class="tooltip">Add a remote audio file or stream to the queue</span>
+			<div class="help"><button id="btn_toggle_filesystem"></button>
+				<span class="tooltip">Switch between reading music from the server and your local device</span>
 			</div>
 
 			<div class="help"><button id="btn_add_selected">Add selected</button>
@@ -394,27 +420,40 @@
 			<div class="help"><button id="btn_add_folder">Add all files</button>
 				<span class="tooltip">Add all files in the current folder to the queue</span>
 			</div>
+
+			<div class="help"><button id="btn_load_url">Add from URL</button>
+				<span class="tooltip">Add a remote audio file or stream to the queue</span>
+			</div>
+
+			<div class="help">
+				<label class="button">
+					Upload file
+					<input id="local_file" type="file" accept="audio/*,video/*">
+				</label>
+				<span class="tooltip">Upload an audio file from your computer and play it</span>
+			</div>
 		</div>
 
 		<div id="playlist_panel" class="grid">
-			<div class="playlist-bar flex">
-				<select id="playlists"></select>
-				<span class="help"><button id="load_playlist"><i class="icons8-opened-folder-2"></i></button>
-					<span class="tooltip">Load selected playlist</span>
-				</span>
-				<span class="help"><button id="save_playlist"><i class="icons8-save"></i></button>
-					<span class="tooltip">Overwrite selected playlist with play queue</span>
-				</span>
-				<span class="help"><button id="delete_playlist"><i class="icons8-trash"></i></button>
-					<span class="tooltip">Delete selected playlist</span>
-				</span>
-			</div>
-			<div class="playqueue-bar flex">
+			<div class="playqueue-bar flex align-center">
 				<strong><i class="icons8-track-list"></i> Play queue</strong>
 				<div>
 					<button id="btn_clear">Clear</button>
+					<span class="help"><button id="save_playlist">Save</button>
+						<span class="tooltip">Overwrite the selected playlist with the current play queue</span>
+					</span>
 					<button id="create_playlist">Save as...</button>
 				</div>
+			</div>
+			<div id="loaded_playlist"></div>
+			<div class="playlist-bar flex align-baseline">
+				<select id="playlists"></select>
+				<span class="help"><button id="load_playlist">Load</button>
+					<span class="tooltip">Load selected playlist</span>
+				</span>
+				<span class="help"><button id="delete_playlist">Delete</button>
+					<span class="tooltip">Delete selected playlist</span>
+				</span>
 			</div>
 			<ul id="playlist" class="filelist"></ul>
 			<p class="center">Double-click to play / Drag to reorder / <kbd>Delete</kbd> to remove</p>
@@ -426,67 +465,120 @@
 		<div class="config-panel grid grid-2-cols">
 			<a href="#!" class="modal-close-internal"></a>
 			<div>
-				<h3>Enabled Modes:</h3>
+				<h3>Enabled Analyzer Modes:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=enabled-analyzer-modes" target="_blank"></a>
+				</h3>
 				<div id="enabled_modes" class="grid grid-2-cols">
 				</div>
 			</div>
 			<div>
-				<h3>Enabled Gradients:</h3>
+				<h3>Enabled Gradients:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=enabled-gradients" target="_blank"></a>
+				</h3>
 				<div id="enabled_gradients" class="grid grid-3-cols">
 				</div>
 				<button class="button mt-1" id="add-gradient">Add Gradient</button>
 			</div>
 			<div>
-				<h3>Enabled BG Image Fit options:</h3>
+				<h3>Enabled options for Background Image Fit:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=enabled-options-for-background-image-fit" target="_blank"></a>
+				</h3>
 				<div id="enabled_bgfit" class="grid grid-2-cols">
 				</div>
 			</div>
 			<div>
-				<h3>Settings affected by Random Mode:</h3>
+				<h3>Settings affected by Randomize:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=settings-affected-by-randomize" target="_blank"></a>
+				</h3>
 				<div id="random_properties" class="grid grid-3-cols">
 				</div>
 			</div>
-			<div>
-				<h3>General settings:</h3>
-				<p>FFT size:
-					<select id="fft_size"></select>
-				</p>
+			<div class="general-settings grid grid-2-cols align-center">
+				<h3 class="colspan-2">General settings:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=general-settings" target="_blank"></a>
+				</h3>
+				<p>Background files listed (max):</p>
+				<input id="bg_max_items" type="number">
 
-				<p>PIP window aspect ratio:
-					<select id="pip_ratio"></select>
-				</p>
+				<p>Backgrounds folder location:</p>
+				<select id="bg_location"></select>
+
+				<p>FFT size:</p>
+				<select id="fft_size"></select>
+
+				<p>FFT smoothing over time:</p>
+				<input id="smoothing" type="number">
+
+				<p>Fullscren height (%):</p>
+				<input id="fs_height" type="number">
+
+				<p>Maximum frame rate (FPS):</p>
+				<select id="max_fps"></select>
+
+				<p>On-screen display font size:</p>
+				<select id="osd_font_size"></select>
+
+				<p>PIP aspect ratio:</p>
+				<select id="pip_ratio"></select>
+
+				<p></p>
+				<p class="colspan-2"><label><input type="checkbox" id="auto_hide"> Auto-hide media panel on analyzer hover</label></p>
+				<p class="colspan-2"><label><input type="checkbox" id="save_dir"> Remember last music folder</label></p>
+				<p class="colspan-2"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
+
+				<p class="colspan-2"><br><button id="reset_general">Reset to defaults</button></p>
 			</div>
 			<div>
-				<h3>Sensitivity presets:</h3>
-				<table>
-					<tr><th>Sensitivity</th><th>Min dB</th><th>Max dB</th><th>Defaults</th></tr>
+				<h3>Sensitivity presets:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=sensitivity-presets" target="_blank"></a>
+				</h3>
+				<table class="table-fixed">
+					<tr>
+						<th>Preset</th>
+						<th>Min dB</th>
+						<th>Max dB</th>
+						<th>Linear boost</th>
+						<th>Defaults</th>
+					</tr>
 					<tr>
 						<td>Low</td>
-						<td><select class="min-db" data-preset="0"></select></td>
-						<td><select class="max-db" data-preset="0"></select></td>
+						<td><input type="number" class="min-db" data-preset="0"></td>
+						<td><input type="number" class="max-db" data-preset="0"></td>
+						<td><input type="number" class="linear-boost" data-preset="0"></td>
 						<td><button class="reset-sens" data-preset="0">Reset</button></td>
 					</tr>
 					<tr>
 						<td>Normal</td>
-						<td><select class="min-db" data-preset="1"></select></td>
-						<td><select class="max-db" data-preset="1"></select></td>
+						<td><input type="number" class="min-db" data-preset="1"></td>
+						<td><input type="number" class="max-db" data-preset="1"></td>
+						<td><input type="number" class="linear-boost" data-preset="1"></td>
 						<td><button class="reset-sens" data-preset="1">Reset</button></td>
 					</tr>
 					<tr>
 						<td>High</td>
-						<td><select class="min-db" data-preset="2"></select></td>
-						<td><select class="max-db" data-preset="2"></select></td>
+						<td><input type="number" class="min-db" data-preset="2"></td>
+						<td><input type="number" class="max-db" data-preset="2"></td>
+						<td><input type="number" class="linear-boost" data-preset="2"></td>
 						<td><button class="reset-sens" data-preset="2">Reset</button></td>
 					</tr>
 				</table>
-			</div>
-			<div class="colspan-2">
-				<h3>On-screen information display options:</h3>
-				<p>Display info for <input id="info_timeout" type="number" min="0"> seconds on canvas click or <kbd>D</kbd> key <strong>(0 or empty = continuous display)</strong></p>
-				<p>Display info for <input id="track_timeout" type="number" min="0"> seconds at song start
-				and <input id="end_timeout" type="number" min="0"> seconds at song end <strong>(0 = disable)</strong></p>
-				<p>Song info shows:
-					<label><input type="checkbox" id="show_cover"> album cover</label>
+
+				<h3>On-screen information display options:
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=on-screen-information-display-options" target="_blank"></a>
+				</h3>
+				<p>Duration (in seconds) of displayed information:</p>
+				<div class="grid grid-2-cols">
+					<p>On analyzer click or <kbd>D</kbd> key:</p>
+					<div><input id="info_timeout" type="number" min="0"> <strong>(0 = continuous)</strong></div>
+
+					<p>At song beginning:</p>
+					<div><input id="track_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+
+					<p>At song end:</p>
+					<div><input id="end_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+				</div>
+				<p>Song info shows:&nbsp;
+					<label><input type="checkbox" id="show_cover"> album cover</label>&nbsp; &nbsp;
 					<label><input type="checkbox" id="show_count"> track count</label>
 				</p>
 				<p><br><button id="reset_osd">Reset to defaults</button></p>
@@ -550,39 +642,43 @@
 			<div class="credits">
 				<h1>audioMotion</h1>
 				<div>version <span id="version"></span></div>
-				<p>Copyright &copy; 2018-2021 Henrique Avila Vianna</p>
+				<p>Copyright &copy; 2018-2024 Henrique Avila Vianna</p>
 				<ul>
-					<li><a href="https://audiomotion.me/users-manual">User's Manual</a></li>
-					<li><a href="https://github.com/hvianna/audioMotion.js/">GitHub</a></li>
-					<li><a href="https://audiomotion.me/credits">Credits</a></li>
+					<li><a href="https://audiomotion.app/docs/users-manual" target="_blank">User's Manual</a></li>
+					<li><a href="https://github.com/hvianna/audioMotion.js/" target="_blank">GitHub</a></li>
+					<li><a href="https://audiomotion.app/docs/credits" target="_blank">Credits</a></li>
 				</ul>
 			</div>
+			<h2>Keyboard shortcuts:</h2>
 			<table class="kbd-table">
+				<tr><td><kbd>0</kbd></td><td>randomize analyzer settings (once)</td></tr>
+				<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>load a User Preset</td></tr>
+				<tr><td><kbd>Shift</kbd> <kbd>1</kbd> - <kbd>9</kbd></td><td>save current settings to a User Preset slot</td></tr>
 				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>volume up / down</td></tr>
-				<tr><td><kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd></td><td>previous / next song (hold for rewind / fast forward)</td></tr>
+				<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>previous / next song (hold for rewind / fast forward)</td></tr>
 				<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>increase / reduce fullscreen analyzer height</td></tr>
-				<tr><td><kbd>Shift</kbd> + <kbd class="big">&larr;</kbd> / <kbd class="big">&rarr;</kbd></td><td>balance left / right</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>balance left / right</td></tr>
 				<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>change auto gradient and random mode options</td></tr>
-				<tr><td><kbd>B</kbd></td><td>change background</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>B</kbd></td><td>change background image fit</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>change Randomize interval</td></tr>
+				<tr><td><kbd>B</kbd></td><td>change Background</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>B</kbd></td><td>change Background Image Fit</td></tr>
 				<tr><td><kbd>C</kbd></td><td>toggle Radial analyzer</td></tr>
 				<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>display song information<br>(press/click again for more info and again to hide)</td></tr>
 				<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
 				<tr><td><kbd>F</kbd></td><td>toggle fullscreen</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>G</kbd> / <kbd>G</kbd></td><td>previous / next gradient</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>G</kbd> / <kbd>G</kbd></td><td>previous / next Gradient</td></tr>
 				<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
 				<tr><td><kbd>I</kbd></td><td>toggle information display at song start/end</td></tr>
 				<tr><td><kbd>L</kbd></td><td>toggle LEDs effect</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>M</kbd> / <kbd>M</kbd></td><td>previous / next visualization mode</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>N</kbd> / <kbd>N</kbd></td><td>reduce / increase sensitivity</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>M</kbd> / <kbd>M</kbd></td><td>previous / next Analyzer Mode</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>N</kbd> / <kbd>N</kbd></td><td>reduce / increase Sensitivity</td></tr>
 				<tr><td><kbd>O</kbd></td><td>toggle low-resolution</td></tr>
-				<tr><td><kbd>P</kbd></td><td>toggle peaks display</td></tr>
-				<tr><td><kbd>R</kbd></td><td>toggle queue repeat</td></tr>
+				<tr><td><kbd>P</kbd></td><td>toggle Peaks display</td></tr>
+				<tr><td><kbd>R</kbd></td><td>toggle play queue Repeat</td></tr>
 				<tr><td><kbd>Shift</kbd><kbd>S</kbd> / <kbd>S</kbd></td><td>toggle display of frequency and level scales</td></tr>
 				<tr><td><kbd>T</kbd></td><td>toggle flat / shadowed text</td></tr>
 				<tr><td><kbd>U</kbd></td><td>toggle luminance bars effect</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>X</kbd> / <kbd>X</kbd></td><td>change reflex style</td></tr>
+				<tr><td><kbd>Shift</kbd><kbd>X</kbd> / <kbd>X</kbd></td><td>change Reflex style</td></tr>
 			</table>
 		</div>
 	</div> <!-- #shortcuts -->

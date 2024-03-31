@@ -1,90 +1,73 @@
-# Server modes
+# Self-hosting audioMotion
 
-audioMotion can run in three different server scenarios:
-+ serverless, in [local file mode](#local-file-mode) with limited capabilites;
-+ using its own [custom file server](#custom-file-server) (preferred);
-+ from a [standard web server](#standard-web-server) like Apache, Lighttpd or Nginx.
+If you'd like to host the audioMotion app in your own web server:
 
-## Local file mode
++ Clone the [project from GitHub](https://github.com/hvianna/audioMotion.js) or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/).
++ Copy the `public` folder to the document root of your web server - you can rename it to anything you want;
++ Add your music files to the `music` folder (or create an **alias** to map the `/music` URL to another folder - see [configuration examples](#server-configuration-examples) below);
++ Add image and video files to the `backgrounds` folder, to be used as [Background](users-manual.md#background) options.
 
-You can run audioMotion in **file mode** by directly opening the `index.html` file located inside the `public` folder.
+?> Directory listing must be enabled for the file explorer to work - the included `.htaccess` file should be enough if you're using an Apache-compatible web server.
 
-In this mode you can play individual music files from your computer or from a remote URL and use the microphone input, but the file explorer won't be available.
+!> **Playlists, Presets and Custom gradients** are saved to the browser's storage and will only be accessible in the same browser they were saved.
+The storage is also tied to the server **address and port**, so if any of those change, data saved on a different address/port won't be accessible.
 
-Due to the security policy of web browsers, JavaScript can only read files via HTTP protocol.
-So, in order for audioMotion to read music files from your hard disk, you must have an HTTP server software running in your computer.
+## config.json file
 
-## Custom file server
+A **config.json** file in the same directory as audioMotion's _index.html_ allows you to configure some server options.
 
-audioMotion's custom file server allows you to easily access music files anywhere in your computer. This is the easiest and preferred way to run audioMotion.
-
-The custom file server is included in the binaries you can download from the project's [releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
-
-Simply double-click the executable to launch audioMotion and you'll be asked for the path to your music folder.
-
-You can also start audioMotion from the command-line to provide the path, by running:
-
-```
-audioMotion -m /path/to/music
+```config.json
+{
+  "defaultAccessMode": "local",
+  "enableLocalAccess": true,
+  "mediaPanel": "open"
+}
 ```
 
-Where `/path/to/music` is the full path to your music folder (in Windows machines the path will look like `c:\user\myUser\music`). Only files inside this folder will be available to audioMotion.
+| option | values (default in bold) | description |
+|--------|--------------------------|-------------|
+| **defaultAccessMode** | **`"local"`** \| `"server"` | Initial (first run) file access mode - user's device or /music directory on server
+| **enableLocalAccess** | **`true`** \| `false` | Whether or not to enable access to local device (*true* allows user to switch between local or server)
+| **mediaPanel**        | **`"open"`** \| `"close"` | Initial state of the [Media Panel](users-manual.md#media-panel) (*"close"* expands the analyzer area)
 
-You should then be able to access audioMotion at `localhost:8000` on your web browser.
+## URL parameters
 
-By default, audioMotion's server will only accept connections from localhost. If you'd like other computers in your network to have access to the server, you can start it with the `-e` argument:
+The following URL parameters can also be used when accessing audioMotion:
 
+| parameter | possible values | description |
+|-----------|-----------------|-------------|
+| **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
+| **mediaPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the server configuration
+
+Use an **&** character to separate multiple parameters. Example usage:
+
+[https://audiomotion.app?mode=server](https://audiomotion.app?mode=server)
+
+[https://audiomotion.app?mode=local&mediaPanel=close](https://audiomotion.app?mode=local&mediaPanel=close)
+
+## Server configuration examples
+
+The examples below configure the server to use port 8000 for audioMotion, and map the */music* URL to a different directory outside its document root.
+
+### Apache: <!-- {docsify-ignore} -->
+
+```apache2.conf
+Listen 8000
+
+<VirtualHost *:8000>
+    DocumentRoot "/mnt/HD/HD_a2/web/audioMotion/"
+</VirtualHost>
+
+Alias "/music" "/mnt/HD/HD_a2/MUSIC"
+
+<Directory "/mnt/HD/HD_a2/MUSIC">
+    Options +Indexes +FollowSymLinks
+</Directory>
 ```
-audioMotion -e -m /path/to/music
-```
 
-The complete command line options are:
+### Lighttpd: <!-- {docsify-ignore} -->
 
-```
--b <path> : path to folder with background images and videos
--e        : allow external connections (by default, only localhost)
--m <path> : path to music folder
--p <port> : change server listening port (default is 8000)
--s        : start server only (do not launch client)
-```
-
-!> **WARNING:**<br>
-Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
-
-### Running from source code <!-- {docsify-ignore} -->
-
-audioMotion's server is written in [node.js](https://nodejs.org). If you have node installed, you can install the required packages by opening a command prompt in audioMotion's directory and running:
-
-```
-npm install
-```
-
-And then start the server by running:
-
-```
-npm start -- -m /path/to/music
-```
-
-## Standard web server
-
-You can also use audioMotion with a standard web server, like Apache, Lighttpd or Nginx.
-
-This is an alternative way to play music stored, for example, in older NAS servers not capable of running Node.js.
-
-Just copy the `public` folder to your server (you can rename it to **audioMotion** for instance) and make the necessary configurations:
-
-* Assign a dedicated listening port to audioMotion so it can be accessed at the server's root and not from a subdirectory:<br>
-  ✔️ `http://192.168.0.32:8000`<br>
-  ❌ `http://192.168.0.32/audioMotion` (won't work!)
-* Directory listing must be enabled for the file explorer to work;
-* Add your music files to the `music` folder or map the `/music` URL to another folder in your server (see examples below).
-
-
-### Configuration tips <!-- {docsify-ignore} -->
-
-**Lighttpd:**
-
-```
+```lighttpd.conf
 $SERVER["socket"] == ":8000" {
     server.document-root = "/mnt/HD/HD_a2/web/audioMotion/"
     dir-listing.activate = "enable"
@@ -92,41 +75,7 @@ $SERVER["socket"] == ":8000" {
 }
 ```
 
-**Apache:**
-
-```
-Listen 8000
-
-<VirtualHost *:8000>
-	DocumentRoot "/mnt/HD/HD_a2/web/audioMotion/"
-</VirtualHost>
-
-Alias "/music" "/mnt/HD/HD_a2/MUSIC"
-
-<Directory "/mnt/HD/HD_a2/MUSIC">
-    Options Indexes FollowSymLinks
-</Directory>
-```
-
-**Nginx:**
+### Nginx: <!-- {docsify-ignore} -->
 
 *To do...*
 
-### Apache web server with Docker <!-- {docsify-ignore} -->
-
-If you use Docker, you can simply open a command prompt in audioMotion's directory and run:
-
-`docker-compose up -d`
-
-and you should be able to access audioMotion via HTTP by entering `localhost:8000` in your browser.
-
-The provided configuration file maps the folder "music" in your user directory to the web server document root, so audioMotion can access files inside it as "music/song.mp3", for example.
-This should work for the default "Music" folder on Windows. If you want to map a different folder or drive, edit the line below in `docker-compose.yml`:
-
-```
-    - ~/music:/usr/local/apache2/htdocs/music/
-```
-
-and change `~/music` for your desired local path, for example `j:\media\music` or `/j/media/music`. **Do not** change the path after the colon.
-
-On Windows, if you're using a drive other than C: you might need to add it to the shared drives in Docker's configuration.

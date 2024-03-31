@@ -1,42 +1,23 @@
 # Building audioMotion
 
-These steps require [node.js](https://nodejs.org) installed in your computer.
+These steps require [Node.js](https://nodejs.org) installed in your computer.
 
+First, [clone the project](https://github.com/hvianna/audioMotion.js) from GitHub or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
 
-## Building the web app
+Move to the project's directory and install the required npm packages:
 
-The source code is read from the [src/](../src) directory and bundled with [webpack](https://webpack.js.org/) to generate the files `audioMotion.js` and `styles.css`
-into the [public/](../public) folder.
-
-Install the required npm packages:
-
-```
+```shell
+cd audioMotion.js
 npm install
 ```
 
-Build it with:
+The web app is bundled with [webpack](https://webpack.js.org/), from source code located in the `src/` directory.
 
-```
+If you make any changes to the source files, you'll need to rebuild the app, by running:
+
+```shell
 npm run build
 ```
 
+This will generate the files `audioMotion.js`, `vendors.js` and `styles.css` into the [public/](../public) folder.
 
-## Creating binaries
-
-audioMotion binaries use [pkg](https://www.npmjs.com/package/pkg) to package both the server and the web app files into a single, self-contained executable.
-
-To generate your own binaries, first install **pkg** globally:
-
-```
-npm install -g pkg
-```
-
-Then package the application with:
-
-```
-npm run pack
-```
-
-This will create executable files for Windows, Linux and macOS in the `bin/` folder.
-
-Please refer to the [pkg documentation](https://github.com/vercel/pkg#readme) for building to other available platforms.

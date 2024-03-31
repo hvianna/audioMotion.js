@@ -1,5 +1,58 @@
 # Changelog
 
+## version 24.3
+
+📢 **audioMotion** is now an [online web app](https://audiomotion.app) that can play **music and video** directly from your device! No download necessary.
+
+
+### Added: <!-- {docsify-ignore} -->
+
++ Support for the File System Access API, allowing the web app to read files from your local device (depends on [browser support](known-issues.md));
++ **Video playback** - [suggested](https://github.com/hvianna/audioMotion.js/discussions/40) by **@JesusGod-Pope666-Info**;
++ *Bark*, *Mel* and linear [**frequency scales**](users-manual.md#frequency-scale) (\*\*) - suggested by **@TF3RDL** ([here](https://github.com/hvianna/audioMotion-analyzer/issues/30)) and **@hsnam95** ([here](https://github.com/hvianna/audioMotion.js/issues/34));
++ [Frequency **weighting filters**](users-manual.md#weighting) (\*\*);
++ New [dual-channel layouts](users-manual.md#channel-layout): horizontal (side-by-side channels) and combined (overlaid channels) - [suggested](https://github.com/hvianna/audioMotion-analyzer/issues/38) by **@TF3RDL**;
++ Allow selecting **different [gradients](users-manual.md#gradients) for each channel,** when using a dual-channel layout;
++ New [**bar coloring modes**](users-manual.md#color-mode): by level (bar amplitude) and by index (bar position);
++ Press **0** (zero) to quickly randomize analyzer settings;
++ [**ANSI** switch](users-manual.md#switches) to use IEC/ANSI preferred frequencies for octave bands - [suggested](https://github.com/hvianna/audioMotion.js/issues/28) by **@jonathan-annett**;
++ [**LINEAR** switch](users-manual.md#switches) to use **linear amplitude** values, instead of decibels (\*\*);
++ [**NOTES** switch](users-manual.md#switches) to display **musical note labels** in the X-axis scale;
++ [**ROUND** switch](users-manual.md#switches) to render analyzer bars wih **rounded corners** on top;
++ [Config options](users-manual.md#general-settings) to customize the **backgrounds folder** and how many individual media files appear in the Background options;
++ [Config option](users-manual.md#general-settings) to limit the maximum frame-rate;
++ [Config option](users-manual.md#general-settings) to adjust on-screen display font size - [suggested](https://github.com/hvianna/audioMotion.js/issues/44) by **@kimycai**;
++ [Config option](users-manual.md#general-settings) to **auto-hide the media panel**, expanding the analyzer area;
++ [Config options](users-manual.md#general-settings) to remember the contents of the play queue and the last used folder between sessions;
++ Enabled some server-side configuration options via `config.json` file - see [Self-hosting audioMotion](server.md);
+
+\*\* Special thanks to **@TF3RDL** for the [code snippets](https://github.com/hvianna/audioMotion-analyzer/issues/30) which helped immensely in the implementation of these features!
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ User preset funcionality now provides 9 slots for saving your favorite analyzer configurations;
++ **Prism** and **Rainbow** gradients have been updated with softer colors (the old versions can be enabled in the Config panel);
++ Random Mode has been renamed to **Randomize** and it's now possible to remove the *Analyzer Mode* from the randomized settings;
++ **AUTO** gradient functionality has been changed to *Gradients* option under [Settings affected by Randomize](users-manual.md#settings-affected-by-randomize);
++ **PEAKS** now work for *Line* and *Area graph* analyzer modes in *Radial* view;
++ **STEREO** switch has been replaced by the **Channel Layout** setting;
++ Peaks hold and decay times are now more consistent on varying frame rates;
++ Improved frequency scale labeling (label font size slightly reduced in fullscreen);
++ Play queue size limit increased to 2000 files;
++ **Smoothing** setting has been moved to [General settings](users-manual.md#general-settings);
++ Added more options to the minimum and maximum values in the [Frequency range](users-manual.md#frequency-range);
++ New default settings: 20Hz - 20kHz frequency range, FFT smoothing set to 0.7, Scale-Y off and info displayed at both the start and end of the song;
++ New fonts for the user interface and internal console;
++ New custom UI controls to replace standard range inputs and radio buttons;
++ If you are [self-hosting audioMotion](server.md), it can now run from any subdirectory (no need to use a virtual host or custom port);
++ [Updated documentation](https://audiomotion.app/docs);
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Reflex not working on PIP mode on some circumstances;
++ Some special characters in file/directory names preventing files from being loaded.
+
+
 ## version 21.11
 
 :birthday: **It's audioMotion's THIRD Anniversary and we have plenty of new features to celebrate!!!** :tada: <big>🥳</big>

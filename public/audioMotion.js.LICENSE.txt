@@ -1,12 +1,18 @@
 /**
- * audioMotion.js
- * High-resolution real-time spectrum analyzer and music player
+ *                    ░    ░          ░     ░                ░
+ *                    ░               ░░   ░░         ░
+ *   ░░░   ░   ░   ░░░░   ░░    ░░░   ░ ░ ░ ░   ░░░  ░░░    ░░    ░░░   ░░░░
+ *      ▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒  ▒  ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *   ▒▒▒▒  ▒   ▒  ▒   ▒    ▒   ▒   ▒  ▒     ▒  ▒   ▒  ▒      ▒   ▒   ▒  ▒   ▒
+ *  ▓   ▓  ▓   ▓  ▓   ▓    ▓   ▓   ▓  ▓     ▓  ▓   ▓  ▓  ▓   ▓   ▓   ▓  ▓   ▓
+ *   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓  ▓▓▓▓▓  ▓▓▓   ▓     ▓   ▓▓▓    ▓▓  ▓▓▓▓▓  ▓▓▓   ▓   ▓
+ *
+ * audioMotion | media player and real-time audio spectrum analyzer
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * @version   21.11
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2021 Henrique Avila Vianna
+ * @copyright (c) 2018-2024 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
