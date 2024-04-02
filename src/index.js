@@ -214,6 +214,10 @@ const WEIGHT_NONE = '',
 	  WEIGHT_D    = 'D',
 	  WEIGHT_468  = '468';
 
+// Minimum window height to fit the entire player without a scrollbar
+// 270px (canvas min-height) + 132px (player main panel) + 430px (media panel)
+const WINDOW_MIN_HEIGHT = 832;
+
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
@@ -3810,11 +3814,12 @@ function setUIEventListeners() {
 	});
 	$('.player-area').addEventListener( 'mouseleave', () => toggleMediaPanel( true ) );
 
-	// wait for the transition on the analyzer container to end, before hiding the media panel and restoring overflow on body
+	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height )
-			elMediaPanel.style.display = 'none';
-		document.body.style.overflowY = '';
+			elMediaPanel.style.display = 'none'; // hide media panel
+ 		// restore overflow on body (keep the scroll bar always visible when the window is too short)
+		document.body.style.overflowY = window.innerHeight < WINDOW_MIN_HEIGHT ? 'scroll' : '';
 	});
 
 	// open/close settings panel
@@ -4240,7 +4245,10 @@ function toggleConsole( force ) {
  * @param {boolean} `true` to show the media panel, otherwise hide it
  */
 function toggleMediaPanel( show ) {
-	document.body.style.overflowY = 'hidden';
+	// disable overflow to avoid scrollbar while the analyzer area is expanding (when the window is tall enough)
+	// it will be restored by the `transitionend` event listener on the container
+	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
+		document.body.style.overflowY = 'hidden';
 
 	if ( show )
 		elMediaPanel.style.display = '';
