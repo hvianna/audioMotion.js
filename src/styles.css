@@ -907,7 +907,22 @@ kbd.wide {
 	box-shadow: inset 0 0 3px #0004;
 	overflow: auto;
 	padding: .25em 0;
+	position: relative;
 	vertical-align: top;
+}
+.filelist.loading {
+	overflow: hidden;
+}
+.filelist.loading::before {
+	align-items: center;
+	background: #fffd;
+	content: 'Loading...';
+	display: flex;
+	justify-content: center;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	width: 100%;
 }
 .filelist li {
 	cursor: pointer;

@@ -13,6 +13,11 @@ const defaultRoot           = '/music',
 	  openFolderMsg         = 'Click to open a new root folder',
 	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
 
+// CSS classes
+const CLASS_BREADCRUMB = 'breadcrumb',
+	  CLASS_FILELIST   = 'filelist',
+	  CLASS_LOADING    = 'loading';
+
 const MODE_NODE = 1,  // Electron app or custom node.js file server
 	  MODE_WEB  = 0,  // standard web server
 	  MODE_FILE = -1; // local access via file://
@@ -101,16 +106,17 @@ function updateUI( content, scrollTop ) {
  */
 function enterDir( target, scrollTop ) {
 
-	let prev,
-		url,
-		handle = ! target || typeof target == 'string' ? null : target;
+	let handle      = ! target || typeof target == 'string' ? null : target,
+		savedHandle = currentDirHandle,
+		savedPath   = [ ...currentPath ],
+		previousDir;
 
 	if ( handle )
 		target = handle.name;
 
 	if ( target ) {
 		if ( target == '..' ) {
-			prev = currentPath.pop(); // remove last directory from currentPath; `prev` is used to restore scrollTop
+			previousDir = currentPath.pop(); // remove last directory from currentPath; `previousDir` is used to restore scrollTop
 			const parent = currentPath[ currentPath.length - 1 ];
 			if ( parent && parent.handle )
 				handle = parent.handle;
@@ -119,22 +125,26 @@ function enterDir( target, scrollTop ) {
 			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle } );
 	}
 
-	ui_files.innerHTML = '<li>Loading...</li>';
-
-	url = makePath();
+	ui_files.classList.add( CLASS_LOADING );
 
 	return new Promise( async resolve => {
 
 		const parseContent = content => {
+			ui_files.classList.remove( CLASS_LOADING );
 			if ( content !== false ) {
 				if ( ! nodeServer || useFileSystemAPI )
 					content = parseDirectory( content );
-				updateUI( content, scrollTop || ( prev && prev.scrollTop ) );
+				updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
 				if ( enterDirCallback )
 					enterDirCallback( currentPath );
 				resolve( true );
 			}
-			resolve( false );
+			else {
+				currentPath = savedPath;
+				currentDirHandle = savedHandle;
+				resolve( false );
+				// in case of error we don't `updateUI()`, to keep the current directory contents in the explorer
+			}
 		}
 
 		if ( currentDirHandle ) { // File System API
@@ -142,11 +152,17 @@ function enterDir( target, scrollTop ) {
 				currentDirHandle = handle;
 
 			let content = [];
-			for await ( const p of currentDirHandle.entries() )
-				content.push( p );
+			try {
+				for await ( const p of currentDirHandle.entries() )
+					content.push( p );
+			}
+			catch( e ) {
+				content = false;
+			}
 			parseContent( content );
 		}
 		else {
+			const url = makePath();
 			fetch( url )
 				.then( response => {
 					if ( response.status == 200 ) {
@@ -158,7 +174,7 @@ function enterDir( target, scrollTop ) {
 					return false;
 				})
 				.then( content => parseContent( content ) )
-				.catch( () => resolve( false ) );
+				.catch( () => parseContent( false ) );
 		}
 	});
 }
@@ -419,21 +435,27 @@ export function setFileExtensions( validExtensions ) {
  * @returns {boolean}
  */
 export async function setPath( path ) {
-	if ( ! path )
-		return false;
-
-	const savedPath = [ ...currentPath ],
-		  finalDir  = path[ path.length - 1 ];
+	const finalDir    = path && path[ path.length - 1 ],
+		  savedHandle = currentDirHandle,
+		  savedPath   = [ ...currentPath ];
 
 	currentPath = path;
 
 	if ( finalDir && finalDir.handle )
 		currentDirHandle = finalDir.handle;
 
-	const success = await enterDir();
+	const success = !! path && await enterDir();
 
-	if ( ! success )
+	if ( ! success ) {
+		currentDirHandle = savedHandle;
 		currentPath = savedPath;
+		// if the dir was not found and the saved path or handle were empty (no lastDir or called by switchMode()),
+		// enter the defaultRoot (on server mode) or just update the UI to show the "open new folder" button
+		if ( ! useFileSystemAPI && ! currentPath.length )
+			enterDir( mounts[0] );
+		else if ( useFileSystemAPI && ! currentDirHandle )
+			updateUI();
+	}
 
 	return success;
 }
@@ -450,10 +472,7 @@ export function switchMode( newPath ) {
 	currentDirHandle = null;
 	mounts = [ useFileSystemAPI ? openFolderMsg : defaultRoot ];
 
-	if ( newPath )
-		setPath( newPath );
-	else
-		updateUI();
+	setPath( newPath );
 }
 
 
@@ -469,11 +488,11 @@ export function create( container, options = {} ) {
 	let startUpTimer;
 
 	ui_path = document.createElement('ul');
-	ui_path.className = 'breadcrumb';
+	ui_path.className = CLASS_BREADCRUMB;
 	container.append( ui_path );
 
 	ui_files = document.createElement('ul');
-	ui_files.className = 'filelist';
+	ui_files.className = CLASS_FILELIST;
 	container.append( ui_files );
 
 	startUpTimer = setTimeout( () => {
