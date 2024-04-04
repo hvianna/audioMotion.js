@@ -946,13 +946,22 @@ const parsePath = uri => {
 	return { path, fileName, baseName, extension };
 }
 
-// try to extract metadata off the filename (artist - title) or #EXTINF text (duration,artist - title)
+// try to extract detailed metadata off the filename or #EXTINF string
+// general format: duration,artist - title (year)
 const parseTrackName = name => {
 	name = name.replace( /_/g, ' ' ); // for some really old file naming conventions :)
+
+	const re = /\s*\([0-9]{4}\)/; // match a four-digit number between parenthesis (considered to be the year)
+	let album = name.match( re );
+	if ( album ) {
+		album = album[0].trim();
+		name = name.replace( re, '' ).trim(); // remove year
+	}
+
 	// try to discard the track number from the title, by checking commonly used separators (dot, hyphen or space)
 	// if the separator is a comma, assume the number is actually the duration from an #EXTINF tag
 	const [ ,, duration, separator,, artist, title ] = name.match( /(^(-?\d+)([,\.\-\s]))?((.*?)\s+-\s+)?(.*)/ );
-	return { artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
+	return { album, artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
 }
 
 // prepare a file path for use with the Electron file server if needed
@@ -1052,7 +1061,7 @@ function addMetadata( metadata, target ) {
 	else {				// otherwise, it's metadata read from file; we need to parse it and populate the dataset
 		trackData.artist = common.artist || trackData.artist;
 		trackData.title  = common.title || trackData.title;
-		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
+		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : trackData.album;
 		trackData.codec  = format ? format.codec || format.container : trackData.codec;
 
 		// for track quality info, metadata is prioritized in the following order, according to availability:
@@ -1109,6 +1118,7 @@ function addSongToPlayQueue( fileObject, content ) {
 		if ( ! content )
 			content = parseTrackName( baseName );
 
+		trackData.album    = content.album || '';
 		trackData.artist   = content.artist || '';
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
