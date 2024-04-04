@@ -1979,7 +1979,7 @@ function loadPlaylist( fileObject ) {
 
 			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
-			let songInfo;
+			let album, songInfo;
 
 			for ( let line of content.split(/[\r\n]+/) ) {
 				if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
@@ -2002,11 +2002,13 @@ function loadPlaylist( fileObject ) {
 							line = path + line;
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ) ) );
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
 					songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+				else if ( line.startsWith('#EXTALB') )
+					album = line.slice(8);
 			}
 			resolveAddedSongs();
 		}
