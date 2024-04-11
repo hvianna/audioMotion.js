@@ -128,6 +128,7 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
+	  KEY_LAST_VERSION   = 'last-version',
 	  KEY_PLAYLISTS      = 'playlists',
 	  KEY_PLAYQUEUE      = 'playqueue',
 	  KEY_SENSITIVITY    = 'sensitivity-presets',
@@ -205,6 +206,10 @@ const SERVERCFG_FILE     = 'config.json',
 		enableLocalAccess: true,
 		mediaPanel       : PANEL_OPEN
 	  };
+
+// Amount of time the update banner stays visible (milliseconds)
+const UPDATE_BANNER_TIMEOUT = 10000,
+	  UPDATE_SHOW_CSS_CLASS = 'show';
 
 // Weighting filters
 const WEIGHT_NONE = '',
@@ -4594,6 +4599,23 @@ function updateRangeValue( el ) {
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
 	$('#version').innerText = VERSION;
+
+	// Show update message if needed
+	const lastVersion = await loadFromStorage( KEY_LAST_VERSION ),
+		  elBanner    = $('#update-banner');
+
+	if ( lastVersion != VERSION ) {
+		saveToStorage( KEY_LAST_VERSION, VERSION );
+		if ( lastVersion !== null ) {
+			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
+			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
+			setTimeout( () => {
+				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
+			}, UPDATE_BANNER_TIMEOUT );
+		}
+	}
+	else
+		elBanner.style.display = 'none';
 
 	// Load server configuration options from config.json
 	let response;
