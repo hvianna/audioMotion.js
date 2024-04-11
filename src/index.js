@@ -3823,7 +3823,7 @@ function setUIEventListeners() {
 		if ( elAutoHide.checked )
 			toggleMediaPanel( false );
 	});
-	$('.player-area').addEventListener( 'mouseleave', () => toggleMediaPanel( true ) );
+	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
 
 	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {

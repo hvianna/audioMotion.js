@@ -385,6 +385,10 @@ a.button:visited {
 	width: 100%;
 }
 
+.panel-area {
+	min-height: 27px;
+}
+
 .config-panel,
 .file-panel,
 .player-area,
