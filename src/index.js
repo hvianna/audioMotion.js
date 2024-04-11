@@ -1097,7 +1097,7 @@ function addMetadata( metadata, target ) {
  * Add a song to the play queue
  *
  * @param {object} { file, handle }
- * @param {object} { artist, duration, title }
+ * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
 function addSongToPlayQueue( fileObject, content ) {
@@ -1122,7 +1122,7 @@ function addSongToPlayQueue( fileObject, content ) {
 		trackData.artist   = content.artist || '';
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
-		trackData.codec    = extension.toUpperCase();
+		trackData.codec    = content.codec || extension.toUpperCase();
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
@@ -2046,9 +2046,8 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const file   = normalizeSlashes( entry.file ),
-						  handle = entry.handle;
-					promises.push( addSongToPlayQueue( { file, handle } ) );
+					const { file, handle, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle }, content ) );
 				});
 				resolveAddedSongs();
 			}
@@ -4208,8 +4207,11 @@ async function storePlayQueue( name, update = true ) {
 
 		let songs = [];
 
-		for ( const item of playlist.childNodes )
-			songs.push( { file: item.dataset.file, handle: item.handle } );
+		for ( const item of playlist.childNodes ) {
+			const { album, artist, codec, duration, file, title } = item.dataset,
+				  { handle } = item;
+			songs.push( { file, handle, content: { album, artist, codec, duration, title } } );
+		}
 
 		if ( isSaveQueue )
 			set( KEY_PLAYQUEUE, songs );
