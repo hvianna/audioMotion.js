@@ -3307,7 +3307,7 @@ function scheduleFastSearch( mode, dir = 1 ) {
  * Set the background image CSS variable
  */
 function setBackgroundImage( url ) {
-	document.documentElement.style.setProperty( '--background-image', url ? `url( ${ url.replace( /['()]/g, '\\$&' ) } )` : 'none' );
+	document.documentElement.style.setProperty( '--background-image', url ? `url('${ url.replace( /['()]/g, '\\$&' ) }')` : 'none' );
 }
 
 /**
@@ -3458,8 +3458,15 @@ function setProperty( elems, save = true ) {
 					// if there's no index, pick a random video from the array
 					const url = bgVideos[ index === undefined ? randomInt( bgVideos.length ) : index ].url;
 
-					if ( ! elVideo.src.endsWith( url ) ) // avoid restarting the video if it's the same file already in use
+					// avoid restarting the video if it's the same file already in use
+					// note: github-pages-directory-listing doesn't generate encoded URLs (non-standard)
+					try {
+						if ( ! decodeURIComponent( elVideo.src ).endsWith( decodeURIComponent( url ) ) )
+							elVideo.src = url;
+					}
+					catch ( e ) { // in case decodeURIComponent() fails
 						elVideo.src = url;
+					}
 				}
 				else {
 					if ( isOverlay ) {
