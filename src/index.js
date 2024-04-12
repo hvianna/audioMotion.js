@@ -2153,9 +2153,9 @@ async function loadPreferences() {
 	populateSelect( elMaxFPS, maxFpsOptions );
 
 	populateSelect( elBgLocation, [
-		[ BGFOLDER_NONE,   'Disable' ],
-		[ BGFOLDER_SERVER, 'Server' ],
-		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local device' ] : [] ) ]
+		[ BGFOLDER_NONE,   'Disable'  ],
+		[ BGFOLDER_SERVER, 'Built-in' ],
+		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local folder' ] : [] ) ]
 	]);
 
 	setRangeAtts( elBgMaxItems, 0, 100 );
