@@ -4611,9 +4611,12 @@ function updateRangeValue( el ) {
 	const lastVersion = await loadFromStorage( KEY_LAST_VERSION ),
 		  elBanner    = $('#update-banner');
 
+	if ( lastVersion == null || lastVersion == VERSION )
+		elBanner.remove();
+
 	if ( lastVersion != VERSION ) {
 		saveToStorage( KEY_LAST_VERSION, VERSION );
-		if ( lastVersion !== null ) {
+		if ( lastVersion != null ) {
 			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
 			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
 			setTimeout( () => {
@@ -4621,8 +4624,6 @@ function updateRangeValue( el ) {
 			}, UPDATE_BANNER_TIMEOUT );
 		}
 	}
-	else
-		elBanner.style.display = 'none';
 
 	// Load server configuration options from config.json
 	let response;

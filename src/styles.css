@@ -1130,10 +1130,10 @@ kbd.wide {
 	background: var(--audioMotion-gradient-transparent);
 	border-bottom: 1px solid #fffc;
 	font-family: 'Orbitron';
-	font-size: 2rem;
+	font-size: 2.5vw;
 	position: fixed;
 	text-align: center;
-	top: -4rem;
+	top: -2em;
 	transition: top 2s;
 	width: 100%;
 	z-index: 999;
