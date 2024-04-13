@@ -68,7 +68,7 @@ The **File Explorer** allows you to navigate through folders and files on your d
 **Add from URL**  | Load a remote audio file or stream from an URL
 **Upload file**   | Play individual music files from your device. Uploaded files can't be queued or saved to playlists.<br>*(Only displayed on browsers that do not support local file access)*
 
-**Double-click** a file to quickly add it to the play queue.
+**Double-click** a file to quickly add it to the play queue. If the player is stopped, the newly added file will start playing.
 
 Hold *Ctrl* to select multiple files, or *Shift* to select a range of files, then **drag and drop** selected files into the play queue, or use the **Add selected** button.
 
@@ -79,11 +79,11 @@ Supported file extensions are:
 + for music: **flac**, **m4a**, **mp3**, **ogg** and **wav**;
 + for video: **mkv**, **mpg**, **webm**, **mp4**, **avi** and **mov**;
 + for images: **jpg**, **jpeg**, **webp**, **avif**, **png**, **gif** and **bmp**;
-+ for playlists: **m3u** and **m3u8**.
++ for playlists: **m3u** and **m3u8** *(supports `#EXTINF` and `#EXTALB` directives of the [Extended M3U format](https://en.wikipedia.org/wiki/M3U#Extended_M3U)).*
 
 *Actual codec support may vary depending on browser and operating system.*
 
-### Using the play queue and playlists
+### Play queue and saved playlists
 
 Double-click a queued song to play it.
 
@@ -107,7 +107,7 @@ Select a playlist and click one of the buttons:
 **Load**       | Load the selected playlist, **adding** its contents to the end of the current queue
 **Delete**     | Permanently delete the selected playlist
 
-!> Playlists are saved to the browser's storage and will only be accessible in the same browser they were saved.
+!> Saved playlists are stored in the browser's internal storage and will only be accessible in the same browser they were saved.
 
 ## Settings Panel
 
@@ -240,8 +240,8 @@ Selects the analyzer background.
 <sup>**( 1 )**</sup> Album covers will be preferably retrieved from the file's metadata. When a picture is not found in the metadata, **audioMotion** will look for image files
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
 
-<sup>**( 2 )**</sup> The web app includes a few built-in background images and videos. **You can select your own backgrounds folder in [Config - General settings](#general-settings).**
-You can also customize how many files will be directly available in the selection box, but for large amounts of files use the *Random image* and *Random video* options to randomly choose among **all** files found in the backgrounds folder.
+<sup>**( 2 )**</sup> The web app includes a few built-in background images and videos. **You can select your own backgrounds folder in [Config - General settings](#background-media-source).**
+You can also customize [how many files will be directly available](#background-media-max-items) in the selection box, but for large amounts of files use the *Random image* and *Random video* options to randomly choose among **all** files found in the backgrounds folder.
 
 See also [Background Image Fit](#background-image-fit) and [Background Dim](#background-dim) settings for additional options for background images and videos.
 
@@ -369,7 +369,7 @@ Switches toggle additional effects and alternative measurement, informational an
 **SCALE&nbsp;Y** | Toggle display of scale on the vertical axis (level/volume)   | **LINEAR**  | Switch between linear scale and decibels (logarithmic) to represent bar amplitudes
 **ANSI**    | Switch between [ANSI/IEC preferred frequencies](https://archive.org/details/gov.law.ansi.s1.11.2004) and [equal-tempered scale](http://hyperphysics.phy-astr.gsu.edu/hbase/Music/et.html) to generate octave bands | **FPS**     | Toggle display of current frame rate at the top right corner
 **FLAT**    | Switch between outlined (on) or shadowed (off) text for messages displayed on canvas  | **LO-RES**  | Toggle low resolution mode *(may improve performance, especially on 4K+ displays)*
-**ALPHA**   | Toggle variable bar transparency - the higher the bar amplitude the more opaque it is | **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*
+**ALPHA**   | Toggle variable bar transparency - when active, the higher the bar amplitude the more opaque it is | **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*
 **LEDS**    | Toggle LED effect for the analyzer bars *(bands modes only, no effect with RADIAL)*   | **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings *(bands modes only)*
 **RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.** | **ROUND**   | Toggle rounded corners at the top of analyzer bars *(bands modes only)*
 
@@ -422,42 +422,69 @@ So if you want to randomize only among your custom presets, uncheck everything e
 
 ![config-general-settings](img/config-general-settings.png)
 
-**Background files listed (max)** controls the maximum number of media files that can be directly selected in the [Background](#background) setting.
+#### Background media source
 
-**Backgrounds folder location** selects the source for images and videos that can be used as [Background](#background) options, or disables external background media.
+Choose the source for [Background](#background) images and videos, or disable this feature.
 
-Only files found in the selected folder will be loaded - subfolders are ignored.<br>
-Loading backgrounds from the local device requires support for the *File System Access API*, which is [currently only available on Chromium-based browsers](known-issues.md).
+Only files in the selected folder will be loaded - subfolders are ignored.<br>
+Loading backgrounds from a local folder requires support for the *File System Access API*, which is [currently only available on Chromium-based browsers](known-issues.md).
 
-**FFT size** is the number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+#### Background media max items
+
+Choose the maximum number of media files that can be directly selected in the [Background](#background) setting.
+
+If your backgrounds folder contains more files, the remaining ones will only be selectable via the *Random image* or *Random video* options.
+
+#### FFT size
+
+Number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
 
 Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
 The default value of **8192** usually provides the best cost/benefit ratio for both domains.
 
-**FFT smoothing over time** is the averaging factor used to smooth FFT data between analysis frames.
+#### FFT smoothing over time
+
+Averaging factor used to smooth FFT data between analysis frames.
 
 Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
 Increase it if the analyzer animation looks too "jumpy".
 
-**Fullscreen height (%)** adjusts the height of the analyzer when in fullscreen. This can be used to provide a wider look to the analyzer.
+#### Fullscreen height (%)
+
+Height of the analyzer when in fullscreen. This can be used to provide a wider look to the fullscreen analyzer.
 
 You can also use the **Shift** + **Up** and **Down** arrows to adjust the analyzer height during fullscreen visualization.
 
-**Maximum frame rate (FPS)** controls the maximum animation frame rate, in frames per second.
-'Unlimited' will try to match your monitor's refresh rate, but may increase CPU usage.
+#### Maximum frame rate (FPS)
 
-**On-screen display font size** controls the font size used for information displayed on canvas.
+Maximum desired animation frame rate, in frames per second.
 
-**PIP window aspect ratio** selects the aspect ratio of the Picture-In-Picture window.
+*'Unlimited'* will try to match your monitor's refresh rate, but may increase CPU usage.
+
+#### On-screen display font size
+
+Base font size used for information displayed on canvas.
+
+#### PIP window aspect ratio
+
+Choose the aspect ratio of the Picture-In-Picture window.
+
 After entering PIP, the window can be resized and the selected aspect ratio will be preserved.
 
-**Auto-hide media panel on analyzer hover** automatically hides the media panel (file explorer and play queue) when you move the mouse cursor over the analyzer.
+#### Auto-hide media panel on analyzer hover
 
-**Remember last music folder** makes the file explorer open in the last previously used folder after starting audioMotion.
+Automatically hides the [Media Panel](#media-panel) when you move the mouse cursor over the analyzer area.
 
-**Remember play queue contents** automatically restores the contents of the play queue the next time you open audioMotion.
+Move the cursor to the bottom of the window, or click the [**Settings** button](#top-panel-buttons) to show the panel again.
 
-The **Reset to defaults** button will reset all settings above to their default values.
+#### Remember last music folder
+
+Start the file explorer in the last previously used folder the next time you open audioMotion.
+
+#### Remember play queue contents
+
+Automatically restores the contents of the play queue the next time you open audioMotion.
+
 
 ### Sensitivity presets
 
