@@ -1133,7 +1133,7 @@ kbd.wide {
 	font-size: 2.5vw;
 	position: fixed;
 	text-align: center;
-	top: -2em;
+	top: -2.1em;
 	transition: top 2s;
 	width: 100%;
 	z-index: 999;
