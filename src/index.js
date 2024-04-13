@@ -52,7 +52,8 @@ const isElectron  = 'electron' in window,
 	  URL_ORIGIN  = location.origin + location.pathname,
 	  VERSION     = packageJson.version;
 
-const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
+const AUTOHIDE_DELAY        = 300,	// delay for triggering media panel auto-hide (in milliseconds)
+	  BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
 	  MAX_METADATA_REQUESTS = 4,	// max concurrent metadata requests
 	  MAX_QUEUED_SONGS      = 2000;
 
@@ -3832,8 +3833,12 @@ function setVolume( value ) {
 function setUIEventListeners() {
 	// open/close media panel (auto-hide)
 	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked )
-			toggleMediaPanel( false );
+		if ( elAutoHide.checked ) {
+			setTimeout( () => {
+				if ( elContainer.matches(':hover') )
+					toggleMediaPanel( false );
+			}, AUTOHIDE_DELAY );
+		}
 	});
 	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
 
