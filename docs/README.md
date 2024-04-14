@@ -28,7 +28,11 @@ Click the button below to open the web app:
 <a href="https://audiomotion.app" target="_blank"><img src="https://img.shields.io/badge/audioMotion.app-ff3e37?style=flat" height="48"></a>
 
 **Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
-Works on Chrome, Opera and Edge by default. On Brave you'll need to enable this feature in `chrome://flags/#file-system-access-api`.
+Works on Chrome, Opera and Edge by default. On Brave, access `chrome://flags/#file-system-access-api` to enable this feature.
+
+**You can install audioMotion on your PC by clicking the install icon in the browser's address bar, shown below:**
+
+![browser-install](img/browser-install.png)
 
 If you don't have any music files at hand, the app also includes a few songs and some online radio streams.<br>
 Click the [**Switch to Server**](users-manual.md#media-panel) button to browse server-hosted content.

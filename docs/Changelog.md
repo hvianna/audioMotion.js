@@ -1,5 +1,27 @@
 # Changelog
 
+## version 24.4
+
+Maintenance update with some improvements and bug fixes.
+
+### Added: <!-- {docsify-ignore} -->
+
++ Support for #EXTALB directive in m3u playlists (discussed in [#37](https://github.com/hvianna/audioMotion.js/issues/37#issuecomment-1732597308));
++ Version control to let users know when the app has been updated (the update message should start appearing with the next version).
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ **Media panel auto-hide improvements:** fixed the scrollbar on small windows ([#54](https://github.com/hvianna/audioMotion.js/issues/54)); added a small delay before triggering; avoid changing state when mouse leaves the window;
++ Song metadata is now saved to the stored playqueue and playlists;
++ **Added instructions on how to install the app in the [Getting started](README.md#getting-started) section;**
++ Added links to the docs website and changelog (click the version number) on the Help panel.
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ File explorer stalling on "Loading..." when folder was not found ([#55](https://github.com/hvianna/audioMotion.js/issues/55));
++ Built-in background images not loading.
+
+
 ## version 24.3
 
 📢 **audioMotion** is now an [online web app](https://audiomotion.app) that can play **music and video** directly from your device! No download necessary.

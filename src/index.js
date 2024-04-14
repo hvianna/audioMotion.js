@@ -52,7 +52,8 @@ const isElectron  = 'electron' in window,
 	  URL_ORIGIN  = location.origin + location.pathname,
 	  VERSION     = packageJson.version;
 
-const BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
+const AUTOHIDE_DELAY        = 300,	// delay for triggering media panel auto-hide (in milliseconds)
+	  BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
 	  MAX_METADATA_REQUESTS = 4,	// max concurrent metadata requests
 	  MAX_QUEUED_SONGS      = 2000;
 
@@ -128,6 +129,7 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_GENERAL_OPTS   = 'general-settings',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
+	  KEY_LAST_VERSION   = 'last-version',
 	  KEY_PLAYLISTS      = 'playlists',
 	  KEY_PLAYQUEUE      = 'playqueue',
 	  KEY_SENSITIVITY    = 'sensitivity-presets',
@@ -206,6 +208,10 @@ const SERVERCFG_FILE     = 'config.json',
 		mediaPanel       : PANEL_OPEN
 	  };
 
+// Amount of time the update banner stays visible (milliseconds)
+const UPDATE_BANNER_TIMEOUT = 10000,
+	  UPDATE_SHOW_CSS_CLASS = 'show';
+
 // Weighting filters
 const WEIGHT_NONE = '',
 	  WEIGHT_A    = 'A',
@@ -213,6 +219,10 @@ const WEIGHT_NONE = '',
 	  WEIGHT_C    = 'C',
 	  WEIGHT_D    = 'D',
 	  WEIGHT_468  = '468';
+
+// Minimum window height to fit the entire player without a scrollbar
+// 270px (canvas min-height) + 132px (player main panel) + 430px (media panel)
+const WINDOW_MIN_HEIGHT = 832;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -942,13 +952,22 @@ const parsePath = uri => {
 	return { path, fileName, baseName, extension };
 }
 
-// try to extract metadata off the filename (artist - title) or #EXTINF text (duration,artist - title)
+// try to extract detailed metadata off the filename or #EXTINF string
+// general format: duration,artist - title (year)
 const parseTrackName = name => {
 	name = name.replace( /_/g, ' ' ); // for some really old file naming conventions :)
+
+	const re = /\s*\([0-9]{4}\)/; // match a four-digit number between parenthesis (considered to be the year)
+	let album = name.match( re );
+	if ( album ) {
+		album = album[0].trim();
+		name = name.replace( re, '' ).trim(); // remove year
+	}
+
 	// try to discard the track number from the title, by checking commonly used separators (dot, hyphen or space)
 	// if the separator is a comma, assume the number is actually the duration from an #EXTINF tag
 	const [ ,, duration, separator,, artist, title ] = name.match( /(^(-?\d+)([,\.\-\s]))?((.*?)\s+-\s+)?(.*)/ );
-	return { artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
+	return { album, artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
 }
 
 // prepare a file path for use with the Electron file server if needed
@@ -1048,7 +1067,7 @@ function addMetadata( metadata, target ) {
 	else {				// otherwise, it's metadata read from file; we need to parse it and populate the dataset
 		trackData.artist = common.artist || trackData.artist;
 		trackData.title  = common.title || trackData.title;
-		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : '';
+		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : trackData.album;
 		trackData.codec  = format ? format.codec || format.container : trackData.codec;
 
 		// for track quality info, metadata is prioritized in the following order, according to availability:
@@ -1084,7 +1103,7 @@ function addMetadata( metadata, target ) {
  * Add a song to the play queue
  *
  * @param {object} { file, handle }
- * @param {object} { artist, duration, title }
+ * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
 function addSongToPlayQueue( fileObject, content ) {
@@ -1105,10 +1124,11 @@ function addSongToPlayQueue( fileObject, content ) {
 		if ( ! content )
 			content = parseTrackName( baseName );
 
+		trackData.album    = content.album || '';
 		trackData.artist   = content.artist || '';
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
-		trackData.codec    = extension.toUpperCase();
+		trackData.codec    = content.codec || extension.toUpperCase();
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
@@ -1965,7 +1985,7 @@ function loadPlaylist( fileObject ) {
 
 			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
-			let songInfo;
+			let album, songInfo;
 
 			for ( let line of content.split(/[\r\n]+/) ) {
 				if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
@@ -1988,11 +2008,13 @@ function loadPlaylist( fileObject ) {
 							line = path + line;
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, parseTrackName( songInfo ) ) );
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
 					songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+				else if ( line.startsWith('#EXTALB') )
+					album = line.slice(8);
 			}
 			resolveAddedSongs();
 		}
@@ -2030,9 +2052,8 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const file   = normalizeSlashes( entry.file ),
-						  handle = entry.handle;
-					promises.push( addSongToPlayQueue( { file, handle } ) );
+					const { file, handle, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle }, content ) );
 				});
 				resolveAddedSongs();
 			}
@@ -2133,9 +2154,9 @@ async function loadPreferences() {
 	populateSelect( elMaxFPS, maxFpsOptions );
 
 	populateSelect( elBgLocation, [
-		[ BGFOLDER_NONE,   'Disable' ],
-		[ BGFOLDER_SERVER, 'Server' ],
-		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local device' ] : [] ) ]
+		[ BGFOLDER_NONE,   'Disable'  ],
+		[ BGFOLDER_SERVER, 'Built-in' ],
+		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local folder' ] : [] ) ]
 	]);
 
 	setRangeAtts( elBgMaxItems, 0, 100 );
@@ -3287,7 +3308,7 @@ function scheduleFastSearch( mode, dir = 1 ) {
  * Set the background image CSS variable
  */
 function setBackgroundImage( url ) {
-	document.documentElement.style.setProperty( '--background-image', url ? `url( ${ url.replace( /['()]/g, '\\$&' ) } )` : 'none' );
+	document.documentElement.style.setProperty( '--background-image', url ? `url('${ url.replace( /['()]/g, '\\$&' ) }')` : 'none' );
 }
 
 /**
@@ -3438,8 +3459,15 @@ function setProperty( elems, save = true ) {
 					// if there's no index, pick a random video from the array
 					const url = bgVideos[ index === undefined ? randomInt( bgVideos.length ) : index ].url;
 
-					if ( ! elVideo.src.endsWith( url ) ) // avoid restarting the video if it's the same file already in use
+					// avoid restarting the video if it's the same file already in use
+					// note: github-pages-directory-listing doesn't generate encoded URLs (non-standard)
+					try {
+						if ( ! decodeURIComponent( elVideo.src ).endsWith( decodeURIComponent( url ) ) )
+							elVideo.src = url;
+					}
+					catch ( e ) { // in case decodeURIComponent() fails
 						elVideo.src = url;
+					}
 				}
 				else {
 					if ( isOverlay ) {
@@ -3805,16 +3833,21 @@ function setVolume( value ) {
 function setUIEventListeners() {
 	// open/close media panel (auto-hide)
 	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked )
-			toggleMediaPanel( false );
+		if ( elAutoHide.checked ) {
+			setTimeout( () => {
+				if ( elContainer.matches(':hover') )
+					toggleMediaPanel( false );
+			}, AUTOHIDE_DELAY );
+		}
 	});
-	$('.player-area').addEventListener( 'mouseleave', () => toggleMediaPanel( true ) );
+	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
 
-	// wait for the transition on the analyzer container to end, before hiding the media panel and restoring overflow on body
+	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height )
-			elMediaPanel.style.display = 'none';
-		document.body.style.overflowY = '';
+			elMediaPanel.style.display = 'none'; // hide media panel
+ 		// restore overflow on body (keep the scroll bar always visible when the window is too short)
+		document.body.style.overflowY = window.innerHeight < WINDOW_MIN_HEIGHT ? 'scroll' : '';
 	});
 
 	// open/close settings panel
@@ -4191,8 +4224,11 @@ async function storePlayQueue( name, update = true ) {
 
 		let songs = [];
 
-		for ( const item of playlist.childNodes )
-			songs.push( { file: item.dataset.file, handle: item.handle } );
+		for ( const item of playlist.childNodes ) {
+			const { album, artist, codec, duration, file, title } = item.dataset,
+				  { handle } = item;
+			songs.push( { file, handle, content: { album, artist, codec, duration, title } } );
+		}
 
 		if ( isSaveQueue )
 			set( KEY_PLAYQUEUE, songs );
@@ -4240,7 +4276,10 @@ function toggleConsole( force ) {
  * @param {boolean} `true` to show the media panel, otherwise hide it
  */
 function toggleMediaPanel( show ) {
-	document.body.style.overflowY = 'hidden';
+	// disable overflow to avoid scrollbar while the analyzer area is expanding (when the window is tall enough)
+	// it will be restored by the `transitionend` event listener on the container
+	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
+		document.body.style.overflowY = 'hidden';
 
 	if ( show )
 		elMediaPanel.style.display = '';
@@ -4572,6 +4611,24 @@ function updateRangeValue( el ) {
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
 	$('#version').innerText = VERSION;
+
+	// Show update message if needed
+	const lastVersion = await loadFromStorage( KEY_LAST_VERSION ),
+		  elBanner    = $('#update-banner');
+
+	if ( lastVersion == null || lastVersion == VERSION )
+		elBanner.remove();
+
+	if ( lastVersion != VERSION ) {
+		saveToStorage( KEY_LAST_VERSION, VERSION );
+		if ( lastVersion != null ) {
+			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
+			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
+			setTimeout( () => {
+				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
+			}, UPDATE_BANNER_TIMEOUT );
+		}
+	}
 
 	// Load server configuration options from config.json
 	let response;

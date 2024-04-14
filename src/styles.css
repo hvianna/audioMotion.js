@@ -1,6 +1,7 @@
 :root {
 	--accent-color: #6c9700;
 	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+	--audioMotion-gradient-transparent: linear-gradient( -45deg, #ffdf43cc, #fa5476cc, #c63bf3cc, #8550ffcc, #4a68f7cc, #23d2ffcc );
 	--background-image: none;
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
@@ -383,6 +384,10 @@ a.button:visited {
 #playlists {
 	margin-top: 6px;
 	width: 100%;
+}
+
+.panel-area {
+	min-height: 27px;
 }
 
 .config-panel,
@@ -907,7 +912,22 @@ kbd.wide {
 	box-shadow: inset 0 0 3px #0004;
 	overflow: auto;
 	padding: .25em 0;
+	position: relative;
 	vertical-align: top;
+}
+.filelist.loading {
+	overflow: hidden;
+}
+.filelist.loading::before {
+	align-items: center;
+	background: #fffd;
+	content: 'Loading...';
+	display: flex;
+	justify-content: center;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	width: 100%;
 }
 .filelist li {
 	cursor: pointer;
@@ -1104,6 +1124,28 @@ kbd.wide {
 .credits li:not(:last-child)::after {
 	content: '\22c5';
 	margin-left: 1em;
+}
+
+.update-banner {
+	background: var(--audioMotion-gradient-transparent);
+	border-bottom: 1px solid #fffc;
+	font-family: 'Orbitron';
+	font-size: 2.5vw;
+	position: fixed;
+	text-align: center;
+	top: -2.1em;
+	transition: top 2s;
+	width: 100%;
+	z-index: 999;
+}
+.update-banner.show {
+	top: 0;
+}
+.update-banner a {
+	color: white;
+	display: block;
+	padding: .5em;
+	text-decoration: none;
 }
 
 /**
