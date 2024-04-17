@@ -2714,7 +2714,7 @@ function randomizeSettings( force = elSource.checked ) {
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
-	const randomizeControl = ( el, push = true, validate = () => true ) => {
+	const randomizeControl = ( el, validate = () => true ) => {
 		let attempts = 9; // avoid an infinite loop just in case validation is never satisfied
 		do {
 			if ( isCustomRadio( el ) ) {
@@ -2737,8 +2737,7 @@ function randomizeSettings( force = elSource.checked ) {
 				el.selectedIndex = randomInt( el.options.length );
 		} while ( ! validate( getControlValue( el ) ) && attempts-- );
 
-		if ( push )
-			props.push( el );
+		setProperty( el );
 	}
 
 	let props = []; // properties that need to be updated
@@ -2757,13 +2756,13 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elAlphaBars );
 
 	if ( isEnabled( RND_BACKGROUND ) )
-		randomizeControl( elBackground, false );
+		randomizeControl( elBackground );
 
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
 
 	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeControl( elChnLayout, true, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
+		randomizeControl( elChnLayout, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
 
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
@@ -2775,22 +2774,22 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elLedDisplay );
 
 	if ( isEnabled( RND_LUMI ) )
-		randomizeControl( elLumiBars, true, newVal => ! newVal || elBackground.value[0] <= 1 || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
+		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
 
 	if ( isEnabled( RND_LINEWIDTH ) )
-		randomizeControl( elLineWidth, false );
+		randomizeControl( elLineWidth );
 
 	if ( isEnabled( RND_FILLOPACITY ) )
-		randomizeControl( elFillAlpha, false );
+		randomizeControl( elFillAlpha );
 
 	if ( isEnabled( RND_BARSPACING ) )
-		randomizeControl( elBarSpace, false );
+		randomizeControl( elBarSpace );
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
 
 	if ( isEnabled( RND_REFLEX ) )
-		randomizeControl( elReflex, false, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
+		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
 
 	if ( isEnabled( RND_RADIAL ) )
 		randomizeControl( elRadial );
@@ -2812,11 +2811,6 @@ function randomizeSettings( force = elSource.checked ) {
 			randomizeControl( el );
 	}
 
-	// add properties that depend on other settings (mode also sets barspace)
-	props.push( elBackground, elReflex, elMode );
-
-	// effectively set the affected properties
-	setProperty( props );
 }
 
 /**
