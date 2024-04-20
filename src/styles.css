@@ -974,6 +974,16 @@ kbd.wide {
 .filelist [data-type="list"]::before {
 	content: '\f102';
 }
+.filelist [data-subs="1"]::after {
+	background: #444;
+	border-radius: .25em;
+	color: #f0f0f0;
+	content: 'SUBS';
+	font-size: .6em;
+	margin-left: .5em;
+	padding: .25em .5em;
+	vertical-align: middle;
+}
 
 .locked-panel {
 	align-items: center;
@@ -1392,6 +1402,31 @@ input.slider:not(:checked) + .slider .slider-on {
 	transition: all 200ms ease-in-out;
 	transform-origin: -100% 50%;
 	width: 25%;
+}
+
+/* Subtitles */
+::cue {
+	font-weight: 600;
+	line-height: 1.2;
+}
+.subs-bg-none ::cue {
+	background: transparent;
+}
+.subs-bg-shadow ::cue {
+	background: transparent;
+	text-shadow: .075em .075em .2em black, -.075em -.075em .2em black;
+}
+.subs-bg-solid ::cue {
+	background: #000c;
+}
+.subs-color-gray ::cue {
+	color: lightgray;
+}
+.subs-color-white ::cue {
+	color: white;
+}
+.subs-color-yellow ::cue {
+	color: gold;
 }
 
 /* Color gradient editor */

@@ -133,6 +133,7 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_PLAYLISTS      = 'playlists',
 	  KEY_PLAYQUEUE      = 'playqueue',
 	  KEY_SENSITIVITY    = 'sensitivity-presets',
+	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
 	  PLAYLIST_PREFIX    = 'pl_';
 
 // Visualization modes
@@ -208,9 +209,22 @@ const SERVERCFG_FILE     = 'config.json',
 		mediaPanel       : PANEL_OPEN
 	  };
 
-// Amount of time the update banner stays visible (milliseconds)
-const UPDATE_BANNER_TIMEOUT = 10000,
-	  UPDATE_SHOW_CSS_CLASS = 'show';
+// Subtitles settings options
+const SUBS_BG_NONE      = 'none',
+	  SUBS_BG_SHADOW    = 'shadow',
+	  SUBS_BG_SOLID     = 'solid',
+	  SUBS_COLOR_GRAY   = 'gray',
+	  SUBS_COLOR_WHITE  = 'white',
+	  SUBS_COLOR_YELLOW = 'yellow',
+	  SUBS_CSS_BG       = 'subs-bg-', // CSS class prefix
+	  SUBS_CSS_COLOR    = 'subs-color-',
+	  SUBS_POS_BOTTOM   = 'bottom',
+	  SUBS_POS_CENTER   = 'center',
+	  SUBS_POS_TOP      = 'top';
+
+// Update banner settings
+const UPDATE_BANNER_TIMEOUT = 10000,  // time visible (milliseconds)
+	  UPDATE_SHOW_CSS_CLASS = 'show'; // active CSS class
 
 // Weighting filters
 const WEIGHT_NONE = '',
@@ -288,10 +302,14 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elShowCover     = $('#show_cover'),
 	  elShowPeaks     = $('#show_peaks'),
 	  elShowSong      = $('#show_song'),
+	  elShowSubtitles = $('#show_subs'),
 	  elSmoothing     = $('#smoothing'),
 	  elSource        = $('#source'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
+	  elSubsBackground= $('#subs_background'),
+	  elSubsColor     = $('#subs_color'),
+	  elSubsPosition  = $('#subs_position'),
 	  elToggleConsole = $('#toggle_console'),
 	  elToggleSettings= $('#toggle_settings'),
 	  elTrackTimeout  = $('#track_timeout'),
@@ -535,6 +553,7 @@ const presets = [
 			showScaleX   : 1,
 			showScaleY   : 0,
 			showSong     : 1,
+			showSubtitles: 1,
 			spin         : 2,
 			splitGrad    : 0,
 			volume       : 1,
@@ -746,6 +765,15 @@ const pipRatioOptions = [
 	[ 3.55, '32:9' ]
 ];
 
+// Subtitles configuration options
+const subtitlesElements = [ elSubsBackground, elSubsColor, elSubsPosition ];
+
+const subtitlesDefaults = {
+	background: SUBS_BG_SHADOW,
+	color     : SUBS_COLOR_WHITE,
+	position  : SUBS_POS_TOP
+}
+
 // Global variables
 let audioElement = [],
 	audioMotion,
@@ -874,6 +902,7 @@ const getCurrentSettings = _ => ({
 	showScaleX 	 : getControlValue( elScaleX ),
 	showScaleY 	 : getControlValue( elScaleY ),
 	showSong     : getControlValue( elShowSong ),
+	showSubtitles: getControlValue( elShowSubtitles ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
 	weighting    : getControlValue( elWeighting )
@@ -907,7 +936,7 @@ const getSelectedGradients = () => {
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
 // check if a given url/path is a blob
-const isBlob = src => src.startsWith('blob:');
+const isBlob = src => src && src.startsWith('blob:');
 
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
@@ -1132,6 +1161,7 @@ function addSongToPlayQueue( fileObject, content ) {
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
+		newEl.subs         = fileObject.subs;
 
 		playlist.appendChild( newEl );
 
@@ -1225,6 +1255,7 @@ function clearAudioElement( n = currAudio ) {
 		  trackData = audioEl.dataset;
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
+	loadSubs( audioEl, null );
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	audioEl.load();
 
@@ -1521,6 +1552,14 @@ function doConfigPanel() {
 		setGeneralOptions( generalOptionsDefaults );
 		setProperty( generalOptionsElements );
 	});
+
+	// Subtitle settings
+	subtitlesElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
+	$('#reset_subs').addEventListener( 'click', () => {
+		setSubtitlesOptions( subtitlesDefaults );
+		setProperty( subtitlesElements );
+	});
+	setProperty( subtitlesElements ); // initialize subtitles settings
 }
 
 /**
@@ -1945,6 +1984,8 @@ async function loadNextSong() {
 		  song    = playlist.children[ next ],
 		  audioEl = audioElement[ nextAudio ];
 
+	setSubtitlesDisplay(); // avoid stuck subtitles on track change
+
 	if ( song ) {
 		addMetadata( song, audioEl );
 		if ( song.handle ) {
@@ -1957,6 +1998,7 @@ async function loadNextSong() {
 			loadAudioSource( audioEl, song.dataset.file );
 			audioEl.load();
 		}
+		loadSubs( audioEl, song.subs );
 	}
 
 	skipping = false; // finished skipping track
@@ -2052,8 +2094,8 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const { file, handle, content } = entry;
-					promises.push( addSongToPlayQueue( { file, handle }, content ) );
+					const { file, handle, subs, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle, subs }, content ) );
 				});
 				resolveAddedSongs();
 			}
@@ -2169,6 +2211,28 @@ async function loadPreferences() {
 
 	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
+	// Subtitles configuration
+
+	populateSelect( elSubsBackground, [
+		[ SUBS_BG_NONE,   'None'   ],
+		[ SUBS_BG_SHADOW, 'Shadow' ],
+		[ SUBS_BG_SOLID,  'Solid'  ]
+	]);
+
+	populateSelect( elSubsColor, [
+		[ SUBS_COLOR_GRAY,   'Gray'   ],
+		[ SUBS_COLOR_WHITE,  'White'  ],
+		[ SUBS_COLOR_YELLOW, 'Yellow' ]
+	]);
+
+	populateSelect( elSubsPosition, [
+		[ SUBS_POS_TOP,    'Top'    ],
+		[ SUBS_POS_CENTER, 'Center' ],
+		[ SUBS_POS_BOTTOM, 'Bottom' ]
+	]);
+
+	setSubtitlesOptions( { ...subtitlesDefaults, ...( await loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+
 	return isLastSession;
 }
 
@@ -2267,6 +2331,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elGradientRight,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
+		elShowSubtitles,
 		elMode ]
 	);
 
@@ -2396,10 +2461,46 @@ function loadSong( n, playIt ) {
 					finish();
 				};
 			}
+
+			loadSubs( audioEl, song.subs );
 		}
 		else
 			resolve( false );
 	});
+}
+
+/**
+ * Load subtitles file to audio element track
+ *
+ * @param {object} audio element
+ * @param {object} subtitles object { name, lang, handle }
+ */
+function loadSubs( audioEl, subs ) {
+	// References:
+	// https://www.w3.org/wiki/VTT_Concepts
+	// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
+
+	const subsTrack = audioEl.querySelector('track');
+
+	// revoke any previous object URL
+	if ( isBlob( subsTrack.src ) )
+		URL.revokeObjectURL( subsTrack.src );
+
+	if ( subs ) {
+		const { name, lang, handle } = subs;
+		subsTrack.srclang = lang || 'en';
+		if ( handle ) {
+			handle.getFile()
+				.then( fileBlob => subsTrack.src = URL.createObjectURL( fileBlob ) )
+				.catch( e => {} );
+		}
+		else
+			subsTrack.src = name;
+	}
+	else {
+		subsTrack.removeAttribute('src');
+		subsTrack.removeAttribute('srclang');
+	}
 }
 
 /**
@@ -3201,6 +3302,15 @@ function savePreferences( key ) {
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
+
+	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
+		const subtitlesOptions = {
+			background: elSubsBackground.value,
+			color     : elSubsColor.value,
+			position  : elSubsPosition.value
+		}
+		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
+	}
 }
 
 /**
@@ -3400,12 +3510,13 @@ function setLoadedPlaylist( path = '' ) {
  */
 function setOverlay() {
 	const bgOption  = elBackground.value[0],
+		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
-		  isOverlay = isVideo || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
+		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
-		audioEl.style.display = isVideo && audioEl == audioElement[ currAudio ] ? '' : 'none';
+		audioEl.style.display = ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] ? '' : 'none';
 
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
@@ -3464,7 +3575,7 @@ function setProperty( elems, save = true ) {
 					}
 				}
 				else {
-					if ( isOverlay ) {
+					if ( isOverlay && ! [ BG_DEFAULT, BG_BLACK ].includes( bgOption ) ) {
 						if ( bgOption == BG_COVER )
 							setBackgroundImage( coverImage.src );
 						else
@@ -3713,6 +3824,10 @@ function setProperty( elems, save = true ) {
 				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
 				break;
 
+			case elShowSubtitles:
+				setSubtitlesDisplay();
+				break;
+
 			case elSmoothing:
 				audioMotion.smoothing = elSmoothing.value;
 				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
@@ -3741,6 +3856,15 @@ function setProperty( elems, save = true ) {
 				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
 				break;
 
+			case elSubsBackground:
+			case elSubsColor:
+				setSubtitlesColors();
+				break;
+
+			case elSubsPosition:
+				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				break;
+
 			case elWeighting:
 				audioMotion.weightingFilter = getControlValue( elWeighting );
 				break;
@@ -3750,6 +3874,8 @@ function setProperty( elems, save = true ) {
 		if ( save ) {
 			if ( generalOptionsElements.includes( el ) )
 				savePreferences( KEY_GENERAL_OPTS );
+			else if ( subtitlesElements.includes( el ) )
+				savePreferences( KEY_SUBTITLES_OPTS );
 			else
 				updateLastConfig();
 		}
@@ -3809,6 +3935,73 @@ async function setSource( isMicSource, callback ) {
 			callback( true );
 	}
 
+}
+
+/**
+ * Set subtitles color and background preferences
+ */
+function setSubtitlesColors() {
+	// remove all CSS classes related to subtitles
+	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR }).*`, 'gi' ), '' ); // /(subs-bg-|subs-color-).*/gi
+	// add classes for the current settings
+	elContainer.classList.add( SUBS_CSS_BG + elSubsBackground.value, SUBS_CSS_COLOR + elSubsColor.value );
+}
+
+/**
+ * Set display of subtitles
+ */
+function setSubtitlesDisplay() {
+	for ( const audioEl of audioElement ) {
+		audioEl.textTracks[0].mode = 'hidden'; // clear any remaining subtitles on track change or playback stop
+		if ( isSwitchOn( elShowSubtitles ) )
+			audioEl.textTracks[0].mode = 'showing';
+	}
+	setOverlay();
+}
+
+/**
+ * Set subtitles configuration options
+ */
+function setSubtitlesOptions( options ) {
+	elSubsBackground.value = options.background;
+	elSubsColor.value      = options.color;
+	elSubsPosition.value   = options.position;
+}
+
+/**
+ * Set the vertical position of all subtitle "cues"
+ *
+ * @param {object} event
+ */
+function setSubtitlesPosition( event ) {
+	if ( ! event.target.track )
+		return;
+
+	let align, line, snap = false;
+
+	switch( elSubsPosition.value ) {
+		case SUBS_POS_BOTTOM:
+			align = 'end';
+			line  = 95;
+			break;
+
+		case SUBS_POS_CENTER:
+			align = 'center';
+			line  = 50;
+			break;
+
+		default: // SUBS_POS_TOP
+			align = 'start';
+			line  = 1;
+			snap  = true;
+	}
+
+	// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
+	for ( const cue of event.target.track.cues ) {
+		cue.line        = line;
+		cue.snapToLines = snap;  // when false, `line` represents a percentage
+		cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+	}
 }
 
 /**
@@ -4220,8 +4413,8 @@ async function storePlayQueue( name, update = true ) {
 
 		for ( const item of playlist.childNodes ) {
 			const { album, artist, codec, duration, file, title } = item.dataset,
-				  { handle } = item;
-			songs.push( { file, handle, content: { album, artist, codec, duration, title } } );
+				  { handle, subs } = item;
+			songs.push( { file, handle, subs, content: { album, artist, codec, duration, title } } );
 		}
 
 		if ( isSaveQueue )
@@ -4698,6 +4891,7 @@ function updateRangeValue( el ) {
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
 	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
+		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
 		fsElement: elContainer,
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
@@ -4722,6 +4916,7 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
+		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
 		if ( panNode )
 			audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
@@ -4877,7 +5072,7 @@ function updateRangeValue( el ) {
 						let items    = evt.items.length ? evt.items : [ evt.item ],
 							promises = [];
 						items.forEach( item => {
-							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle } ) );
+							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle, subs: item.subs } ) );
 							item.remove();
 						});
 						Promise.all( promises ).then( () => storePlayQueue( true ) );

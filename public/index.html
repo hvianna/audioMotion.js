@@ -73,8 +73,12 @@
 				</div>
 			</div>
 			<video id="video" autoplay loop muted disablepictureinpicture></video>
-			<video id="player0" preload="auto" crossorigin="anonymous" disablepictureinpicture></video>
-			<video id="player1" preload="auto" crossorigin="anonymous" disablepictureinpicture></video>
+			<video id="player0" preload="auto" crossorigin="anonymous" disablepictureinpicture>
+				<track class="subs" default>
+			</video>
+			<video id="player1" preload="auto" crossorigin="anonymous" disablepictureinpicture>
+				<track class="subs" default>
+			</video>
 			<div id="bg_dim" class="bg-dim"></div>
 			<div id="analyzer" class="analyzer"></div>
 			<canvas id="osd" class="osd"></canvas>
@@ -391,6 +395,9 @@
 							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
 							<span class="tooltip">Rounded tip bars <em>(bands modes only)</em></span>
+
+						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
+							<span class="tooltip">Toggle display of subtitles</span>
 					</ul>
 				</div>
 
@@ -585,7 +592,24 @@
 				</p>
 				<p><br><button id="reset_osd">Reset to defaults</button></p>
 			</div>
-		</div>
+
+			<div class="general-settings grid grid-2-cols align-center">
+				<h3 class="colspan-2">Subtitles
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles" target="_blank"></a>
+				</h3>
+
+				<p>Background color:</p>
+				<select id="subs_background"></select>
+
+				<p>Text color:</p>
+				<select id="subs_color"></select>
+
+				<p>Vertical position:</p>
+				<select id="subs_position"></select>
+
+				<p><br><button id="reset_subs">Reset to defaults</button></p>
+			</div>
+		</div> <!-- .config-panel -->
 	</div> <!-- #config -->
 
 	<div id="gradient-editor" class="modal-window">

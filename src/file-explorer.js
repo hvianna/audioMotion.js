@@ -53,8 +53,10 @@ function updateUI( content, scrollTop ) {
 
 		li.dataset.type = fileName.match(/\.(m3u|m3u8)$/) !== null && type == 'file' ? 'list' : type;
 		li.dataset.path = fileName;
-		li.innerText = fileName;
-		li.handle = item.handle; // for File System API accesses
+		li.dataset.subs = + !! item.subs; // used to show the 'subs' badge in the file list
+		li.innerText    = fileName;
+		li.handle       = item.handle; // for File System API accesses
+		li.subs         = item.subs;
 
 		ui_files.append( li );
 	}
@@ -267,8 +269,10 @@ export function getFolderContents( selector = 'li' ) {
 	let contents = [];
 
 	ui_files.querySelectorAll( selector ).forEach( entry => {
-		if ( ['file', 'list'].includes( entry.dataset.type ) )
-			contents.push( { file: makePath( entry.dataset.path ), handle: entry.handle, type: entry.dataset.type } );
+		const { handle, subs } = entry,
+			  { path, type }   = entry.dataset;
+		if ( ['file', 'list'].includes( type ) )
+			contents.push( { file: makePath( path ), handle, subs, type } );
 	});
 	return contents;
 }
@@ -360,11 +364,13 @@ export function parseWebIndex( content ) {
  */
 export function parseDirectory( content ) {
 
-	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i;
+	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
+		  subsExtensions  = /\.vtt$/i;
 
-	let files = [],
-		dirs  = [],
-		imgs  = [];
+	let dirs  = [],
+		files = [],
+		imgs  = [],
+		subs  = [];
 
 	// helper function
 	const findImg = ( arr, pattern ) => {
@@ -374,39 +380,53 @@ export function parseDirectory( content ) {
 
 	if ( useFileSystemAPI ) {
 		for ( const [ name, handle ] of content ) {
+			const fileObj = { name, handle };
 			if ( handle instanceof FileSystemDirectoryHandle )
-				dirs.push( { name, handle } );
+				dirs.push( fileObj );
 			else if ( handle instanceof FileSystemFileHandle ) {
 				if ( name.match( coverExtensions ) )
-					imgs.push( { name, handle } );
+					imgs.push( fileObj );
+				else if ( name.match( subsExtensions ) )
+					subs.push( fileObj );
 				if ( name.match( fileExtensions ) )
-					files.push( { name, handle } );
+					files.push( fileObj );
 			}
 		}
 	}
 	else {
 		for ( const { url, file } of parseWebIndex( content ) ) {
+			const fileObj = { name: file };
 			if ( url.slice( -1 ) == '/' ) {
 				if ( ! file.match( /(parent directory|\.\.)/i ) ) {
-					dirs.push( file );
+					dirs.push( fileObj );
 				}
 			}
 			else {
 				if ( file.match( coverExtensions ) )
-					imgs.push( file );
+					imgs.push( fileObj );
+				else if ( file.match( subsExtensions ) )
+					subs.push( fileObj );
 				if ( file.match( fileExtensions ) )
-					files.push( file );
+					files.push( fileObj );
 			}
 		}
+	}
+
+	// attach subtitle entries to their respective media files
+	for ( const sub of subs ) {
+		const { name, handle }     = sub,
+			  [, basename,, lang ] = name.match( /(.*?)(\.([a-z]{0,3}))?\.vtt$/i ) || [],
+			  fileEntry = files.find( el => el.name.startsWith( basename ) );
+
+		if ( fileEntry )
+			fileEntry.subs = { name: makePath( name ), lang, handle };
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 
 	const customSort = ( a, b ) => {
-		const collator = new Intl.Collator(), // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
-			  isObject = typeof a == 'object';
-
-		return collator.compare( ...( isObject ? [ a.name, b.name ] : [ a, b ] ) );
+		const collator = new Intl.Collator(); // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
+		return collator.compare( a.name, b.name );
 	}
 
 	return { cover, dirs: dirs.sort( customSort ), files: files.sort( customSort ) }
@@ -535,7 +555,7 @@ export function create( container, options = {} ) {
 		const item = e.target;
 		if ( item && item.nodeName == 'LI' ) {
 			if ( dblClickCallback && ['file','list'].includes( item.dataset.type ) )
-				dblClickCallback( { file: makePath( item.dataset.path ), handle: item.handle }, e );
+				dblClickCallback( { file: makePath( item.dataset.path ), handle: item.handle, subs: item.subs }, e );
 		}
 	});
 
