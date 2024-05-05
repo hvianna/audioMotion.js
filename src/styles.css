@@ -398,8 +398,42 @@ a.button:visited {
 }
 
 .config-panel {
-	font-size: 12.5px;
-	width: 680px;
+	width: 500px;
+}
+.config-panel details > div {
+	padding: 0 1em;
+}
+.config-panel details summary {
+	border-top: 1px solid #888;
+	justify-content: space-between;
+	padding: 1em 0;
+	position: relative;
+}
+.config-panel details[open] summary {
+	font-weight: 600;
+}
+.config-panel details > *:last-child {
+	margin-bottom: 1.5em;
+}
+.link-to-docs {
+	border: 1px solid green;
+	border-radius: 50%;
+	color: green;
+	display: inline-block;
+	font-weight: 600;
+	height: 1.25em;
+	line-height: 1.2;
+	margin-left: .5em;
+	position: absolute;
+	right: 0;
+	text-align: center;
+	text-decoration: none;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 1.25em;
+}
+.link-to-docs::before {
+	content: '?';
 }
 .config-panel table th,
 .config-panel table td {
@@ -411,7 +445,6 @@ a.button:visited {
 .config-panel input[type="checkbox"] {
 	accent-color: var(--accent-color);
 	margin: 4px 0;
-	vertical-align: sub;
 }
 .config-panel p {
 	margin: .5em 0;
@@ -449,6 +482,9 @@ a.button:visited {
 	align-items: end;
 }
 
+.gap-med {
+	gap: .5em;
+}
 .grid {
 	align-content: start;
 	display: grid;
@@ -462,6 +498,9 @@ a.button:visited {
 .colspan-2 {
 	grid-column: span 2;
 }
+.colspan-3 {
+	grid-column: span 3;
+}
 .rowspan-2 {
 	grid-row: span 2;
 }
@@ -473,21 +512,6 @@ a.button:visited {
 }
 .rowspan-5 {
 	grid-row: span 5;
-}
-
-.link-to-docs {
-	border: 2px dotted green;
-	border-radius: 50%;
-	color: green;
-	display: inline-block;
-	height: 1.25em;
-	margin-left: .5em;
-	text-align: center;
-	text-decoration: none;
-	width: 1.25em;
-}
-.link-to-docs::before {
-	content: '?';
 }
 
 .general-settings input[type="number"],
@@ -806,10 +830,6 @@ form[data-prop] label:last-of-type::before {
 
 .shortcuts {
 	width: 600px;
-}
-.shortcuts h2 {
-	font-size: 1.1em;
-	font-weight: 600;
 }
 
 .kbd-table {

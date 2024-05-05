@@ -362,7 +362,7 @@
 							<span class="tooltip">Toggle display of subtitles</span>
 
 						<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
-							<span class="tooltip">Hold peak levels for a short time</span>
+							<span class="tooltip">Toggle amplitude peaks. Customize in Config - General settings.</span>
 						<li class="switch" id="fade_peaks" data-prop="fadePeaks">FADE
 							<span class="tooltip">When active, peaks fade out instead of falling down</span>
 
@@ -473,150 +473,164 @@
 
 	<div id="config" class="modal-window">
 		<a href="#!" class="modal-close"></a>
-		<div class="config-panel grid grid-2-cols">
+		<div class="config-panel">
 			<a href="#!" class="modal-close-internal"></a>
-			<div>
-				<h3>Enabled Analyzer Modes:
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=enabled-analyzer-modes" target="_blank"></a>
-				</h3>
-				<div id="enabled_modes" class="grid grid-2-cols">
-				</div>
-			</div>
-			<div>
-				<h3>Enabled Gradients:
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=enabled-gradients" target="_blank"></a>
-				</h3>
-				<div id="enabled_gradients" class="grid grid-3-cols">
-				</div>
-				<button class="button mt-1" id="add-gradient">Add Gradient</button>
-			</div>
-			<div>
-				<h3>Enabled options for Background Image Fit:
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=enabled-options-for-background-image-fit" target="_blank"></a>
-				</h3>
-				<div id="enabled_bgfit" class="grid grid-2-cols">
-				</div>
-			</div>
-			<div>
-				<h3>Settings affected by Randomize:
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=settings-affected-by-randomize" target="_blank"></a>
-				</h3>
-				<div id="random_properties" class="grid grid-3-cols">
-				</div>
-			</div>
-			<div class="general-settings grid grid-2-cols align-center">
-				<h3 class="colspan-2">General settings:
+			<h2>Configuration</h2>
+			<details>
+				<summary>Analyzer Modes
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=analyzer-modes" target="_blank"></a>
+				</summary>
+				<div id="enabled_modes" class="grid grid-2-cols gap-med"></div>
+			</details>
+
+			<details>
+				<summary>Background Image Fit options
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=background-image-fit-options" target="_blank"></a>
+				</summary>
+				<div id="enabled_bgfit" class="grid grid-2-cols gap-med"></div>
+			</details>
+
+			<details>
+				<summary class="colspan-2">General settings
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=general-settings" target="_blank"></a>
-				</h3>
-				<p>Background media source:</p>
-				<select id="bg_location"></select>
+				</summary>
+				<div class="general-settings grid grid-3-cols align-center">
+					<p class="colspan-2">Background media source:</p>
+					<select id="bg_location"></select>
 
-				<p>Background media max items:</p>
-				<input id="bg_max_items" type="number">
+					<p class="colspan-2">Background media max items:</p>
+					<input id="bg_max_items" type="number">
 
-				<p>FFT size:</p>
-				<select id="fft_size"></select>
+					<p class="colspan-2">FFT size:</p>
+					<select id="fft_size"></select>
 
-				<p>FFT smoothing over time:</p>
-				<input id="smoothing" type="number">
+					<p class="colspan-2">FFT smoothing over time:</p>
+					<input id="smoothing" type="number">
 
-				<p>Fullscren height (%):</p>
-				<input id="fs_height" type="number">
+					<p class="colspan-2">Fullscren height (%):</p>
+					<input id="fs_height" type="number">
 
-				<p>Maximum frame rate (FPS):</p>
-				<select id="max_fps"></select>
+					<p class="colspan-2">Maximum frame rate (FPS):</p>
+					<select id="max_fps"></select>
 
-				<p>On-screen display font size:</p>
-				<select id="osd_font_size"></select>
+					<p class="colspan-2">On-screen display font size:</p>
+					<select id="osd_font_size"></select>
 
-				<p>Peak decay speed:</p>
-				<select id="peak_decay"></select>
+					<p class="colspan-2">Peak decay speed:</p>
+					<select id="peak_decay"></select>
 
-				<p>Peak hold time (ms):</p>
-				<input id="peak_hold" type="number">
+					<p class="colspan-2">Peak hold time (ms):</p>
+					<input id="peak_hold" type="number">
 
-				<p>PIP aspect ratio:</p>
-				<select id="pip_ratio"></select>
+					<p class="colspan-2">PIP aspect ratio:</p>
+					<select id="pip_ratio"></select>
 
-				<p></p>
-				<p class="colspan-2"><label><input type="checkbox" id="auto_hide"> Auto-hide media panel on analyzer hover</label></p>
-				<p class="colspan-2"><label><input type="checkbox" id="save_dir"> Remember last music folder</label></p>
-				<p class="colspan-2"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
+					<p class="colspan-3"></p>
+					<p class="colspan-3"><label><input type="checkbox" id="auto_hide"> Auto-hide media panel on analyzer hover</label></p>
+					<p class="colspan-3"><label><input type="checkbox" id="save_dir"> Remember last music folder</label></p>
+					<p class="colspan-3"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
 
-				<p class="colspan-2"><br><button id="reset_general">Reset to defaults</button></p>
-			</div>
-			<div>
-				<h3>Sensitivity presets:
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=sensitivity-presets" target="_blank"></a>
-				</h3>
-				<table class="table-fixed">
-					<tr>
-						<th>Preset</th>
-						<th>Min dB</th>
-						<th>Max dB</th>
-						<th>Linear boost</th>
-						<th>Defaults</th>
-					</tr>
-					<tr>
-						<td>Low</td>
-						<td><input type="number" class="min-db" data-preset="0"></td>
-						<td><input type="number" class="max-db" data-preset="0"></td>
-						<td><input type="number" class="linear-boost" data-preset="0"></td>
-						<td><button class="reset-sens" data-preset="0">Reset</button></td>
-					</tr>
-					<tr>
-						<td>Normal</td>
-						<td><input type="number" class="min-db" data-preset="1"></td>
-						<td><input type="number" class="max-db" data-preset="1"></td>
-						<td><input type="number" class="linear-boost" data-preset="1"></td>
-						<td><button class="reset-sens" data-preset="1">Reset</button></td>
-					</tr>
-					<tr>
-						<td>High</td>
-						<td><input type="number" class="min-db" data-preset="2"></td>
-						<td><input type="number" class="max-db" data-preset="2"></td>
-						<td><input type="number" class="linear-boost" data-preset="2"></td>
-						<td><button class="reset-sens" data-preset="2">Reset</button></td>
-					</tr>
-				</table>
-
-				<h3>On-screen information display options:
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=on-screen-information-display-options" target="_blank"></a>
-				</h3>
-				<p>Duration (in seconds) of displayed information:</p>
-				<div class="grid grid-2-cols">
-					<p>On analyzer click or <kbd>D</kbd> key:</p>
-					<div><input id="info_timeout" type="number" min="0"> <strong>(0 = continuous)</strong></div>
-
-					<p>At song beginning:</p>
-					<div><input id="track_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
-
-					<p>At song end:</p>
-					<div><input id="end_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+					<p class="colspan-3"><br><button id="reset_general">Reset to defaults</button></p>
 				</div>
-				<p>Song info shows:&nbsp;
-					<label><input type="checkbox" id="show_cover"> album cover</label>&nbsp; &nbsp;
-					<label><input type="checkbox" id="show_count"> track count</label>
-				</p>
-				<p><br><button id="reset_osd">Reset to defaults</button></p>
-			</div>
+			</details>
 
-			<div class="general-settings grid grid-2-cols align-center">
-				<h3 class="colspan-2">Subtitles
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles" target="_blank"></a>
-				</h3>
+			<details>
+				<summary>Gradients
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-config" target="_blank"></a>
+				</summary>
+				<div>
+					<div id="enabled_gradients" class="grid grid-3-cols gap-med"></div>
+					<p><br><button class="button mt-1" id="add-gradient">Add Gradient</button></p>
+				</div>
+			</details>
 
-				<p>Background color:</p>
-				<select id="subs_background"></select>
+			<details>
+				<summary>On-screen information display options
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=on-screen-information-display-options" target="_blank"></a>
+				</summary>
+				<div>
+					<p>Duration (in seconds) of displayed information:</p>
+					<div class="grid grid-2-cols">
+						<p>On analyzer click or <kbd>D</kbd> key:</p>
+						<div><input id="info_timeout" type="number" min="0"> <strong>(0 = continuous)</strong></div>
 
-				<p>Text color:</p>
-				<select id="subs_color"></select>
+						<p>At song beginning:</p>
+						<div><input id="track_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
 
-				<p>Vertical position:</p>
-				<select id="subs_position"></select>
+						<p>At song end:</p>
+						<div><input id="end_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+					</div>
+					<p>Song info shows:&nbsp;
+						<label><input type="checkbox" id="show_cover"> album cover</label>&nbsp; &nbsp;
+						<label><input type="checkbox" id="show_count"> track count</label>
+					</p>
+					<p><br><button id="reset_osd">Reset to defaults</button></p>
+				</div>
+			</details>
 
-				<p><br><button id="reset_subs">Reset to defaults</button></p>
-			</div>
+			<details>
+				<summary>Randomize
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=randomize-config" target="_blank"></a>
+				</summary>
+				<div id="random_properties" class="grid grid-3-cols gap-med"></div>
+			</details>
+
+			<details>
+				<summary>Sensitivity presets
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=sensitivity-presets" target="_blank"></a>
+				</summary>
+				<div>
+					<table class="table-fixed">
+						<tr>
+							<th>Preset</th>
+							<th>Min dB</th>
+							<th>Max dB</th>
+							<th>Linear boost</th>
+							<th>Defaults</th>
+						</tr>
+						<tr>
+							<td>Low</td>
+							<td><input type="number" class="min-db" data-preset="0"></td>
+							<td><input type="number" class="max-db" data-preset="0"></td>
+							<td><input type="number" class="linear-boost" data-preset="0"></td>
+							<td><button class="reset-sens" data-preset="0">Reset</button></td>
+						</tr>
+						<tr>
+							<td>Normal</td>
+							<td><input type="number" class="min-db" data-preset="1"></td>
+							<td><input type="number" class="max-db" data-preset="1"></td>
+							<td><input type="number" class="linear-boost" data-preset="1"></td>
+							<td><button class="reset-sens" data-preset="1">Reset</button></td>
+						</tr>
+						<tr>
+							<td>High</td>
+							<td><input type="number" class="min-db" data-preset="2"></td>
+							<td><input type="number" class="max-db" data-preset="2"></td>
+							<td><input type="number" class="linear-boost" data-preset="2"></td>
+							<td><button class="reset-sens" data-preset="2">Reset</button></td>
+						</tr>
+					</table>
+				</div>
+			</details>
+
+			<details>
+				<summary class="colspan-2">Subtitles
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles-config" target="_blank"></a>
+				</summary>
+
+				<div class="general-settings grid grid-2-cols align-center">
+					<p>Background:</p>
+					<select id="subs_background"></select>
+
+					<p>Text color:</p>
+					<select id="subs_color"></select>
+
+					<p>Vertical position:</p>
+					<select id="subs_position"></select>
+
+					<p><br><button id="reset_subs">Reset to defaults</button></p>
+				</div>
+			</details>
 		</div> <!-- .config-panel -->
 	</div> <!-- #config -->
 
@@ -683,7 +697,7 @@
 					<li><a href="https://github.com/hvianna/audioMotion.js/" target="_blank">GitHub</a></li>
 				</ul>
 			</div>
-			<h2>Keyboard shortcuts:</h2>
+			<h2>Keyboard shortcuts</h2>
 			<table class="kbd-table">
 				<tr><td><kbd>0</kbd></td><td>randomize analyzer settings (once)</td></tr>
 				<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>load a User Preset</td></tr>

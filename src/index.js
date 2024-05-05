@@ -4393,6 +4393,15 @@ function setUIEventListeners() {
 	$('#new-gradient-horizontal').addEventListener('input', (e) => {
 		currentGradient.dir = e.target.checked ? 'h' : undefined;
 	});
+
+	// Config panel accordion
+	const accordionItems = $$('details');
+	accordionItems.forEach( el => {
+		el.addEventListener( 'click', () => {
+			if ( ! el.open )
+				accordionItems.forEach( item => item.open = false );
+		});
+	});
 }
 
 /**
