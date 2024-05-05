@@ -358,8 +358,13 @@
 					<ul class="switch-bar">
 						<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
 							<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
+						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
+							<span class="tooltip">Toggle display of subtitles</span>
+
 						<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
 							<span class="tooltip">Hold peak levels for a short time</span>
+						<li class="switch" id="fade_peaks" data-prop="fadePeaks">FADE
+							<span class="tooltip">When active, peaks fade out instead of falling down</span>
 
 						<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
 							<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
@@ -395,9 +400,6 @@
 							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
 							<span class="tooltip">Rounded tip bars <em>(bands modes only)</em></span>
-
-						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
-							<span class="tooltip">Toggle display of subtitles</span>
 					</ul>
 				</div>
 
@@ -526,6 +528,12 @@
 
 				<p>On-screen display font size:</p>
 				<select id="osd_font_size"></select>
+
+				<p>Peak decay speed:</p>
+				<select id="peak_decay"></select>
+
+				<p>Peak hold time (ms):</p>
+				<input id="peak_hold" type="number">
 
 				<p>PIP aspect ratio:</p>
 				<select id="pip_ratio"></select>

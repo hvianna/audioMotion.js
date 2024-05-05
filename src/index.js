@@ -158,6 +158,13 @@ const OSD_SIZE_S = '0',
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
 
+// Peak decay options
+const PEAK_DECAY_VERY_SLOW = '0',
+	  PEAK_DECAY_SLOW      = '1',
+	  PEAK_DECAY_MODERATE  = '2',
+	  PEAK_DECAY_FAST      = '3',
+	  PEAK_DECAY_VERY_FAST = '4';
+
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
@@ -259,6 +266,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
+	  elFadePeaks     = $('#fade_peaks'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
@@ -284,6 +292,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
+	  elPeakDecay     = $('#peak_decay'),
+	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
 	  elRadial        = $('#radial'),
@@ -523,6 +533,7 @@ const presets = [
 			bgImageFit   : BGFIT_CENTER,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
+			fadePeaks    : 0,
 			fillAlpha    : 0.1,
 			freqMax      : 20000,
 			freqMin      : 20,
@@ -735,7 +746,8 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elOSDFontSize,
+								 elPeakDecay, elPeakHold, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
 	autoHide   : true,
@@ -745,6 +757,8 @@ const generalOptionsDefaults = {
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
+	peakDecay  : PEAK_DECAY_MODERATE,
+	peakHold   : 500,
 	pipRatio   : 2.35,
 	saveDir    : true,
 	saveQueue  : true,
@@ -874,6 +888,7 @@ const getCurrentSettings = _ => ({
 	bgImageFit   : getControlValue( elBgImageFit ),
 	channelLayout: getControlValue( elChnLayout ),
 	colorMode    : getControlValue( elColorMode ),
+	fadePeaks    : getControlValue( elFadePeaks ),
 	fillAlpha    : getControlValue( elFillAlpha ),
 	freqMax		 : getControlValue( elRangeMax ),
 	freqMin		 : getControlValue( elRangeMin ),
@@ -1474,6 +1489,9 @@ function doConfigPanel() {
 		});
 	}
 
+	// helper function to validate range value
+	const isValidRange = el => ( +el.value >= +el.min && +el.value <= +el.max );
+
 	// Enabled visualization modes
 	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
 
@@ -1523,13 +1541,12 @@ function doConfigPanel() {
 		}
 		else {
 			el.addEventListener( 'change', () => {
-				const isValid = ( +el.value >= +el.min && +el.value <= +el.max );
-				if ( isValid ) {
+				if ( isValidRange( el ) ) {
 					if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
 					savePreferences( KEY_SENSITIVITY );
 				}
-				el.classList.toggle( 'field-error', ! isValid );
+				el.classList.toggle( 'field-error', ! isValidRange( el ) );
 			});
 		}
 	});
@@ -1545,7 +1562,12 @@ function doConfigPanel() {
 
 	// General settings
 	generalOptionsElements.forEach( el => {
-		el.addEventListener( 'change', () => setProperty( el ) );
+		el.addEventListener( 'change', () => {
+			const isValid = el.type != 'number' || isValidRange( el );
+			if ( isValid )
+				setProperty( el );
+			el.classList.toggle( 'field-error', ! isValid );
+		});
 	});
 
 	$('#reset_general').addEventListener( 'click', () => {
@@ -2209,6 +2231,16 @@ async function loadPreferences() {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
+	populateSelect( elPeakDecay, [
+		[ PEAK_DECAY_VERY_SLOW, 'Very slow'],
+		[ PEAK_DECAY_SLOW,      'Slow'],
+		[ PEAK_DECAY_MODERATE,  'Moderate'],
+		[ PEAK_DECAY_FAST,      'Fast'],
+		[ PEAK_DECAY_VERY_FAST, 'Very fast']
+	]);
+
+	setRangeAtts( elPeakHold, 0, 2000, 50 );
+
 	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
 	// Subtitles configuration
@@ -2293,6 +2325,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		alphaBars      : isSwitchOn( elAlphaBars ),
 		ansiBands      : isSwitchOn( elAnsiBands ),
 		colorMode      : getControlValue( elColorMode ),
+		fadePeaks      : isSwitchOn( elFadePeaks ),
 		fftSize        : getControlValue( elFFTsize ),
 		frequencyScale : getControlValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
@@ -2305,6 +2338,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		mirror         : getControlValue( elMirror ),
 		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
+		peakHold       : getControlValue( elPeakHold ),
 		radial         : isSwitchOn( elRadial ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
@@ -2326,6 +2360,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elFsHeight,
 		elLinkGrads, // needs to be set before the gradients
 		elSensitivity,
+		elPeakDecay,
 		elReflex,
 		elGradient,
 		elGradientRight,
@@ -3295,6 +3330,8 @@ function savePreferences( key ) {
 			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
+			peakDecay  : elPeakDecay.value,
+			peakHold   : elPeakHold.value,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
@@ -3474,6 +3511,8 @@ function setGeneralOptions( options ) {
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
 	elOSDFontSize.value = options.osdFontSize;
+	elPeakDecay.value   = options.peakDecay;
+	elPeakHold.value    = options.peakHold;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
@@ -3637,6 +3676,10 @@ function setProperty( elems, save = true ) {
 				audioMotion.colorMode = getControlValue( elColorMode );
 				break;
 
+			case elFadePeaks:
+				audioMotion.fadePeaks = isSwitchOn( elFadePeaks );
+				break;
+
 			case elFillAlpha:
 				audioMotion.fillAlpha = ( elMode.value == MODE_AREA ) ? 1 : elFillAlpha.value;
 				break;
@@ -3736,6 +3779,21 @@ function setProperty( elems, save = true ) {
 
 			case elOutline:
 				audioMotion.outlineBars = isSwitchOn( elOutline );
+				break;
+
+			case elPeakDecay:
+				const decayRates = [
+					.05, // PEAK_DECAY_VERY_SLOW (~3150ms)
+					.22, // PEAK_DECAY_SLOW      (~1500ms)
+					.85, // PEAK_DECAY_MODERATE  (~750ms)
+					2,   // PEAK_DECAY_FAST      (~500ms)
+					7.5, // PEAK_DECAY_VERY_FAST (~250ms)
+				];
+				audioMotion.peakDecay = decayRates[ +elPeakDecay.value ];
+				break;
+
+			case elPeakHold:
+				audioMotion.peakHold = elPeakHold.value;
 				break;
 
 			case elPIPRatio:
