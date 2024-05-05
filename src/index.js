@@ -4020,7 +4020,7 @@ function setVolume( value ) {
 function setUIEventListeners() {
 	// open/close media panel (auto-hide)
 	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked ) {
+		if ( elAutoHide.checked && ! audioMotion.isFullscreen ) {
 			setTimeout( () => {
 				if ( elContainer.matches(':hover') )
 					toggleMediaPanel( false );
