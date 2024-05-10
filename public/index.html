@@ -516,12 +516,6 @@
 					<p class="colspan-2">On-screen display font size:</p>
 					<select id="osd_font_size"></select>
 
-					<p class="colspan-2">Peak decay speed:</p>
-					<select id="peak_decay"></select>
-
-					<p class="colspan-2">Peak hold time (ms):</p>
-					<input id="peak_hold" type="number">
-
 					<p class="colspan-2">PIP aspect ratio:</p>
 					<select id="pip_ratio"></select>
 
@@ -535,8 +529,8 @@
 			</details>
 
 			<details>
-				<summary>Gradients
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-config" target="_blank"></a>
+				<summary>Gradients configuration
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-configuration" target="_blank"></a>
 				</summary>
 				<div>
 					<div id="enabled_gradients" class="grid grid-3-cols gap-med"></div>
@@ -569,8 +563,26 @@
 			</details>
 
 			<details>
-				<summary>Randomize
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=randomize-config" target="_blank"></a>
+				<summary>Peaks behavior
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=peaks-behavior" target="_blank"></a>
+				</summary>
+				<div class="general-settings grid grid-2-cols align-center">
+					<p>Gravity (kpx/s²):</p>
+					<input id="gravity" type="number">
+
+					<p>Peak fade time (ms):</p>
+					<input id="peak_fade" type="number">
+
+					<p>Peak hold time (ms):</p>
+					<input id="peak_hold" type="number">
+
+					<p><br><button id="reset_peak">Reset to defaults</button></p>
+				</div>
+			</details>
+
+			<details>
+				<summary>Randomize configuration
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=randomize-configuration" target="_blank"></a>
 				</summary>
 				<div id="random_properties" class="grid grid-3-cols gap-med"></div>
 			</details>
@@ -614,8 +626,8 @@
 			</details>
 
 			<details>
-				<summary class="colspan-2">Subtitles
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles-config" target="_blank"></a>
+				<summary class="colspan-2">Subtitles configuration
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles-configuration" target="_blank"></a>
 				</summary>
 
 				<div class="general-settings grid grid-2-cols align-center">
