@@ -1706,19 +1706,46 @@ function getFolderCover( uri ) {
  */
 function keyboardControls( event ) {
 
-	if ( event.code == 'F1' && ! event.altKey && ! event.ctrlKey ) {
+	// ignore system shortcuts (with alt, ctrl or win key)
+	if ( event.altKey || event.ctrlKey || event.metaKey )
+		return;
+
+	const isShiftKey = event.shiftKey;
+
+	// F1 - help
+	if ( event.code == 'F1' && ! isShiftKey ) {
 		location.href = '#help';
 		event.preventDefault();
 		return;
 	}
 
-	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
+	// ignore all other keys when focus is not on body (e.g. input fields)
+	if ( event.target.tagName != 'BODY' )
 		return;
 
-	const isShiftKey = event.shiftKey;
+	// avoid automatic repetition if it's not an arrow key
+	if ( event.repeat && ! event.code.startsWith('Arrow') )
+		return;
 
-	// keys handled on 'keydown' allow automatic repetition
-	if ( event.type == 'keydown' ) {
+	// handle numeric keys (load / save user presets)
+	if ( event.code.match( /^(Digit|Numpad)[0-9]$/ ) ) {
+		const index = event.code.slice(-1) - 1;
+		if ( index == -1 ) { // '0' pressed
+			// ignore if Shift pressed as it could be a user mistake
+			if ( ! isShiftKey ) {
+				randomizeSettings( true );
+				setProperty( elRandomMode, false ); // restart randomize timer (if active)
+			}
+		}
+		else if ( isShiftKey ) {
+			const settings = getCurrentSettings();
+			settings.randomMode = 0; // when saving via keyboard shortcut, turn off Randomize
+			saveUserPreset( index, settings );
+		}
+		else
+			loadPreset( index );
+	}
+	else {
 		switch ( event.code ) {
 			case 'ArrowUp': 	// volume up
 				if ( isShiftKey )
@@ -1752,154 +1779,128 @@ function keyboardControls( event ) {
 				else
 					scheduleFastSearch('k');
 				break;
+			case 'Delete': 		// delete selected songs from the playlist
+			case 'Backspace':	// for Mac
+				playlist.querySelectorAll('.selected').forEach( e => {
+					revokeBlobURL( e );
+					e.remove();
+				});
+				const current = getIndex( playlist.querySelector('.current') );
+				if ( current !== undefined )
+					playlistPos = current;	// update playlistPos if current song hasn't been deleted
+				else if ( playlistPos > queueLength() - 1 )
+					playlistPos = queueLength() - 1;
+				else
+					playlistPos--;
+				if ( queueLength() )
+					loadNextSong();
+				else {
+					clearAudioElement( nextAudio );
+					if ( ! isPlaying() )
+						clearAudioElement();
+				}
+				storePlayQueue( true );
+				break;
+			case 'Space': 		// play / pause
+				setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
+				playPause();
+				break;
+			case 'ArrowLeft': 	// previous song
+			case 'KeyJ':
+				if ( ! finishFastSearch() && ! isShiftKey ) {
+					setCanvasMsg( 'Previous track', 1 );
+					skipTrack(true);
+				}
+				break;
+			case 'KeyG': 		// gradient
+				cycleElement( elGradient, isShiftKey );
+				setCanvasMsg( getSelectedGradients() );
+				break;
+			case 'ArrowRight': 	// next song
+			case 'KeyK':
+				if ( ! finishFastSearch() && ! isShiftKey ) {
+					setCanvasMsg( 'Next track', 1 );
+					skipTrack();
+				}
+				break;
+			case 'KeyA': 		// cycle thru Randomize options
+				cycleElement( elRandomMode, isShiftKey );
+				setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
+				setProperty( elRandomMode );
+				break;
+			case 'KeyB': 		// background or image fit (shift)
+				cycleElement( isShiftKey ? elBgImageFit : elBackground );
+				const bgOption = elBackground.value[0];
+				setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
+				break;
+			case 'KeyC': 		// radial
+				elRadial.click();
+				setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+				break;
+			case 'KeyD': 		// display information
+				toggleInfo();
+				break;
+			case 'KeyE': 		// shuffle queue
+				if ( queueLength() > 0 ) {
+					shufflePlayQueue();
+					setCanvasMsg( 'Shuffle' );
+				}
+				break;
+			case 'KeyF': 		// toggle fullscreen
+				fullscreen();
+				break;
+			case 'KeyH': 		// toggle fps display
+				elFPS.click();
+				break;
+			case 'KeyI': 		// toggle info display on track change
+				elShowSong.click();
+				setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
+				break;
+			case 'KeyL': 		// toggle LED display effect
+				elLedDisplay.click();
+				setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
+				break;
+			case 'KeyM': 		// visualization mode
+			case 'KeyV':
+				cycleElement( elMode, isShiftKey );
+				setCanvasMsg( 'Mode: ' + getText( elMode ) );
+				break;
+			case 'KeyN': 		// increase or reduce sensitivity
+				cycleElement( elSensitivity, isShiftKey );
+				setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
+				break;
+			case 'KeyO': 		// toggle resolution
+				elLoRes.click();
+				setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
+				break;
+			case 'KeyP': 		// toggle peaks display
+				elShowPeaks.click();
+				setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+				break;
+			case 'KeyR': 		// toggle playlist repeat
+				elRepeat.click();
+				setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
+				break;
+			case 'KeyS': 		// toggle X and Y axis scales
+				setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
+				break;
+			case 'KeyT': 		// toggle text shadow
+				elNoShadow.click();
+				setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
+				break;
+			case 'KeyU': 		// toggle lumi bars
+				elLumiBars.click();
+				setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
+				break;
+			case 'KeyX':
+				cycleElement( elReflex, isShiftKey );
+				setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
+				break;
 			default:
 				// no key match - quit and keep default behavior
 				return;
-		}
-	}
-	else {
-		if ( event.code.match( /^(Digit|Numpad)[0-9]$/ ) ) {
-			const index = event.code.slice(-1) - 1;
-			if ( index == -1 ) { // '0' pressed
-				// ignore if Shift pressed as it could be a user mistake
-				if ( ! isShiftKey ) {
-					randomizeSettings( true );
-					setProperty( elRandomMode, false ); // restart randomize timer (if active)
-				}
-			}
-			else if ( isShiftKey ) {
-				const settings = getCurrentSettings();
-				settings.randomMode = 0; // when saving via keyboard shortcut, turn off Randomize
-				saveUserPreset( index, settings );
-			}
-			else
-				loadPreset( index );
-		}
-		else {
-			switch ( event.code ) {
-				case 'Delete': 		// delete selected songs from the playlist
-				case 'Backspace':	// for Mac
-					playlist.querySelectorAll('.selected').forEach( e => {
-						revokeBlobURL( e );
-						e.remove();
-					});
-					const current = getIndex( playlist.querySelector('.current') );
-					if ( current !== undefined )
-						playlistPos = current;	// update playlistPos if current song hasn't been deleted
-					else if ( playlistPos > queueLength() - 1 )
-						playlistPos = queueLength() - 1;
-					else
-						playlistPos--;
-					if ( queueLength() )
-						loadNextSong();
-					else {
-						clearAudioElement( nextAudio );
-						if ( ! isPlaying() )
-							clearAudioElement();
-					}
-					storePlayQueue( true );
-					break;
-				case 'Space': 		// play / pause
-					setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
-					playPause();
-					break;
-				case 'ArrowLeft': 	// previous song
-				case 'KeyJ':
-					if ( ! finishFastSearch() && ! isShiftKey ) {
-						setCanvasMsg( 'Previous track', 1 );
-						skipTrack(true);
-					}
-					break;
-				case 'KeyG': 		// gradient
-					cycleElement( elGradient, isShiftKey );
-					setCanvasMsg( getSelectedGradients() );
-					break;
-				case 'ArrowRight': 	// next song
-				case 'KeyK':
-					if ( ! finishFastSearch() && ! isShiftKey ) {
-						setCanvasMsg( 'Next track', 1 );
-						skipTrack();
-					}
-					break;
-				case 'KeyA': 		// cycle thru Randomize options
-					cycleElement( elRandomMode, isShiftKey );
-					setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
-					setProperty( elRandomMode );
-					break;
-				case 'KeyB': 		// background or image fit (shift)
-					cycleElement( isShiftKey ? elBgImageFit : elBackground );
-					const bgOption = elBackground.value[0];
-					setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
-					break;
-				case 'KeyC': 		// radial
-					elRadial.click();
-					setCanvasMsg( 'Radial ' + onOff( elRadial ) );
-					break;
-				case 'KeyD': 		// display information
-					toggleInfo();
-					break;
-				case 'KeyE': 		// shuffle queue
-					if ( queueLength() > 0 ) {
-						shufflePlayQueue();
-						setCanvasMsg( 'Shuffle' );
-					}
-					break;
-				case 'KeyF': 		// toggle fullscreen
-					fullscreen();
-					break;
-				case 'KeyH': 		// toggle fps display
-					elFPS.click();
-					break;
-				case 'KeyI': 		// toggle info display on track change
-					elShowSong.click();
-					setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
-					break;
-				case 'KeyL': 		// toggle LED display effect
-					elLedDisplay.click();
-					setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
-					break;
-				case 'KeyM': 		// visualization mode
-				case 'KeyV':
-					cycleElement( elMode, isShiftKey );
-					setCanvasMsg( 'Mode: ' + getText( elMode ) );
-					break;
-				case 'KeyN': 		// increase or reduce sensitivity
-					cycleElement( elSensitivity, isShiftKey );
-					setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
-					break;
-				case 'KeyO': 		// toggle resolution
-					elLoRes.click();
-					setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
-					break;
-				case 'KeyP': 		// toggle peaks display
-					elShowPeaks.click();
-					setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
-					break;
-				case 'KeyR': 		// toggle playlist repeat
-					elRepeat.click();
-					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
-					break;
-				case 'KeyS': 		// toggle X and Y axis scales
-					setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
-					break;
-				case 'KeyT': 		// toggle text shadow
-					elNoShadow.click();
-					setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
-					break;
-				case 'KeyU': 		// toggle lumi bars
-					elLumiBars.click();
-					setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
-					break;
-				case 'KeyX':
-					cycleElement( elReflex, isShiftKey );
-					setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
-					break;
-				default:
-					// no key match - quit and keep default behavior
-					return;
-			} // switch
-		}
-	} // else if ( event.type == 'keydown' )
+		} // switch
+	} // else
 
 	event.preventDefault();
 }
@@ -5152,9 +5153,8 @@ function updateRangeValue( el ) {
 		setUIEventListeners();
 	});
 
-	// Add events listeners for keyboard controls
+	// Add event listener for keyboard shortcuts
 	window.addEventListener( 'keydown', keyboardControls );
-	window.addEventListener( 'keyup', keyboardControls );
 
 	// notie options
 	notie.setOptions({
