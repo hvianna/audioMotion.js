@@ -1891,8 +1891,14 @@ function keyboardControls( event ) {
 				setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
 				break;
 			case 'KeyP': 		// toggle peaks display
-				elShowPeaks.click();
-				setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+				if ( isShiftKey ) {
+					elFadePeaks.click();
+					setCanvasMsg( 'Fade Peaks ' + onOff( elFadePeaks ) );
+				}
+				else {
+					elShowPeaks.click();
+					setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+				}
 				break;
 			case 'KeyR': 		// toggle playlist repeat
 				elRepeat.click();
