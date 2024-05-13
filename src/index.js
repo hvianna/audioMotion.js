@@ -1699,7 +1699,7 @@ function getFolderCover( uri ) {
 
 			fetch( urlToFetch )
 				.then( response => {
-					return ( response.status == 200 ) ? response.text() : null;
+					return response.ok ? response.text() : null;
 				})
 				.then( content => {
 					let imageUrl = '';
@@ -1714,7 +1714,8 @@ function getFolderCover( uri ) {
 					}
 					folderImages[ path ] = imageUrl;
 					resolve( queryFile( path + imageUrl ) );
-				});
+				})
+				.catch( e => resolve('') );
 		}
 	});
 }
@@ -2142,10 +2143,12 @@ function loadPlaylist( fileObject ) {
 			else {
 				fetch( path )
 					.then( response => {
-						if ( response.status == 200 )
+						if ( response.ok )
 							return response.text();
-						else
+						else {
 							consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+							return '';
+						}
 					})
 					.then( parsePlaylistContent )
 					.catch( e => {
@@ -2478,7 +2481,7 @@ async function loadSavedPlaylists( keyName ) {
 
 	fetch( 'playlists.cfg' )
 		.then( response => {
-			if ( response.status == 200 ) {
+			if ( response.ok ) {
 				consoleLog( 'Found legacy playlists.cfg file' );
 				return response.text();
 			}
@@ -3307,7 +3310,7 @@ function savePlayqueueToServer( path, update ) {
 		},
 		body: JSON.stringify( { contents } )
 	})
-	.then( response => response.status == 200 ? response.json() : { error: `Cannot save file (ERROR ${ response.status })` } )
+	.then( response => response.ok ? response.json() : { error: `Cannot save file (ERROR ${ response.status })` } )
 	.then( ( { file, error } ) => {
 		const text = file ? `${ update ? 'Updated' : 'Saved as' } ${ parsePath( file ).fileName }` : error;
 		notie.alert({ text });
@@ -4951,7 +4954,7 @@ function updateRangeValue( el ) {
 	}
 	catch( e ) {}
 
-	let serverConfig = response && response.status == 200 ? await response.text() : null;
+	let serverConfig = response && response.ok ? await response.text() : null;
 	try {
 		serverConfig = JSON.parse( serverConfig );
 	}
