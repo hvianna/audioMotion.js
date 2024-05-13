@@ -1148,7 +1148,7 @@ function addMetadata( metadata, target ) {
 /**
  * Add a song to the play queue
  *
- * @param {object} { file, handle }
+ * @param {object} { file, handle, subs }
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
@@ -2081,22 +2081,40 @@ function loadPlaylist( fileObject ) {
 					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
 						songInfo = parsePath( line ).baseName;
 
-					let handle;
+					let handle, subs;
 
 					// if it's an external URL just add it to the queue as is
 					if ( ! isExternalURL( line ) ) {
 						if ( useFileSystemAPI ) {
-							handle = await fileExplorer.getHandle( line );
-							if ( ! handle )
+							( { handle, subs } = await fileExplorer.getHandles( line ) );
+							if ( ! handle ) {
 								consoleLog( `Cannot resolve file handle for ${ line }`, true );
+								songInfo = '';
+								continue; // skip this entry
+							}
 						}
-						line = fileExplorer.encodeChars( line ); // encode special characters into URL-safe codes
+
+						// encode special characters into URL-safe codes
+						line = fileExplorer.encodeChars( line );
+
 						// if it's not an absolute path, prepend the current path to it
 						if ( line[1] != ':' && line[0] != '/' )
 							line = path + line;
+
+						if ( ! useFileSystemAPI ) {
+							// look for subtitles (server mode)
+							try {
+								const name = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
+								 	  res  = await fetch( name, { method: 'HEAD' } );
+
+								if ( res.ok )
+									subs = { name };
+							}
+							catch( e ) {}
+						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )

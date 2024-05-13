@@ -278,12 +278,12 @@ export function getFolderContents( selector = 'li' ) {
 }
 
 /**
- * Resolve a given filename and return the corresponding FileSystemFileHandle
+ * Resolve a pathname and return the handles for the media file and corresponding subtitles file (if any)
  *
  * @param {string} path to filename (must be relative to currentPath)
- * @returns {FileSystemFileHandle}
+ * @returns {object} { handle, subs }
  */
-export async function getHandle( pathname ) {
+export async function getHandles( pathname ) {
 	const workPath   = [ ...currentPath ],
 		  targetPath = pathname.split('/');
 
@@ -296,12 +296,35 @@ export async function getHandle( pathname ) {
 			handle = workPath[ workPath.length - 1 ].handle;
 		}
 		else {
-			handle = await handle.getDirectoryHandle( dirName );
+			try {
+				handle = await handle.getDirectoryHandle( dirName );
+			}
+			catch( e ) {
+				return {}; // directory not found - abort and return empty object
+			}
 			workPath.push( { handle } );
 		}
 	}
 
-	return await handle.getFileHandle( targetPath.shift() );
+	let filename = targetPath.shift(),
+		basename = filename.slice( 0, filename.lastIndexOf('.') ),
+		subs;
+
+	try {
+		subs = { handle: await handle.getFileHandle( basename + '.vtt' ) };
+	}
+	catch( e ) {
+		// subs not found for this file
+	}
+
+	try {
+		handle = await handle.getFileHandle( filename );
+	}
+	catch( e ) {
+		handle = undefined; // requested file not found
+	}
+
+	return { handle, subs }
 }
 
 /**
