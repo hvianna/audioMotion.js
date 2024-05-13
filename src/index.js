@@ -214,6 +214,7 @@ const SERVERCFG_FILE     = 'config.json',
 const SUBS_BG_NONE      = 'none',
 	  SUBS_BG_SHADOW    = 'shadow',
 	  SUBS_BG_SOLID     = 'solid',
+	  SUBS_COLOR_GOLD   = 'gold',
 	  SUBS_COLOR_GRAY   = 'gray',
 	  SUBS_COLOR_WHITE  = 'white',
 	  SUBS_COLOR_YELLOW = 'yellow',
@@ -2295,6 +2296,7 @@ async function loadPreferences() {
 	]);
 
 	populateSelect( elSubsColor, [
+		[ SUBS_COLOR_GOLD,   'Gold'   ],
 		[ SUBS_COLOR_GRAY,   'Gray'   ],
 		[ SUBS_COLOR_WHITE,  'White'  ],
 		[ SUBS_COLOR_YELLOW, 'Yellow' ]

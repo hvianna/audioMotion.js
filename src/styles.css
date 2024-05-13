@@ -1439,6 +1439,9 @@ input.slider:not(:checked) + .slider .slider-on {
 .subs-bg-solid ::cue {
 	background: #000c;
 }
+.subs-color-gold ::cue {
+	color: gold;
+}
 .subs-color-gray ::cue {
 	color: lightgray;
 }
@@ -1446,7 +1449,7 @@ input.slider:not(:checked) + .slider .slider-on {
 	color: white;
 }
 .subs-color-yellow ::cue {
-	color: gold;
+	color: yellow;
 }
 
 /* Color gradient editor */
