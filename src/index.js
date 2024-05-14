@@ -4968,11 +4968,12 @@ function updateRangeValue( el ) {
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
 	// Read URL parameters
-	const urlParams      = new URL( document.location ).searchParams,
+	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
+		  urlParams      = new URL( window.location ).searchParams,
 		  userMode       = urlParams.get('mode'),
 		  userMediaPanel = urlParams.get('mediaPanel');
 
-	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
+	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
 		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
