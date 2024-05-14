@@ -2106,11 +2106,11 @@ function loadPlaylist( fileObject ) {
 						if ( ! useFileSystemAPI ) {
 							// look for subtitles (server mode)
 							try {
-								const name = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
-								 	  res  = await fetch( name, { method: 'HEAD' } );
+								const src = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
+								 	  res = await fetch( src, { method: 'HEAD' } );
 
 								if ( res.ok )
-									subs = { name };
+									subs = { src };
 							}
 							catch( e ) {}
 						}
@@ -2557,7 +2557,7 @@ function loadSong( n, playIt ) {
  * Load subtitles file to audio element track
  *
  * @param {object} audio element
- * @param {object} subtitles object { name, lang, handle }
+ * @param {object} subtitles object { src, lang, handle }
  */
 function loadSubs( audioEl, subs ) {
 	// References:
@@ -2571,15 +2571,15 @@ function loadSubs( audioEl, subs ) {
 		URL.revokeObjectURL( subsTrack.src );
 
 	if ( subs ) {
-		const { name, lang, handle } = subs;
-		subsTrack.srclang = lang || 'en';
+		const { src, lang, handle } = subs;
+		subsTrack.srclang = lang || navigator.language;
 		if ( handle ) {
 			handle.getFile()
 				.then( fileBlob => subsTrack.src = URL.createObjectURL( fileBlob ) )
 				.catch( e => {} );
 		}
 		else
-			subsTrack.src = name;
+			subsTrack.src = src;
 	}
 	else {
 		subsTrack.removeAttribute('src');

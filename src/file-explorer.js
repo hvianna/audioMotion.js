@@ -442,7 +442,7 @@ export function parseDirectory( content ) {
 			  fileEntry = files.find( el => el.name.startsWith( basename ) );
 
 		if ( fileEntry )
-			fileEntry.subs = { name: makePath( name ), lang, handle };
+			fileEntry.subs = { src: makePath( name ), lang, handle };
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
