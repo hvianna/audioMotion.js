@@ -1105,39 +1105,33 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 function addMetadata( metadata, target ) {
 	const trackData  = target.dataset,
 		  sourceData = metadata.dataset,
-		  common     = metadata.common,
-		  format     = metadata.format;
+		  { album, artist, picture, title, year } = metadata.common || {},
+		  { bitrate, bitsPerSample, codec, codecProfile, container,
+		    duration, lossless, numberOfChannels, sampleRate } = metadata.format || {};
 
 	if ( sourceData ) { // if `metadata` has a dataset it's a playqueue item; just copy the data to target element
 		Object.assign( trackData, sourceData );
 	}
 	else {				// otherwise, it's metadata read from file; we need to parse it and populate the dataset
-		trackData.artist = common.artist || trackData.artist;
-		trackData.title  = common.title || trackData.title;
-		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : trackData.album;
-		trackData.codec  = format ? format.codec || format.container : trackData.codec;
+		trackData.artist = artist || trackData.artist;
+		trackData.title  = title || trackData.title;
+		trackData.album  = album ? album + ( year ? ' (' + year + ')' : '' ) : trackData.album;
+		trackData.codec  = codec || container ? ( codec || container ) + ' (' + numberOfChannels + 'ch)' : trackData.codec;
 
-		// for track quality info, metadata is prioritized in the following order, according to availability:
-		// 1. sampleRate (optional) + bitsPerSample (present)        - ex.: 48KHz / 16bits | 16bits
-		// 2. bitrate (present) + codecProfile (optional)            - ex.: 128K CBR | 128K
-		// 3. only sampleRate or bitsPerSample, whichever is present - ex.: 48KHz | 16bits
-		if ( format && ( format.bitsPerSample || ( format.sampleRate && ! format.bitrate ) ) ) {
-			trackData.quality = ( format.sampleRate ? ( format.sampleRate / 1000 | 0 ) + 'KHz' : '' ) +
-							    ( format.sampleRate && format.bitsPerSample ? ' / ' : '' ) +
-							    ( format.bitsPerSample ? format.bitsPerSample + 'bits' : '' );
-		}
-		else if ( format && format.bitrate )
-			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
+		const khz = sampleRate ? Math.round( sampleRate / 1000 ) + 'kHz' : '';
+
+		// track quality info
+		// if lossless: bitsPerSample / sampleRate        - ex.: 24bits / 96kHz
+		// if lossy:    bitrate codecProfile / sampleRate - ex.: 320kbps CBR / 44kHz
+		if ( lossless || ! bitrate )
+			trackData.quality = ( bitsPerSample ? bitsPerSample + 'bits' : '' ) + ( khz && bitsPerSample ? ' / ' : '' ) + khz;
 		else
-			trackData.quality = '';
+			trackData.quality = Math.round( bitrate / 1000 ) + 'kbps' + ( codecProfile ? ' ' + codecProfile : '' ) + ( khz ? ' / ' : '' ) + khz;
 
-		if ( format && format.duration )
-			trackData.duration = secondsToTime( format.duration );
-		else
-			trackData.duration = '';
+		trackData.duration = duration ? secondsToTime( duration ) : '';
 
-		if ( common.picture && common.picture.length ) {
-			const blob = new Blob( [ common.picture[0].data ], { type: common.picture[0].format } );
+		if ( picture && picture.length ) {
+			const blob = new Blob( [ picture[0].data ], { type: picture[0].format } );
 			trackData.cover = URL.createObjectURL( blob );
 		}
 	}
