@@ -310,6 +310,9 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elShowSong      = $('#show_song'),
 	  elShowSubtitles = $('#show_subs'),
 	  elSmoothing     = $('#smoothing'),
+	  elSongDuration  = $('#song_duration'),
+	  elSongPosition  = $('#current_time'),
+	  elSongProgress  = $('#progress'),
 	  elSource        = $('#source'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
@@ -1048,14 +1051,20 @@ const saveLastDir = path => {
 }
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
-const secondsToTime = secs => {
-	if ( secs == Infinity || secs == -1 )
+const secondsToTime = ( secs, forceHours ) => {
+	if ( Math.abs( secs ) == Infinity || secs === '-1' )
 		return 'LIVE';
 
-	let str  = '',
-		lead = '';
+	let lead = '',
+		sign = '',
+		str  = '';
 
-	if ( secs >= 3600 ) {
+	if ( secs < 0 ) {
+		secs = -secs;
+		sign = '-';
+	}
+
+	if ( secs >= 3600 || forceHours ) {
 		str = ( secs / 3600 | 0 ) + ':';
 		secs %= 3600;
 		lead = '0';
@@ -1063,7 +1072,7 @@ const secondsToTime = secs => {
 
 	str += ( lead + ( secs / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( secs % 60 | 0 ) ).slice(-2);
 
-	return str;
+	return sign + str;
 }
 
 // update configuration options from an existing preset
@@ -4238,6 +4247,17 @@ function setUIEventListeners() {
 			skipTrack();
 	});
 
+	// song progress
+	elSongProgress.addEventListener( 'input', () => {
+		const audioEl = audioElement[ currAudio ],
+			  { duration } = audioEl;
+		if ( ! duration || duration == Infinity ) {
+			elSongProgress.value = 0;
+			return;
+		}
+		audioEl.currentTime = duration * elSongProgress.value;
+	});
+
 	// action buttons
 	$('#load_preset').addEventListener( 'click', () => {
 		const choices = [];
@@ -4910,6 +4930,17 @@ function updateRangeValue( el ) {
 		}
 	}
 
+	const audioOnTimeUpdate = e => {
+		if ( e.target != audioElement[ currAudio ] )
+			return;
+
+		const { currentTime, duration } = audioElement[ currAudio ];
+
+		elSongProgress.value = ! duration || duration == Infinity ? 0 : currentTime / duration;
+		elSongPosition.innerText = secondsToTime( currentTime, true );
+		elSongDuration.innerHTML = secondsToTime( ! duration ? 0 : currentTime - duration, true ).padEnd(6).replaceAll(' ','&nbsp;'); // make sure 'LIVE' is centered
+	}
+
 	// BEGIN INITIALIZATION -----------------------------------------------------------------------
 
 	// Log all JS errors to our UI console
@@ -5040,6 +5071,7 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
+		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
 		if ( panNode )
@@ -5047,6 +5079,10 @@ function updateRangeValue( el ) {
 		else
 			audioMotion.connectInput( audioElement[ i ] );
 	}
+
+	setRangeAtts( elSongProgress, 0, 1, .001 );
+	elSongProgress.value = 0;
+	elSongPosition.innerText = elSongDuration.innerText = secondsToTime( 0, true );
 
 	// Setup configuration panel
 	doConfigPanel();

@@ -100,7 +100,7 @@
 			</ul>
 		</header>
 
-		<div class="player-panel grid align-center center">
+		<div class="player-panel grid center">
 			<div class="controls-left">
 				<div>
 					<div class="config-label">SOURCE</div>
@@ -148,6 +148,12 @@
 					<div class="marker"></div>
 				</div>
 			</div>
+
+			<div class="progress-bar abs-center flex">
+				<div id="current_time" class="small-display"></div>
+				<input id="progress" class="custom-slider song-progress" type="range">
+				<div id="song_duration" class="small-display"></div>
+			</div>
 		</div>
 
 	</div> <!-- .player-area -->
@@ -194,7 +200,7 @@
 						</span>
 					</span>
 					<div class="value"></div>
-					<input id="line_width" data-prop="lineWidth" type="range">
+					<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
 				</div>
 
 				<div>
@@ -204,7 +210,7 @@
 						</span>
 					</span>
 					<div class="value"></div>
-					<input id="fill_alpha" data-prop="fillAlpha" type="range">
+					<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 2 -->
@@ -253,7 +259,7 @@
 						</span>
 					</span>
 					<div class="value"></div>
-					<input id="spin" data-prop="spin" type="range">
+					<input id="spin" data-prop="spin" type="range" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 3 -->
@@ -282,7 +288,7 @@
 						</span>
 					</span>
 					<div class="value"></div>
-					<input id="bg_img_dim" type="range" data-prop="bgImageDim">
+					<input id="bg_img_dim" type="range" data-prop="bgImageDim" class="custom-slider">
 				</div>
 
 				<div>
@@ -310,7 +316,7 @@
 					</span>
 					<div class="flex align-center">
 						<select id="freq_min" data-prop="freqMin"></select>
-						&nbsp;-&nbsp;
+						&ndash;
 						<select id="freq_max" data-prop="freqMax"></select>
 					</div>
 				</div>
