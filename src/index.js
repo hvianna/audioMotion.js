@@ -2065,10 +2065,12 @@ function loadPlaylist( fileObject ) {
 	return new Promise( async ( resolve ) => {
 		let	promises = [];
 
-		const resolveAddedSongs = () => {
+		const resolveAddedSongs = saveQueue => {
 			Promise.all( promises ).then( added => {
 				const total = added.reduce( ( sum, val ) => sum + val, 0 );
 				resolve( total );
+				if ( saveQueue )
+					storePlayQueue( true );
 			});
 		}
 
@@ -2168,7 +2170,7 @@ function loadPlaylist( fileObject ) {
 					const { file, handle, subs, content } = entry;
 					promises.push( addSongToPlayQueue( { file, handle, subs }, content ) );
 				});
-				resolveAddedSongs();
+				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
 			else {
 				if ( path !== true ) // avoid error message if no play queue found on storage
