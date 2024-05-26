@@ -283,6 +283,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elMirror        = $('#mirror'),
 	  elMode          = $('#mode'),
 	  elMute          = $('#mute'),
+	  elNoDimSubs     = $('#no_dim_subs'),
+	  elNoDimVideo    = $('#no_dim_video'),
 	  elNoShadow      = $('#no_shadow'),
 	  elNoteLabels    = $('#note_labels'),
 	  elOutline       = $('#outline'),
@@ -745,8 +747,8 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS,
-								  elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elNoDimSubs,
+								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
 	autoHide   : true,
@@ -756,6 +758,8 @@ const generalOptionsDefaults = {
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
+	noDimVideo : true,
+	noDimSubs  : true,
 	pipRatio   : 2.35,
 	saveDir    : true,
 	saveQueue  : true,
@@ -3409,6 +3413,8 @@ function savePreferences( key ) {
 			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
+			noDimSubs  : elNoDimSubs.checked,
+			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
@@ -3596,6 +3602,8 @@ function setGeneralOptions( options ) {
 	elFFTsize.value     = options.fftSize;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
+	elNoDimSubs.checked = options.noDimSubs;
+	elNoDimVideo.checked= options.noDimVideo;
 	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
@@ -3644,8 +3652,12 @@ function setOverlay() {
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
 
-	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)'; // enable/disable background image
-	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : ''; // set visibility of background video layer
+	// enable/disable background image
+	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
+	// set visibility of background video layer
+	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : '';
+	// enable/disable background dim layer
+	elDim.style.display = ( isVideo && elNoDimVideo.checked ) || ( hasSubs && elNoDimSubs.checked ) ? 'none' : '';
 
 	return isOverlay;
 }
@@ -3860,6 +3872,11 @@ function setProperty( elems, save = true ) {
 
 			case elMute:
 				toggleMute();
+				break;
+
+			case elNoDimSubs:
+			case elNoDimVideo:
+				setOverlay();
 				break;
 
 			case elNoteLabels:
