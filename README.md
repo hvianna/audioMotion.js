@@ -11,16 +11,15 @@ It is completely free, open-source software, created out of my passion for the g
 ![screenshot2](docs/img/screenshot2.png)
 
 * Dual channel high-resolution real-time audio spectrum analyzer
-* Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
+* Media player with subtitles support for audio and video files
+* Fullscreen and Picture-In-Picture display at 60fps, ready for Retina / HiDPI screens
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
 * Decibel and linear amplitude scales, with customizable sensitivity
 * Optional A, B, C, D and ITU-R 468 weighting filters
-* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial visualization
+* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial spectrum
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
-* HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
-* Visual file explorer and play queue with drag-and-drop functionality
-* Support for M3U playlists (`m3u` and `m3u8` file extensions)
+* Support for M3U playlists (.m3u and .m3u8 file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 
 > **For developers:**<br>
@@ -32,6 +31,10 @@ It is completely free, open-source software, created out of my passion for the g
 
 **Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
 Works on Chrome, Opera and Edge by default. On Brave you'll need to enable this feature in `chrome://flags/#file-system-access-api`.
+
+**You can install audioMotion on your PC by clicking the install icon in the browser's address bar, shown below:**
+
+![browser-install](docs/img/browser-install.png)
 
 ## Documentation
 

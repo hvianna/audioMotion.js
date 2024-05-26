@@ -1,13 +1,13 @@
 # Screenshots
 
 ![screenshot1](img/screenshot1.png)
-*User interface showing the analyzer in **Discrete frequencies** mode, player control panel and media panel (file explorer and play queue).*
+*User interface showing the analyzer in **Discrete frequencies** mode (using the **Bark** frequency scale), player control panel and media panel.*
 
 ![screenshot2](img/screenshot2.png)
 *Analyzer set to 1/4th-octave bands mode with LEDS effect and on-screen song information. The **Settings** panel is shown open over the media panel.*
 
 ![screenshot4](img/screenshot4.jpg)
-*Video playback, auto-hidden media panel, analyzer set to Area graph mode, "Rainbow" gradient, Linear amplitude and Notes scale.*
+*Video playback with subtitles, hidden media panel, analyzer set to Area graph mode, "Rainbow" gradient, Linear amplitude and Notes scale.*
 
 ![screenshot3](img/screenshot3.png)
 *Fullscreen view: 1/6th-octave bands, "Outrun" gradient, Reflex effect and complete on-screen information.*

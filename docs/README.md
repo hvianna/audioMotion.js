@@ -8,8 +8,8 @@
 ## Features
 
 * Dual channel high-resolution real-time audio spectrum analyzer
-* Multimedia player lets you use images and videos as backgrounds to your music, or watch music videos with the spectrum analyzer on top
-* Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
+* Media player with subtitles support for audio and video files
+* Fullscreen and Picture-In-Picture display at 60fps, ready for Retina / HiDPI screens
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
 * Decibel and linear amplitude scales, with customizable sensitivity
