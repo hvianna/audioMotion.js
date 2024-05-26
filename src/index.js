@@ -2045,10 +2045,17 @@ async function loadNextSong() {
 	if ( song ) {
 		addMetadata( song, audioEl );
 		if ( song.handle ) {
-			await song.handle.requestPermission();
+			try {
+				await song.handle.requestPermission();
+			}
+			catch( e ) {}
 			song.handle.getFile()
 				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
-				.then( () => audioEl.load() );
+				.then( () => audioEl.load() )
+				.catch( e => {
+					consoleLog( `Error loading ${ song.dataset.file }`, true );
+					clearAudioElement( nextAudio );
+				});
 		}
 		else {
 			loadAudioSource( audioEl, song.dataset.file );
@@ -2541,10 +2548,18 @@ function loadSong( n, playIt ) {
 			addMetadata( song, audioEl );
 
 			if ( song.handle ) {
-				await song.handle.requestPermission();
+				try {
+					await song.handle.requestPermission();
+				}
+				catch( e ) {}
 				song.handle.getFile()
 					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
-					.then( () => finish() );
+					.then( () => finish() )
+					.catch( e => {
+						consoleLog( `Error loading ${ song.dataset.file }`, true );
+						clearAudioElement( currAudio );
+						resolve( false );
+					});
 			}
 			else {
 				loadAudioSource( audioEl, song.dataset.file );
@@ -2665,7 +2680,7 @@ function playNextSong( play ) {
 	setOverlay();
 	setCurrentCover();
 
-	if ( play ) {
+	if ( play && audioElement[ currAudio ].src ) { // note: play() on empty element never resolves!
 		audioElement[ currAudio ].play()
 		.then( () => loadNextSong() )
 		.catch( err => {
@@ -3199,11 +3214,16 @@ async function retrieveMetadata() {
 
 		queryMetadata: {
 			if ( queueItem.handle ) {
-				if ( await queueItem.handle.requestPermission() != 'granted' )
-					break queryMetadata;
+				try {
+					if ( await queueItem.handle.requestPermission() != 'granted' )
+						break queryMetadata;
 
-				uri = URL.createObjectURL( await queueItem.handle.getFile() );
-				revoke = true;
+					uri = URL.createObjectURL( await queueItem.handle.getFile() );
+					revoke = true;
+				}
+				catch( e ) {
+					break queryMetadata;
+				}
 			}
 
 			try {
