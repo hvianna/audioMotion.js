@@ -5,6 +5,12 @@
   "display": "standalone",
   "icons": [
     {
+      "src": "img/audiomotion-icon-rounded.png",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "maskable"
+    },
+    {
       "src": "img/favicon256.png",
       "type": "image/png",
       "sizes": "256x256"
