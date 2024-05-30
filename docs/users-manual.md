@@ -64,9 +64,13 @@ The Media Panel is comprised of the **File Explorer** on the left side, the acti
 
 ### File Explorer
 
-The **File Explorer** allows you to navigate through folders and files on your device or on the server.
+The **File Explorer** allows you to navigate through your media folders and files.
 
-**Double-click** a file to quickly add it to the play queue. If the player is stopped, the newly added file will begin playing.
+!> Access to your device is provided to the app by the [File System Access API](https://caniuse.com/native-filesystem-api),
+which is currently **only implemented on Chromium-based browsers** (e.g., Chrome, Opera and Edge).
+On **Brave browser** it needs to be enabled in `chrome://flags/#file-system-access-api`.
+
+**Double-click** a file to quickly add it to the play queue. It will also start playing if the player is currently stopped.
 
 Hold **Ctrl** and click to select multiple files, or **Shift** + click to select a range of files.
 
@@ -74,11 +78,11 @@ You can then **drag and drop** the selected files into the play queue, or use th
 
 | button | action |
 |:------:|:-------|
-**Switch to<br>Server / Device** | Switches between browsing music folders on your local device or hosted on the server.<br>*(Access to local device depends on [browser support](known-issues.md))*
+**Switch to<br>Server / Device** | Switches between browsing folders on your local device or the songs hosted on the app server
 **Add selected**  | Add currently selected files in the file explorer to the play queue
 **Add all files** | Add all files in the current folder to the play queue
 **Add from URL**  | Load a remote audio file or stream from an URL
-**Upload file**   | Play single files from your device. Uploaded files can't be queued or saved to playlists.<br>*(Only displayed on browsers that do not support local file access)*
+**Open file**     | Open and play a single media file from your device<br>*(Only displayed on browsers with no support for the File System Access API)*
 
 ?> The first image found in the current folder will be shown in the background of the file explorer, with precedence given to filenames containing the words *cover*,
 *folder* or *front* (in this order).
