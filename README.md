@@ -36,7 +36,7 @@ It is completely free, open-source software, created out of my passion for the g
 
 Install audioMotion on your PC by clicking the install icon located in the browser's address bar:
 
-![browser-install](img/browser-install.png)
+![browser-install](docs/img/browser-install.png)
 
 ## Documentation
 
