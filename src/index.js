@@ -130,9 +130,11 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_LAST_CONFIG    = 'last-config',
 	  KEY_LAST_DIR       = 'last-dir',
 	  KEY_LAST_VERSION   = 'last-version',
+	  KEY_PEAK_OPTIONS   = 'peak-settings',
 	  KEY_PLAYLISTS      = 'playlists',
 	  KEY_PLAYQUEUE      = 'playqueue',
 	  KEY_SENSITIVITY    = 'sensitivity-presets',
+	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
 	  PLAYLIST_PREFIX    = 'pl_';
 
 // Visualization modes
@@ -208,9 +210,23 @@ const SERVERCFG_FILE     = 'config.json',
 		mediaPanel       : PANEL_OPEN
 	  };
 
-// Amount of time the update banner stays visible (milliseconds)
-const UPDATE_BANNER_TIMEOUT = 10000,
-	  UPDATE_SHOW_CSS_CLASS = 'show';
+// Subtitles settings options
+const SUBS_BG_NONE      = 'none',
+	  SUBS_BG_SHADOW    = 'shadow',
+	  SUBS_BG_SOLID     = 'solid',
+	  SUBS_COLOR_GOLD   = 'gold',
+	  SUBS_COLOR_GRAY   = 'gray',
+	  SUBS_COLOR_WHITE  = 'white',
+	  SUBS_COLOR_YELLOW = 'yellow',
+	  SUBS_CSS_BG       = 'subs-bg-', // CSS class prefix
+	  SUBS_CSS_COLOR    = 'subs-color-',
+	  SUBS_POS_BOTTOM   = 'bottom',
+	  SUBS_POS_CENTER   = 'center',
+	  SUBS_POS_TOP      = 'top';
+
+// Update banner settings
+const UPDATE_BANNER_TIMEOUT = 10000,  // time visible (milliseconds)
+	  UPDATE_SHOW_CSS_CLASS = 'show'; // active CSS class
 
 // Weighting filters
 const WEIGHT_NONE = '',
@@ -245,6 +261,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
+	  elFadePeaks     = $('#fade_peaks'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
@@ -252,6 +269,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elFsHeight      = $('#fs_height'),
 	  elGradient      = $('#gradient'),
 	  elGradientRight = $('#gradientRight'),
+	  elGravity       = $('#gravity'),
 	  elInfoTimeout   = $('#info_timeout'),
 	  elLedDisplay    = $('#led_display'),
 	  elLinearAmpl    = $('#linear_amplitude'),
@@ -265,11 +283,15 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elMirror        = $('#mirror'),
 	  elMode          = $('#mode'),
 	  elMute          = $('#mute'),
+	  elNoDimSubs     = $('#no_dim_subs'),
+	  elNoDimVideo    = $('#no_dim_video'),
 	  elNoShadow      = $('#no_shadow'),
 	  elNoteLabels    = $('#note_labels'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
+	  elPeakFade      = $('#peak_fade'),
+	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
 	  elRadial        = $('#radial'),
@@ -288,10 +310,17 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elShowCover     = $('#show_cover'),
 	  elShowPeaks     = $('#show_peaks'),
 	  elShowSong      = $('#show_song'),
+	  elShowSubtitles = $('#show_subs'),
 	  elSmoothing     = $('#smoothing'),
+	  elSongDuration  = $('#song_duration'),
+	  elSongPosition  = $('#current_time'),
+	  elSongProgress  = $('#progress'),
 	  elSource        = $('#source'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
+	  elSubsBackground= $('#subs_background'),
+	  elSubsColor     = $('#subs_color'),
+	  elSubsPosition  = $('#subs_position'),
 	  elToggleConsole = $('#toggle_console'),
 	  elToggleSettings= $('#toggle_settings'),
 	  elTrackTimeout  = $('#track_timeout'),
@@ -505,6 +534,7 @@ const presets = [
 			bgImageFit   : BGFIT_CENTER,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
+			fadePeaks    : 0,
 			fillAlpha    : 0.1,
 			freqMax      : 20000,
 			freqMin      : 20,
@@ -535,6 +565,7 @@ const presets = [
 			showScaleX   : 1,
 			showScaleY   : 0,
 			showSong     : 1,
+			showSubtitles: 1,
 			spin         : 2,
 			splitGrad    : 0,
 			volume       : 1,
@@ -716,7 +747,8 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elNoDimSubs,
+								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
 	autoHide   : true,
@@ -726,6 +758,8 @@ const generalOptionsDefaults = {
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
+	noDimVideo : true,
+	noDimSubs  : true,
 	pipRatio   : 2.35,
 	saveDir    : true,
 	saveQueue  : true,
@@ -745,6 +779,24 @@ const pipRatioOptions = [
 	[ 2.35, '2.35:1' ],
 	[ 3.55, '32:9' ]
 ];
+
+// Peak settings
+const peakOptionsElements = [ elGravity, elPeakFade, elPeakHold ];
+
+const peakOptionsDefaults = {
+	gravity : 3.8,
+	peakFade: 750,
+	peakHold: 500,
+}
+
+// Subtitles configuration options
+const subtitlesElements = [ elSubsBackground, elSubsColor, elSubsPosition ];
+
+const subtitlesDefaults = {
+	background: SUBS_BG_SHADOW,
+	color     : SUBS_COLOR_WHITE,
+	position  : SUBS_POS_TOP
+}
 
 // Global variables
 let audioElement = [],
@@ -846,6 +898,7 @@ const getCurrentSettings = _ => ({
 	bgImageFit   : getControlValue( elBgImageFit ),
 	channelLayout: getControlValue( elChnLayout ),
 	colorMode    : getControlValue( elColorMode ),
+	fadePeaks    : getControlValue( elFadePeaks ),
 	fillAlpha    : getControlValue( elFillAlpha ),
 	freqMax		 : getControlValue( elRangeMax ),
 	freqMin		 : getControlValue( elRangeMin ),
@@ -874,6 +927,7 @@ const getCurrentSettings = _ => ({
 	showScaleX 	 : getControlValue( elScaleX ),
 	showScaleY 	 : getControlValue( elScaleY ),
 	showSong     : getControlValue( elShowSong ),
+	showSubtitles: getControlValue( elShowSubtitles ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
 	weighting    : getControlValue( elWeighting )
@@ -907,7 +961,7 @@ const getSelectedGradients = () => {
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
 // check if a given url/path is a blob
-const isBlob = src => src.startsWith('blob:');
+const isBlob = src => src && src.startsWith('blob:');
 
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
@@ -1001,14 +1055,20 @@ const saveLastDir = path => {
 }
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
-const secondsToTime = secs => {
-	if ( secs == Infinity || secs == -1 )
+const secondsToTime = ( secs, forceHours ) => {
+	if ( Math.abs( secs ) == Infinity || secs === '-1' )
 		return 'LIVE';
 
-	let str  = '',
-		lead = '';
+	let lead = '',
+		sign = '',
+		str  = '';
 
-	if ( secs >= 3600 ) {
+	if ( secs < 0 ) {
+		secs = -secs;
+		sign = '-';
+	}
+
+	if ( secs >= 3600 || forceHours ) {
 		str = ( secs / 3600 | 0 ) + ':';
 		secs %= 3600;
 		lead = '0';
@@ -1016,7 +1076,7 @@ const secondsToTime = secs => {
 
 	str += ( lead + ( secs / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( secs % 60 | 0 ) ).slice(-2);
 
-	return str;
+	return sign + str;
 }
 
 // update configuration options from an existing preset
@@ -1058,39 +1118,33 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 function addMetadata( metadata, target ) {
 	const trackData  = target.dataset,
 		  sourceData = metadata.dataset,
-		  common     = metadata.common,
-		  format     = metadata.format;
+		  { album, artist, picture, title, year } = metadata.common || {},
+		  { bitrate, bitsPerSample, codec, codecProfile, container,
+		    duration, lossless, numberOfChannels, sampleRate } = metadata.format || {};
 
 	if ( sourceData ) { // if `metadata` has a dataset it's a playqueue item; just copy the data to target element
 		Object.assign( trackData, sourceData );
 	}
 	else {				// otherwise, it's metadata read from file; we need to parse it and populate the dataset
-		trackData.artist = common.artist || trackData.artist;
-		trackData.title  = common.title || trackData.title;
-		trackData.album  = common.album ? common.album + ( common.year ? ' (' + common.year + ')' : '' ) : trackData.album;
-		trackData.codec  = format ? format.codec || format.container : trackData.codec;
+		trackData.artist = artist || trackData.artist;
+		trackData.title  = title || trackData.title;
+		trackData.album  = album ? album + ( year ? ' (' + year + ')' : '' ) : trackData.album;
+		trackData.codec  = codec || container ? ( codec || container ) + ' (' + numberOfChannels + 'ch)' : trackData.codec;
 
-		// for track quality info, metadata is prioritized in the following order, according to availability:
-		// 1. sampleRate (optional) + bitsPerSample (present)        - ex.: 48KHz / 16bits | 16bits
-		// 2. bitrate (present) + codecProfile (optional)            - ex.: 128K CBR | 128K
-		// 3. only sampleRate or bitsPerSample, whichever is present - ex.: 48KHz | 16bits
-		if ( format && ( format.bitsPerSample || ( format.sampleRate && ! format.bitrate ) ) ) {
-			trackData.quality = ( format.sampleRate ? ( format.sampleRate / 1000 | 0 ) + 'KHz' : '' ) +
-							    ( format.sampleRate && format.bitsPerSample ? ' / ' : '' ) +
-							    ( format.bitsPerSample ? format.bitsPerSample + 'bits' : '' );
-		}
-		else if ( format && format.bitrate )
-			trackData.quality = ( format.bitrate / 1000 | 0 ) + 'K ' + ( format.codecProfile || '' );
+		const khz = sampleRate ? Math.round( sampleRate / 1000 ) + 'kHz' : '';
+
+		// track quality info
+		// if lossless: bitsPerSample / sampleRate        - ex.: 24bits / 96kHz
+		// if lossy:    bitrate codecProfile / sampleRate - ex.: 320kbps CBR / 44kHz
+		if ( lossless || ! bitrate )
+			trackData.quality = ( bitsPerSample ? bitsPerSample + 'bits' : '' ) + ( khz && bitsPerSample ? ' / ' : '' ) + khz;
 		else
-			trackData.quality = '';
+			trackData.quality = Math.round( bitrate / 1000 ) + 'kbps' + ( codecProfile ? ' ' + codecProfile : '' ) + ( khz ? ' / ' : '' ) + khz;
 
-		if ( format && format.duration )
-			trackData.duration = secondsToTime( format.duration );
-		else
-			trackData.duration = '';
+		trackData.duration = duration ? secondsToTime( duration ) : '';
 
-		if ( common.picture && common.picture.length ) {
-			const blob = new Blob( [ common.picture[0].data ], { type: common.picture[0].format } );
+		if ( picture && picture.length ) {
+			const blob = new Blob( [ picture[0].data ], { type: picture[0].format } );
 			trackData.cover = URL.createObjectURL( blob );
 		}
 	}
@@ -1102,7 +1156,7 @@ function addMetadata( metadata, target ) {
 /**
  * Add a song to the play queue
  *
- * @param {object} { file, handle }
+ * @param {object} { file, handle, subs }
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
@@ -1132,6 +1186,7 @@ function addSongToPlayQueue( fileObject, content ) {
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
+		newEl.subs         = fileObject.subs;
 
 		playlist.appendChild( newEl );
 
@@ -1225,6 +1280,7 @@ function clearAudioElement( n = currAudio ) {
 		  trackData = audioEl.dataset;
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
+	loadSubs( audioEl, null );
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	audioEl.load();
 
@@ -1443,6 +1499,9 @@ function doConfigPanel() {
 		});
 	}
 
+	// helper function to validate range value
+	const isValidRange = el => ( +el.value >= +el.min && +el.value <= +el.max );
+
 	// Enabled visualization modes
 	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
 
@@ -1492,13 +1551,12 @@ function doConfigPanel() {
 		}
 		else {
 			el.addEventListener( 'change', () => {
-				const isValid = ( +el.value >= +el.min && +el.value <= +el.max );
-				if ( isValid ) {
+				if ( isValidRange( el ) ) {
 					if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
 					savePreferences( KEY_SENSITIVITY );
 				}
-				el.classList.toggle( 'field-error', ! isValid );
+				el.classList.toggle( 'field-error', ! isValidRange( el ) );
 			});
 		}
 	});
@@ -1514,13 +1572,41 @@ function doConfigPanel() {
 
 	// General settings
 	generalOptionsElements.forEach( el => {
-		el.addEventListener( 'change', () => setProperty( el ) );
+		el.addEventListener( 'change', () => {
+			const isValid = el.type != 'number' || isValidRange( el );
+			if ( isValid )
+				setProperty( el );
+			el.classList.toggle( 'field-error', ! isValid );
+		});
 	});
 
 	$('#reset_general').addEventListener( 'click', () => {
 		setGeneralOptions( generalOptionsDefaults );
 		setProperty( generalOptionsElements );
 	});
+
+	// Peak settings
+	peakOptionsElements.forEach( el => {
+		el.addEventListener( 'change', () => {
+			const isValid = el.type != 'number' || isValidRange( el );
+			if ( isValid )
+				setProperty( el );
+			el.classList.toggle( 'field-error', ! isValid );
+		});
+	});
+
+	$('#reset_peak').addEventListener( 'click', () => {
+		setPeakOptions( peakOptionsDefaults );
+		setProperty( peakOptionsElements );
+	});
+
+	// Subtitle settings
+	subtitlesElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
+	$('#reset_subs').addEventListener( 'click', () => {
+		setSubtitlesOptions( subtitlesDefaults );
+		setProperty( subtitlesElements );
+	});
+	setProperty( subtitlesElements ); // initialize subtitles settings
 }
 
 /**
@@ -1620,7 +1706,7 @@ function getFolderCover( uri ) {
 
 			fetch( urlToFetch )
 				.then( response => {
-					return ( response.status == 200 ) ? response.text() : null;
+					return response.ok ? response.text() : null;
 				})
 				.then( content => {
 					let imageUrl = '';
@@ -1635,7 +1721,8 @@ function getFolderCover( uri ) {
 					}
 					folderImages[ path ] = imageUrl;
 					resolve( queryFile( path + imageUrl ) );
-				});
+				})
+				.catch( e => resolve('') );
 		}
 	});
 }
@@ -1645,16 +1732,22 @@ function getFolderCover( uri ) {
  */
 function keyboardControls( event ) {
 
-	if ( event.code == 'F1' && ! event.altKey && ! event.ctrlKey ) {
+	// ignore system shortcuts keys (alt, ctrl and win/command key)
+	if ( event.altKey || event.ctrlKey || event.metaKey )
+		return;
+
+	const isShiftKey = event.shiftKey;
+
+	// F1 is accepted independently of where the focus is
+	if ( event.code == 'F1' && ! isShiftKey ) {
 		location.href = '#help';
 		event.preventDefault();
 		return;
 	}
 
-	if ( event.target.tagName != 'BODY' || event.altKey || event.ctrlKey )
+	// ignore other keys when the focus is not on body (e.g., in a input or select field)
+	if ( event.target.tagName != 'BODY' )
 		return;
-
-	const isShiftKey = event.shiftKey;
 
 	// keys handled on 'keydown' allow automatic repetition
 	if ( event.type == 'keydown' ) {
@@ -1811,8 +1904,14 @@ function keyboardControls( event ) {
 					setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
 					break;
 				case 'KeyP': 		// toggle peaks display
-					elShowPeaks.click();
-					setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+					if ( isShiftKey ) {
+						elFadePeaks.click();
+						setCanvasMsg( 'Fade Peaks ' + onOff( elFadePeaks ) );
+					}
+					else {
+						elShowPeaks.click();
+						setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
+					}
 					break;
 				case 'KeyR': 		// toggle playlist repeat
 					elRepeat.click();
@@ -1945,18 +2044,28 @@ async function loadNextSong() {
 		  song    = playlist.children[ next ],
 		  audioEl = audioElement[ nextAudio ];
 
+	setSubtitlesDisplay(); // avoid stuck subtitles on track change
+
 	if ( song ) {
 		addMetadata( song, audioEl );
 		if ( song.handle ) {
-			await song.handle.requestPermission();
+			try {
+				await song.handle.requestPermission();
+			}
+			catch( e ) {}
 			song.handle.getFile()
 				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
-				.then( () => audioEl.load() );
+				.then( () => audioEl.load() )
+				.catch( e => {
+					consoleLog( `Error loading ${ song.dataset.file }`, true );
+					clearAudioElement( nextAudio );
+				});
 		}
 		else {
 			loadAudioSource( audioEl, song.dataset.file );
 			audioEl.load();
 		}
+		loadSubs( audioEl, song.subs );
 	}
 
 	skipping = false; // finished skipping track
@@ -1972,10 +2081,12 @@ function loadPlaylist( fileObject ) {
 	return new Promise( async ( resolve ) => {
 		let	promises = [];
 
-		const resolveAddedSongs = () => {
+		const resolveAddedSongs = saveQueue => {
 			Promise.all( promises ).then( added => {
 				const total = added.reduce( ( sum, val ) => sum + val, 0 );
 				resolve( total );
+				if ( saveQueue )
+					storePlayQueue( true );
 			});
 		}
 
@@ -1993,22 +2104,40 @@ function loadPlaylist( fileObject ) {
 					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
 						songInfo = parsePath( line ).baseName;
 
-					let handle;
+					let handle, subs;
 
 					// if it's an external URL just add it to the queue as is
 					if ( ! isExternalURL( line ) ) {
 						if ( useFileSystemAPI ) {
-							handle = await fileExplorer.getHandle( line );
-							if ( ! handle )
+							( { handle, subs } = await fileExplorer.getHandles( line ) );
+							if ( ! handle ) {
 								consoleLog( `Cannot resolve file handle for ${ line }`, true );
+								songInfo = '';
+								continue; // skip this entry
+							}
 						}
-						line = fileExplorer.encodeChars( line ); // encode special characters into URL-safe codes
+
+						// encode special characters into URL-safe codes
+						line = fileExplorer.encodeChars( line );
+
 						// if it's not an absolute path, prepend the current path to it
 						if ( line[1] != ':' && line[0] != '/' )
 							line = path + line;
+
+						if ( ! useFileSystemAPI ) {
+							// look for subtitles (server mode)
+							try {
+								const src = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
+								 	  res = await fetch( src, { method: 'HEAD' } );
+
+								if ( res.ok )
+									subs = { src };
+							}
+							catch( e ) {}
+						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
@@ -2035,10 +2164,12 @@ function loadPlaylist( fileObject ) {
 			else {
 				fetch( path )
 					.then( response => {
-						if ( response.status == 200 )
+						if ( response.ok )
 							return response.text();
-						else
+						else {
 							consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+							return '';
+						}
 					})
 					.then( parsePlaylistContent )
 					.catch( e => {
@@ -2052,10 +2183,10 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const { file, handle, content } = entry;
-					promises.push( addSongToPlayQueue( { file, handle }, content ) );
+					const { file, handle, subs, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle, subs }, content ) );
 				});
-				resolveAddedSongs();
+				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
 			else {
 				if ( path !== true ) // avoid error message if no play queue found on storage
@@ -2142,6 +2273,7 @@ async function loadPreferences() {
 	setInfoOptions( { ...infoDisplayDefaults, ...( await loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
 
 	// General settings
+
 	for ( let i = 10; i < 16; i++ )
 		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
 
@@ -2168,6 +2300,39 @@ async function loadPreferences() {
 	]);
 
 	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
+
+	// Peak settings
+
+	setRangeAtts( elGravity, .01, 25, .01 );
+
+	setRangeAtts( elPeakFade, 0, 5000, 50 );
+
+	setRangeAtts( elPeakHold, 0, 5000, 50 );
+
+	setPeakOptions( { ...peakOptionsDefaults, ...( await loadFromStorage( KEY_PEAK_OPTIONS ) || {} ) } );
+
+	// Subtitles configuration
+
+	populateSelect( elSubsBackground, [
+		[ SUBS_BG_NONE,   'None'   ],
+		[ SUBS_BG_SHADOW, 'Shadow' ],
+		[ SUBS_BG_SOLID,  'Solid'  ]
+	]);
+
+	populateSelect( elSubsColor, [
+		[ SUBS_COLOR_GOLD,   'Gold'   ],
+		[ SUBS_COLOR_GRAY,   'Gray'   ],
+		[ SUBS_COLOR_WHITE,  'White'  ],
+		[ SUBS_COLOR_YELLOW, 'Yellow' ]
+	]);
+
+	populateSelect( elSubsPosition, [
+		[ SUBS_POS_TOP,    'Top'    ],
+		[ SUBS_POS_CENTER, 'Center' ],
+		[ SUBS_POS_BOTTOM, 'Bottom' ]
+	]);
+
+	setSubtitlesOptions( { ...subtitlesDefaults, ...( await loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -2229,6 +2394,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		alphaBars      : isSwitchOn( elAlphaBars ),
 		ansiBands      : isSwitchOn( elAnsiBands ),
 		colorMode      : getControlValue( elColorMode ),
+		fadePeaks      : isSwitchOn( elFadePeaks ),
 		fftSize        : getControlValue( elFFTsize ),
 		frequencyScale : getControlValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
@@ -2241,6 +2407,8 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		mirror         : getControlValue( elMirror ),
 		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
+		peakFadeTime   : getControlValue( elPeakFade ),
+		peakHoldTime   : getControlValue( elPeakHold ),
 		radial         : isSwitchOn( elRadial ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
@@ -2260,6 +2428,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageDim,
 		elChnLayout,
 		elFsHeight,
+		elGravity,
 		elLinkGrads, // needs to be set before the gradients
 		elSensitivity,
 		elReflex,
@@ -2267,6 +2436,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elGradientRight,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
+		elShowSubtitles,
 		elMode ]
 	);
 
@@ -2332,7 +2502,7 @@ async function loadSavedPlaylists( keyName ) {
 
 	fetch( 'playlists.cfg' )
 		.then( response => {
-			if ( response.status == 200 ) {
+			if ( response.ok ) {
 				consoleLog( 'Found legacy playlists.cfg file' );
 				return response.text();
 			}
@@ -2382,10 +2552,18 @@ function loadSong( n, playIt ) {
 			addMetadata( song, audioEl );
 
 			if ( song.handle ) {
-				await song.handle.requestPermission();
+				try {
+					await song.handle.requestPermission();
+				}
+				catch( e ) {}
 				song.handle.getFile()
 					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
-					.then( () => finish() );
+					.then( () => finish() )
+					.catch( e => {
+						consoleLog( `Error loading ${ song.dataset.file }`, true );
+						clearAudioElement( currAudio );
+						resolve( false );
+					});
 			}
 			else {
 				loadAudioSource( audioEl, song.dataset.file );
@@ -2396,10 +2574,46 @@ function loadSong( n, playIt ) {
 					finish();
 				};
 			}
+
+			loadSubs( audioEl, song.subs );
 		}
 		else
 			resolve( false );
 	});
+}
+
+/**
+ * Load subtitles file to audio element track
+ *
+ * @param {object} audio element
+ * @param {object} subtitles object { src, lang, handle }
+ */
+function loadSubs( audioEl, subs ) {
+	// References:
+	// https://www.w3.org/wiki/VTT_Concepts
+	// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
+
+	const subsTrack = audioEl.querySelector('track');
+
+	// revoke any previous object URL
+	if ( isBlob( subsTrack.src ) )
+		URL.revokeObjectURL( subsTrack.src );
+
+	if ( subs ) {
+		const { src, lang, handle } = subs;
+		subsTrack.srclang = lang || navigator.language;
+		if ( handle ) {
+			handle.getFile()
+				.then( fileBlob => subsTrack.src = URL.createObjectURL( fileBlob ) )
+				.catch( e => {} );
+		}
+		else
+			subsTrack.src = src;
+	}
+	else {
+		subsTrack.removeAttribute('src');
+		subsTrack.removeAttribute('srclang');
+	}
 }
 
 /**
@@ -2470,7 +2684,7 @@ function playNextSong( play ) {
 	setOverlay();
 	setCurrentCover();
 
-	if ( play ) {
+	if ( play && audioElement[ currAudio ].src ) { // note: play() on empty element never resolves!
 		audioElement[ currAudio ].play()
 		.then( () => loadNextSong() )
 		.catch( err => {
@@ -2714,7 +2928,7 @@ function randomizeSettings( force = elSource.checked ) {
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
-	const randomizeControl = ( el, push = true, validate = () => true ) => {
+	const randomizeControl = ( el, validate = () => true ) => {
 		let attempts = 9; // avoid an infinite loop just in case validation is never satisfied
 		do {
 			if ( isCustomRadio( el ) ) {
@@ -2737,8 +2951,7 @@ function randomizeSettings( force = elSource.checked ) {
 				el.selectedIndex = randomInt( el.options.length );
 		} while ( ! validate( getControlValue( el ) ) && attempts-- );
 
-		if ( push )
-			props.push( el );
+		setProperty( el );
 	}
 
 	let props = []; // properties that need to be updated
@@ -2757,13 +2970,13 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elAlphaBars );
 
 	if ( isEnabled( RND_BACKGROUND ) )
-		randomizeControl( elBackground, false );
+		randomizeControl( elBackground );
 
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
 
 	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeControl( elChnLayout, true, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
+		randomizeControl( elChnLayout, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
 
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
@@ -2775,22 +2988,22 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elLedDisplay );
 
 	if ( isEnabled( RND_LUMI ) )
-		randomizeControl( elLumiBars, true, newVal => ! newVal || elBackground.value[0] <= 1 || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
+		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
 
 	if ( isEnabled( RND_LINEWIDTH ) )
-		randomizeControl( elLineWidth, false );
+		randomizeControl( elLineWidth );
 
 	if ( isEnabled( RND_FILLOPACITY ) )
-		randomizeControl( elFillAlpha, false );
+		randomizeControl( elFillAlpha );
 
 	if ( isEnabled( RND_BARSPACING ) )
-		randomizeControl( elBarSpace, false );
+		randomizeControl( elBarSpace );
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
 
 	if ( isEnabled( RND_REFLEX ) )
-		randomizeControl( elReflex, false, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
+		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
 
 	if ( isEnabled( RND_RADIAL ) )
 		randomizeControl( elRadial );
@@ -2812,11 +3025,6 @@ function randomizeSettings( force = elSource.checked ) {
 			randomizeControl( el );
 	}
 
-	// add properties that depend on other settings (mode also sets barspace)
-	props.push( elBackground, elReflex, elMode );
-
-	// effectively set the affected properties
-	setProperty( props );
 }
 
 /**
@@ -3010,11 +3218,16 @@ async function retrieveMetadata() {
 
 		queryMetadata: {
 			if ( queueItem.handle ) {
-				if ( await queueItem.handle.requestPermission() != 'granted' )
-					break queryMetadata;
+				try {
+					if ( await queueItem.handle.requestPermission() != 'granted' )
+						break queryMetadata;
 
-				uri = URL.createObjectURL( await queueItem.handle.getFile() );
-				revoke = true;
+					uri = URL.createObjectURL( await queueItem.handle.getFile() );
+					revoke = true;
+				}
+				catch( e ) {
+					break queryMetadata;
+				}
 			}
 
 			try {
@@ -3131,7 +3344,7 @@ function savePlayqueueToServer( path, update ) {
 		},
 		body: JSON.stringify( { contents } )
 	})
-	.then( response => response.status == 200 ? response.json() : { error: `Cannot save file (ERROR ${ response.status })` } )
+	.then( response => response.ok ? response.json() : { error: `Cannot save file (ERROR ${ response.status })` } )
 	.then( ( { file, error } ) => {
 		const text = file ? `${ update ? 'Updated' : 'Saved as' } ${ parsePath( file ).fileName }` : error;
 		notie.alert({ text });
@@ -3200,12 +3413,32 @@ function savePreferences( key ) {
 			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
+			noDimSubs  : elNoDimSubs.checked,
+			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
 			smoothing  : elSmoothing.value
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
+	}
+
+	if ( ! key || key == KEY_PEAK_OPTIONS ) {
+		const peakOptions = {
+			gravity : elGravity.value,
+			peakFade: elPeakFade.value,
+			peakHold: elPeakHold.value,
+		}
+		saveToStorage( KEY_PEAK_OPTIONS, peakOptions );
+	}
+
+	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
+		const subtitlesOptions = {
+			background: elSubsBackground.value,
+			color     : elSubsColor.value,
+			position  : elSubsPosition.value
+		}
+		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
 	}
 }
 
@@ -3369,6 +3602,8 @@ function setGeneralOptions( options ) {
 	elFFTsize.value     = options.fftSize;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
+	elNoDimSubs.checked = options.noDimSubs;
+	elNoDimVideo.checked= options.noDimVideo;
 	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
@@ -3406,20 +3641,34 @@ function setLoadedPlaylist( path = '' ) {
  */
 function setOverlay() {
 	const bgOption  = elBackground.value[0],
+		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
-		  isOverlay = isVideo || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
+		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
-		audioEl.style.display = isVideo && audioEl == audioElement[ currAudio ] ? '' : 'none';
+		audioEl.style.display = ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] ? '' : 'none';
 
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
 
-	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)'; // enable/disable background image
-	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : ''; // set visibility of background video layer
+	// enable/disable background image
+	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
+	// set visibility of background video layer
+	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : '';
+	// enable/disable background dim layer
+	elDim.style.display = ( isVideo && elNoDimVideo.checked ) || ( hasSubs && elNoDimSubs.checked ) ? 'none' : '';
 
 	return isOverlay;
+}
+
+/**
+ * Set peak behavior options
+ */
+function setPeakOptions( options ) {
+	elGravity.value  = options.gravity;
+	elPeakFade.value = options.peakFade;
+	elPeakHold.value = options.peakHold;
 }
 
 /**
@@ -3470,7 +3719,7 @@ function setProperty( elems, save = true ) {
 					}
 				}
 				else {
-					if ( isOverlay ) {
+					if ( isOverlay && ! [ BG_DEFAULT, BG_BLACK ].includes( bgOption ) ) {
 						if ( bgOption == BG_COVER )
 							setBackgroundImage( coverImage.src );
 						else
@@ -3530,6 +3779,10 @@ function setProperty( elems, save = true ) {
 
 			case elColorMode:
 				audioMotion.colorMode = getControlValue( elColorMode );
+				break;
+
+			case elFadePeaks:
+				audioMotion.fadePeaks = isSwitchOn( elFadePeaks );
 				break;
 
 			case elFillAlpha:
@@ -3621,6 +3874,11 @@ function setProperty( elems, save = true ) {
 				toggleMute();
 				break;
 
+			case elNoDimSubs:
+			case elNoDimVideo:
+				setOverlay();
+				break;
+
 			case elNoteLabels:
 				audioMotion.noteLabels = isSwitchOn( elNoteLabels );
 				break;
@@ -3631,6 +3889,18 @@ function setProperty( elems, save = true ) {
 
 			case elOutline:
 				audioMotion.outlineBars = isSwitchOn( elOutline );
+				break;
+
+			case elGravity:
+				audioMotion.gravity = elGravity.value;
+				break;
+
+			case elPeakFade:
+				audioMotion.peakFadeTime = elPeakFade.value;
+				break;
+
+			case elPeakHold:
+				audioMotion.peakHoldTime = elPeakHold.value;
 				break;
 
 			case elPIPRatio:
@@ -3719,6 +3989,10 @@ function setProperty( elems, save = true ) {
 				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
 				break;
 
+			case elShowSubtitles:
+				setSubtitlesDisplay();
+				break;
+
 			case elSmoothing:
 				audioMotion.smoothing = elSmoothing.value;
 				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
@@ -3747,6 +4021,15 @@ function setProperty( elems, save = true ) {
 				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
 				break;
 
+			case elSubsBackground:
+			case elSubsColor:
+				setSubtitlesColors();
+				break;
+
+			case elSubsPosition:
+				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				break;
+
 			case elWeighting:
 				audioMotion.weightingFilter = getControlValue( elWeighting );
 				break;
@@ -3756,6 +4039,10 @@ function setProperty( elems, save = true ) {
 		if ( save ) {
 			if ( generalOptionsElements.includes( el ) )
 				savePreferences( KEY_GENERAL_OPTS );
+			else if ( peakOptionsElements.includes( el ) )
+				savePreferences( KEY_PEAK_OPTIONS );
+			else if ( subtitlesElements.includes( el ) )
+				savePreferences( KEY_SUBTITLES_OPTS );
 			else
 				updateLastConfig();
 		}
@@ -3818,6 +4105,73 @@ async function setSource( isMicSource, callback ) {
 }
 
 /**
+ * Set subtitles color and background preferences
+ */
+function setSubtitlesColors() {
+	// remove all CSS classes related to subtitles
+	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR }).*`, 'gi' ), '' ); // /(subs-bg-|subs-color-).*/gi
+	// add classes for the current settings
+	elContainer.classList.add( SUBS_CSS_BG + elSubsBackground.value, SUBS_CSS_COLOR + elSubsColor.value );
+}
+
+/**
+ * Set display of subtitles
+ */
+function setSubtitlesDisplay() {
+	for ( const audioEl of audioElement ) {
+		audioEl.textTracks[0].mode = 'hidden'; // clear any remaining subtitles on track change or playback stop
+		if ( isSwitchOn( elShowSubtitles ) )
+			audioEl.textTracks[0].mode = 'showing';
+	}
+	setOverlay();
+}
+
+/**
+ * Set subtitles configuration options
+ */
+function setSubtitlesOptions( options ) {
+	elSubsBackground.value = options.background;
+	elSubsColor.value      = options.color;
+	elSubsPosition.value   = options.position;
+}
+
+/**
+ * Set the vertical position of all subtitle "cues"
+ *
+ * @param {object} event
+ */
+function setSubtitlesPosition( event ) {
+	if ( ! event.target.track )
+		return;
+
+	let align, line, snap = false;
+
+	switch( elSubsPosition.value ) {
+		case SUBS_POS_BOTTOM:
+			align = 'end';
+			line  = 95;
+			break;
+
+		case SUBS_POS_CENTER:
+			align = 'center';
+			line  = 50;
+			break;
+
+		default: // SUBS_POS_TOP
+			align = 'start';
+			line  = 1;
+			snap  = true;
+	}
+
+	// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
+	for ( const cue of event.target.track.cues ) {
+		cue.line        = line;
+		cue.snapToLines = snap;  // when false, `line` represents a percentage
+		cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+	}
+}
+
+/**
  * Set volume
  */
 function setVolume( value ) {
@@ -3833,7 +4187,7 @@ function setVolume( value ) {
 function setUIEventListeners() {
 	// open/close media panel (auto-hide)
 	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked ) {
+		if ( elAutoHide.checked && ! audioMotion.isFullscreen ) {
 			setTimeout( () => {
 				if ( elContainer.matches(':hover') )
 					toggleMediaPanel( false );
@@ -3935,6 +4289,17 @@ function setUIEventListeners() {
 	$('#btn_next').addEventListener( 'click', () => {
 		if ( ! finishFastSearch() )
 			skipTrack();
+	});
+
+	// song progress
+	elSongProgress.addEventListener( 'input', () => {
+		const audioEl = audioElement[ currAudio ],
+			  { duration } = audioEl;
+		if ( ! duration || duration == Infinity ) {
+			elSongProgress.value = 0;
+			return;
+		}
+		audioEl.currentTime = duration * elSongProgress.value;
 	});
 
 	// action buttons
@@ -4148,6 +4513,15 @@ function setUIEventListeners() {
 	$('#new-gradient-horizontal').addEventListener('input', (e) => {
 		currentGradient.dir = e.target.checked ? 'h' : undefined;
 	});
+
+	// Config panel accordion
+	const accordionItems = $$('details');
+	accordionItems.forEach( el => {
+		el.addEventListener( 'click', () => {
+			if ( ! el.open )
+				accordionItems.forEach( item => item.open = false );
+		});
+	});
 }
 
 /**
@@ -4226,8 +4600,8 @@ async function storePlayQueue( name, update = true ) {
 
 		for ( const item of playlist.childNodes ) {
 			const { album, artist, codec, duration, file, title } = item.dataset,
-				  { handle } = item;
-			songs.push( { file, handle, content: { album, artist, codec, duration, title } } );
+				  { handle, subs } = item;
+			songs.push( { file, handle, subs, content: { album, artist, codec, duration, title } } );
 		}
 
 		if ( isSaveQueue )
@@ -4600,6 +4974,17 @@ function updateRangeValue( el ) {
 		}
 	}
 
+	const audioOnTimeUpdate = e => {
+		if ( e.target != audioElement[ currAudio ] )
+			return;
+
+		const { currentTime, duration } = audioElement[ currAudio ];
+
+		elSongProgress.value = ! duration || duration == Infinity ? 0 : currentTime / duration;
+		elSongPosition.innerText = secondsToTime( currentTime, true );
+		elSongDuration.innerHTML = secondsToTime( ! duration ? 0 : currentTime - duration, true ).padEnd(6).replaceAll(' ','&nbsp;'); // make sure 'LIVE' is centered
+	}
+
 	// BEGIN INITIALIZATION -----------------------------------------------------------------------
 
 	// Log all JS errors to our UI console
@@ -4638,7 +5023,7 @@ function updateRangeValue( el ) {
 	}
 	catch( e ) {}
 
-	let serverConfig = response && response.status == 200 ? await response.text() : null;
+	let serverConfig = response && response.ok ? await response.text() : null;
 	try {
 		serverConfig = JSON.parse( serverConfig );
 	}
@@ -4652,11 +5037,12 @@ function updateRangeValue( el ) {
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
 	// Read URL parameters
-	const urlParams      = new URL( document.location ).searchParams,
+	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
+		  urlParams      = new URL( window.location ).searchParams,
 		  userMode       = urlParams.get('mode'),
 		  userMediaPanel = urlParams.get('mediaPanel');
 
-	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
+	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
 		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
@@ -4704,6 +5090,7 @@ function updateRangeValue( el ) {
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
 	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
+		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
 		fsElement: elContainer,
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
@@ -4728,12 +5115,18 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
+		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
+		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
 		if ( panNode )
 			audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
 		else
 			audioMotion.connectInput( audioElement[ i ] );
 	}
+
+	setRangeAtts( elSongProgress, 0, 1, .001 );
+	elSongProgress.value = 0;
+	elSongPosition.innerText = elSongDuration.innerText = secondsToTime( 0, true );
 
 	// Setup configuration panel
 	doConfigPanel();
@@ -4883,7 +5276,7 @@ function updateRangeValue( el ) {
 						let items    = evt.items.length ? evt.items : [ evt.item ],
 							promises = [];
 						items.forEach( item => {
-							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle } ) );
+							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle, subs: item.subs } ) );
 							item.remove();
 						});
 						Promise.all( promises ).then( () => storePlayQueue( true ) );

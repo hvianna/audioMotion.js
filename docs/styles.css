@@ -69,6 +69,15 @@ strong code {
 	font-weight: 700;
 }
 
+.img-center {
+	display: block;
+	margin: 0 auto;
+}
+.img-right {
+	float: right;
+	margin: 1em 0 1em 1em;
+}
+
 .sidebar > h1 .app-name-link {
 	background: var(--audioMotion-gradient);
 	background-clip: text;
@@ -232,5 +241,5 @@ p ~ .table-wrapper table {
 .active.highlight-switches {
 	--top: 2px;
 	--left: 635px;
-	--height: 250px;
+	--height: 270px;
 }
