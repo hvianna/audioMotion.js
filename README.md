@@ -5,6 +5,7 @@ It is completely free, open-source software, created out of my passion for the g
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 [![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
+[![web app](https://img.shields.io/badge/audioMotion.app-5A0FC8?style=flat&logo=PWA)](https://audiomotion.app)
 
 ## Features
 
@@ -27,18 +28,19 @@ It is completely free, open-source software, created out of my passion for the g
 
 ## Access the web app
 
-<a href="https://audiomotion.app" target="_blank" title="open web app"><img src="https://img.shields.io/badge/audioMotion.app-ff3e37?style=flat" height="48"></a>
+<a href="https://audiomotion.app" target="_blank" title="open web app"><img src="https://img.shields.io/badge/audioMotion.app-5A0FC8?style=flat&logo=PWA" height="48"></a>
 
-**Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
-Works on Chrome, Opera and Edge by default. On Brave you'll need to enable this feature in `chrome://flags/#file-system-access-api`.
+**Use a Chromium-based browser to be able to play media files from your hard drive.** Works on Chrome, Opera and Edge by default.
 
-**You can install audioMotion on your PC by clicking the install icon in the browser's address bar, shown below:**
+**On Brave browser,** access `chrome://flags/#file-system-access-api` to enable this feature.
 
-![browser-install](docs/img/browser-install.png)
+Install audioMotion on your PC by clicking the install icon located in the browser's address bar:
+
+![browser-install](img/browser-install.png)
 
 ## Documentation
 
-* See the [docs/](docs/) folder or the [online documentation](https://audiomotion.app/docs)
+See the [online documentation](https://audiomotion.app/docs).
 
 ## Contributing
 

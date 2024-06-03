@@ -69,6 +69,10 @@ strong code {
 	font-weight: 700;
 }
 
+.img-center {
+	display: block;
+	margin: 0 auto;
+}
 .img-right {
 	float: right;
 	margin: 1em 0 1em 1em;

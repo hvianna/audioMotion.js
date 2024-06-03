@@ -5,6 +5,10 @@
 > **audioMotion** is a media player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
 > It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
+<a href="https://audiomotion.app" target="_blank"><img src="https://img.shields.io/badge/audioMotion.app-5A0FC8?style=flat&logo=PWA" height="36"></a>
+<a href="https://github.com/hvianna/audioMotion.js" target="_blank"><img src="https://img.shields.io/badge/audioMotion.js-black?style=flat&logo=GitHub" height="36"></a>
+<a href="https://youtube.com/@audioMotionJS" target="_blank"><img src="https://img.shields.io/badge/%40audioMotionJS-red?style=flat&logo=YouTube" height="36"></a>
+
 ## Features
 
 * Dual channel high-resolution real-time audio spectrum analyzer
@@ -23,21 +27,27 @@
 
 ## Getting started
 
-Click the button below to open the web app:
+Open the web app:
 
-<a href="https://audiomotion.app" target="_blank"><img src="https://img.shields.io/badge/audioMotion.app-ff3e37?style=flat" height="48"></a>
+<a href="https://audiomotion.app" target="_blank"><img src="https://img.shields.io/badge/audioMotion.app-5A0FC8?style=flat&logo=PWA" height="48"></a>
 
-**Use a Chromium-based browser to be able to play media files from your hard drive.**<br>
-Works on Chrome, Opera and Edge by default. On Brave, access `chrome://flags/#file-system-access-api` to enable this feature.
+**Use a Chromium-based browser to be able to play media files from your hard drive.** Works on Chrome, Opera and Edge by default.
 
-**You can install audioMotion on your PC by clicking the install icon in the browser's address bar, shown below:**
+**On Brave browser,** access `chrome://flags/#file-system-access-api` to enable this feature.
+
+### Installing and uninstalling
+
+Install audioMotion on your PC by clicking the install icon located in the browser's address bar, as shown below:
 
 ![browser-install](img/browser-install.png)
 
-If you don't have any music files at hand, the app also includes a few songs and some online radio streams.<br>
-Click the [**Switch to Server**](users-manual.md#media-panel) button to browse server-hosted content.
+To uninstall, click the three-line menu (☰) in the app window and choose "Uninstall audioMotion...".
 
-Also check out our [**YouTube channel**](https://youtube.com/@audioMotionJS) for some cool songs visualized with audioMotion!
+![uninstall](img/uninstall.png)
+
+When uninstalling you'll have the option to also **delete app data -- this will erase all your settings, custom presets, gradients and saved playlists!**
+
+On Windows, you can also uninstall via Control Panel.
 
 ?> See the [User's Manual](users-manual.md) for the complete documentation of audioMotion's features and settings.
 

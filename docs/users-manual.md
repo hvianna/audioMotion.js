@@ -18,6 +18,8 @@
 
 ### Source and Speakers
 
+<img src="img/UI_source.png" class="img-right">
+
 Move the **Source** switch to the **MIC** position to capture audio from your microphone instead of the media player.
 When MIC is selected, the Speakers are automatically turned off to prevent feedback loops from the speakers.
 If you're using headphones you can safely turn the Speakers on to listen to the microphone audio.
@@ -40,13 +42,15 @@ These are your standard media control buttons.
 | ![ui-player-shuffle](img/UI_player_shuffle.png "shuffle") | Shuffle queue and start playback |
 | ![ui-player-repeat](img/UI_player_repeat.png "repeat") | Play queue on repeat |
 
+Below the player controls you'll find the current track's elapsed time, progress bar and remaining time.
+
 ![player-controls-and-progress-bar](img/player-controls-and-progress-bar.png)
 
-Below the player controls you'll find the track's current time, the progress bar and the remaining time display.
-
-You can drag the cursor to fast forward or rewind, or click anywhere on the progress bar to quickly jump to any position on the current track.
+You can drag the progress bar cursor to fast forward or rewind, or click anywhere on the bar to quickly jump to the relative position on the track.
 
 ### Balance and Volume
+
+<img src="img/UI_volume.png" class="img-right">
 
 Hover the mouse over the Balance and Volume knobs and use the **mouse wheel** to adjust them.
 
