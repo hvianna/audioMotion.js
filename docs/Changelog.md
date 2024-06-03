@@ -1,5 +1,30 @@
 # Changelog
 
+## version 24.6
+
+### Added: <!-- {docsify-ignore} -->
+
++ [**Subtitles support**](users-manual#subtitles) for video and audio files - [suggested](https://github.com/hvianna/audioMotion.js/discussions/50) by **@JesusGod-Pope666-Info**;
++ Track progress and quick search bar with elapsed and remaining times, below the [player controls](users-manual.md#player-controls);
++ [**Customizable peak settings**](users-manual.md#peaks-behavior): gravity, fade time and hold time;
++ **FADE** switch - toggle peaks fading out instead of falling down (new **Shift-P** keyboard shortcut);
++ Number of audio channels added to the song info - [suggested](https://github.com/hvianna/audioMotion.js/discussions/56) by **@R-W-C**;
++ New [Configuration options](users-manual.md#general-settings) to disable *Background Dim* when playing videos and showing subtitles.
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ Track quality information now always shows the **bitrate** for lossy formats and the **bit depth** for lossless tracks;
++ New layout for the Config Panel;
++ Better app icon for macOS (you may need to [uninstall and reinstall](README.md#installing-and-uninstalling) the app to update the icon).
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Media panel auto-hide being triggered when entering fullscreen;
++ Peak amplitudes reset by Randomize changes;
++ Keyboard shortcuts triggered when Windows / Command key was pressed (system shortcuts);
++ Saved playqueue not being updated after loading an internal playlist.
+
+
 ## version 24.4
 
 Maintenance update with some improvements and bug fixes.
