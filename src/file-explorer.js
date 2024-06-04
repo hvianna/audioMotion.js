@@ -7,8 +7,6 @@
  */
 
 const defaultRoot           = '/music',
-	  isElectron            = 'electron' in window,
-	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
 	  openFolderMsg         = 'Click to open a new root folder',
 	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
@@ -18,8 +16,7 @@ const CLASS_BREADCRUMB = 'breadcrumb',
 	  CLASS_FILELIST   = 'filelist',
 	  CLASS_LOADING    = 'loading';
 
-const MODE_NODE = 1,  // Electron app or custom node.js file server
-	  MODE_WEB  = 0,  // standard web server
+const MODE_WEB  = 0,  // standard web server
 	  MODE_FILE = -1; // local access via file://
 
 let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>, handle: <FileSystemHandle> }
@@ -28,7 +25,6 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 	enterDirCallback,
 	fileExtensions    = /.*/,
 	mounts            = [],
-	nodeServer        = false, // using our custom server? (node server or Electron app)
 	ui_path,
 	ui_files,
 	serverMode,
@@ -38,7 +34,7 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 /**
  * Updates the file explorer user interface
  *
- * @param {object} directory content returned by the node server or parseDirectory()
+ * @param {object} directory content returned by parseDirectory()
  * @param {number} scrollTop scroll position for the filelist container
  */
 function updateUI( content, scrollTop ) {
@@ -67,7 +63,7 @@ function updateUI( content, scrollTop ) {
 
 	// breadcrumbs
 	currentPath.forEach( ( { dir }, index ) => {
-		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : dir == '/' ? '' : '/' } `;
+		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ dir == '/' ? '' : '/' } `;
 	});
 
 	// mounting points
@@ -134,8 +130,7 @@ function enterDir( target, scrollTop ) {
 		const parseContent = content => {
 			ui_files.classList.remove( CLASS_LOADING );
 			if ( content !== false ) {
-				if ( ! nodeServer || useFileSystemAPI )
-					content = parseDirectory( content );
+				content = parseDirectory( content );
 				updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
 				if ( enterDirCallback )
 					enterDirCallback( currentPath );
@@ -166,15 +161,7 @@ function enterDir( target, scrollTop ) {
 		else {
 			const url = makePath();
 			fetch( url )
-				.then( response => {
-					if ( response.status == 200 ) {
-						if ( nodeServer )
-							return response.json();
-						else
-							return response.text();
-					}
-					return false;
-				})
+				.then( response => response.ok ? response.text() : false )
 				.then( content => parseContent( content ) )
 				.catch( () => parseContent( false ) );
 		}
@@ -230,10 +217,9 @@ export function decodeChars( uri ) {
  * Generates full path for a file or directory
  *
  * @param {string} fileName
- * @param {boolean} if `true` does not prefix path with server route
  * @returns {string} full path to filename
  */
-export function makePath( fileName, noPrefix ) {
+export function makePath( fileName ) {
 
 	let fullPath = '';
 
@@ -247,12 +233,7 @@ export function makePath( fileName, noPrefix ) {
  	// convert special characters into their URL-safe codes
 	fullPath = encodeChars( fullPath );
 
-	if ( isElectron ) {
-		fullPath = fullPath.replace( /\//g, '%2f' );
-		if ( ! noPrefix )
-			fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath;
-	}
-	else if ( serverMode == MODE_WEB && fullPath[0] == '/' )
+	if ( serverMode == MODE_WEB && fullPath[0] == '/' )
 		fullPath = fullPath.slice(1); // make path relative to page origin
 
 	return fullPath;
@@ -325,23 +306,6 @@ export async function getHandles( pathname ) {
 	}
 
 	return { handle, subs }
-}
-
-/**
- * Returns user's home path (for Electron only)
- *
- * @returns {array} array of { dir: <string>, scrollTop: <number> }
- */
-export async function getHomePath() {
-
-	const response = await fetch( '/getHomeDir' ),
-		  homeDir  = await response.text();
-
-	let homePath = [];
-	for ( const dir of homeDir.split( isWindows ? '\\' : '/' ) )
-		homePath.push( { dir, scrollTop: 0 } );
-
-	return homePath;
 }
 
 /**
@@ -592,44 +556,25 @@ export function create( container, options = {} ) {
 		setFileExtensions( options.fileExtensions );
 
 	return new Promise( resolve => {
-		fetch( '/serverInfo' )
-			.then( response => {
-				return response.text();
-			})
-			.then( async content => {
+		fetch( '.', { method: 'HEAD' } ) // check for web server
+			.then( async response => {
 				clearTimeout( startUpTimer );
-				if ( content.startsWith('audioMotion') ) {
-					nodeServer = true;
-					serverMode = MODE_NODE;
-				}
-				else {
-					// no response for our custom query, so it's probably running on a standard web server
-					serverMode = MODE_WEB;
-				}
+				serverMode = MODE_WEB;
+				mounts = [ options.rootPath || defaultRoot ];
+				hasServerMedia = await enterDir( mounts[0] );
 
-				if ( serverMode == MODE_NODE && isElectron ) {
-					const response = await fetch( '/getMounts' );
-					mounts = await response.json();
-					setPath( await getHomePath() ); // on Electron start at user's home by default
-				}
-				else {
-					// web or custom server
-					mounts = [ options.rootPath || defaultRoot ];
-					hasServerMedia = await enterDir( mounts[0] );
-
-					if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! hasServerMedia ) {
-						// local file system requested or no music directory on server - use File System API if supported
-						currentPath = [];
-						if ( supportsFileSystemAPI ) {
-							mounts = [ openFolderMsg ];
-							useFileSystemAPI = true;
-						}
-						else
-							mounts = [];
-						updateUI();
+				if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! hasServerMedia ) {
+					// local file system requested or no music directory on server - use File System API if supported
+					currentPath = [];
+					if ( supportsFileSystemAPI ) {
+						mounts = [ openFolderMsg ];
+						useFileSystemAPI = true;
 					}
+					else
+						mounts = [];
+					updateUI();
 				}
-				resolve( { serverMode, useFileSystemAPI, hasServerMedia, filelist: ui_files, serverSignature: serverMode == MODE_WEB ? 'Standard web server' : content } );
+				resolve( { serverMode, useFileSystemAPI, hasServerMedia, filelist: ui_files } );
 			})
 			.catch( err => {
 				// if the fetch fails, it's probably running in file:// mode
