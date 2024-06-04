@@ -2448,7 +2448,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 }
 
 /**
- * Load playlists from indexedDB and legacy playlists.cfg file
+ * Load list of playlists stored on indexedDB
  * @param [string] key name of the currently selected playlist
  */
 async function loadSavedPlaylists( keyName ) {
@@ -2497,37 +2497,6 @@ async function loadSavedPlaylists( keyName ) {
 			elPlaylists.options[ elPlaylists.options.length ] = item;
 		}
 	}
-
-	// try to load legacy playlists.cfg file
-
-	fetch( 'playlists.cfg' )
-		.then( response => {
-			if ( response.ok ) {
-				consoleLog( 'Found legacy playlists.cfg file' );
-				return response.text();
-			}
-			else
-				return false;
-		})
-		.then( content => {
-			if ( content !== false ) {
-				let n = 0;
-				content.split(/[\r\n]+/).forEach( line => {
-					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-						let info = line.split(/\|/);
-						if ( info.length == 2 ) {
-							elPlaylists.options[ elPlaylists.options.length ] = new Option( info[0].trim(), info[1].trim() );
-							n++;
-						}
-					}
-				});
-				if ( n )
-					consoleLog( `${n} playlists loaded from playlists.cfg` );
-				else
-					consoleLog( 'No playlists found in playlists.cfg', true );
-			}
-		})
-		.catch( e => {} );
 }
 
 /**
