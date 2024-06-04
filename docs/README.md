@@ -66,16 +66,12 @@ And all the developers and artists, for the following resources:
 ### JavaScript libraries <!-- {docsify-ignore} -->
 
 * [buffer](https://www.npmjs.com/package/buffer) - Node.js Buffer API, for the browser
-* [express](https://www.npmjs.com/package/express) - fast, unopinionated, minimalist web framework for node
+* [http-server](https://www.npmjs.com/package/http-server) - a simple zero-configuration command-line http server
 * [idb-keyval](https://www.npmjs.com/package/idb-keyval) - super-simple promise-based keyval store implemented with IndexedDB
 * [music-metadata-browser](https://www.npmjs.com/package/music-metadata-browser) - stream and file based music metadata parser for the browser
 * [notie](https://www.npmjs.com/package/notie) - clean and simple notification, input, and selection suite for javascript, with no dependencies
-* [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
-* [pkg](https://www.npmjs.com/package/pkg) - single-command Node.js binary compiler
 * [process](https://www.npmjs.com/package/process) - process information for node.js and browsers
-* [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively requesting user input via console
 * [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101) - polyfill for non-standard scrollIntoViewIfNeeded() method
-* [serve-index](https://www.npmjs.com/package/serve-index) - serve directory listings
 * [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser
   * [css-loader](https://www.npmjs.com/package/css-loader) - CSS loader module for webpack

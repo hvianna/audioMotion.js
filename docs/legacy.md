@@ -44,29 +44,6 @@ The complete command line options are:
 Please be aware that using the `-e` flag will expose the contents of the mounted folders to anyone in your network (and potentially to the entire internet!) &mdash; use it only if you're in a trusted network and behind a firewall!
 
 
-## Legacy binaries
-
-> Up to version 21.11, audioMotion used [pkg](https://www.npmjs.com/package/pkg) to package the Node.js runtime, the [custom file server](#custom-file-server) and the web app files into a single executable.
-
-To generate the binaries, you'll need to install **pkg** globally:
-
-```
-npm install -g pkg
-```
-
-Then package the application with:
-
-```
-npm run pkg
-```
-
-This will create executable files for Windows, Linux and macOS in the `bin/` folder.
-
-The same command-line options used by the [custom file server](#custom-file-server) also apply to the executable.
-
-Please refer to the [pkg documentation](https://github.com/vercel/pkg#readme) for building to other available platforms.
-
-
 ## Running via Docker
 
 > I'm no longer actively maintaining this, but it should still work.
