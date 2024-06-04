@@ -7,7 +7,7 @@ env:
 on:
   push:
     branches:
-      - dev
+      - master
 
 jobs:
   deploy-app:
@@ -15,12 +15,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Create files
+      - name: Create and edit files
         run: |
           echo "audiomotion.app" > public/CNAME
           echo -e "include: [\".well-known\"]\n" > public/_config.yml
           mkdir public/.well-known
           echo -e "This is a Brave Creators publisher verification file.\n\nDomain: audiomotion.app\nToken: ddbc4cddcf21685fd67a05d53d95d4f420f67190cb38ec7b6250e3fb8cb7d6cf\n" > public/.well-known/brave-rewards-verification.txt
+          sed -i '/<link rel=\"icon\"/a <link rel=\"manifest\" href=\"manifest.json\">' public/index.html
       - name: Generate Directory Listings
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
@@ -32,6 +33,7 @@ jobs:
         run: |
           git config user.name "$USERNAME"
           git config user.email "$USERNAME@$ADDRESS_SUFFIX"
+          git mv src/manifest.json public
           git mv docs public
           git add .
           git commit -m "Deploy app"

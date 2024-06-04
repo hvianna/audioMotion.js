@@ -1,0 +1,22 @@
+{
+  "name": "audioMotion",
+  "short_name": "audioMotion",
+  "description": "audioMotion: media player and real-time audio spectrum analyzer",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "img/audiomotion-icon-rounded.png",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "maskable"
+    },
+    {
+      "src": "img/favicon256.png",
+      "type": "image/png",
+      "sizes": "256x256"
+    }
+  ],
+  "id": "/",
+  "start_url": "/",
+  "scope": "/"
+}

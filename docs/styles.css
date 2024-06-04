@@ -3,7 +3,7 @@
 	--cover-background-color: transparent;
 	--cover-background-image: none;
 	--cover-background-mask-color: #000;
-	--cover-background-mask-opacity: .5;
+	--cover-background-mask-opacity: .25;
 	--cover-blockquote-color: #f0f0f0;
 	--cover-blockquote-font-size: 2rem;
 	--cover-button-background: #023c;
@@ -67,6 +67,15 @@ strong code {
 .cover blockquote strong {
 	color: inherit;
 	font-weight: 700;
+}
+
+.img-center {
+	display: block;
+	margin: 0 auto;
+}
+.img-right {
+	float: right;
+	margin: 1em 0 1em 1em;
 }
 
 .sidebar > h1 .app-name-link {
@@ -232,5 +241,5 @@ p ~ .table-wrapper table {
 .active.highlight-switches {
 	--top: 2px;
 	--left: 635px;
-	--height: 250px;
+	--height: 270px;
 }

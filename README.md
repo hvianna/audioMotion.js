@@ -1,42 +1,46 @@
 ![audioMotion-header](docs/img/audioMotion-header.png)
 
-**audioMotion** is a high-resolution real-time audio spectrum analyzer and full-featured music player that lets you **see your music!** ♪♫🤩<br>
+**audioMotion** is a media player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
 It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
 
 [![GitHub release](https://img.shields.io/github/release/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
 [![GitHub Release Date](https://img.shields.io/github/release-date/hvianna/audioMotion.js.svg)](https://github.com/hvianna/audioMotion.js/releases/latest)
+[![web app](https://img.shields.io/badge/audioMotion.app-5A0FC8?style=flat&logo=PWA)](https://audiomotion.app)
 
 ## Features
 
 ![screenshot2](docs/img/screenshot2.png)
 
-* High-resolution real-time dual channel audio spectrum analyzer
-* Fullscreen and Picture-In-Picture support at 60fps, ready for retina / HiDPI displays
+* Dual channel high-resolution real-time audio spectrum analyzer
+* Media player with subtitles support for audio and video files
+* Fullscreen and Picture-In-Picture display at 60fps, ready for Retina / HiDPI screens
 * Logarithmic, linear and perceptual (Bark and Mel) frequency scales, with customizable range
 * Visualization of discrete FFT frequencies or up to 240 frequency bands (supports ANSI and equal-tempered octave bands)
 * Decibel and linear amplitude scales, with customizable sensitivity
 * Optional A, B, C, D and ITU-R 468 weighting filters
-* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial visualization
+* Optional effects: vintage LEDs, variable opacity, mirroring and reflection, radial spectrum
 * 17 beautiful color gradients, plus a visual editor to easily create your own gradients
-* HTML5 audio player for MP3, AAC (m4a), OGG and FLAC files (support may vary depending on browser and operating system)
-* Visual file explorer and play queue with drag-and-drop functionality
-* Support for M3U playlists (`m3u` and `m3u8` file extensions)
+* Support for M3U playlists (.m3u and .m3u8 file extensions)
 * Visualize audio from your microphone (or "stereo mix", if your soundcard supports it)
 
 > **For developers:**<br>
 > Check out [**audioMotion-analyzer**](https://audiomotion.dev) for easy integration of audioMotion's full-featured spectrum analyzer into your own Javascript projects!
 
-## Web App
+## Access the web app
 
-[![Button Icon]][Link]
+<a href="https://audiomotion.app" target="_blank" title="open web app"><img src="https://img.shields.io/badge/audioMotion.app-5A0FC8?style=flat&logo=PWA" height="48"></a>
 
-[Link]: https://audiomotion.app 'click to open web app'
+**Use a Chromium-based browser to be able to play media files from your hard drive.** Works on Chrome, Opera and Edge by default.
 
-[Button Icon]: https://img.shields.io/badge/audioMotion.app-ff3e37?style=for-the-badge&logoColor=white&logo=Soundcharts
+**On Brave browser,** access `chrome://flags/#file-system-access-api` to enable this feature.
+
+Install audioMotion on your PC by clicking the install icon located in the browser's address bar:
+
+![browser-install](docs/img/browser-install.png)
 
 ## Documentation
 
-* See the [docs/](docs/) folder or the [online documentation](https://audiomotion.app/docs)
+See the [online documentation](https://audiomotion.app/docs).
 
 ## Contributing
 

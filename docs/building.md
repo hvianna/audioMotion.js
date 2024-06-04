@@ -11,10 +11,7 @@ cd audioMotion.js
 npm install
 ```
 
-
-## Building the web app
-
-The source code is in the `src/` directory, and it must be bundled with [webpack](https://webpack.js.org/).
+The web app is bundled with [webpack](https://webpack.js.org/), from source code located in the `src/` directory.
 
 If you make any changes to the source files, you'll need to rebuild the app, by running:
 
