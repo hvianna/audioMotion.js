@@ -192,10 +192,6 @@ const SCALE_BARK   = 'bark',
 	  SCALE_LOG    = 'log',
 	  SCALE_MEL    = 'mel';
 
-// Server modes
-const SERVER_FILE = -1, // local access via file://
-	  SERVER_WEB  = 0;  // standard web server
-
 // Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.json',
 	  SERVERCFG_DEFAULTS = {
@@ -802,7 +798,6 @@ let audioElement = [],
 	currentGradient = null,     // gradient that is currently loaded in gradient editor
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
-	hasServerMedia,				// music directory found on web server
 	isFastSearch = false,
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
@@ -811,13 +806,14 @@ let audioElement = [],
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
-	serverMode,
+	serverHasMedia,				// music directory found on web server
 	skipping = false,
 	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.json)
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
-	wasMuted;					// mute status before switching to microphone input
+	wasMuted,					// mute status before switching to microphone input
+	webServer;					// web server available? (boolean)
 
 // for on-screen info display
 let baseSize,
@@ -1025,7 +1021,7 @@ const randomInt = ( n = 2 ) => Math.random() * n | 0;
 const saveLastDir = path => {
 	if ( useFileSystemAPI )
 		set( KEY_LAST_DIR, path ); // IndexedDB
-	else if ( serverMode != SERVER_FILE )
+	else if ( webServer )
 		saveToStorage( KEY_LAST_DIR, path );
 }
 
@@ -1672,7 +1668,7 @@ function getFolderCover( uri ) {
 	return new Promise( resolve => {
 		const path = parsePath( uri ).path; // extract path (no filename)
 
-		if ( serverMode == SERVER_FILE || isExternalURL( uri ) )
+		if ( ! webServer || isExternalURL( uri ) )
 			resolve(''); // nothing to do when in serverless mode or external file
 		else if ( folderImages[ path ] !== undefined )
 			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
@@ -4240,7 +4236,7 @@ function setUIEventListeners() {
 	const btnToggleFS = $('#btn_toggle_filesystem'),
 		  setToggleButtonText = () => btnToggleFS.innerText = `Switch to ${ useFileSystemAPI ? 'Server' : 'Device' }`;
 
-	if ( ! hasServerMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
+	if ( ! serverHasMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
 		btnToggleFS.style.display = 'none';
 	else {
 		setToggleButtonText();
@@ -4261,7 +4257,7 @@ function setUIEventListeners() {
 	const btnAddSelected = $('#btn_add_selected'),
 		  btnAddFolder   = $('#btn_add_folder');
 
-	if ( hasServerMedia || useFileSystemAPI ) {
+	if ( serverHasMedia || useFileSystemAPI ) {
 		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
 		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
 	}
@@ -5080,14 +5076,14 @@ function updateRangeValue( el ) {
 		}
 	).then( status => {
 		// set global variables
-		serverMode       = status.serverMode;
-		hasServerMedia   = status.hasServerMedia;
+		webServer        = status.webServer;
+		serverHasMedia   = status.serverHasMedia;
 		useFileSystemAPI = status.useFileSystemAPI;
 
 		const { filelist } = status;
 
-		if ( ! hasServerMedia )
-			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music directory on server' }`, true );
+		if ( ! serverHasMedia )
+			consoleLog( `${ webServer ? 'Cannot access music directory on server' : 'No server found' }`, true );
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
@@ -5097,7 +5093,7 @@ function updateRangeValue( el ) {
 		loadSavedPlaylists();
 
 		// initialize drag-and-drop in the file explorer
-		if ( useFileSystemAPI || hasServerMedia ) {
+		if ( useFileSystemAPI || serverHasMedia ) {
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',

@@ -16,20 +16,17 @@ const CLASS_BREADCRUMB = 'breadcrumb',
 	  CLASS_FILELIST   = 'filelist',
 	  CLASS_LOADING    = 'loading';
 
-const MODE_WEB  = 0,  // standard web server
-	  MODE_FILE = -1; // local access via file://
-
 let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>, handle: <FileSystemHandle> }
 	currentDirHandle,          // for File System API accesses
 	dblClickCallback,
 	enterDirCallback,
 	fileExtensions    = /.*/,
 	mounts            = [],
+	serverHasMedia    = false, // music directory found on server
 	ui_path,
 	ui_files,
-	serverMode,
-	hasServerMedia    = false, // music directory found on server
-	useFileSystemAPI  = false; // use FileSystem API (default on file:// mode or no media found on server)
+	useFileSystemAPI  = false, // use FileSystem API (default on file:// mode or no media found on server)
+	webServer         = false; // is web server available?
 
 /**
  * Updates the file explorer user interface
@@ -233,7 +230,7 @@ export function makePath( fileName ) {
  	// convert special characters into their URL-safe codes
 	fullPath = encodeChars( fullPath );
 
-	if ( serverMode == MODE_WEB && fullPath[0] == '/' )
+	if ( webServer && fullPath[0] == '/' )
 		fullPath = fullPath.slice(1); // make path relative to page origin
 
 	return fullPath;
@@ -559,11 +556,11 @@ export function create( container, options = {} ) {
 		fetch( '.', { method: 'HEAD' } ) // check for web server
 			.then( async response => {
 				clearTimeout( startUpTimer );
-				serverMode = MODE_WEB;
+				webServer = true;
 				mounts = [ options.rootPath || defaultRoot ];
-				hasServerMedia = await enterDir( mounts[0] );
+				serverHasMedia = await enterDir( mounts[0] );
 
-				if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! hasServerMedia ) {
+				if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! serverHasMedia ) {
 					// local file system requested or no music directory on server - use File System API if supported
 					currentPath = [];
 					if ( supportsFileSystemAPI ) {
@@ -574,12 +571,11 @@ export function create( container, options = {} ) {
 						mounts = [];
 					updateUI();
 				}
-				resolve( { serverMode, useFileSystemAPI, hasServerMedia, filelist: ui_files } );
+				resolve( { webServer, useFileSystemAPI, serverHasMedia, filelist: ui_files } );
 			})
 			.catch( err => {
-				// if the fetch fails, it's probably running in file:// mode
+				// if the fetch fails, it must be running in file:// mode
 				clearTimeout( startUpTimer );
-				serverMode = MODE_FILE;
 				if ( supportsFileSystemAPI ) {
 					mounts = [ openFolderMsg ];
 					useFileSystemAPI = true;
@@ -587,7 +583,7 @@ export function create( container, options = {} ) {
 				else
 					mounts = [];
 				updateUI();
-				resolve( { serverMode, useFileSystemAPI, filelist: ui_files } );
+				resolve( { webServer, useFileSystemAPI, filelist: ui_files } );
 			});
 	});
 
