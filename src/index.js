@@ -265,7 +265,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
 	  elLinkGrads     = $('#link_grads'),
-	  elLoadedPlist   = $('#loaded_playlist'),
 	  elLoRes         = $('#lo_res'),
 	  elLumiBars      = $('#lumi_bars'),
 	  elMaxFPS        = $('#max_fps'),
@@ -2056,9 +2055,6 @@ function loadPlaylist( fileObject ) {
 		}
 
 		const parsePlaylistContent = async content => {
-			if ( ! elLoadedPlist.dataset.path )
-				setLoadedPlaylist( path );
-
 			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
 			let album, songInfo;

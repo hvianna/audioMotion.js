@@ -541,15 +541,6 @@ a.button:visited {
 	cursor: help;
 }
 
-#loaded_playlist {
-	font-size: 90%;
-	margin-left: 20px;
-	padding: 2px 10px 6px;
-}
-#loaded_playlist:not(:empty)::before {
-	content: 'Loaded: ';
-}
-
 .playlist-bar {
 	padding: 0 10px 6px;
 }
