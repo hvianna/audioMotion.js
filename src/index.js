@@ -836,9 +836,6 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
-// convert URL-encoded slashes back to regular ASCII
-const decodeSlashes = ( path ) => path.replace( /(%2f|\/)/g, '/' );
-
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
 
@@ -981,7 +978,7 @@ const parsePath = uri => {
 	if ( typeof uri != 'string' )
 		return {};
 
-	const fullPath  = normalizeSlashes( decodeSlashes( uri ) ),
+	const fullPath  = normalizeSlashes( uri ),
 		  lastSlash = fullPath.lastIndexOf('/') + 1,
 		  path      = fullPath.slice( 0, lastSlash ), // path only
 		  fileName  = fullPath.slice( lastSlash ),    // file name with extension
@@ -1670,7 +1667,7 @@ function getFolderCover( uri ) {
 		if ( ! webServer || isExternalURL( uri ) )
 			resolve(''); // nothing to do when in serverless mode or external file
 		else if ( folderImages[ path ] !== undefined )
-			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
+			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
 		else {
 			fetch( path )
 				.then( response => {
@@ -1684,7 +1681,7 @@ function getFolderCover( uri ) {
 							imageUrl = dirContents.cover;
 					}
 					folderImages[ path ] = imageUrl;
-					resolve( queryFile( path + imageUrl ) );
+					resolve( path + imageUrl );
 				})
 				.catch( e => resolve('') );
 		}
@@ -2098,7 +2095,7 @@ function loadPlaylist( fileObject ) {
 						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: line, handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
