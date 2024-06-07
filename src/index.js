@@ -44,17 +44,12 @@ import './notie.css';
 
 import './styles.css';
 
-const isElectron  = 'electron' in window,
-	  isWindows   = isElectron && /Windows/.test( navigator.userAgent ),
-	  ROUTE_FILE  = '/getFile/',   // server route to read files anywhere (Electron only)
-	  ROUTE_COVER = '/getCover/',  // server route to get a folder's cover image (Electron and legacy node server)
-	  ROUTE_SAVE  = '/savePlist/', // server route to save a file to the filesystem (Electron only)
-	  URL_ORIGIN  = location.origin + location.pathname,
-	  VERSION     = packageJson.version;
+const URL_ORIGIN = location.origin + location.pathname,
+	  VERSION    = packageJson.version;
 
-const AUTOHIDE_DELAY        = 300,	// delay for triggering media panel auto-hide (in milliseconds)
-	  BG_DIRECTORY          = isElectron ? '/getBackground' : 'backgrounds', // folder name (or server route on Electron) for backgrounds
-	  MAX_METADATA_REQUESTS = 4,	// max concurrent metadata requests
+const AUTOHIDE_DELAY        = 300,				// delay for triggering media panel auto-hide (in milliseconds)
+	  BG_DIRECTORY          = 'backgrounds', 	// server folder name for built-in backgrounds
+	  MAX_METADATA_REQUESTS = 4,				// max concurrent metadata requests
 	  MAX_QUEUED_SONGS      = 2000;
 
 // Background option values
@@ -197,11 +192,6 @@ const SCALE_BARK   = 'bark',
 	  SCALE_LOG    = 'log',
 	  SCALE_MEL    = 'mel';
 
-// Server modes
-const SERVER_CUSTOM = 1,  // custom server (node or Electron)
-	  SERVER_FILE   = -1, // local access via file://
-	  SERVER_WEB    = 0;  // standard web server
-
 // Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.json',
 	  SERVERCFG_DEFAULTS = {
@@ -275,7 +265,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
 	  elLinkGrads     = $('#link_grads'),
-	  elLoadedPlist   = $('#loaded_playlist'),
 	  elLoRes         = $('#lo_res'),
 	  elLumiBars      = $('#lumi_bars'),
 	  elMaxFPS        = $('#max_fps'),
@@ -808,7 +797,6 @@ let audioElement = [],
 	currentGradient = null,     // gradient that is currently loaded in gradient editor
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
-	hasServerMedia,				// music directory found on web server
 	isFastSearch = false,
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
@@ -817,13 +805,14 @@ let audioElement = [],
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
-	serverMode,
+	serverHasMedia,				// music directory found on web server
 	skipping = false,
 	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.json)
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
-	wasMuted;					// mute status before switching to microphone input
+	wasMuted,					// mute status before switching to microphone input
+	webServer;					// web server available? (boolean)
 
 // for on-screen info display
 let baseSize,
@@ -846,12 +835,6 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
-
-// convert URL-encoded slashes back to regular ASCII
-const decodeSlashes = ( path, osNative ) => path.replace( /(%2f|\/)/g, osNative && isWindows ? '\\' : '/' );
-
-// convert slashes to their URL-safe encoding for server queries
-const encodeSlashes = path => path.replace( /\//g, '%2f' );
 
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
@@ -995,7 +978,7 @@ const parsePath = uri => {
 	if ( typeof uri != 'string' )
 		return {};
 
-	const fullPath  = removeServerEncoding( uri ),
+	const fullPath  = normalizeSlashes( uri ),
 		  lastSlash = fullPath.lastIndexOf('/') + 1,
 		  path      = fullPath.slice( 0, lastSlash ), // path only
 		  fileName  = fullPath.slice( lastSlash ),    // file name with extension
@@ -1024,33 +1007,17 @@ const parseTrackName = name => {
 	return { album, artist, title, duration: separator == ',' ? secondsToTime( duration ) : '' };
 }
 
-// prepare a file path for use with the Electron file server if needed
-const queryFile = path => {
-	if ( isElectron && ! isExternalURL( path ) ) {
-		if ( path.startsWith( ROUTE_FILE ) )
-			path = path.slice( ROUTE_FILE.length );
-		path = ROUTE_FILE + encodeSlashes( path );
-	}
-	return path;
-}
-
 // returns the count of queued songs
 const queueLength = _ => playlist.children.length;
 
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
 
-// remove custom server route and encoded slashes from a URL
-const removeServerEncoding = uri => {
-	const regexp = new RegExp( `^${ ROUTE_FILE }` );
-	return normalizeSlashes( decodeSlashes( uri.replace( regexp, '' ) ) );
-}
-
 // helper function to save a path to localStorage or IndexedDB
 const saveLastDir = path => {
 	if ( useFileSystemAPI )
 		set( KEY_LAST_DIR, path ); // IndexedDB
-	else if ( serverMode != SERVER_FILE )
+	else if ( webServer )
 		saveToStorage( KEY_LAST_DIR, path );
 }
 
@@ -1697,30 +1664,24 @@ function getFolderCover( uri ) {
 	return new Promise( resolve => {
 		const path = parsePath( uri ).path; // extract path (no filename)
 
-		if ( serverMode == SERVER_FILE || isExternalURL( uri ) )
+		if ( ! webServer || isExternalURL( uri ) )
 			resolve(''); // nothing to do when in serverless mode or external file
 		else if ( folderImages[ path ] !== undefined )
-			resolve( queryFile( path + folderImages[ path ] ) ); // use the stored image URL for this path
+			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
 		else {
-			const urlToFetch = ( serverMode == SERVER_CUSTOM ) ? ROUTE_COVER + encodeSlashes( path ) : path;
-
-			fetch( urlToFetch )
+			fetch( path )
 				.then( response => {
 					return response.ok ? response.text() : null;
 				})
 				.then( content => {
 					let imageUrl = '';
 					if ( content ) {
-						if ( serverMode == SERVER_CUSTOM )
-							imageUrl = content;
-						else {
-							const dirContents = fileExplorer.parseDirectory( content );
-							if ( dirContents.cover )
-								imageUrl = dirContents.cover;
-						}
+						const dirContents = fileExplorer.parseDirectory( content );
+						if ( dirContents.cover )
+							imageUrl = dirContents.cover;
 					}
 					folderImages[ path ] = imageUrl;
-					resolve( queryFile( path + imageUrl ) );
+					resolve( path + imageUrl );
 				})
 				.catch( e => resolve('') );
 		}
@@ -1988,10 +1949,10 @@ function loadFileBlob( fileBlob, audioEl, playIt ) {
  * Load a JSON-encoded object from localStorage
  *
  * @param {string} item key
- * @returns {Promise} a promise that resolves to the parsed object
+ * @returns {object} parsed object, array, string, number, boolean or null value
  */
-async function loadFromStorage( key ) {
-	return JSON.parse( isElectron ? await electron.api( 'storage-get', key ) : localStorage.getItem( key ) );
+function loadFromStorage( key ) {
+	return JSON.parse( localStorage.getItem( key ) );
 }
 
 /**
@@ -2091,9 +2052,6 @@ function loadPlaylist( fileObject ) {
 		}
 
 		const parsePlaylistContent = async content => {
-			if ( ! elLoadedPlist.dataset.path )
-				setLoadedPlaylist( path );
-
 			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
 			let album, songInfo;
@@ -2137,7 +2095,7 @@ function loadPlaylist( fileObject ) {
 						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: queryFile( line ), handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: line, handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
@@ -2200,7 +2158,7 @@ function loadPlaylist( fileObject ) {
 /**
  * Load preferences from localStorage
  */
-async function loadPreferences() {
+function loadPreferences() {
 	// helper function
 	const parseDisabled = ( data, optionList ) => {
 		if ( Array.isArray( data ) ) {
@@ -2214,14 +2172,14 @@ async function loadPreferences() {
 		}
 	}
 
-	const lastConfig    = await loadFromStorage( KEY_LAST_CONFIG ),
+	const lastConfig    = loadFromStorage( KEY_LAST_CONFIG ),
 	 	  isLastSession = lastConfig !== null;
 
 	// Merge defaults with the last session settings (if any)
 	setPreset( 'last', { ...getPreset('default'), ...lastConfig } );
 
 	// Load user presets
-	userPresets = await loadFromStorage( KEY_CUSTOM_PRESET ) || [];
+	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
 	if ( ! Array.isArray( userPresets ) )
 		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
@@ -2232,13 +2190,13 @@ async function loadPreferences() {
 	}
 
 	// Load disabled modes preference
-	parseDisabled( await loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
+	parseDisabled( loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
 
 	// Load disabled background image fit options
-	parseDisabled( await loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
+	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
 
 	// Load custom gradients
-	const customGradients = await loadFromStorage( KEY_CUSTOM_GRADS );
+	const customGradients = loadFromStorage( KEY_CUSTOM_GRADS );
 	if ( customGradients ) {
 		Object.keys( customGradients ).forEach( key => {
 			gradients[ key ] = customGradients[ key ];
@@ -2246,10 +2204,10 @@ async function loadPreferences() {
 	}
 
 	// Load disabled gradients preference
-	parseDisabled( await loadFromStorage( KEY_DISABLED_GRADS ), gradients );
+	parseDisabled( loadFromStorage( KEY_DISABLED_GRADS ), gradients );
 
 	// Load disabled random properties preference
-	parseDisabled( await loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
+	parseDisabled( loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -2261,7 +2219,7 @@ async function loadPreferences() {
 	const elLinearBoost = $$('.linear-boost');
 	elLinearBoost.forEach( el => setRangeAtts( el, 1, 5, .2 ) );
 
-	const sensitivityPresets = await loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
+	const sensitivityPresets = loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -2270,7 +2228,7 @@ async function loadPreferences() {
 	});
 
 	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( await loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
+	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
 
 	// General settings
 
@@ -2299,7 +2257,7 @@ async function loadPreferences() {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
-	setGeneralOptions( { ...generalOptionsDefaults, ...( await loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
+	setGeneralOptions( { ...generalOptionsDefaults, ...( loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
 
 	// Peak settings
 
@@ -2309,7 +2267,7 @@ async function loadPreferences() {
 
 	setRangeAtts( elPeakHold, 0, 5000, 50 );
 
-	setPeakOptions( { ...peakOptionsDefaults, ...( await loadFromStorage( KEY_PEAK_OPTIONS ) || {} ) } );
+	setPeakOptions( { ...peakOptionsDefaults, ...( loadFromStorage( KEY_PEAK_OPTIONS ) || {} ) } );
 
 	// Subtitles configuration
 
@@ -2332,7 +2290,7 @@ async function loadPreferences() {
 		[ SUBS_POS_BOTTOM, 'Bottom' ]
 	]);
 
-	setSubtitlesOptions( { ...subtitlesDefaults, ...( await loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+	setSubtitlesOptions( { ...subtitlesDefaults, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -2448,7 +2406,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 }
 
 /**
- * Load playlists from indexedDB and legacy playlists.cfg file
+ * Load list of playlists stored on indexedDB
  * @param [string] key name of the currently selected playlist
  */
 async function loadSavedPlaylists( keyName ) {
@@ -2466,12 +2424,12 @@ async function loadSavedPlaylists( keyName ) {
 	let playlists = await get( KEY_PLAYLISTS );
 
 	// migrate playlists from localStorage (for compatibility with versions up to 24.2-beta.1)
-	const oldPlaylists = await loadFromStorage( KEY_PLAYLISTS );
+	const oldPlaylists = loadFromStorage( KEY_PLAYLISTS );
 
 	if ( oldPlaylists ) {
 		for ( const key of Object.keys( oldPlaylists ) ) {
 			const plKey    = PLAYLIST_PREFIX + key,
-				  contents = await loadFromStorage( plKey );
+				  contents = loadFromStorage( plKey );
 
 			let songs = [];
 			for ( const file of contents )
@@ -2497,37 +2455,6 @@ async function loadSavedPlaylists( keyName ) {
 			elPlaylists.options[ elPlaylists.options.length ] = item;
 		}
 	}
-
-	// try to load legacy playlists.cfg file
-
-	fetch( 'playlists.cfg' )
-		.then( response => {
-			if ( response.ok ) {
-				consoleLog( 'Found legacy playlists.cfg file' );
-				return response.text();
-			}
-			else
-				return false;
-		})
-		.then( content => {
-			if ( content !== false ) {
-				let n = 0;
-				content.split(/[\r\n]+/).forEach( line => {
-					if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-						let info = line.split(/\|/);
-						if ( info.length == 2 ) {
-							elPlaylists.options[ elPlaylists.options.length ] = new Option( info[0].trim(), info[1].trim() );
-							n++;
-						}
-					}
-				});
-				if ( n )
-					consoleLog( `${n} playlists loaded from playlists.cfg` );
-				else
-					consoleLog( 'No playlists found in playlists.cfg', true );
-			}
-		})
-		.catch( e => {} );
 }
 
 /**
@@ -3033,10 +2960,7 @@ function randomizeSettings( force = elSource.checked ) {
  * @param key {string}
  */
 function removeFromStorage( key ) {
-	if ( isElectron )
-		electron.api( 'storage-remove', key );
-	else
-		localStorage.removeItem( key );
+	localStorage.removeItem( key );
 }
 
 /**
@@ -3302,58 +3226,6 @@ function savePlaylist( index ) {
 }
 
 /**
- * Save the playqueue to the filesystem
- * (Electron only)
- */
-function savePlayqueueToServer( path, update ) {
-	if ( queueLength() == 0 ) {
-		notie.alert({ text: 'Queue is empty!' });
-		return;
-	}
-
-	if ( ! path ) {
-		notie.input({
-			text: 'Playlist will be saved to the current folder.<br>Enter filename:',
-			submitText: 'Save',
-			submitCallback: value => {
-				if ( value ) {
-					const newPath = fileExplorer.makePath( value, true );
-					savePlayqueueToServer( newPath );
-				}
-				else
-					notie.alert({ text: 'Canceled' });
-			},
-			cancelCallback: () => {
-				notie.alert({ text: 'Canceled' });
-			}
-		});
-		return;
-	}
-
-	const contents = [];
-
-	playlist.childNodes.forEach( item => {
-		const { file, artist, title, duration } = item.dataset;
-		contents.push( { file: removeServerEncoding( file ), artist, title, duration } );
-	});
-
-	fetch( ROUTE_SAVE + path, {
-		method: update ? 'PUT' : 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify( { contents } )
-	})
-	.then( response => response.ok ? response.json() : { error: `Cannot save file (ERROR ${ response.status })` } )
-	.then( ( { file, error } ) => {
-		const text = file ? `${ update ? 'Updated' : 'Saved as' } ${ parsePath( file ).fileName }` : error;
-		notie.alert({ text });
-		setLoadedPlaylist( file );
-		fileExplorer.refresh();
-	});
-}
-
-/**
  * Save Config Panel preferences to localStorage
  *
  * @param [key] {string} preference to save; if undefined save all preferences (default)
@@ -3449,11 +3321,7 @@ function savePreferences( key ) {
  * @param {object} data object
  */
 function saveToStorage( key, data ) {
-	const value = JSON.stringify( data );
-	if ( isElectron )
-		electron.api( 'storage-set', key, value );
-	else
-		localStorage.setItem( key, value );
+	localStorage.setItem( key, JSON.stringify( data ) );
 }
 
 /**
@@ -3620,18 +3488,6 @@ function setInfoOptions( options ) {
 	elEndTimeout.value   = options.end;
 	elShowCover.checked  = options.covers;
 	elShowCount.checked  = options.count;
-}
-
-/**
- * Set / clear the currently loaded playlist (for Electron version)
- */
-function setLoadedPlaylist( path = '' ) {
-	if ( isElectron ) {
-		path = removeServerEncoding( path );
-		elLoadedPlist.dataset.path = encodeSlashes( path );
-		elLoadedPlist.innerText = parsePath( path ).fileName;
-		elLoadedPlist.title = decodeSlashes( path, true ); // display native OS slashes (Windows)
-	}
 }
 
 /**
@@ -4064,9 +3920,7 @@ async function setSource( isMicSource, callback ) {
 
 	if ( isMicSource ) {
 		// try to get access to user's microphone
-		const hasPermission = isElectron ? await electron.api('ask-for-media-access') : true;
-
-		if ( hasPermission && navigator.mediaDevices ) {
+		if ( navigator.mediaDevices ) {
 			navigator.mediaDevices.getUserMedia( { audio: true } )
 			.then( stream => {
 				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
@@ -4351,42 +4205,22 @@ function setUIEventListeners() {
 
 	// playlist controls
 
-	$('#save_playlist').addEventListener( 'click', () => {
-		if ( isElectron ) {
-			const path = elLoadedPlist.dataset.path;
-			if ( path ) {
-				notie.confirm({
-					text: `<strong>${ elLoadedPlist.innerText }</strong><br>will be overwritten with the current play queue<br>ARE YOU SURE?`,
-					submitText: 'Overwrite',
-					submitCallback: () => savePlayqueueToServer( path, true ),
-					cancelCallback: () => notie.alert({ text: 'Canceled' }),
-				});
-			}
-			else
-				savePlayqueueToServer();
-		}
-		else
-			savePlaylist( elPlaylists.selectedIndex );
-	});
-	$('#create_playlist').addEventListener( 'click', () => isElectron ? savePlayqueueToServer() : storePlayQueue() );
 	$('#btn_clear').addEventListener( 'click', () => {
 		clearPlayQueue();
-		setLoadedPlaylist();
 		storePlayQueue( true );
 	});
 
-	// hide unused playlist components depending on which server we're running
-	( isElectron ? $('.playlist-bar') : elLoadedPlist ).style.display = 'none';
+	$('#create_playlist').addEventListener( 'click', () => storePlayQueue() );
+	$('#delete_playlist').addEventListener( 'click', () => deletePlaylist( elPlaylists.selectedIndex ) );
 
-	if ( ! isElectron ) {
-		$('#load_playlist').addEventListener( 'click', () => {
-			loadPlaylist( { file: elPlaylists.value } ).then( n => {
-				const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
-				notie.alert({ text, time: 5 });
-			});
+	$('#load_playlist').addEventListener( 'click', () => {
+		loadPlaylist( { file: elPlaylists.value } ).then( n => {
+			const text = ( n == -1 ) ? 'No playlist selected' : `${n} song${ n > 1 ? 's' : '' } added to the queue`;
+			notie.alert({ text, time: 5 });
 		});
-		$('#delete_playlist').addEventListener( 'click', () => deletePlaylist( elPlaylists.selectedIndex ) );
-	}
+	});
+
+	$('#save_playlist').addEventListener( 'click', () => savePlaylist( elPlaylists.selectedIndex ) );
 
 	// clicks on canvas toggle info display on/off
 	elOSD.addEventListener( 'click', () => toggleInfo() );
@@ -4395,13 +4229,13 @@ function setUIEventListeners() {
 	const btnToggleFS = $('#btn_toggle_filesystem'),
 		  setToggleButtonText = () => btnToggleFS.innerText = `Switch to ${ useFileSystemAPI ? 'Server' : 'Device' }`;
 
-	if ( ! hasServerMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
+	if ( ! serverHasMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
 		btnToggleFS.style.display = 'none';
 	else {
 		setToggleButtonText();
 		btnToggleFS.addEventListener( 'click', async () => {
 			useFileSystemAPI = ! useFileSystemAPI;
-			const lastDir = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) );
+			const lastDir = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR );
 			if ( ! useFileSystemAPI || ! lastDir || await lastDir[0].handle.requestPermission() == 'granted' ) {
 				fileExplorer.switchMode( lastDir );
 				setToggleButtonText();
@@ -4416,7 +4250,7 @@ function setUIEventListeners() {
 	const btnAddSelected = $('#btn_add_selected'),
 		  btnAddFolder   = $('#btn_add_folder');
 
-	if ( isElectron || hasServerMedia || useFileSystemAPI ) {
+	if ( serverHasMedia || useFileSystemAPI ) {
 		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
 		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
 	}
@@ -4425,9 +4259,9 @@ function setUIEventListeners() {
 		btnAddFolder.style.display = 'none';
 	}
 
-	// local file upload - disabled on Electron app or when the File System API is supported
+	// local file upload - disabled when the File System API is supported
 	const uploadBtn = $('#local_file');
-	if ( isElectron || supportsFileSystemAPI )
+	if ( supportsFileSystemAPI )
 		uploadBtn.parentElement.style.display = 'none';
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
@@ -4998,7 +4832,7 @@ function updateRangeValue( el ) {
 	$('#version').innerText = VERSION;
 
 	// Show update message if needed
-	const lastVersion = await loadFromStorage( KEY_LAST_VERSION ),
+	const lastVersion = loadFromStorage( KEY_LAST_VERSION ),
 		  elBanner    = $('#update-banner');
 
 	if ( lastVersion == null || lastVersion == VERSION )
@@ -5042,7 +4876,7 @@ function updateRangeValue( el ) {
 		  userMode       = urlParams.get('mode'),
 		  userMediaPanel = urlParams.get('mediaPanel');
 
-	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : await loadFromStorage( KEY_FORCE_FS_API ) ) );
+	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : loadFromStorage( KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
 		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
@@ -5051,9 +4885,7 @@ function updateRangeValue( el ) {
 		toggleMediaPanel( false );
 
 	// Load preferences from localStorage
-	if ( isElectron )
-		consoleLog( `Reading user preferences from ${ await electron.api('storage-info') }` );
-	const isLastSession = await loadPreferences();
+	const isLastSession = loadPreferences();
 
 	// Initialize play queue and set event listeners
 	playlist = $('#playlist');
@@ -5237,28 +5069,24 @@ function updateRangeValue( el ) {
 		}
 	).then( status => {
 		// set global variables
-		serverMode       = status.serverMode;
-		hasServerMedia   = status.hasServerMedia;
+		webServer        = status.webServer;
+		serverHasMedia   = status.serverHasMedia;
 		useFileSystemAPI = status.useFileSystemAPI;
 
-		const { filelist, serverSignature } = status;
+		const { filelist } = status;
 
-		if ( serverMode != SERVER_FILE )
-			consoleLog( `${ serverSignature } detected at ${ URL_ORIGIN }` );
-		if ( ! hasServerMedia )
-			consoleLog( `${ serverMode == SERVER_FILE ? 'No server found' : 'Cannot access music directory on server' }`, true );
+		if ( ! serverHasMedia )
+			consoleLog( `${ webServer ? 'Cannot access music directory on server' : 'No server found' }`, true );
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
 
-		if ( ! isElectron ) {
-			saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
-			loadSavedPlaylists();
-		}
+		saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
+		loadSavedPlaylists();
 
 		// initialize drag-and-drop in the file explorer
-		if ( isElectron || useFileSystemAPI || hasServerMedia ) {
+		if ( useFileSystemAPI || serverHasMedia ) {
 			Sortable.create( filelist, {
 				animation: 150,
 				draggable: '[data-type="file"], [data-type="list"]',
@@ -5322,7 +5150,7 @@ function updateRangeValue( el ) {
 			}
 		}
 
-		const lastDir         = await ( useFileSystemAPI ? get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ) ),
+		const lastDir         = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ),
 			  bgDirHandle     = await get( KEY_BG_DIR_HANDLE ),
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
 			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';

@@ -5,6 +5,5 @@
 * [Known issues](/known-issues "Known issues | audioMotion")
 * [Changelog](/Changelog "Changelog | audioMotion")
 * [Screenshots](/screenshots "Screenshots | audioMotion")
-* [Legacy features](/legacy "Legacy features | audioMotion")
 * [Contributing](https://github.com/hvianna/audioMotion.js#contributing)
 * [Project on GitHub](https://github.com/hvianna/audioMotion.js)
