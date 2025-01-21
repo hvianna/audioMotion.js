@@ -740,9 +740,9 @@ const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsi
 								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
 
 const generalOptionsDefaults = {
-	autoHide   : true,
+	autoHide   : false,
 	bgLocation : BGFOLDER_SERVER,
-	bgMaxItems : 20,
+	bgMaxItems : 100,
 	fftSize    : 8192,
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
@@ -2249,7 +2249,7 @@ function loadPreferences() {
 		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local folder' ] : [] ) ]
 	]);
 
-	setRangeAtts( elBgMaxItems, 0, 100 );
+	setRangeAtts( elBgMaxItems, 0, 1000 );
 
 	populateSelect( elOSDFontSize, [
 		[ OSD_SIZE_S, 'Small'  ],
