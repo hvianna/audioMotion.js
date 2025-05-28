@@ -582,10 +582,6 @@ a.button:visited {
 	padding: 20px 0;
 	position: relative;
 }
-.file-panel p {
-	font-size: .92em;
-	margin: .7em 0;
-}
 
 .button-column {
 	display: flex;
@@ -925,23 +921,19 @@ kbd.wide {
 	background: #eee;
 	border-radius: 6px;
 	box-shadow: inset 0 1px 3px #0008;
-	height: 390px;
+	height: 350px;
 	margin: 0 25px;
 }
 
 #file_explorer {
-	grid-template-rows: 45px 1fr 40px;
+	grid-template-rows: 45px 1fr;
 }
 
 #playlist_panel {
-	grid-template-rows: auto auto 1fr 40px;
+	grid-template-rows: auto auto 1fr;
 }
 #playlist_panel button {
 	font-size: .92em;
-}
-
-#file_explorer p {
-	order: 3;
 }
 
 #file_explorer .filelist {
