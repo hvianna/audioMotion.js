@@ -675,10 +675,10 @@ div.value {
 }
 
 .progress-bar {
-	align-items: flex-end;
-	bottom: -10px;
-	position: absolute;
-	width: 45%;
+	grid-column: span 3;
+	margin: 1em auto -5px;
+	max-width: 1360px;
+	width: 100%;
 }
 .small-display {
 	background: var(--display-background);
