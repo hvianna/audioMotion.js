@@ -58,9 +58,12 @@ button,
 }
 button:not([disabled]):hover,
 .button:not([data-active="1"]):hover,
-.thin-button:not(.active):not(.disabled):hover {
+.thin-button:not(.active):not(.disabled):not(.icon):hover {
 	background: #f2ffd3 !important;
 	border: 1px solid #72aa00;
+}
+.thin-button.icon:hover {
+	color: #b2ff00;
 }
 
 canvas {
@@ -156,6 +159,16 @@ a.button:visited {
 }
 .thin-button.disabled {
 	opacity: .5;
+}
+.thin-button.icon {
+	background: none;
+	border: none;
+	box-shadow: none;
+	width: auto;
+}
+.thin-button.icon a {
+	margin-bottom: -2px;
+	padding: 1px 2px;
 }
 .thin-button.warning::before {
 	background: #c00;
@@ -486,6 +499,9 @@ a.button:visited {
 }
 .align-end {
 	align-items: end;
+}
+.self-start {
+	align-self: start;
 }
 
 .gap-med {
