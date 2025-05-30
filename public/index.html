@@ -84,7 +84,7 @@
 			<div id="analyzer" class="analyzer"></div>
 			<canvas id="osd" class="osd"></canvas>
 		</div>
-
+<!--
 		<header class="grid grid-3-cols align-center center">
 			<ul>
 				<li id="toggle_settings" class="thin-button"><a href="#!">Settings</a></li>
@@ -103,7 +103,7 @@
 				<li class="thin-button icon" title="Help"><a href="#help"><span class="material-symbols-rounded">help</span></a></li>
 			</ul>
 		</header>
-
+-->
 		<div class="player-panel grid center">
 			<div class="controls-left">
 				<div>
@@ -163,10 +163,25 @@
 	</div> <!-- .player-area -->
 
 	<div class="panel-area">
-		<div id="settings" class="settings abs-center">
+		<form id="panel_selection" class="panel-selection">
+			<input type="radio" name="panel" id="panel_media" value="files_panel">
+			<label for="panel_media">Media</label>
+			<input type="radio" name="panel" id="panel_settings" value="settings">
+			<label for="panel_settings">Settings</label>
+			<input type="radio" name="panel" id="panel_console" value="console">
+			<label for="panel_console">Console</label>
+		</form>
+		<ul class="panel-selection right">
+			<li id="btn_fullscreen"><a href="#!">Fullscreen</a></li>
+			<li id="btn_pip"><a href="#!">PIP</a></li>
+			<li><a href="#config">Configuration</a></li>
+			<li><a href="#help">Help</a></li>
+		</ul>
+
+		<div id="settings" class="panel-main settings abs-center">
 			<div class="settings-close abs-center"></div>
 
-			<div class="controls">
+			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div class="column">
 					<div class="flex preset-controls">
@@ -417,14 +432,14 @@
 
 		</div> <!-- #settings -->
 
-		<div id="files_panel" class="file-panel grid">
+		<div id="files_panel" class="panel-main file-panel grid">
 			<div class="locked-panel">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V256c0 17.7 14.3 32 32 32s32-14.3 32-32V32zM143.5 120.6c13.6-11.3 15.4-31.5 4.1-45.1s-31.5-15.4-45.1-4.1C49.7 115.4 16 181.8 16 256c0 132.5 107.5 240 240 240s240-107.5 240-240c0-74.2-33.8-140.6-86.6-184.6c-13.6-11.3-33.8-9.4-45.1 4.1s-9.4 33.8 4.1 45.1c38.9 32.3 63.5 81 63.5 135.4c0 97.2-78.8 176-176 176s-176-78.8-176-176c0-54.4 24.7-103.1 63.5-135.4z"/></svg>
+				<span class="material-symbols-rounded">power_settings_new</span>
 				<h1>Click to allow access to your device</h1>
 				<p>Choose <strong>Allow on every visit</strong> in the permission options to avoid this message in the future.</p>
 			</div>
 
-			<div id="file_explorer" class="grid"></div>
+			<div id="file_explorer" class="panel-internal grid"></div>
 
 			<div class="button-column">
 				<div class="help"><button id="btn_toggle_filesystem"></button>
@@ -452,7 +467,7 @@
 				</div>
 			</div>
 
-			<div id="playlist_panel" class="grid">
+			<div id="playlist_panel" class="panel-internal grid">
 				<div class="playqueue-bar flex align-center">
 					<strong><i class="icons8-track-list"></i> Play queue</strong>
 					<div>
@@ -475,6 +490,14 @@
 				<ul id="playlist" class="filelist"></ul>
 			</div>
 		</div> <!-- #files_panel -->
+
+		<div id="console" class="panel-main">
+			<div class="panel-internal">
+				<div id="console-clear">Clear</div>
+				<div id="console-content"></div>
+			</div>
+		</div>
+
 	</div> <!-- .panel-area -->
 
 	<div id="config" class="modal-window">
@@ -696,12 +719,6 @@
 			</div>
 		</div>
 	</div> <!-- #gradient-editor -->
-
-	<div id="console">
-		<div id="console-clear">Clear</div>
-		<div id="console-close">Close</div>
-		<div id="console-content"></div>
-	</div>
 
 	<div id="help" class="modal-window">
 		<a href="#!" class="modal-close"></a>

@@ -189,25 +189,6 @@ a.button:visited {
 	transform: translateX(-50%);
 }
 
-.settings {
-	backdrop-filter: blur(2px);
-	background: #f0f0f0cc;
-	border: 1px solid #888;
-	border-bottom-left-radius: 20px;
-	border-bottom-right-radius: 20px;
-	border-top-width: 0;
-	margin-top: -288px;
-	padding: 10px 10px 20px;
-	position: absolute;
-	transition: margin-top .5s;
-	width: 800px;
-	z-index: 1;
-}
-.settings.active {
-	box-shadow: 0 5px 10px rgba(0,0,0,.3);
-	margin-top: 0;
-}
-
 .settings-close {
 	bottom: 2px;
 	cursor: pointer;
@@ -230,12 +211,12 @@ a.button:visited {
 
 .controls {
 	display: grid;
-	font-size: 12px;
+	font-size: .85rem;
 	grid-auto-flow: column;
-	grid-gap: 15px;
+	grid-gap: 20px;
 	grid-template-columns: repeat(5, 1fr);
 	grid-template-rows: repeat(5, 1fr);
-	padding: 0 5px;
+	padding: 20px;
 }
 .controls input[type="number"],
 .controls form,
@@ -298,7 +279,6 @@ a.button:visited {
 
 .player-area {
 	background: inherit;
-	box-shadow: 0 1px 3px #0008;
 	color: #222;
 	display: inline-block;
 	position: relative;
@@ -406,7 +386,87 @@ a.button:visited {
 }
 
 .panel-area {
-	min-height: 27px;
+	margin: 0 auto;
+	max-width: 1400px;
+/*	min-height: 27px; */
+	padding-top: 25px;
+	position: relative;
+}
+
+.panel-main {
+	margin: 0 auto;
+	max-width: 1400px;
+	padding: 10px 0 0 0;
+	position: absolute;
+	width: 100%;
+}
+.panel-main:not(.active) {
+	display: none !important;
+}
+
+.panel-internal {
+	background: #eee;
+	border-radius: 6px;
+	box-shadow: inset 0 1px 3px #0008;
+	height: 350px;
+	margin: 0 25px;
+	position: relative;
+}
+
+.panel-selection {
+	left: 30px;
+	position: absolute;
+	top: 0;
+}
+.panel-selection.right {
+	left: auto;
+	right: 30px;
+}
+
+.panel-selection input {
+	display: none;
+}
+
+.panel-selection li,
+.panel-selection label {
+	background: var(--glass-gradient);
+	border: 1px solid #666;
+	border-radius: 6px;
+	color: #444;
+	display: inline-block;
+	font-weight: 400;
+	font-size: .85rem;
+	min-width: 100px;
+	text-align: center;
+}
+.panel-selection li:hover,
+.panel-selection label:hover {
+	background: var(--glass-gradient-hover);
+	border-color: #72aa00;
+}
+.panel-selection li.active,
+.panel-selection li:active,
+.panel-selection label:active,
+.panel-selection input:checked + label {
+	background: #444;
+	color: #b2ff00;
+}
+.panel-selection input:checked + label::after {
+	content: '\e313';
+	font-family: 'Material Symbols Rounded';
+	position: absolute;
+}
+.panel-selection li a {
+	color: inherit;
+	display: block;
+	text-decoration: none;
+}
+.panel-selection li a,
+.panel-selection label {
+	padding: 8px 0 4px;
+}
+.panel-selection label {
+	cursor: pointer;
 }
 
 .config-panel,
@@ -577,10 +637,6 @@ a.button:visited {
 
 .file-panel {
 	grid-template-columns: 1fr 150px 1fr;
-	margin: 0 auto;
-	max-width: 1400px;
-	padding: 20px 0;
-	position: relative;
 }
 
 .button-column {
@@ -610,8 +666,9 @@ div.value {
 
 .player-panel {
 	grid-template-columns: 1fr minmax(350px,1fr) 1fr;
-	margin: 10px auto 15px;
+	margin: 0 auto;
 	max-width: 1400px;
+	padding: 30px 0 20px;
 	position: relative;
 }
 
@@ -632,7 +689,7 @@ div.value {
 	background: var(--glass-gradient);
 	border-radius: 0;
 	display: inline-block;
-	padding: 4px 10px 0;
+	padding: 8px 10px 4px;
 	font-size: 30px;
 }
 .player-controls .button:first-child {
@@ -900,15 +957,6 @@ kbd.wide {
 
 /* File explorer */
 
-#file_explorer,
-#playlist_panel {
-	background: #eee;
-	border-radius: 6px;
-	box-shadow: inset 0 1px 3px #0008;
-	height: 350px;
-	margin: 0 25px;
-}
-
 #file_explorer {
 	grid-template-rows: 45px 1fr;
 }
@@ -957,6 +1005,8 @@ kbd.wide {
 .filelist {
 	background: #fff;
 	border: 1px solid #ccc;
+	border-bottom-left-radius: 6px;
+	border-bottom-right-radius: 6px;
 	box-shadow: inset 0 0 3px #0004;
 	overflow: auto;
 	padding: .25em 0;
@@ -1039,11 +1089,12 @@ kbd.wide {
 	color: #ccc;
 	display: flex;
 	flex-direction: column;
-	height: 100%;
+	height: 400px;
 	justify-content: center;
 	opacity: 0;
 	pointer-events: none;
 	position: absolute;
+	top: -30px;
 	transition: .35s all;
 	width: 100%;
 	z-index: 1;
@@ -1059,9 +1110,9 @@ kbd.wide {
 	color: #fff;
 	font-weight: 600;
 }
-.locked-panel svg {
-	fill: #ccc;
-	width: 3em;
+.locked-panel .material-symbols-rounded {
+	font-size: 60px;
+	font-weight: 700;
 }
 .locked .locked-panel {
 	opacity: 1;
@@ -1090,32 +1141,20 @@ kbd.wide {
 	content: "\25b8"" " attr(data-title);
 }
 
-#console {
-	background: var(--display-background);
-	bottom: -250px;
-	color: #0b0;
-	font-family: var(--mono-font);
-	font-size: 12.5px;
-	height: 250px;
-	left: 0;
-	line-height: 1.5;
-	position: fixed;
-	right: 0;
-	transition: bottom .5s;
-}
-#console.active {
-	bottom: 0;
-}
-
 #console .error {
 	color: #f33;
 }
 
 #console-content {
+	background: var(--display-background);
+	border-radius: 6px;
+	color: #0b0;
+	font-family: var(--mono-font);
+	font-size: 12.5px;
 	height: 100%;
+	line-height: 1.5;
 	overflow-y: scroll;
 	padding: 10px;
-	/* FF experimental - https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Scrollbars */
 	scrollbar-color: #080 #333;
 	scrollbar-width: thin;
 }
@@ -1133,26 +1172,21 @@ kbd.wide {
 	text-indent: -9em;
 }
 
-#console-clear,
-#console-close {
+#console-clear {
 	background: var(--display-background);
 	border: 1px solid #0c0;
-	bottom: 220px;
 	color: #0c0;
 	cursor: pointer;
 	font-size: 12px;
 	padding: 2px 6px;
 	position: absolute;
 	text-transform: uppercase;
+	top: 10px;
 }
 #console-clear {
-	right: 70px;
-}
-#console-close {
 	right: 20px;
 }
-#console-clear:hover,
-#console-close:hover {
+#console-clear:hover {
 	background: #0c0;
 	color: #000;
 }
