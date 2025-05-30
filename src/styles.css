@@ -672,7 +672,7 @@ div.value {
 
 .progress-bar {
 	grid-column: span 3;
-	margin: 1em auto -5px;
+	margin: 25px auto 0;
 	max-width: 1360px;
 	width: 100%;
 }
@@ -691,22 +691,6 @@ div.value {
 	height: 2px;
 	margin: 0;
 	padding: 6px 0 10px;
-}
-.song-progress::-webkit-slider-runnable-track {
-	height: 2px;
-	margin-top: 3px;
-}
-.song-progress::-moz-range-track {
-	height: 2px;
-}
-.song-progress::-webkit-slider-thumb {
-	height: 13px;
-	margin-top: -6px;
-	width: 13px;
-}
-.song-progress::-moz-range-thumb {
-	height: 13px;
-	width: 13px;
 }
 
 .switch input {
