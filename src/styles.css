@@ -469,6 +469,23 @@ a.button:visited {
 	cursor: pointer;
 }
 
+#toggle_panel {
+	color: #666;
+	cursor: pointer;
+	font-size: 28px;
+	left: 50%;
+	padding: 0 1em;
+	position: absolute;
+	top: 0;
+	transform: translateX(-50%);
+}
+#toggle_panel::before {
+	content: '\e5d6';
+}
+#toggle_panel.closed::before {
+	content: '\e5d7';
+}
+
 .config-panel,
 .file-panel,
 .player-area,

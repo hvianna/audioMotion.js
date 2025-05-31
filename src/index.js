@@ -310,6 +310,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
+	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
 	  elVolume        = $('#volume'),
@@ -4046,9 +4047,9 @@ function setUIEventListeners() {
 			}, AUTOHIDE_DELAY );
 		}
 	});
-	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
+	elTogglePanel.addEventListener( 'click', () => toggleMediaPanel() );
 
-	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
+	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height )
 			elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = 'none'; // hide main panels
@@ -4062,6 +4063,7 @@ function setUIEventListeners() {
 	panelSelection.forEach( btn => {
 		btn.addEventListener( 'click', evt => {
 			panelSelection.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
+			toggleMediaPanel( true );
 		});
 	});
 	$('#panel_media').click(); // initialize with the files panel visible
@@ -4463,9 +4465,12 @@ function syncMetadataToAudioElements( source ) {
 /**
  * Show/hide the media panel (for auto-hide feature) and adjust the canvas height
  *
- * @param {boolean} `true` to show the media panel, otherwise hide it
+ * @param {boolean} `true` to show the media panel; `false` to hide it; if undefined, toggles the current state
  */
 function toggleMediaPanel( show ) {
+	if ( show === undefined )
+		show = !! elContainer.style.height;
+
 	// disable overflow to avoid scrollbar while the analyzer area is expanding (when the window is tall enough)
 	// it will be restored by the `transitionend` event listener on the container, set in setUIEventListeners()
 	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
@@ -4476,6 +4481,7 @@ function toggleMediaPanel( show ) {
 
 	const minPanelHeight = $('.player-panel').clientHeight + $('.panel-selection').clientHeight + 5;
 	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
+	elTogglePanel.classList.toggle( 'closed', ! show );
 }
 
 /**
