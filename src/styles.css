@@ -72,16 +72,8 @@ canvas {
 }
 
 header {
-	margin: 15px auto 0;
-	max-width: 960px;
+	align-self: center;
 }
-header ul:first-child {
-    justify-self: left;
-}
-header ul:last-child {
-    justify-self: right;
-}
-
 header h1 {
 	background-clip: text;
 	background-color: #0008;
@@ -704,6 +696,9 @@ div.value {
 .controls-right {
 	margin-right: 25px;
 	justify-self: end;
+}
+.player-controls {
+	align-self: center;
 }
 .player-controls .button {
 	background: var(--glass-gradient);
