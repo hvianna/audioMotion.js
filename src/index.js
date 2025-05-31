@@ -310,6 +310,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
+	  elToggleConsole = $('label[for="panel_console"]'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
@@ -1311,7 +1312,7 @@ function consoleLog( msg, error, clear ) {
 		content.innerHTML = '';
 
 	if ( error )
-		$('#toggle_console').classList.add('warning');
+		elToggleConsole.classList.add('warning');
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -4063,9 +4064,14 @@ function setUIEventListeners() {
 	panelSelection.forEach( btn => {
 		btn.addEventListener( 'click', evt => {
 			panelSelection.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
-			toggleMediaPanel( true );
+			toggleMediaPanel( true ); // make sure the main panel is expanded
+			if ( btn.value == 'console' ) {
+				elToggleConsole.classList.remove('warning');
+				consoleLog(); // update scroll only
+			}
 		});
 	});
+	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 	$('#panel_media').click(); // initialize with the files panel visible
 
 	// settings switches

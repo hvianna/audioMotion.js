@@ -149,7 +149,8 @@ a.button:visited {
 .thin-button.disabled {
 	opacity: .5;
 }
-.thin-button.warning::before {
+
+.warning::before {
 	background: #c00;
 	border-radius: 50%;
 	box-shadow: 0 0 4px #f00;
@@ -158,8 +159,9 @@ a.button:visited {
 	height: 1px;
 	padding: 3px;
 	position: absolute;
-	right: 5px;
-	top: 6px;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
 	width: 1px;
 }
 
