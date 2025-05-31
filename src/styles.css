@@ -369,9 +369,9 @@ a.button:visited {
 .panel-area {
 	margin: 0 auto;
 	max-width: 1400px;
-/*	min-height: 27px; */
 	padding-top: 25px;
 	position: relative;
+	user-select: none;
 }
 
 .panel-main {
@@ -394,25 +394,25 @@ a.button:visited {
 	position: relative;
 }
 
+.function-buttons {
+	position: absolute;
+	right: 30px;
+	top: 0;
+}
+
 .panel-selection {
 	left: 30px;
 	position: absolute;
 	top: 0;
 }
-.panel-selection.right {
-	left: auto;
-	right: 30px;
-}
-
 .panel-selection input {
 	display: none;
 }
-
-.panel-selection li,
+.function-buttons li,
 .panel-selection label {
 	background: var(--glass-gradient);
 	border: 1px solid #666;
-	border-radius: 6px;
+	border-left: none;
 	color: #444;
 	display: inline-block;
 	font-weight: 400;
@@ -420,17 +420,30 @@ a.button:visited {
 	min-width: 100px;
 	text-align: center;
 }
-.panel-selection li:hover,
+.function-buttons li:first-child,
+.panel-selection label:first-of-type {
+	border-bottom-left-radius: 999px;
+	border-left: 1px solid #666;
+	border-top-left-radius: 999px;
+}
+.function-buttons li:last-child,
+.panel-selection label:last-of-type {
+	border-bottom-right-radius: 999px;
+	border-top-right-radius: 999px;
+}
+
+.function-buttons li:hover,
 .panel-selection label:hover {
 	background: var(--glass-gradient-hover);
 	border-color: #72aa00;
 }
-.panel-selection li.active,
-.panel-selection li:active,
+.function-buttons li.active,
+.function-buttons li:active,
 .panel-selection label:active,
 .panel-selection input:checked + label {
 	background: #444;
 	color: #b2ff00;
+	text-shadow: 0 0 6px;
 }
 .panel-selection input:checked + label::before {
 	content: '\e313';
@@ -440,12 +453,12 @@ a.button:visited {
 	margin-left: -1em;
 	position: absolute;
 }
-.panel-selection li a {
+.function-buttons li a {
 	color: inherit;
 	display: block;
 	text-decoration: none;
 }
-.panel-selection li a,
+.function-buttons li a,
 .panel-selection label {
 	padding: 8px 0 4px;
 }
