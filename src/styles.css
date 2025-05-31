@@ -451,9 +451,12 @@ a.button:visited {
 	background: #444;
 	color: #b2ff00;
 }
-.panel-selection input:checked + label::after {
+.panel-selection input:checked + label::before {
 	content: '\e313';
 	font-family: 'Material Symbols Rounded';
+	font-size: 1.25em;
+	line-height: .75;
+	margin-left: -1em;
 	position: absolute;
 }
 .panel-selection li a {
