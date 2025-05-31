@@ -191,13 +191,14 @@ a.button:visited {
 }
 
 .controls {
+	column-gap: 40px;
 	display: grid;
 	font-size: .85rem;
 	grid-auto-flow: column;
-	grid-gap: 20px;
 	grid-template-columns: repeat(5, 1fr);
 	grid-template-rows: repeat(5, 1fr);
 	padding: 20px;
+	row-gap: 20px;
 }
 .controls input[type="number"],
 .controls form,
@@ -838,17 +839,14 @@ form[data-prop] input:checked + label {
 	color: var(--accent-color);
 	text-shadow: 0 0 4px var(--light-color);
 }
-form[data-prop] input:checked+label::before {
-/*	background: var(--light-color);
-	box-shadow: inset 1px 1px 1px 0 #8888, 1px 1px 4px var(--light-color), 1px 1px 4px var(--light-color); */
-	background: #999;
-	box-shadow: inset 1px 1px #0008, inset -1px -1px #fff4;
-/*	border-color: rgba(0,0,0,.2); */
+form[data-prop] input:checked + label::before {
+	background: #666;
+	box-shadow: inset 1px 1px #0008, inset -1px -1px #fff3;
 	display: block;
 }
 form[data-prop] label {
 	cursor: pointer;
-	padding-top: 15px;
+	padding-top: 18px;
 	position: relative;
 	text-align: center;
 	text-transform: uppercase;
@@ -858,7 +856,7 @@ form[data-prop] label::before {
 	background: linear-gradient( rgba(0,0,0,.1), rgba(0,0,0,.3) ), #eee;
 	border: 1px solid #666;
 	content: '';
-	height: 8px;
+	height: 10px;
 	left: 0;
 	position: absolute;
 	top: 0;
