@@ -227,8 +227,8 @@ const WEIGHT_NONE = '',
 	  WEIGHT_468  = '468';
 
 // Minimum window height to fit the entire player without a scrollbar
-// 270px (canvas min-height) + 132px (player main panel) + 430px (media panel)
-const WINDOW_MIN_HEIGHT = 832;
+// 270px (canvas min-height) + 147px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
+const WINDOW_MIN_HEIGHT = 815;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -4485,7 +4485,7 @@ function toggleMediaPanel( show ) {
 	if ( show )
 		elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = '';
 
-	const minPanelHeight = $('.player-panel').clientHeight + $('.panel-selection').clientHeight + 5;
+	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
 	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
 	elTogglePanel.classList.toggle( 'closed', ! show );
 }

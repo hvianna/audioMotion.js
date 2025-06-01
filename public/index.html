@@ -144,16 +144,18 @@
 	</div> <!-- .player-area -->
 
 	<div class="panel-area">
-		<form id="panel_selection" class="panel-selection">
-			<input type="radio" name="panel" id="panel_media" value="files_panel"><label for="panel_media">Media</label><input type="radio" name="panel" id="panel_settings" value="settings"><label for="panel_settings">Settings</label><input type="radio" name="panel" id="panel_console" value="console"><label for="panel_console">Console</label>
-		</form>
-		<span id="toggle_panel" class="material-symbols-rounded"></span>
-		<ul class="function-buttons">
-			<li id="btn_pip"><a href="#!">PIP</a>
-			<li id="btn_fullscreen"><a href="#!"><u>F</u>ullscreen</a>
-			<li><a href="#config">Configuration</a>
-			<li><a href="#help">Help</a>
-		</ul>
+		<div class="bottom-panel">
+			<form id="panel_selection" class="panel-selection">
+				<input type="radio" name="panel" id="panel_media" value="files_panel"><label class="thin-button" for="panel_media">Media</label><input type="radio" name="panel" id="panel_settings" value="settings"><label class="thin-button" for="panel_settings">Settings</label><input type="radio" name="panel" id="panel_console" value="console"><label class="thin-button" for="panel_console">Console</label>
+			</form>
+			<button id="toggle_panel" class="material-symbols-rounded"></button>
+			<ul class="function-buttons">
+				<li class="thin-button" id="btn_pip"><a href="#!">PIP</a>
+				<li class="thin-button" id="btn_fullscreen"><a href="#!"><u>F</u>ullscreen</a>
+				<li class="thin-button"><a href="#config">Configuration</a>
+				<li class="thin-button"><a href="#help">Help</a>
+			</ul>
+		</div>
 
 		<div id="settings" class="panel-main settings abs-center">
 			<div class="settings-close abs-center"></div>
@@ -161,7 +163,7 @@
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div class="column">
-					<div class="flex preset-controls">
+					<div class="preset-controls grid grid-2-cols">
 						<span class="help"><button id="load_preset">Load</button>
 							<span class="tooltip">Load a configuration preset</span>
 						</span>
@@ -186,7 +188,7 @@
 							Bar spacing for band modes<br><em>(no effect when LUMI is on)</em>
 						</span>
 					</span>
-					<form id="bar_space" data-prop="barSpace"></form>
+					<form id="bar_space" class="custom-radio-buttons" data-prop="barSpace"></form>
 				</div>
 
 				<div>
@@ -245,7 +247,7 @@
 							Bar coloring mode
 						</span>
 					</span>
-					<form id="color_mode" data-prop="colorMode"></form>
+					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
 				</div>
 
 				<div>
@@ -293,7 +295,7 @@
 						Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
 						</span>
 					</span>
-					<form id="reflex" data-prop="reflex"></form>
+					<form id="reflex" class="custom-radio-buttons" data-prop="reflex"></form>
 				</div>
 
 				<div>
@@ -302,7 +304,7 @@
 						Horizontal mirroring effect
 						</span>
 					</span>
-					<form id="mirror" data-prop="mirror"></form>
+					<form id="mirror" class="custom-radio-buttons" data-prop="mirror"></form>
 				</div>
 
 			<!-- COLUMN 4 -->
@@ -321,7 +323,7 @@
 					<span class="config-label help">Frequency Scale
 						<span class="tooltip">Select how frequencies are represented in the X-axis</span>
 					</span>
-					<form id="freq_scale" data-prop="freqScale"></form>
+					<form id="freq_scale" class="custom-radio-buttons" data-prop="freqScale"></form>
 				</div>
 
 				<div>
@@ -330,7 +332,7 @@
 						Improve visualization of songs too quiet or too loud. Customize in Config.
 						</span>
 					</span>
-					<form id="sensitivity" data-prop="sensitivity"></form>
+					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
 				</div>
 
 				<div>
@@ -339,7 +341,7 @@
 						Select frequency weighthing filter
 						</span>
 					</span>
-					<form id="weighting" data-prop="weighting"></form>
+					<form id="weighting" class="custom-radio-buttons" data-prop="weighting"></form>
 				</div>
 
 				<div>
@@ -348,7 +350,7 @@
 						Select the number and layout of analyzer channels
 						</span>
 					</span>
-					<form id="channel_layout" data-prop="channelLayout"></form>
+					<form id="channel_layout" class="custom-radio-buttons" data-prop="channelLayout"></form>
 				</div>
 
 			<!-- COLUMN 5 -->
