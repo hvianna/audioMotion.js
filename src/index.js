@@ -227,8 +227,8 @@ const WEIGHT_NONE = '',
 	  WEIGHT_468  = '468';
 
 // Minimum window height to fit the entire player without a scrollbar
-// 270px (canvas min-height) + 132px (player main panel) + 430px (media panel)
-const WINDOW_MIN_HEIGHT = 832;
+// 270px (canvas min-height) + 147px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
+const WINDOW_MIN_HEIGHT = 815;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -310,8 +310,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
-	  elToggleConsole = $('#toggle_console'),
-	  elToggleSettings= $('#toggle_settings'),
+	  elToggleConsole = $('label[for="panel_console"]'),
+	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
 	  elVolume        = $('#volume'),
@@ -1312,7 +1312,7 @@ function consoleLog( msg, error, clear ) {
 		content.innerHTML = '';
 
 	if ( error )
-		$('#toggle_console').classList.add('warning');
+		elToggleConsole.classList.add('warning');
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -4048,32 +4048,31 @@ function setUIEventListeners() {
 			}, AUTOHIDE_DELAY );
 		}
 	});
-	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
+	elTogglePanel.addEventListener( 'click', () => toggleMediaPanel() );
 
-	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
+	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height )
-			elMediaPanel.style.display = 'none'; // hide media panel
+			elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = 'none'; // hide main panels
+
  		// restore overflow on body (keep the scroll bar always visible when the window is too short)
 		document.body.style.overflowY = window.innerHeight < WINDOW_MIN_HEIGHT ? 'scroll' : '';
 	});
 
-	// open/close settings panel
-	elToggleSettings.addEventListener( 'click', () => {
-		toggleMediaPanel( true );
-		toggleSettingsPanel();
+	// main panel selection
+	const panelSelection = $('#panel_selection').panel; // RadioNodeList
+	panelSelection.forEach( btn => {
+		btn.addEventListener( 'click', evt => {
+			panelSelection.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
+			toggleMediaPanel( true ); // make sure the main panel is expanded
+			if ( btn.value == 'console' ) {
+				elToggleConsole.classList.remove('warning');
+				consoleLog(); // update scroll only
+			}
+		});
 	});
-	$('.settings-close').addEventListener( 'click', () => toggleSettingsPanel() );
-
-	// open/close console
-	elToggleConsole.addEventListener( 'click', () => {
-		toggleMediaPanel( true );
-		toggleConsole();
-		elToggleConsole.classList.remove('warning');
-		consoleLog(); // update scroll only
-	});
-	$('#console-close').addEventListener( 'click', () => toggleConsole() );
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
+	$('#panel_media').click(); // initialize with the files panel visible
 
 	// settings switches
 	$$('.switch').forEach( el => {
@@ -4470,34 +4469,25 @@ function syncMetadataToAudioElements( source ) {
 }
 
 /**
- * Open/close the Console
- *
- * @param {boolean} desired state - if undefined, inverts the current state
- */
-function toggleConsole( force ) {
-	$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle( 'active', force ) );
-}
-
-/**
  * Show/hide the media panel (for auto-hide feature) and adjust the canvas height
  *
- * @param {boolean} `true` to show the media panel, otherwise hide it
+ * @param {boolean} `true` to show the media panel; `false` to hide it; if undefined, toggles the current state
  */
 function toggleMediaPanel( show ) {
+	if ( show === undefined )
+		show = !! elContainer.style.height;
+
 	// disable overflow to avoid scrollbar while the analyzer area is expanding (when the window is tall enough)
-	// it will be restored by the `transitionend` event listener on the container
+	// it will be restored by the `transitionend` event listener on the container, set in setUIEventListeners()
 	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
 		document.body.style.overflowY = 'hidden';
 
 	if ( show )
-		elMediaPanel.style.display = '';
-	else {
-		// when hiding, also close the console and the settings panel
-		toggleConsole( false );
-		toggleSettingsPanel( false );
-	}
+		elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = '';
 
-	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
+	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
+	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
+	elTogglePanel.classList.toggle( 'closed', ! show );
 }
 
 /**
@@ -4542,15 +4532,6 @@ function toggleMute( mute ) {
 		audioMotion.disconnectOutput();
 	else
 		audioMotion.connectOutput();
-}
-
-/**
- * Open/close the Settings panel
- *
- * @param {boolean} desired state - if undefined, inverts the current state
- */
-function toggleSettingsPanel( force ) {
-	$('#settings').classList.toggle( 'active', elToggleSettings.classList.toggle( 'active', force ) );
 }
 
 /**
