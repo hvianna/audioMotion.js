@@ -86,7 +86,7 @@
 
 		<div class="player-panel grid center">
 			<div class="controls-left">
-				<div>
+				<div class="slider-container">
 					<div class="config-label">SOURCE</div>
 					<input class="slider" type="checkbox" id="source" data-prop="micSource">
 					<label class="slider" for="source">
@@ -94,15 +94,6 @@
 						<span class="slider-off">MIC</span>
 					</label>
 				</div>
-
-				<div>
-					<div class="config-label">SPEAKERS</div>
-					<input class="slider" type="checkbox" id="mute" data-prop="mute">
-					<label class="slider on-off" for="mute">
-						<span class="slider-on">ON</span>
-						<span class="slider-off">OFF</span>
-					</label>
-	  			</div>
 
 				<header><h1>audioMotion</h1></header>
 			</div>
@@ -123,10 +114,14 @@
 			</ul>
 
 			<div class="controls-right">
-				<div id="balance" data-prop="balance" class="knob knob-bal">
-					<label class="config-label abs-center">BALANCE</label>
-					<div class="marker"></div>
-				</div>
+				<div class="slider-container">
+					<div class="config-label">SPEAKERS</div>
+					<input class="slider" type="checkbox" id="mute" data-prop="mute">
+					<label class="slider on-off" for="mute">
+						<span class="slider-on">ON</span>
+						<span class="slider-off">OFF</span>
+					</label>
+	  			</div>
 
 				<div id="volume" data-prop="volume" class="knob knob-vol">
 					<label class="config-label">VOLUME</label>
