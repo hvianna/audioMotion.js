@@ -4205,8 +4205,8 @@ function setUIEventListeners() {
 		  btnAddFolder   = $('#btn_add_folder');
 
 	if ( serverHasMedia || useFileSystemAPI ) {
-		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
-		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
+		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents('.selected') ) );
+		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents() ) );
 	}
 	else {
 		btnAddSelected.style.display = 'none';
