@@ -2041,12 +2041,14 @@ function loadPlaylist( fileObject ) {
 					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
 						songInfo = parsePath( line ).baseName;
 
-					let handle, subs;
+					let handle, dirHandle;
 
-					// if it's an external URL just add it to the queue as is
+					// external URLs do not require any processing
 					if ( ! isExternalURL( line ) ) {
+
+						// finds the filesystem handle for this file and its directory
 						if ( useFileSystemAPI ) {
-							( { handle, subs } = await fileExplorer.getHandles( line ) );
+							( { handle, dirHandle } = await fileExplorer.getHandles( line ) );
 							if ( ! handle ) {
 								consoleLog( `Cannot resolve file handle for ${ line }`, true );
 								songInfo = '';
@@ -2060,21 +2062,9 @@ function loadPlaylist( fileObject ) {
 						// if it's not an absolute path, prepend the current path to it
 						if ( line[1] != ':' && line[0] != '/' )
 							line = path + line;
-
-						if ( ! useFileSystemAPI ) {
-							// look for subtitles (server mode)
-							try {
-								const src = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
-								 	  res = await fetch( src, { method: 'HEAD' } );
-
-								if ( res.ok )
-									subs = { src };
-							}
-							catch( e ) {}
-						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: line, handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: line, handle, dirHandle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
@@ -2084,6 +2074,8 @@ function loadPlaylist( fileObject ) {
 			}
 			resolveAddedSongs();
 		}
+
+		// --- main fuction ---
 
 		if ( ! path ) {
 			resolve( -1 );
@@ -2120,8 +2112,9 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const { file, handle, subs, content } = entry;
-					promises.push( addSongToPlayQueue( { file, handle, subs }, content ) );
+					const { file, handle, dirHandle, subs, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
+					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 				});
 				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
@@ -2512,6 +2505,7 @@ async function loadSubs( audioEl, song ) {
 
 		console.log(`Searching subs for song ${ baseName }`);
 
+		// playlists saved in v24.6 didn't store the `dirHandle` property
 		if ( song.dirHandle || ! song.handle )
 			contents = await fileExplorer.getDirectoryContents( song.dirHandle || path );
 		else
@@ -2525,7 +2519,6 @@ async function loadSubs( audioEl, song ) {
 		}
 
 		// TO-DO: update the playqueue entry with the newly found subs (will require an index parameter in the function)
-		// TO-DO: save dirHandle to saved playlist (and don't save the subs)
 	}
 
 	if ( subs ) {
@@ -4416,8 +4409,8 @@ async function storePlayQueue( name, update = true ) {
 
 		for ( const item of playlist.childNodes ) {
 			const { album, artist, codec, duration, file, title } = item.dataset,
-				  { handle, subs } = item;
-			songs.push( { file, handle, subs, content: { album, artist, codec, duration, title } } );
+				  { handle, dirHandle } = item;
+			songs.push( { file, handle, dirHandle, content: { album, artist, codec, duration, title } } );
 		}
 
 		if ( isSaveQueue )

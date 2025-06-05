@@ -266,10 +266,10 @@ export async function getDirectoryContents( target ) {
 }
 
 /**
- * Resolve a pathname and return the handles for the media file and corresponding subtitles file (if any)
+ * Resolve a pathname and return the filesystem handles for the file and its directory
  *
  * @param {string} path to filename (must be relative to currentPath)
- * @returns {object} { handle, subs }
+ * @returns {object} { handle, dirHandle }
  */
 export async function getHandles( pathname ) {
 	const workPath   = [ ...currentPath ],
@@ -294,16 +294,8 @@ export async function getHandles( pathname ) {
 		}
 	}
 
-	let filename = targetPath.shift(),
-		basename = filename.slice( 0, filename.lastIndexOf('.') ),
-		subs;
-
-	try {
-		subs = { handle: await handle.getFileHandle( basename + '.vtt' ) };
-	}
-	catch( e ) {
-		// subs not found for this file
-	}
+	const filename  = targetPath.shift(),
+		  dirHandle = handle;
 
 	try {
 		handle = await handle.getFileHandle( filename );
@@ -312,7 +304,7 @@ export async function getHandles( pathname ) {
 		handle = undefined; // requested file not found
 	}
 
-	return { handle, subs }
+	return { handle, dirHandle }
 }
 
 /**
