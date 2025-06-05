@@ -1120,7 +1120,7 @@ function addMetadata( metadata, target ) {
 /**
  * Add a song to the play queue
  *
- * @param {object} { file, handle, subs }
+ * @param {object} { file, handle, dirHandle, subs }
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
@@ -1147,10 +1147,12 @@ function addSongToPlayQueue( fileObject, content ) {
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
 		trackData.codec    = content.codec || extension.toUpperCase();
+//		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
-		newEl.subs         = fileObject.subs;
+		newEl.dirHandle    = fileObject.dirHandle;
+		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
 		playlist.appendChild( newEl );
 
@@ -1228,7 +1230,7 @@ function clearAudioElement( n = currAudio ) {
 		  trackData = audioEl.dataset;
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
-	loadSubs( audioEl, null );
+	loadSubs( audioEl ); // clear subtitles track
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	audioEl.load();
 
@@ -2003,7 +2005,7 @@ async function loadNextSong() {
 			loadAudioSource( audioEl, song.dataset.file );
 			audioEl.load();
 		}
-		loadSubs( audioEl, song.subs );
+		loadSubs( audioEl, song );
 	}
 
 	skipping = false; // finished skipping track
@@ -2477,7 +2479,7 @@ function loadSong( n, playIt ) {
 				};
 			}
 
-			loadSubs( audioEl, song.subs );
+			loadSubs( audioEl, song );
 		}
 		else
 			resolve( false );
@@ -2488,9 +2490,9 @@ function loadSong( n, playIt ) {
  * Load subtitles file to audio element track
  *
  * @param {object} audio element
- * @param {object} subtitles object { src, lang, handle }
+ * @param {object|null} song object or `null` to clear subtitles track
  */
-function loadSubs( audioEl, subs ) {
+async function loadSubs( audioEl, song ) {
 	// References:
 	// https://www.w3.org/wiki/VTT_Concepts
 	// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
@@ -2501,7 +2503,33 @@ function loadSubs( audioEl, subs ) {
 	if ( isBlob( subsTrack.src ) )
 		URL.revokeObjectURL( subsTrack.src );
 
+	let { subs } = song || {};
+
+	if ( song && ! subs && isSwitchOn( elShowSubtitles ) ) {
+		// search for subs for this file
+		const { path, baseName } = parsePath( song.dataset.file );
+		let contents;
+
+		console.log(`Searching subs for song ${ baseName }`);
+
+		if ( song.dirHandle || ! song.handle )
+			contents = await fileExplorer.getDirectoryContents( song.dirHandle || path );
+		else
+			console.log('In File System mode but no dirHandle found!');
+
+		if ( contents ) {
+			const targetFile = contents.files.find( entry => entry.name.startsWith( baseName ) );
+			console.log('Found', targetFile);
+			if ( targetFile && targetFile.subs )
+				subs = targetFile.subs;
+		}
+
+		// TO-DO: update the playqueue entry with the newly found subs (will require an index parameter in the function)
+		// TO-DO: save dirHandle to saved playlist (and don't save the subs)
+	}
+
 	if ( subs ) {
+		// TO-DO: check if song loaded in the audioelement is still the same
 		const { src, lang, handle } = subs;
 		subsTrack.srclang = lang || navigator.language;
 		if ( handle ) {
@@ -5030,7 +5058,8 @@ function updateRangeValue( el ) {
 						let items    = evt.items.length ? evt.items : [ evt.item ],
 							promises = [];
 						items.forEach( item => {
-							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle, subs: item.subs } ) );
+							const { handle, dirHandle, subs } = item;
+							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle, dirHandle, subs } ) );
 							item.remove();
 						});
 						Promise.all( promises ).then( () => storePlayQueue( true ) );
