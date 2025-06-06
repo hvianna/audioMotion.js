@@ -2503,26 +2503,20 @@ async function loadSubs( audioEl, song ) {
 		const { path, baseName } = parsePath( song.dataset.file );
 		let contents;
 
-		console.log(`Searching subs for song ${ baseName }`);
-
 		// playlists saved in v24.6 didn't store the `dirHandle` property
 		if ( song.dirHandle || ! song.handle )
 			contents = await fileExplorer.getDirectoryContents( song.dirHandle || path );
-		else
-			console.log('In File System mode but no dirHandle found!');
 
 		if ( contents ) {
 			const targetFile = contents.files.find( entry => entry.name.startsWith( baseName ) );
-			console.log('Found', targetFile);
-			if ( targetFile && targetFile.subs )
+			if ( targetFile && targetFile.subs ) {
 				subs = targetFile.subs;
+				song.subs = subs; // add the subs to the entry in the play queue
+			}
 		}
-
-		// TO-DO: update the playqueue entry with the newly found subs (will require an index parameter in the function)
 	}
 
 	if ( subs ) {
-		// TO-DO: check if song loaded in the audioelement is still the same
 		const { src, lang, handle } = subs;
 		subsTrack.srclang = lang || navigator.language;
 		if ( handle ) {
