@@ -227,8 +227,8 @@ const WEIGHT_NONE = '',
 	  WEIGHT_468  = '468';
 
 // Minimum window height to fit the entire player without a scrollbar
-// 270px (canvas min-height) + 147px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
-const WINDOW_MIN_HEIGHT = 815;
+// 270px (canvas min-height) + 144px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
+const WINDOW_MIN_HEIGHT = 812;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -240,7 +240,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elAnsiBands     = $('#ansi_bands'),
 	  elAutoHide      = $('#auto_hide'),
 	  elBackground    = $('#background'),
-	  elBalance       = $('#balance'),
 	  elBarSpace      = $('#bar_space'),
 	  elBgImageDim    = $('#bg_img_dim'),
 	  elBgImageFit    = $('#bg_img_fit'),
@@ -517,7 +516,6 @@ const presets = [
 			alphaBars    : 0,
 			ansiBands    : 0,
 			background   : BG_DEFAULT,
-			balance      : 0,
 			barSpace     : 0.1,
 			bgImageDim   : 0.5,
 			bgImageFit   : BGFIT_CENTER,
@@ -801,7 +799,6 @@ let audioElement = [],
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
-	panNode,					// stereoPanner node for balance control
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -1192,22 +1189,6 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	});
 
 	return ret;
-}
-
-/**
- * Increase or decrease balance
- */
-function changeBalance( incr ) {
-	let newVal = incr ? fixFloating( ( +elBalance.dataset.value || 0 ) + incr * .1 ) : 0;
-
-	if ( newVal < -1 )
-		newVal = -1;
-	else if ( newVal > 1 )
-		newVal = 1;
-
-	setBalance( newVal );
-	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
-	updateLastConfig();
 }
 
 /**
@@ -1726,9 +1707,7 @@ function keyboardControls( event ) {
 					changeVolume(-1);
 				break;
 			case 'ArrowLeft': 	// rewind
-				if ( isShiftKey )
-					changeBalance(-1);
-				else if ( isFastSearch ) {
+				if ( isFastSearch ) {
 					setCanvasMsg( 'Rewind', 1 );
 					fastSearch(-1);
 				}
@@ -1736,9 +1715,7 @@ function keyboardControls( event ) {
 					scheduleFastSearch('k', -1);
 				break;
 			case 'ArrowRight': 	// fast forward
-				if ( isShiftKey )
-					changeBalance(1);
-				else if ( isFastSearch ) {
+				if ( isFastSearch ) {
 					setCanvasMsg( 'Fast forward', 1 );
 					fastSearch();
 				}
@@ -2331,8 +2308,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 			}
 			else if ( el.classList.contains('switch') )
 				el.dataset.active = +val;
-			else if ( el == elBalance )
-				setBalance( val );
 			else if ( el == elMute )
 				toggleMute( val );
 			else if ( el == elSource )
@@ -3413,16 +3388,6 @@ function setBackgroundImage( url ) {
 }
 
 /**
- * Set balance
- */
-function setBalance( value ) {
-	elBalance.dataset.value = value;
-	if ( panNode )
-		panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
-	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
-}
-
-/**
  * Set message for on-screen display
  *
  * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
@@ -4106,25 +4071,15 @@ function setUIEventListeners() {
 		}
 	}
 
-	// volume and balance knobs
+	// volume knob
 	let wheelTimer;
-	[ elVolume,
-	  elBalance ].forEach( el => {
-	  	el.addEventListener( 'wheel', e => {
-			e.preventDefault(); // prevent scrolling the window
-			if ( wheelTimer )
-				return;
-			wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
-			const incr = Math.sign( e.deltaY || 0 );
-			if ( el == elVolume )
-				changeVolume( incr );
-			else
-				changeBalance( incr );
-		});
-	});
-
-	elBalance.addEventListener( 'dblclick', () => {
-		changeBalance(0);
+	elVolume.addEventListener( 'wheel', e => {
+		e.preventDefault(); // prevent scrolling the window
+		if ( wheelTimer )
+			return;
+		wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
+		const incr = Math.sign( e.deltaY || 0 );
+		changeVolume( incr );
 	});
 
 	// player controls
@@ -4540,7 +4495,6 @@ function toggleMute( mute ) {
 function updateLastConfig() {
 	saveToStorage( KEY_LAST_CONFIG, {
 		...getCurrentSettings(),
-		balance  : elBalance.dataset.value,
 		micSource: elSource.checked,
 		mute     : elMute.checked,
 		volume   : elVolume.dataset.value,
@@ -4911,12 +4865,6 @@ function updateRangeValue( el ) {
 
 	const audioCtx = audioMotion.audioCtx;
 
-	// create panNode for balance control - NOTE: no support on Safari < 14.1
-	if ( audioCtx.createStereoPanner ) {
-		panNode = audioCtx.createStereoPanner();
-		audioMotion.connectInput( panNode );
-	}
-
 	// Initialize and connect audio elements
 
 	currAudio = 0;
@@ -4931,10 +4879,7 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		if ( panNode )
-			audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
-		else
-			audioMotion.connectInput( audioElement[ i ] );
+		audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );

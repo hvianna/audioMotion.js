@@ -656,7 +656,7 @@ div.value {
 }
 
 .player-panel {
-	grid-template-columns: 1fr minmax(350px,1fr) 1fr;
+	grid-template-columns: 1fr 370px 1fr;
 	margin: 0 auto;
 	max-width: 1400px;
 	padding: 30px 0 20px;
@@ -669,10 +669,11 @@ div.value {
 	justify-self: start;
 }
 .controls-left > div:not(:last-child) {
-	margin-right: 4em;
+	margin-right: 40px;
 }
 
 .controls-right {
+	display: flex;
 	margin-right: 25px;
 	justify-self: end;
 }
@@ -690,6 +691,7 @@ div.value {
 	border-bottom-left-radius: 20px;
 	border-top-left-radius: 20px;
 	padding-left: 15px;
+	width: 108px;
 }
 .player-controls .button:last-child {
 	border-bottom-right-radius: 20px;
@@ -1427,13 +1429,13 @@ input.slider:not(:checked) + .slider .slider-on {
 }
 .knob-vol {
 	height: 60px;
-	margin: -10px 20px 0 70px;
+	margin: -10px 20px 0 80px;
 	width: 60px;
 }
 
 .knob::after,
 .knob::before {
-	bottom: -1em;
+	bottom: -6px;
 	color: #444;
 	font-size: 10px;
 	position: absolute;
@@ -1468,8 +1470,8 @@ input.slider:not(:checked) + .slider .slider-on {
 	top: -20px;
 }
 .knob-vol label {
-	left: -65%;
-	top: 5px;
+	left: -45px;
+	top: 10px;
 }
 
 .knob .marker {
