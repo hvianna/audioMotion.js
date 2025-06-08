@@ -2498,7 +2498,7 @@ async function loadSubs( audioEl, song ) {
 
 	let { subs } = song || {};
 
-	if ( song && ! subs && isSwitchOn( elShowSubtitles ) ) {
+	if ( song && ! subs && isSwitchOn( elShowSubtitles ) && ! isExternalURL( song.dataset.file ) ) {
 		// search for subs for this file
 		const { path, baseName } = parsePath( song.dataset.file );
 		let contents;
