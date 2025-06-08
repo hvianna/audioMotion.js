@@ -1091,7 +1091,7 @@ kbd.wide {
 	color: #ccc;
 	display: flex;
 	flex-direction: column;
-	height: 400px;
+	height: 405px;
 	justify-content: center;
 	opacity: 0;
 	pointer-events: none;
