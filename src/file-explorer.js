@@ -246,7 +246,7 @@ export async function getDirectoryContents( target ) {
 	let content;
 
 	try {
-		if ( target instanceof FileSystemDirectoryHandle ) {
+		if ( supportsFileSystemAPI && target instanceof FileSystemDirectoryHandle ) {
 			// File System Access API
 			content = [];
 			for await ( const [ name, handle ] of target.entries() ) // returns an array
@@ -364,7 +364,7 @@ export function parseDirectory( content ) {
 		return arr.find( el => ( el.name || el ).match( regexp ) );
 	}
 
-	if ( Array.isArray( content ) ) {
+	if ( Array.isArray( content ) && supportsFileSystemAPI ) {
 		// File System entries
 		for ( const fileObj of content ) {
 			const { name, handle, dirHandle } = fileObj;
