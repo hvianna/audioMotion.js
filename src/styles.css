@@ -19,6 +19,7 @@
 
 body {
 	background: var(--metal-gradient);
+	color: #222;
 	font-family: 'Sofia Sans Semi Condensed', sans-serif;
 	font-size: 16px;
 	line-height: 1;
@@ -52,7 +53,7 @@ button,
 	background: var(--glass-gradient);
 	border: 1px solid #adadad;
 	border-radius: 999px;
-	color: #444;
+	color: #333;
 	cursor: pointer;
 	font-weight: 400;
 	line-height: normal;
@@ -376,7 +377,7 @@ a.button:visited {
 .thin-button {
 	background: var(--glass-gradient);
 	border: 1px solid #999;
-	color: #444;
+	color: #333;
 	cursor: pointer;
 	display: inline-block;
 	font-weight: 400;
@@ -406,7 +407,6 @@ a.button:visited {
 .thin-button.active,
 .panel-selection input:checked + label {
 	background: var(--glass-gradient-active);
-/*	border-color: #72aa00; */
 	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
 	color: #293d00;
 	font-weight: 600;
@@ -762,7 +762,7 @@ div.value {
 	background: var(--glass-gradient);
 	border: 1px solid #adadad;
 	border-left-width: 0;
-	color: #444;
+	color: #333;
 	cursor: pointer;
 	display: inline-block;
 	font-weight: 600;
@@ -820,7 +820,6 @@ div.value {
 }
 .custom-radio-buttons input:checked + label {
 	background: var(--glass-gradient-active);
-/*	border-color: #72aa00; */
 	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
 	color: #293d00;
 	font-weight: 600;
@@ -829,7 +828,7 @@ div.value {
 .custom-radio-buttons label {
 	background: var(--glass-gradient);
 	border: 1px solid #adadad;
-	color: #444;
+	color: #333;
 	cursor: pointer;
 	font-weight: 400;
 	font-size: .85rem;
