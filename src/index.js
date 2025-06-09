@@ -50,7 +50,8 @@ const URL_ORIGIN = location.origin + location.pathname,
 const AUTOHIDE_DELAY        = 300,				// delay for triggering media panel auto-hide (in milliseconds)
 	  BG_DIRECTORY          = 'backgrounds', 	// server folder name for built-in backgrounds
 	  MAX_METADATA_REQUESTS = 4,				// max concurrent metadata requests
-	  MAX_QUEUED_SONGS      = 2000;
+	  MAX_QUEUED_SONGS      = 2000,
+	  NEXT_TRACK            = -1;				// for loadSong()
 
 // Background option values
 const BG_DEFAULT = '0',
@@ -790,7 +791,7 @@ let audioElement = [],
 	audioMotion,
 	bgImages = [],
 	bgVideos = [],
-	canvasMsg,
+	canvasMsg = {},
 	currAudio, 					// audio element currently in use
 	currentGradient = null,     // gradient that is currently loaded in gradient editor
 	fastSearchTimeout,
@@ -1058,6 +1059,14 @@ const setRangeAtts = ( element, min, max, step = 1 ) => {
 	element.step = step;
 }
 
+// promise-compatible `onloadeddata` event handler for media elements
+const waitForLoadedData = async audioEl => new Promise( resolve => {
+	audioEl.onloadeddata = () => {
+		audioEl.onloadeddata = null;
+		resolve();
+	};
+});
+
 // GENERAL FUNCTIONS ------------------------------------------------------------------------------
 
 /**
@@ -1164,11 +1173,11 @@ function addSongToPlayQueue( fileObject, content ) {
 
 		if ( queueLength() == 1 && ! isPlaying() )
 			loadSong(0).then( () => resolve(1) );
-		else
+		else {
+			if ( playlistPos > queueLength() - 3 )
+				loadSong( NEXT_TRACK );
 			resolve(1);
-
-		if ( playlistPos > queueLength() - 3 )
-			loadNextSong();
+		}
 	});
 }
 
@@ -1224,9 +1233,11 @@ function changeVolume( incr ) {
 
 /**
  * Clear audio element
+ *
+ * @param {number|HTMLMediaElement} index to media element, or object itself
  */
 function clearAudioElement( n = currAudio ) {
-	const audioEl   = audioElement[ n ],
+	const audioEl   = n instanceof HTMLMediaElement ? n : audioElement[ n ],
 		  trackData = audioEl.dataset;
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
@@ -1773,7 +1784,7 @@ function keyboardControls( event ) {
 					else
 						playlistPos--;
 					if ( queueLength() )
-						loadNextSong();
+						loadSong( NEXT_TRACK );
 					else {
 						clearAudioElement( nextAudio );
 						if ( ! isPlaying() )
@@ -1921,17 +1932,13 @@ function loadAudioSource( audioEl, newSource ) {
  * @param {boolean}   `true` to start playing
  * @returns {Promise} resolves to a string containing the URL created for the blob
  */
-function loadFileBlob( fileBlob, audioEl, playIt ) {
-	return new Promise( resolve => {
-		const url = URL.createObjectURL( fileBlob );
-		loadAudioSource( audioEl, url );
-		audioEl.onloadeddata = () => {
-			if ( playIt )
-				audioEl.play();
-			audioEl.onloadeddata = null;
-			resolve( url );
-		};
-	});
+async function loadFileBlob( fileBlob, audioEl, playIt ) {
+	const url = URL.createObjectURL( fileBlob );
+	loadAudioSource( audioEl, url );
+	await waitForLoadedData( audioEl );
+	if ( playIt )
+		audioEl.play();
+	return url;
 }
 
 /**
@@ -1984,41 +1991,6 @@ function loadLocalFile( obj ) {
 			.then( metadata => addMetadata( metadata, audioEl ) )
 			.catch( e => {} );
 	}
-}
-
-/**
- * Loads next song into the audio element not currently in use
- */
-async function loadNextSong() {
-	const next    = ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0,
-		  song    = playlist.children[ next ],
-		  audioEl = audioElement[ nextAudio ];
-
-	setSubtitlesDisplay(); // avoid stuck subtitles on track change
-
-	if ( song ) {
-		addMetadata( song, audioEl );
-		if ( song.handle ) {
-			try {
-				await song.handle.requestPermission();
-			}
-			catch( e ) {}
-			song.handle.getFile()
-				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
-				.then( () => audioEl.load() )
-				.catch( e => {
-					consoleLog( `Error loading ${ song.dataset.file }`, true );
-					clearAudioElement( nextAudio );
-				});
-		}
-		else {
-			loadAudioSource( audioEl, song.dataset.file );
-			audioEl.load();
-		}
-		loadSubs( audioEl, song );
-	}
-
-	skipping = false; // finished skipping track
 }
 
 /**
@@ -2444,49 +2416,62 @@ async function loadSavedPlaylists( keyName ) {
  * @param {boolean}   `true` to start playing
  * @returns {Promise} resolves to a boolean indicating success or failure (invalid queue index)
  */
-function loadSong( n, playIt ) {
-	return new Promise( async resolve => {
-		const audioEl = audioElement[ currAudio ];
-		const finish = () => {
-			updatePlaylistUI();
-			loadNextSong();
-			resolve( true );
+async function loadSong( n, playIt ) {
+	const isCurrent = n !== NEXT_TRACK,
+		  index     = isCurrent ? n : ( ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0 ),
+		  audioEl   = audioElement[ isCurrent ? currAudio : nextAudio ],
+		  song      = playlist.children[ index ];
+
+	if ( ! isCurrent )
+		setSubtitlesDisplay(); // avoid stuck subtitles on track change
+
+	let success = false;
+
+	if ( song ) {
+		if ( isCurrent )
+			playlistPos = index;
+
+		addMetadata( song, audioEl );
+		loadSubs( audioEl, song );
+
+		if ( song.handle ) {
+			try {
+				await song.handle.requestPermission();
+				const fileBlob = await song.handle.getFile();
+				await loadFileBlob( fileBlob, audioEl, playIt );
+				success = true;
+			}
+			catch( e ) {
+				consoleLog( `Error loading ${ song.dataset.file }`, true );
+				clearAudioElement( audioEl );
+			}
+		}
+		else {
+			loadAudioSource( audioEl, song.dataset.file );
+			if ( isCurrent ) {
+				await waitForLoadedData( audioEl );
+				if ( playIt )
+					audioEl.play();
+			}
+			else
+				audioEl.load();
+			success = true;
 		}
 
-		if ( playlist.children[ n ] ) {
-			playlistPos = n;
-			const song = playlist.children[ playlistPos ];
-			addMetadata( song, audioEl );
-
-			if ( song.handle ) {
-				try {
-					await song.handle.requestPermission();
-				}
-				catch( e ) {}
-				song.handle.getFile()
-					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
-					.then( () => finish() )
-					.catch( e => {
-						consoleLog( `Error loading ${ song.dataset.file }`, true );
-						clearAudioElement( currAudio );
-						resolve( false );
-					});
+		if ( success ) {
+			if ( isCurrent ) {
+				updatePlaylistUI();
+				loadSong( NEXT_TRACK );
 			}
-			else {
-				loadAudioSource( audioEl, song.dataset.file );
-				audioEl.onloadeddata = () => {
-					if ( playIt )
-						audioEl.play();
-					audioEl.onloadeddata = null;
-					finish();
-				};
-			}
-
-			loadSubs( audioEl, song );
+			else
+				audioEl.load();
 		}
-		else
-			resolve( false );
-	});
+	}
+
+	if ( ! isCurrent )
+		skipping = false; // finished skipping track
+
+	return success;
 }
 
 /**
@@ -2613,18 +2598,18 @@ function playNextSong( play ) {
 
 	if ( play && audioElement[ currAudio ].src ) { // note: play() on empty element never resolves!
 		audioElement[ currAudio ].play()
-		.then( () => loadNextSong() )
+		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
-				loadNextSong();
+				loadSong( NEXT_TRACK );
 				playNextSong( true );
 			}
 		});
 	}
 	else
-		loadNextSong();
+		loadSong( NEXT_TRACK );
 
 	updatePlaylistUI();
 	return true;
@@ -4872,7 +4857,8 @@ function updateRangeValue( el ) {
 			playlistPos = getIndex( playlist.querySelector('.current') );
 			if ( evt.newIndex == 0 && ! isPlaying() )
 				loadSong(0);
-			loadNextSong();
+			else
+				loadSong( NEXT_TRACK );
 			storePlayQueue( true );
 		}
 	});
