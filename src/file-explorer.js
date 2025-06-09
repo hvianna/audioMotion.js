@@ -86,7 +86,7 @@ function updateUI( content, scrollTop ) {
 		if ( cover && cover.handle )
 			cover.handle.getFile().then( fileBlob => setBgImage( URL.createObjectURL( fileBlob ) ) );
 		else
-			setBgImage( cover ? makePath( cover ) : '' );
+			setBgImage( cover ? makePath( cover.name ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
