@@ -4057,8 +4057,11 @@ function setUIEventListeners() {
 			}
 		});
 	});
+	$('#panel_media').checked = true;
+	elMediaPanel.classList.add('active'); // initialize with the files panel visible
+
+	// clear console
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
-	$('#panel_media').click(); // initialize with the files panel visible
 
 	// settings switches
 	$$('.switch').forEach( el => {
@@ -4458,6 +4461,7 @@ function toggleMediaPanel( show ) {
 	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
 		document.body.style.overflowY = 'hidden';
 
+	// show main panels (hidden by the `transitionend` event listener)
 	if ( show )
 		elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = '';
 
