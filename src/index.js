@@ -1060,9 +1060,13 @@ const setRangeAtts = ( element, min, max, step = 1 ) => {
 }
 
 // promise-compatible `onloadeddata` event handler for media elements
-const waitForLoadedData = async audioEl => new Promise( resolve => {
+const waitForLoadedData = async audioEl => new Promise( ( resolve, reject ) => {
+	audioEl.onerror = () => {
+		audioEl.onerror = audioEl.onloadeddata = null;
+		reject();
+	}
 	audioEl.onloadeddata = () => {
-		audioEl.onloadeddata = null;
+		audioEl.onerror = audioEl.onloadeddata = null;
 		resolve();
 	};
 });
@@ -1935,9 +1939,13 @@ function loadAudioSource( audioEl, newSource ) {
 async function loadFileBlob( fileBlob, audioEl, playIt ) {
 	const url = URL.createObjectURL( fileBlob );
 	loadAudioSource( audioEl, url );
-	await waitForLoadedData( audioEl );
-	if ( playIt )
-		audioEl.play();
+	try {
+		await waitForLoadedData( audioEl );
+		if ( playIt )
+			audioEl.play();
+	}
+	catch ( e ) {}
+
 	return url;
 }
 
@@ -2435,6 +2443,7 @@ async function loadSong( n, playIt ) {
 		loadSubs( audioEl, song );
 
 		if ( song.handle ) {
+			// file system mode
 			try {
 				await song.handle.requestPermission();
 				const fileBlob = await song.handle.getFile();
@@ -2447,15 +2456,15 @@ async function loadSong( n, playIt ) {
 			}
 		}
 		else {
+			// web server mode
 			loadAudioSource( audioEl, song.dataset.file );
-			if ( isCurrent ) {
+			try {
 				await waitForLoadedData( audioEl );
-				if ( playIt )
+				if ( isCurrent && playIt )
 					audioEl.play();
+				success = true;
 			}
-			else
-				audioEl.load();
-			success = true;
+			catch( e ) {} // error will be handled (logged) by `audioOnError()`
 		}
 
 		if ( success ) {
@@ -2467,6 +2476,8 @@ async function loadSong( n, playIt ) {
 				audioEl.load();
 		}
 	}
+
+	song.classList.toggle( 'error', ! success );
 
 	if ( ! isCurrent )
 		skipping = false; // finished skipping track
