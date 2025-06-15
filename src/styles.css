@@ -1038,6 +1038,9 @@ kbd.wide {
 .filelist li.current {
 	color: #06c;
 }
+.filelist li.error {
+	color: #c00;
+}
 .filelist li.full-panel {
 	align-items: center;
 	display: flex;
@@ -1052,6 +1055,9 @@ kbd.wide {
 .filelist li:hover {
 	background: #06c;
 	color: #fff;
+}
+.filelist li.error:hover {
+	background: #c00;
 }
 
 .filelist [data-type]::before {
