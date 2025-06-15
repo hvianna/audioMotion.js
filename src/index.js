@@ -1643,32 +1643,39 @@ async function fullscreen() {
 /**
  * Try to get a cover image from the song's folder
  */
-function getFolderCover( uri ) {
-	return new Promise( resolve => {
-		const path = parsePath( uri ).path; // extract path (no filename)
+async function getFolderCover( target ) {
+	const { path } = parsePath( target.dataset.file ), // extract path from filename
+		  { dirHandle } = target;
 
-		if ( ! webServer || isExternalURL( uri ) )
-			resolve(''); // nothing to do when in serverless mode or external file
-		else if ( folderImages[ path ] !== undefined )
-			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
-		else {
-			fetch( path )
-				.then( response => {
-					return response.ok ? response.text() : null;
-				})
-				.then( content => {
-					let imageUrl = '';
-					if ( content ) {
-						const dirContents = fileExplorer.parseDirectory( content );
-						if ( dirContents.cover )
-							imageUrl = dirContents.cover;
-					}
-					folderImages[ path ] = imageUrl;
-					resolve( path + imageUrl );
-				})
-				.catch( e => resolve('') );
+	if ( ! webServer || isExternalURL( path ) )
+		return ''; // nothing to do when in serverless mode or external file
+	else if ( folderImages[ path ] !== undefined )
+		return folderImages[ path ]; // use the stored image URL for this path
+	else {
+		if ( target.handle && ! dirHandle )
+			return ''; // filesystem mode, but no dirHandle available (entry from old playlist) - quit
+
+		let imageUrl = '';
+
+		try {
+			const contents = await fileExplorer.getDirectoryContents( path, dirHandle );
+
+			if ( contents && contents.cover ) {
+				const { handle, name } = contents.cover;
+				if ( handle ) {
+					const blob = await handle.getFile();
+					imageUrl = URL.createObjectURL( blob );
+				}
+				else
+					imageUrl = path + name;
+			}
 		}
-	});
+		catch( e ) {}
+
+		folderImages[ path ] = imageUrl;
+
+		return imageUrl;
+	}
 }
 
 /**
@@ -3149,8 +3156,8 @@ async function retrieveMetadata() {
 				if ( metadata ) {
 					addMetadata( metadata, queueItem ); // add metadata to play queue item
 					syncMetadataToAudioElements( queueItem );
-					if ( ! queueItem.handle && ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( uri ).then( cover => {
+					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+						getFolderCover( queueItem ).then( cover => {
 							queueItem.dataset.cover = cover;
 							syncMetadataToAudioElements( queueItem );
 						});
