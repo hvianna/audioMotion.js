@@ -1120,7 +1120,7 @@ function addMetadata( metadata, target ) {
 /**
  * Add a song to the play queue
  *
- * @param {object} { file, handle, subs }
+ * @param {object} { file, handle, dirHandle, subs }
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
@@ -1147,10 +1147,12 @@ function addSongToPlayQueue( fileObject, content ) {
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
 		trackData.codec    = content.codec || extension.toUpperCase();
+//		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
-		newEl.subs         = fileObject.subs;
+		newEl.dirHandle    = fileObject.dirHandle;
+		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
 		playlist.appendChild( newEl );
 
@@ -1228,7 +1230,7 @@ function clearAudioElement( n = currAudio ) {
 		  trackData = audioEl.dataset;
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
-	loadSubs( audioEl, null );
+	loadSubs( audioEl ); // clear subtitles track
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	audioEl.load();
 
@@ -2003,7 +2005,7 @@ async function loadNextSong() {
 			loadAudioSource( audioEl, song.dataset.file );
 			audioEl.load();
 		}
-		loadSubs( audioEl, song.subs );
+		loadSubs( audioEl, song );
 	}
 
 	skipping = false; // finished skipping track
@@ -2039,12 +2041,14 @@ function loadPlaylist( fileObject ) {
 					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
 						songInfo = parsePath( line ).baseName;
 
-					let handle, subs;
+					let handle, dirHandle;
 
-					// if it's an external URL just add it to the queue as is
+					// external URLs do not require any processing
 					if ( ! isExternalURL( line ) ) {
+
+						// finds the filesystem handle for this file and its directory
 						if ( useFileSystemAPI ) {
-							( { handle, subs } = await fileExplorer.getHandles( line ) );
+							( { handle, dirHandle } = await fileExplorer.getHandles( line ) );
 							if ( ! handle ) {
 								consoleLog( `Cannot resolve file handle for ${ line }`, true );
 								songInfo = '';
@@ -2058,21 +2062,9 @@ function loadPlaylist( fileObject ) {
 						// if it's not an absolute path, prepend the current path to it
 						if ( line[1] != ':' && line[0] != '/' )
 							line = path + line;
-
-						if ( ! useFileSystemAPI ) {
-							// look for subtitles (server mode)
-							try {
-								const src = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
-								 	  res = await fetch( src, { method: 'HEAD' } );
-
-								if ( res.ok )
-									subs = { src };
-							}
-							catch( e ) {}
-						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: line, handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: line, handle, dirHandle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
@@ -2082,6 +2074,8 @@ function loadPlaylist( fileObject ) {
 			}
 			resolveAddedSongs();
 		}
+
+		// --- main fuction ---
 
 		if ( ! path ) {
 			resolve( -1 );
@@ -2118,8 +2112,9 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const { file, handle, subs, content } = entry;
-					promises.push( addSongToPlayQueue( { file, handle, subs }, content ) );
+					const { file, handle, dirHandle, subs, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
+					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 				});
 				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
@@ -2477,7 +2472,7 @@ function loadSong( n, playIt ) {
 				};
 			}
 
-			loadSubs( audioEl, song.subs );
+			loadSubs( audioEl, song );
 		}
 		else
 			resolve( false );
@@ -2488,9 +2483,9 @@ function loadSong( n, playIt ) {
  * Load subtitles file to audio element track
  *
  * @param {object} audio element
- * @param {object} subtitles object { src, lang, handle }
+ * @param {object|null} song object or `null` to clear subtitles track
  */
-function loadSubs( audioEl, subs ) {
+async function loadSubs( audioEl, song ) {
 	// References:
 	// https://www.w3.org/wiki/VTT_Concepts
 	// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
@@ -2500,6 +2495,26 @@ function loadSubs( audioEl, subs ) {
 	// revoke any previous object URL
 	if ( isBlob( subsTrack.src ) )
 		URL.revokeObjectURL( subsTrack.src );
+
+	let { subs } = song || {};
+
+	if ( song && ! subs && isSwitchOn( elShowSubtitles ) && ! isExternalURL( song.dataset.file ) ) {
+		// search for subs for this file
+		const { path, baseName } = parsePath( song.dataset.file );
+		let contents;
+
+		// playlists saved in v24.6 didn't store the `dirHandle` property
+		if ( song.dirHandle || ! song.handle )
+			contents = await fileExplorer.getDirectoryContents( path, song.dirHandle );
+
+		if ( contents ) {
+			const targetFile = contents.files.find( entry => entry.name.startsWith( baseName ) );
+			if ( targetFile && targetFile.subs ) {
+				subs = targetFile.subs;
+				song.subs = subs; // add the subs to the entry in the play queue
+			}
+		}
+	}
 
 	if ( subs ) {
 		const { src, lang, handle } = subs;
@@ -4205,8 +4220,8 @@ function setUIEventListeners() {
 		  btnAddFolder   = $('#btn_add_folder');
 
 	if ( serverHasMedia || useFileSystemAPI ) {
-		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
-		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
+		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents('.selected') ) );
+		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents() ) );
 	}
 	else {
 		btnAddSelected.style.display = 'none';
@@ -4388,8 +4403,8 @@ async function storePlayQueue( name, update = true ) {
 
 		for ( const item of playlist.childNodes ) {
 			const { album, artist, codec, duration, file, title } = item.dataset,
-				  { handle, subs } = item;
-			songs.push( { file, handle, subs, content: { album, artist, codec, duration, title } } );
+				  { handle, dirHandle } = item;
+			songs.push( { file, handle, dirHandle, content: { album, artist, codec, duration, title } } );
 		}
 
 		if ( isSaveQueue )
@@ -5030,7 +5045,8 @@ function updateRangeValue( el ) {
 						let items    = evt.items.length ? evt.items : [ evt.item ],
 							promises = [];
 						items.forEach( item => {
-							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle, subs: item.subs } ) );
+							const { handle, dirHandle, subs } = item;
+							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle, dirHandle, subs } ) );
 							item.remove();
 						});
 						Promise.all( promises ).then( () => storePlayQueue( true ) );
