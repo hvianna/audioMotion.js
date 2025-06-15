@@ -227,8 +227,8 @@ const WEIGHT_NONE = '',
 	  WEIGHT_468  = '468';
 
 // Minimum window height to fit the entire player without a scrollbar
-// 270px (canvas min-height) + 132px (player main panel) + 430px (media panel)
-const WINDOW_MIN_HEIGHT = 832;
+// 270px (canvas min-height) + 144px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
+const WINDOW_MIN_HEIGHT = 812;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -240,7 +240,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elAnsiBands     = $('#ansi_bands'),
 	  elAutoHide      = $('#auto_hide'),
 	  elBackground    = $('#background'),
-	  elBalance       = $('#balance'),
 	  elBarSpace      = $('#bar_space'),
 	  elBgImageDim    = $('#bg_img_dim'),
 	  elBgImageFit    = $('#bg_img_fit'),
@@ -310,8 +309,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
-	  elToggleConsole = $('#toggle_console'),
-	  elToggleSettings= $('#toggle_settings'),
+	  elToggleConsole = $('label[for="panel_console"]'),
+	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
 	  elVolume        = $('#volume'),
@@ -517,7 +516,6 @@ const presets = [
 			alphaBars    : 0,
 			ansiBands    : 0,
 			background   : BG_DEFAULT,
-			balance      : 0,
 			barSpace     : 0.1,
 			bgImageDim   : 0.5,
 			bgImageFit   : BGFIT_CENTER,
@@ -801,7 +799,6 @@ let audioElement = [],
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
-	panNode,					// stereoPanner node for balance control
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -1195,22 +1192,6 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 }
 
 /**
- * Increase or decrease balance
- */
-function changeBalance( incr ) {
-	let newVal = incr ? fixFloating( ( +elBalance.dataset.value || 0 ) + incr * .1 ) : 0;
-
-	if ( newVal < -1 )
-		newVal = -1;
-	else if ( newVal > 1 )
-		newVal = 1;
-
-	setBalance( newVal );
-	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
-	updateLastConfig();
-}
-
-/**
  * Change fullscreen analyzer height
  */
 function changeFsHeight( incr ) {
@@ -1312,7 +1293,7 @@ function consoleLog( msg, error, clear ) {
 		content.innerHTML = '';
 
 	if ( error )
-		$('#toggle_console').classList.add('warning');
+		elToggleConsole.classList.add('warning');
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -1726,9 +1707,7 @@ function keyboardControls( event ) {
 					changeVolume(-1);
 				break;
 			case 'ArrowLeft': 	// rewind
-				if ( isShiftKey )
-					changeBalance(-1);
-				else if ( isFastSearch ) {
+				if ( isFastSearch ) {
 					setCanvasMsg( 'Rewind', 1 );
 					fastSearch(-1);
 				}
@@ -1736,9 +1715,7 @@ function keyboardControls( event ) {
 					scheduleFastSearch('k', -1);
 				break;
 			case 'ArrowRight': 	// fast forward
-				if ( isShiftKey )
-					changeBalance(1);
-				else if ( isFastSearch ) {
+				if ( isFastSearch ) {
 					setCanvasMsg( 'Fast forward', 1 );
 					fastSearch();
 				}
@@ -2331,8 +2308,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 			}
 			else if ( el.classList.contains('switch') )
 				el.dataset.active = +val;
-			else if ( el == elBalance )
-				setBalance( val );
 			else if ( el == elMute )
 				toggleMute( val );
 			else if ( el == elSource )
@@ -3413,16 +3388,6 @@ function setBackgroundImage( url ) {
 }
 
 /**
- * Set balance
- */
-function setBalance( value ) {
-	elBalance.dataset.value = value;
-	if ( panNode )
-		panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
-	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
-}
-
-/**
  * Set message for on-screen display
  *
  * @param msg {number|string} number indicates information level (0=none; 1=song info; 2=full info)
@@ -4048,32 +4013,31 @@ function setUIEventListeners() {
 			}, AUTOHIDE_DELAY );
 		}
 	});
-	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
+	elTogglePanel.addEventListener( 'click', () => toggleMediaPanel() );
 
-	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
+	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height )
-			elMediaPanel.style.display = 'none'; // hide media panel
+			elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = 'none'; // hide main panels
+
  		// restore overflow on body (keep the scroll bar always visible when the window is too short)
 		document.body.style.overflowY = window.innerHeight < WINDOW_MIN_HEIGHT ? 'scroll' : '';
 	});
 
-	// open/close settings panel
-	elToggleSettings.addEventListener( 'click', () => {
-		toggleMediaPanel( true );
-		toggleSettingsPanel();
+	// main panel selection
+	const panelSelection = $('#panel_selection').panel; // RadioNodeList
+	panelSelection.forEach( btn => {
+		btn.addEventListener( 'click', evt => {
+			panelSelection.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
+			toggleMediaPanel( true ); // make sure the main panel is expanded
+			if ( btn.value == 'console' ) {
+				elToggleConsole.classList.remove('warning');
+				consoleLog(); // update scroll only
+			}
+		});
 	});
-	$('.settings-close').addEventListener( 'click', () => toggleSettingsPanel() );
-
-	// open/close console
-	elToggleConsole.addEventListener( 'click', () => {
-		toggleMediaPanel( true );
-		toggleConsole();
-		elToggleConsole.classList.remove('warning');
-		consoleLog(); // update scroll only
-	});
-	$('#console-close').addEventListener( 'click', () => toggleConsole() );
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
+	$('#panel_media').click(); // initialize with the files panel visible
 
 	// settings switches
 	$$('.switch').forEach( el => {
@@ -4107,25 +4071,15 @@ function setUIEventListeners() {
 		}
 	}
 
-	// volume and balance knobs
+	// volume knob
 	let wheelTimer;
-	[ elVolume,
-	  elBalance ].forEach( el => {
-	  	el.addEventListener( 'wheel', e => {
-			e.preventDefault(); // prevent scrolling the window
-			if ( wheelTimer )
-				return;
-			wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
-			const incr = Math.sign( e.deltaY || 0 );
-			if ( el == elVolume )
-				changeVolume( incr );
-			else
-				changeBalance( incr );
-		});
-	});
-
-	elBalance.addEventListener( 'dblclick', () => {
-		changeBalance(0);
+	elVolume.addEventListener( 'wheel', e => {
+		e.preventDefault(); // prevent scrolling the window
+		if ( wheelTimer )
+			return;
+		wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
+		const incr = Math.sign( e.deltaY || 0 );
+		changeVolume( incr );
 	});
 
 	// player controls
@@ -4470,34 +4424,25 @@ function syncMetadataToAudioElements( source ) {
 }
 
 /**
- * Open/close the Console
- *
- * @param {boolean} desired state - if undefined, inverts the current state
- */
-function toggleConsole( force ) {
-	$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle( 'active', force ) );
-}
-
-/**
  * Show/hide the media panel (for auto-hide feature) and adjust the canvas height
  *
- * @param {boolean} `true` to show the media panel, otherwise hide it
+ * @param {boolean} `true` to show the media panel; `false` to hide it; if undefined, toggles the current state
  */
 function toggleMediaPanel( show ) {
+	if ( show === undefined )
+		show = !! elContainer.style.height;
+
 	// disable overflow to avoid scrollbar while the analyzer area is expanding (when the window is tall enough)
-	// it will be restored by the `transitionend` event listener on the container
+	// it will be restored by the `transitionend` event listener on the container, set in setUIEventListeners()
 	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
 		document.body.style.overflowY = 'hidden';
 
 	if ( show )
-		elMediaPanel.style.display = '';
-	else {
-		// when hiding, also close the console and the settings panel
-		toggleConsole( false );
-		toggleSettingsPanel( false );
-	}
+		elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = '';
 
-	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
+	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
+	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
+	elTogglePanel.classList.toggle( 'closed', ! show );
 }
 
 /**
@@ -4545,21 +4490,11 @@ function toggleMute( mute ) {
 }
 
 /**
- * Open/close the Settings panel
- *
- * @param {boolean} desired state - if undefined, inverts the current state
- */
-function toggleSettingsPanel( force ) {
-	$('#settings').classList.toggle( 'active', elToggleSettings.classList.toggle( 'active', force ) );
-}
-
-/**
  * Update last used configuration
  */
 function updateLastConfig() {
 	saveToStorage( KEY_LAST_CONFIG, {
 		...getCurrentSettings(),
-		balance  : elBalance.dataset.value,
 		micSource: elSource.checked,
 		mute     : elMute.checked,
 		volume   : elVolume.dataset.value,
@@ -4930,12 +4865,6 @@ function updateRangeValue( el ) {
 
 	const audioCtx = audioMotion.audioCtx;
 
-	// create panNode for balance control - NOTE: no support on Safari < 14.1
-	if ( audioCtx.createStereoPanner ) {
-		panNode = audioCtx.createStereoPanner();
-		audioMotion.connectInput( panNode );
-	}
-
 	// Initialize and connect audio elements
 
 	currAudio = 0;
@@ -4950,10 +4879,7 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		if ( panNode )
-			audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
-		else
-			audioMotion.connectInput( audioElement[ i ] );
+		audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );
