@@ -2515,7 +2515,7 @@ async function loadSubs( audioEl, song ) {
 
 		// playlists saved in v24.6 didn't store the `dirHandle` property
 		if ( song.dirHandle || ! song.handle )
-			contents = await fileExplorer.getDirectoryContents( song.dirHandle || path );
+			contents = await fileExplorer.getDirectoryContents( path, song.dirHandle );
 
 		if ( contents ) {
 			const targetFile = contents.files.find( entry => entry.name.startsWith( baseName ) );
