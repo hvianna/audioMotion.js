@@ -1659,24 +1659,21 @@ async function fullscreen() {
  * Try to get a cover image from the song's folder
  */
 async function getFolderCover( target ) {
-	const { path } = parsePath( target.dataset.file ); // extract path from filename
+	const { path } = parsePath( target.dataset.file ), // extract path from filename
+		  { dirHandle } = target;
 
 	if ( ! webServer || isExternalURL( path ) )
 		return ''; // nothing to do when in serverless mode or external file
 	else if ( folderImages[ path ] !== undefined )
 		return folderImages[ path ]; // use the stored image URL for this path
 	else {
-		if ( target.dirHandle )
-			target = target.dirHandle;
-		else if ( target.handle )
-			return '';		// filesystem mode, but entry from old playlist (no dirHandle available, quit)
-		else
-			target = path;	// webserver mode
+		if ( target.handle && ! dirHandle )
+			return ''; // filesystem mode, but no dirHandle available (entry from old playlist) - quit
 
 		let imageUrl = '';
 
 		try {
-			const contents = await fileExplorer.getDirectoryContents( target );
+			const contents = await fileExplorer.getDirectoryContents( path, dirHandle );
 
 			if ( contents && contents.cover ) {
 				const { handle, name } = contents.cover;
@@ -2511,7 +2508,7 @@ async function loadSubs( audioEl, song ) {
 
 		// playlists saved in v24.6 didn't store the `dirHandle` property
 		if ( song.dirHandle || ! song.handle )
-			contents = await fileExplorer.getDirectoryContents( song.dirHandle || path );
+			contents = await fileExplorer.getDirectoryContents( path, song.dirHandle );
 
 		if ( contents ) {
 			const targetFile = contents.files.find( entry => entry.name.startsWith( baseName ) );
