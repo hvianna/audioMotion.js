@@ -1,5 +1,24 @@
 # Changelog
 
+## version NEXT
+
+### Added: <!-- {docsify-ignore} -->
+
++ Support for surround audio output (experimental - for now it only works with single channel analyzer layout)
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ User interface overhaul: more consistent look for panels, buttons and controls; added a button to expand/collapse the front panel; increased some font sizes;
++ Balance control has been removed;
++ Improved detection and loading of subtitle files;
++ Improved hover detection and increased the delay for auto-collapsing the front panel on analyzer hover (this option is now **disabled by default**);
++ Increased the default maximum number of background image files from 20 to 100.
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Loading of folder cover images, broken in v24.6.
+
+
 ## version 24.6
 
 ### Added: <!-- {docsify-ignore} -->
