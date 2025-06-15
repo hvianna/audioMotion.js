@@ -126,7 +126,7 @@ async function enterDir( target, scrollTop ) {
 	if ( currentDirHandle && handle )
 		currentDirHandle = handle;
 
-	const content = await getDirectoryContents( currentDirHandle || makePath() );
+	const content = await getDirectoryContents( makePath(), currentDirHandle );
 
 	ui_files.classList.remove( CLASS_LOADING );
 
@@ -238,23 +238,24 @@ export function getCurrentFolderContents( selector = 'li' ) {
 /**
  * Returns the contents of a given directory
  *
- * @param {string | FileSystemDirectoryHandle} URL or handle of the directory to read
+ * @param {string} URL of the directory to read in webserver mode
+ * @param {FileSystemDirectoryHandle} handle of the directory to read in filesystem mode (takes precedence, if defined)
  * @returns {array|false} Directory entries; `false` in case of access error
  */
-export async function getDirectoryContents( target ) {
+export async function getDirectoryContents( path, dirHandle ) {
 
 	let content;
 
 	try {
-		if ( supportsFileSystemAPI && target instanceof FileSystemDirectoryHandle ) {
+		if ( supportsFileSystemAPI && dirHandle instanceof FileSystemDirectoryHandle ) {
 			// File System Access API
 			content = [];
-			for await ( const [ name, handle ] of target.entries() ) // returns an array
-				content.push( { name, handle, dirHandle: target } ); // we convert it to our own fileObj
+			for await ( const [ name, handle ] of dirHandle.entries() ) // entries() iterator returns an array
+				content.push( { name, handle, dirHandle } ); // we convert it to our own fileObj
 		}
 		else {
 			// Web server
-			const response = await fetch( target );
+			const response = await fetch( path );
 			content = response.ok ? await response.text() : false;
 		}
 	}
@@ -262,7 +263,7 @@ export async function getDirectoryContents( target ) {
 		content = false;
 	}
 
-	return content === false ? false : parseDirectory( content );
+	return content === false ? false : parseDirectory( content, path );
 }
 
 /**
@@ -345,10 +346,17 @@ export function parseWebIndex( content ) {
 /**
  * Parses filenames from standard web server or File System API directory listing
  *
- * @param {String | Array} HTML body of a web directory listing OR array of file system entries
+ * @param {string|array} HTML body of a web directory listing OR array of file system entries
+ * @param [{string}] directory path (if undefined, considers the current directory)
  * @returns {object} folder/cover image, list of directories, list of files
  */
-export function parseDirectory( content ) {
+export function parseDirectory( content, path ) {
+
+	// NOTE: `path` is currently used only to generate the correct `src` for subs files when
+	//       reading an arbitrary directory. For all other files, only the filename is included.
+	//
+	// TO-DO: add an extra `path` or `src` property to *all* entries in the returned object,
+	//        so we don't have to deal with this everywhere else!
 
 	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
 		  subsExtensions  = /\.vtt$/i;
@@ -407,7 +415,7 @@ export function parseDirectory( content ) {
 			  fileEntry = files.find( el => el.name.startsWith( basename ) );
 
 		if ( fileEntry )
-			fileEntry.subs = { src: makePath( name ), lang, handle };
+			fileEntry.subs = { src: path ? path + name : makePath( name ), lang, handle };
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
