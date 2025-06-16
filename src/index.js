@@ -2277,6 +2277,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
+	if ( thisPreset.barSpace == 1.5 ) // for compatibility with version =< 24.6
+		thisPreset.barSpace = 1;
+
 	$$('[data-prop]').forEach( el => {
 		const prop = el.dataset.prop,
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
@@ -3570,7 +3573,8 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBarSpace:
-				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getControlValue( elBarSpace );
+				const value = getControlValue( elBarSpace );
+				audioMotion.barSpace = audioMotion.isLumiBars || value == 1 ? 1.5 : value;
 				break;
 
 			case elBgImageFit:
@@ -4076,7 +4080,7 @@ function setUIEventListeners() {
 			});
 		}
 		else {
-			el.addEventListener( 'change', () => {
+			el.addEventListener( 'input', () => {
 				setProperty( el );
 				updateRangeValue( el );
 			});
@@ -4930,14 +4934,6 @@ function updateRangeValue( el ) {
 		[ '2', 'High'   ]
 	]);
 
-	populateCustomRadio( elBarSpace, [
-		[ '1.5',  'Min' ],
-		[ '0.1',  '10' ],
-		[ '0.25', '25' ],
-		[ '0.5',  '50' ],
-		[ '0.75', '75' ]
-	]);
-
 	populateSelect( elRandomMode, [
 		[ '0',   'OFF'             ],
 		[ '1',   'On track change' ],
@@ -4985,6 +4981,7 @@ function updateRangeValue( el ) {
 		[ COLOR_LEVEL,    'Level' ]
 	]);
 
+	setRangeAtts( elBarSpace, 0, 1, .05 );
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
 	setRangeAtts( elLineWidth, 1, 3, .5 );
 	setRangeAtts( elFillAlpha, 0, .5, .1 );
