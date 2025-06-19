@@ -156,6 +156,11 @@ const OSD_SIZE_S = '0',
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
 
+// Valid values for showPeaks
+const PEAKS_OFF  = 0,
+	  PEAKS_ON   = 1,
+	  PEAKS_FADE = 2;
+
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
@@ -193,6 +198,11 @@ const SCALE_BARK   = 'bark',
 	  SCALE_LINEAR = 'linear',
 	  SCALE_LOG    = 'log',
 	  SCALE_MEL    = 'mel';
+
+// X- and Y- scale switches
+const SCALEXY_OFF  = 0,
+	  SCALEXY_ON   = 1,
+	  SCALEX_NOTES = 2;
 
 // Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.json',
@@ -253,7 +263,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
-	  elFadePeaks     = $('#fade_peaks'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
@@ -277,7 +286,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elNoDimSubs     = $('#no_dim_subs'),
 	  elNoDimVideo    = $('#no_dim_video'),
 	  elNoShadow      = $('#no_shadow'),
-	  elNoteLabels    = $('#note_labels'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
@@ -351,15 +359,14 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_12TH,
-			noteLabels   : 1,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_ON,
 			roundBars    : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEX_NOTES,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -388,14 +395,13 @@ const presets = [
 			outlineBars  : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_3RD,
-			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			roundBars    : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEXY_ON,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -423,13 +429,12 @@ const presets = [
 			linkGrads    : 0,
 			mirror       : 0,
 			mode         : MODE_LINE,
-			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
-			showPeaks    : 0,
-			showScaleX   : 0,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_OFF,
+			showScaleX   : SCALEXY_OFF,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -457,13 +462,12 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_4TH,
-			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 1,
 			randomMode   : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEXY_ON,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			spin         : 1,
 			splitGrad    : 0,
@@ -491,15 +495,14 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_8TH,
-			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_FULL,
 			roundBars    : 1,
-			showPeaks    : 0,
-			showScaleX   : 0,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_OFF,
+			showScaleX   : SCALEXY_OFF,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -525,7 +528,7 @@ const presets = [
 			bgImageFit   : BGFIT_CENTER,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
-			fadePeaks    : 0,
+			fftSize      : 8192,
 			fillAlpha    : 0.1,
 			freqMax      : 20000,
 			freqMin      : 20,
@@ -543,7 +546,6 @@ const presets = [
 			mode         : MODE_DISCRETE,
 			mute         : 0,
 			noShadow     : 1,
-			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
@@ -552,15 +554,27 @@ const presets = [
 			roundBars    : 0,
 			sensitivity  : 1,
 			showFPS      : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEXY_ON,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			showSubtitles: 1,
+			smoothing    : .7,
 			spin         : 2,
 			splitGrad    : 0,
 			volume       : 1,
 			weighting    : WEIGHT_NONE
+		}
+	},
+
+	{
+		key: 'legacy',
+		name: 'Legacy options test',
+		options: {
+			fadePeaks : '1',
+			showPeaks : '0',
+			noteLabels: '1',
+			showScaleX: '0'
 		}
 	}
 ];
@@ -669,10 +683,10 @@ const modeOptions = [
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ CHANNEL_SINGLE,     'Singl' ],
-	[ CHANNEL_COMBINED,   'Comb'  ],
-	[ CHANNEL_HORIZONTAL, 'Horiz' ],
-	[ CHANNEL_VERTICAL,   'Vert'  ]
+	[ CHANNEL_SINGLE,     'Single' ],
+	[ CHANNEL_COMBINED,   'Comb'   ],
+	[ CHANNEL_HORIZONTAL, 'Horiz'  ],
+	[ CHANNEL_VERTICAL,   'Vert'   ]
 ];
 
 // Randomize options
@@ -730,14 +744,13 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elNoDimSubs,
-								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs,
+								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 100,
-	fftSize    : 8192,
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
@@ -745,8 +758,7 @@ const generalOptionsDefaults = {
 	noDimSubs  : true,
 	pipRatio   : 2.35,
 	saveDir    : true,
-	saveQueue  : true,
-	smoothing  : .7,
+	saveQueue  : true
 }
 
 const maxFpsOptions = [
@@ -780,6 +792,14 @@ const subtitlesDefaults = {
 	color     : SUBS_COLOR_WHITE,
 	position  : SUBS_POS_TOP
 }
+
+// Main panels
+const mainPanels = [
+	{ id: 'files_panel', label: 'Media' },
+	{ id: 'settings', label: 'Settings' },
+	{ id: 'advanced', label: 'Advanced' },
+	{ id: 'console',  label: 'Console'  }
+];
 
 // Global variables
 let audioElement = [],
@@ -877,7 +897,7 @@ const getCurrentSettings = _ => ({
 	bgImageFit   : getControlValue( elBgImageFit ),
 	channelLayout: getControlValue( elChnLayout ),
 	colorMode    : getControlValue( elColorMode ),
-	fadePeaks    : getControlValue( elFadePeaks ),
+	fftSize      : getControlValue( elFFTsize ),
 	fillAlpha    : getControlValue( elFillAlpha ),
 	freqMax		 : getControlValue( elRangeMax ),
 	freqMin		 : getControlValue( elRangeMin ),
@@ -893,7 +913,6 @@ const getCurrentSettings = _ => ({
 	mirror       : getControlValue( elMirror ),
 	mode         : getControlValue( elMode ),
 	noShadow     : getControlValue( elNoShadow ),
-	noteLabels   : getControlValue( elNoteLabels ),
 	outlineBars  : getControlValue( elOutline ),
 	radial       : getControlValue( elRadial ),
 	randomMode   : getControlValue( elRandomMode ),
@@ -907,6 +926,7 @@ const getCurrentSettings = _ => ({
 	showScaleY 	 : getControlValue( elScaleY ),
 	showSong     : getControlValue( elShowSong ),
 	showSubtitles: getControlValue( elShowSubtitles ),
+	smoothing    : getControlValue( elSmoothing ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
 	weighting    : getControlValue( elWeighting )
@@ -1373,6 +1393,10 @@ function cycleElement( el, prev ) {
  * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
  */
 function cycleScale( prev ) {
+//
+// TO-DO: UPDATE THIS!!
+//
+/*
 	let scale = +elScaleX.dataset.active + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
 
 	if ( scale < 0 )
@@ -1385,6 +1409,7 @@ function cycleScale( prev ) {
 
 	setProperty( [ elScaleX, elScaleY ] );
 	return scale;
+*/
 }
 
 /**
@@ -1890,14 +1915,8 @@ function keyboardControls( event ) {
 					setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
 					break;
 				case 'KeyP': 		// toggle peaks display
-					if ( isShiftKey ) {
-						elFadePeaks.click();
-						setCanvasMsg( 'Fade Peaks ' + onOff( elFadePeaks ) );
-					}
-					else {
-						elShowPeaks.click();
-						setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
-					}
+					cycleElement( elShowPeaks, isShiftKey );
+					setCanvasMsg( 'Peaks ' + getText( elShowPeaks ) );
 					break;
 				case 'KeyR': 		// toggle playlist repeat
 					elRepeat.click();
@@ -2155,11 +2174,15 @@ function loadPreferences() {
 		}
 	}
 
-	const lastConfig    = loadFromStorage( KEY_LAST_CONFIG ),
-	 	  isLastSession = lastConfig !== null;
+	const lastConfig        = loadFromStorage( KEY_LAST_CONFIG ),
+	 	  isLastSession     = lastConfig !== null;
+
+	// for compatibility with v24.6 (down to v21.11), when FFT size and smoothing were stored in the general settings
+	const storedGeneralOptions   = loadFromStorage( KEY_GENERAL_OPTS ) || {},
+		  { fftSize, smoothing } = storedGeneralOptions;
 
 	// Merge defaults with the last session settings (if any)
-	setPreset( 'last', { ...getPreset('default'), ...lastConfig } );
+	setPreset( 'last', { ...getPreset('default'), fftSize, smoothing, ...lastConfig } );
 
 	// Load user presets
 	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
@@ -2215,11 +2238,6 @@ function loadPreferences() {
 
 	// General settings
 
-	for ( let i = 10; i < 16; i++ )
-		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
-
-	setRangeAtts( elSmoothing, 0, .9, .1 );
-
 	populateSelect( elPIPRatio, pipRatioOptions );
 
 	setRangeAtts( elFsHeight, 25, 100, 5 );
@@ -2240,7 +2258,7 @@ function loadPreferences() {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
-	setGeneralOptions( { ...generalOptionsDefaults, ...( loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
+	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
 
 	// Peak settings
 
@@ -2305,6 +2323,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( thisPreset.barSpace == 1.5 )
 		thisPreset.barSpace = 1;
 
+	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks )
+		thisPreset.showPeaks = PEAKS_FADE;
+
 	if ( thisPreset.mode == MODE_LINE )
 		thisPreset.mode = MODE_GRAPH;
 
@@ -2312,6 +2333,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		thisPreset.bandCount = thisPreset.mode;
 		thisPreset.mode = MODE_BARS;
 	}
+
+	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
+		thisPreset.showScaleX = SCALEX_NOTES;
 
 	// assign values read from the preset to the UI controls
 	$$('[data-prop]').forEach( el => {
@@ -2324,14 +2348,13 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	audioMotion.setOptions( {
 		alphaBars      : isSwitchOn( elAlphaBars ),
-		ansiBands      : isSwitchOn( elAnsiBands ),
+		ansiBands      : +getControlValue( elAnsiBands ),
 		colorMode      : getControlValue( elColorMode ),
-		fadePeaks      : isSwitchOn( elFadePeaks ),
 		fftSize        : getControlValue( elFFTsize ),
 		fillAlpha      : getControlValue( elFillAlpha ),
 		frequencyScale : getControlValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
-		linearAmplitude: isSwitchOn( elLinearAmpl ),
+		linearAmplitude: +getControlValue( elLinearAmpl ),
 		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
 		lumiBars       : isSwitchOn( elLumiBars ),
@@ -2339,16 +2362,13 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		maxFreq        : getControlValue( elRangeMax ),
 		minFreq        : getControlValue( elRangeMin ),
 		mirror         : getControlValue( elMirror ),
-		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
 		peakFadeTime   : getControlValue( elPeakFade ),
 		peakHoldTime   : getControlValue( elPeakHold ),
 		radial         : isSwitchOn( elRadial ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
-		showPeaks      : isSwitchOn( elShowPeaks ),
-		showScaleX     : isSwitchOn( elScaleX ),
-		showScaleY     : isSwitchOn( elScaleY ),
+		showScaleY     : +getControlValue( elScaleY ),
 		smoothing      : getControlValue( elSmoothing ),
 		spinSpeed      : getControlValue( elSpin ),
 		splitGradient  : isSwitchOn( elSplitGrad ),
@@ -2361,6 +2381,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageFit,
 		elBgImageDim,
 		elChnLayout,
+		elShowPeaks, // also sets fadePeaks
 		elFsHeight,
 		elGravity,
 		elLinkGrads, // note: this needs to be set before the gradients!
@@ -2371,6 +2392,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elShowSubtitles,
+		elScaleX, // also sets noteLabels
 		elMode ]
 	);
 
@@ -3293,15 +3315,13 @@ function savePreferences( key ) {
 			autoHide   : elAutoHide.checked,
 			bgLocation : elBgLocation.value,
 			bgMaxItems : elBgMaxItems.value,
-			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
 			noDimSubs  : elNoDimSubs.checked,
 			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
-			saveQueue  : elSaveQueue.checked,
-			smoothing  : elSmoothing.value
+			saveQueue  : elSaveQueue.checked
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -3468,7 +3488,6 @@ function setGeneralOptions( options ) {
 	elAutoHide.checked  = options.autoHide;
 	elBgLocation.value  = options.bgLocation;
 	elBgMaxItems.value  = options.bgMaxItems;
-	elFFTsize.value     = options.fftSize;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
 	elNoDimSubs.checked = options.noDimSubs;
@@ -3477,7 +3496,6 @@ function setGeneralOptions( options ) {
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
-	elSmoothing.value   = options.smoothing;
 }
 
 /**
@@ -3547,7 +3565,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elAnsiBands:
-				audioMotion.ansiBands = isSwitchOn( elAnsiBands );
+				audioMotion.ansiBands = +getControlValue( elAnsiBands );
 				break;
 
 			case elAutoHide:
@@ -3644,16 +3662,12 @@ function setProperty( elems, save = true ) {
 				audioMotion.colorMode = getControlValue( elColorMode );
 				break;
 
-			case elFadePeaks:
-				audioMotion.fadePeaks = isSwitchOn( elFadePeaks );
-				break;
-
 			case elFillAlpha:
 				audioMotion.fillAlpha = elFillAlpha.value;
 				break;
 
 			case elFFTsize :
-				audioMotion.fftSize = elFFTsize.value;
+				audioMotion.fftSize = getControlValue( elFFTsize );
 				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 				break;
 
@@ -3684,7 +3698,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLinearAmpl:
-				audioMotion.linearAmplitude = isSwitchOn( elLinearAmpl );
+				audioMotion.linearAmplitude = +getControlValue( elLinearAmpl );
 				break;
 
 			case elLineWidth:
@@ -3727,10 +3741,6 @@ function setProperty( elems, save = true ) {
 			case elNoDimSubs:
 			case elNoDimVideo:
 				setOverlay();
-				break;
-
-			case elNoteLabels:
-				audioMotion.noteLabels = isSwitchOn( elNoteLabels );
 				break;
 
 			case elOSDFontSize:
@@ -3819,11 +3829,12 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elScaleX:
-				audioMotion.showScaleX = isSwitchOn( elScaleX );
+				audioMotion.showScaleX = getControlValue( elScaleX ) != SCALEXY_OFF;
+				audioMotion.noteLabels = getControlValue( elScaleX ) == SCALEX_NOTES;
 				break;
 
 			case elScaleY:
-				audioMotion.showScaleY = isSwitchOn( elScaleY );
+				audioMotion.showScaleY = +getControlValue( elScaleY );
 				break;
 
 			case elSensitivity:
@@ -3836,7 +3847,8 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elShowPeaks:
-				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
+				audioMotion.showPeaks = getControlValue( elShowPeaks ) != PEAKS_OFF;
+				audioMotion.fadePeaks = getControlValue( elShowPeaks ) == PEAKS_FADE;
 				break;
 
 			case elShowSubtitles:
@@ -4046,18 +4058,26 @@ function setUIEventListeners() {
 
 	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
-		if ( elContainer.style.height )
-			elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = 'none'; // hide main panels
+		if ( elContainer.style.height ) {
+			for ( const panel of mainPanels )
+				$(`#${ panel.id }`).style.display = 'none'; // hide main panels
+		}
 
  		// restore overflow on body (keep the scroll bar always visible when the window is too short)
 		document.body.style.overflowY = window.innerHeight < WINDOW_MIN_HEIGHT ? 'scroll' : '';
 	});
 
 	// main panel selection
-	const panelSelection = $('#panel_selection').panel; // RadioNodeList
-	panelSelection.forEach( btn => {
+	const elPanelSelection = $('#panel_selection');
+	for ( const { id, label } of mainPanels ) {
+		const button_id = `panel_${ id }`;
+		elPanelSelection.innerHTML += `<input type="radio" name="panel" id="${ button_id }" value="${ id }"><label class="thin-button" for="${ button_id }">${ label }</label>`;
+	}
+
+	const panelButtons = elPanelSelection.panel; // RadioNodeList
+	panelButtons.forEach( btn => {
 		btn.addEventListener( 'click', evt => {
-			panelSelection.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
+			panelButtons.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
 			toggleMediaPanel( true ); // make sure the main panel is expanded
 			if ( btn.value == 'console' ) {
 				elToggleConsole.classList.remove('warning');
@@ -4065,8 +4085,8 @@ function setUIEventListeners() {
 			}
 		});
 	});
-	$('#panel_media').checked = true;
-	elMediaPanel.classList.add('active'); // initialize with the files panel visible
+	$(`#panel_${ mainPanels[0].id }`).checked = true;
+	elMediaPanel.classList.add('active'); // initialize with the first panel visible
 
 	// clear console
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
@@ -4079,14 +4099,14 @@ function setUIEventListeners() {
 		});
 	});
 
-	// settings combo boxes and sliders ('change' event is only triggered for select and input elements)
+	// settings combo boxes and sliders
 	$$('[data-prop]').forEach( el => {
 		if ( isCustomRadio( el ) ) {
 			el.elements[ el.dataset.prop ].forEach( btn => {
 				btn.addEventListener( 'click', () => setProperty( el ) );
 			});
 		}
-		else {
+		else { // 'input' event is triggered for select and input elements
 			el.addEventListener( 'input', () => {
 				setProperty( el );
 				updateRangeValue( el );
@@ -4470,8 +4490,10 @@ function toggleMediaPanel( show ) {
 		document.body.style.overflowY = 'hidden';
 
 	// show main panels (hidden by the `transitionend` event listener)
-	if ( show )
-		elMediaPanel.style.display = $('#settings').style.display = $('#console').style.display = '';
+	if ( show ) {
+		for ( const panel of mainPanels )
+			$(`#${ panel.id }`).style.display = '';
+	}
 
 	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
 	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
@@ -4967,14 +4989,14 @@ function updateRangeValue( el ) {
 	]);
 
 	populateSelect( elRandomMode, [
-		[ '0',   'OFF'             ],
-		[ '1',   'On track change' ],
-		[ '2',   '5 seconds'       ],
-		[ '6',   '15 seconds'      ],
-		[ '12',  '30 seconds'      ],
-		[ '24',  '1 minute'        ],
-		[ '48',  '2 minutes'       ],
-		[ '120', '5 minutes'       ]
+		[ '0',   'OFF'              ],
+		[ '1',   'On track change'  ],
+		[ '2',   'every 5 seconds'  ],
+		[ '6',   'every 15 seconds' ],
+		[ '12',  'every 30 seconds' ],
+		[ '24',  'every minute'     ],
+		[ '48',  'every 2 minutes'  ],
+		[ '120', 'every 5 minutes'  ]
 	]);
 
 	populateCustomRadio( elReflex, [
@@ -4992,10 +5014,10 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elFreqScale, [
-		[ SCALE_BARK,   'Bark' ],
-		[ SCALE_LINEAR, 'Lin'  ],
-		[ SCALE_LOG,    'Log'  ],
-		[ SCALE_MEL,    'Mel'  ]
+		[ SCALE_BARK,   'Bark'   ],
+		[ SCALE_LINEAR, 'Linear' ],
+		[ SCALE_LOG,    'Log'    ],
+		[ SCALE_MEL,    'Mel'    ]
 	]);
 
 	populateCustomRadio( elWeighting, [
@@ -5013,12 +5035,47 @@ function updateRangeValue( el ) {
 		[ COLOR_LEVEL,    'Level' ]
 	]);
 
+	populateCustomRadio( elShowPeaks, [
+		[ PEAKS_OFF,  'Off'  ],
+		[ PEAKS_ON,   'Drop' ],
+		[ PEAKS_FADE, 'Fade' ]
+	]);
+
+	populateCustomRadio( elScaleX, [
+		[ SCALEXY_OFF,  'Off'   ],
+		[ SCALEXY_ON,   'Freqs' ],
+		[ SCALEX_NOTES, 'Notes' ]
+	]);
+
+	populateCustomRadio( elScaleY, [
+		[ SCALEXY_OFF, 'Off' ],
+		[ SCALEXY_ON,  'On'  ]
+	]);
+
+	populateCustomRadio( elAnsiBands, [
+		[ 0, 'Tempered' ],
+		[ 1, 'ANSI/IEC' ]
+	]);
+
+	populateCustomRadio( elLinearAmpl, [
+		[ 0, 'Decibels' ],
+		[ 1,  'Linear'  ]
+	]);
+
+	let fftOptions = [];
+	for ( let i = 10; i < 16; i++ ) {
+		const size = 2 ** i;
+		fftOptions.push( [ size, `${ size / 1024 | 0 }k` ] );
+	}
+	populateCustomRadio( elFFTsize, fftOptions );
+
+	setRangeAtts( elBandCount, 1, 8 );
 	setRangeAtts( elBarSpace, 0, 1, .05 );
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
-	setRangeAtts( elLineWidth, 0, 3, .5 );
 	setRangeAtts( elFillAlpha, 0, 1, .05 );
+	setRangeAtts( elLineWidth, 0, 3, .5 );
+	setRangeAtts( elSmoothing, 0, .95, .05 );
 	setRangeAtts( elSpin, 0, 3, 1 );
-	setRangeAtts( elBandCount, 1, 8 );
 
 	// Clear canvas messages
 	setCanvasMsg();

@@ -140,9 +140,7 @@
 
 	<div class="panel-area">
 		<div class="bottom-panel">
-			<form id="panel_selection" class="panel-selection">
-				<input type="radio" name="panel" id="panel_media" value="files_panel"><label class="thin-button" for="panel_media">Media</label><input type="radio" name="panel" id="panel_settings" value="settings"><label class="thin-button" for="panel_settings">Settings</label><input type="radio" name="panel" id="panel_console" value="console"><label class="thin-button" for="panel_console">Console</label>
-			</form>
+			<form id="panel_selection" class="panel-selection"></form>
 			<button id="toggle_panel" class="material-symbols-rounded"></button>
 			<ul class="function-buttons">
 				<li class="thin-button" id="btn_pip"><a href="#!">PIP</a>
@@ -153,12 +151,11 @@
 		</div>
 
 		<div id="settings" class="panel-main settings abs-center">
-			<div class="settings-close abs-center"></div>
-
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div class="column">
-					<div class="preset-controls grid grid-2-cols">
+					<span class="config-label">Presets</span>
+					<div class="preset-controls grid grid-2-cols gap-md">
 						<span class="help"><button id="load_preset">Load</button>
 							<span class="tooltip">Load a configuration preset</span>
 						</span>
@@ -169,66 +166,64 @@
 				</div>
 
 				<div>
-					<span class="config-label help">R<u>a</u>ndomize
-						<span class="tooltip">
-						Randomize settings on track change or time interval
-						</span>
-					</span>
+					<span class="config-label">R<u>a</u>ndomize settings</span>
 					<select id="random_mode" data-prop="randomMode"></select>
 				</div>
 
 				<div>
-					<span class="config-label help">Bar Spacing
-						<span class="tooltip">
-							Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em>
-						</span>
-					</span>
-					<div class="value"></div>
-					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
-				</div>
-
-				<div class="flex gap-md">
-					<div>
-						<span class="config-label help">Line Width
-							<span class="tooltip">
-								Line width for Graph mode<br>and Outline bar effect
-							</span>
-						</span>
-						<div class="value"></div>
-						<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
-					</div>
-					<div>
-						<span class="config-label help">Fill Opacity
-							<span class="tooltip">
-								Fill opacity for Graph mode<br>and Outline bar effect
-							</span>
-						</span>
-						<div class="value"></div>
-						<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
-					</div>
+					<!-- EMPTY CELL -->
 				</div>
 
 				<div>
-					<span class="config-label help">Band count
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+			<!-- COLUMN 2 -->
+				<div class="column">
+					<span class="config-label">Visualization <u>M</u>ode</span>
+					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
+				</div>
+
+				<div>
+					<span class="config-label help">Band Count
 						<span class="tooltip">
-							Amount of bands to display in Bars mode
+							Number of frequency bands to display<br><em>(Bars mode only)</em>
 						</span>
 					</span>
 					<div class="value"></div>
 					<input id="band_count" data-prop="bandCount" type="range" class="custom-slider">
 				</div>
 
-			<!-- COLUMN 2 -->
-				<div class="column">
-					<span class="config-label help">Analyzer <u>M</u>ode
-						<span class="tooltip">
-						Visualization mode
-						</span>
-					</span>
-					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
+				<div>
+					<span class="config-label">Bar Coloring Mode</span>
+					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
 				</div>
 
 				<div class="rowspan-2">
+					<span class="config-label">Bar Effects</span>
+
+					<ul class="switch-bar">
+						<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
+							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in Graph mode)</em></span>
+						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
+							<span class="tooltip">Show full height bars with varying luminance <em>(Bars mode only)</em></span>
+
+						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
+							<span class="tooltip">Vintage LED bars effect <em>(Bars mode only)</em></span>
+						<li class="switch" id="outline" data-prop="outlineBars">Outline
+							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
+
+						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
+							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
+					</ul>
+				</div>
+
+			<!-- COLUMN 3 -->
+				<div class="column rowspan-2">
 					<span class="config-label help"><u>G</u>radients
 						<span class="tooltip">
 							Gradients for left and right channels. Enable/disable gradients in Config.
@@ -249,16 +244,28 @@
 				</div>
 
 				<div>
-					<span class="config-label help">Color Mode
+					<span class="config-label help">Line Width
 						<span class="tooltip">
-							Bar coloring mode
+							Line width for Graph mode<br>and Outline bar effect
 						</span>
 					</span>
-					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
+					<div class="value"></div>
+					<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
 				</div>
 
-				<div class="flex gap-md">
+				<div>
+					<span class="config-label help">Fill Opacity
+						<span class="tooltip">
+							Fill opacity for Graph mode<br>and Outline bar effect
+						</span>
+					</span>
+					<div class="value"></div>
+					<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
+				</div>
+
+				<div class="grid grid-2-cols gap-md">
 					<div>
+						<span class="config-label">Radial</span>
 						<ul class="switch-bar">
 							<li class="switch" id="radial" data-prop="radial">RADIAL
 								<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
@@ -266,17 +273,13 @@
 					</div>
 
 					<div>
-						<span class="config-label help">Radial Spin
-							<span class="tooltip">
-								Radial spin speed
-							</span>
-						</span>
+						<span class="config-label">Spin</span>
 						<div class="value"></div>
 						<input id="spin" data-prop="spin" type="range" class="custom-slider">
 					</div>
 				</div>
 
-			<!-- COLUMN 3 -->
+			<!-- COLUMN 4 -->
 				<div class="column">
 					<span class="config-label help"><u>B</u>ackground
 						<span class="tooltip">
@@ -323,7 +326,101 @@
 					<form id="mirror" class="custom-radio-buttons" data-prop="mirror"></form>
 				</div>
 
-			<!-- COLUMN 4 -->
+			<!-- COLUMN 5 -->
+				<div class="column">
+					<span class="config-label help">Track info
+						<span class="tooltip">General visualization and performance options</span>
+					</span>
+					<ul class="switch-bar">
+						<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
+							<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
+						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
+							<span class="tooltip">Toggle display of subtitles</span>
+					</ul>
+				</div>
+
+				<div>
+					<span class="config-label help"><u>P</u>eaks</u>
+						<span class="tooltip">
+						Toggle amplitude peaks. Customize in Config - General settings.
+						</span>
+					</span>
+					<form id="show_peaks" class="custom-radio-buttons" data-prop="showPeaks"></form>
+				</div>
+
+				<div>
+					<span class="config-label">X-Axis Labels</span>
+					<form id="scaleX" class="custom-radio-buttons" data-prop="showScaleX"></form>
+				</div>
+
+				<div>
+					<span class="config-label">Y-Axis Labels</span>
+					<form id="scaleY" class="custom-radio-buttons" data-prop="showScaleY"></form>
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+			</div> <!-- .controls -->
+		</div> <!-- #settings -->
+
+		<div id="advanced" class="panel-main settings abs-center">
+			<div class="controls panel-internal">
+			<!-- COLUMN 1 -->
+				<div class="column">
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+			<!-- COLUMN 2 -->
+				<div class="column">
+					<span class="config-label help">Bar Spacing
+						<span class="tooltip">
+							Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em>
+						</span>
+					</span>
+					<div class="value"></div>
+					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
+				</div>
+
+				<div>
+					<span class="config-label help">Channel Layout
+						<span class="tooltip">
+						Select the number and layout of analyzer channels
+						</span>
+					</span>
+					<form id="channel_layout" class="custom-radio-buttons" data-prop="channelLayout"></form>
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+			<!-- COLUMN 3 -->
 				<div class="column">
 					<span class="config-label help">Frequency Range
 						<span class="tooltip">Lowest and highest frequencies displayed in the X-axis</span>
@@ -343,7 +440,21 @@
 				</div>
 
 				<div>
-					<span class="config-label help">Se<u>n</u>sitivity
+					<span class="config-label">Octave Bands</span>
+					<form id="ansi_bands" class="custom-radio-buttons" data-prop="ansiBands"></form>
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+			<!-- COLUMN 4 -->
+				<div class="column">
+					<span class="config-label help">Analyzer Se<u>n</u>sitivity
 						<span class="tooltip">
 						Improve visualization of songs too quiet or too loud. Customize in Config.
 						</span>
@@ -352,7 +463,14 @@
 				</div>
 
 				<div>
-					<span class="config-label help">Weighting
+					<span class="config-label help">Amplitude Scale
+						<span class="tooltip">Select how amplitudes are represented in the Y-axis</span>
+					</span>
+					<form id="linear_amplitude" class="custom-radio-buttons" data-prop="linearAmpl"></form>
+				</div>
+
+				<div>
+					<span class="config-label help">Weighting Filter
 						<span class="tooltip">
 						Select frequency weighthing filter
 						</span>
@@ -361,77 +479,43 @@
 				</div>
 
 				<div>
-					<span class="config-label help">Channel Layout
-						<span class="tooltip">
-						Select the number and layout of analyzer channels
-						</span>
-					</span>
-					<form id="channel_layout" class="custom-radio-buttons" data-prop="channelLayout"></form>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 5 -->
-				<div class="column rowspan-3">
-					<span class="config-label help">Switches
-						<span class="tooltip">General visualization and performance options</span>
-					</span>
+				<div class="column">
+					<span class="config-label">FFT size</span>
+					<select id="fft_size" data-prop="fftSize"></select>
+				</div>
 
+				<div>
+					<span class="config-label">FFT smoothing over time</span>
+					<div class="value"></div>
+					<input id="smoothing" data-prop="smoothing" type="range" class="custom-slider">
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="rowspan-2">
+					<span class="config-label">Performance</span>
 					<ul class="switch-bar">
-						<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-							<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
-						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
-							<span class="tooltip">Toggle display of subtitles</span>
-
-						<li class="switch" id="show_peaks" data-prop="showPeaks"><u>P</u>EAKS
-							<span class="tooltip">Toggle amplitude peaks. Customize in Config - General settings.</span>
-						<li class="switch" id="fade_peaks" data-prop="fadePeaks">FADE
-							<span class="tooltip">When active, peaks fade out instead of falling down <kbd>Shift</kbd><kbd>P</kbd></span>
-
-						<li class="switch" id="scaleX" data-prop="showScaleX"><u>S</u>CALE X
-							<span class="tooltip">Toggle frequency (Hz) scale on the X-axis</span>
-						<li class="switch" id="note_labels" data-prop="noteLabels">NOTES
-							<span class="tooltip">Labels on the X-axis show musical notes instead of frequencies</span>
-
-						<li class="switch" id="scaleY" data-prop="showScaleY"><u>S</u>CALE Y
-							<span class="tooltip">Toggle level (amplitude) scale on the Y-axis</span>
-						<li class="switch" id="linear_amplitude" data-prop="linearAmpl">LINEAR
-							<span class="tooltip">Use linear values (instead of dB) for bar amplitudes</span>
-
-						<li class="switch" id="ansi_bands" data-prop="ansiBands">ANSI
-							<span class="tooltip">Use ANSI/IEC preferred frequencies for octave bands</span>
-						<li class="switch" id="fps" data-prop="showFPS">FPS
-							<span class="tooltip">Display current frame rate <kbd>H</kbd></span>
-
 						<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
 							<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
-					</ul>
-				</div>
-
-				<div class="rowspan-2">
-					<span class="config-label help">Bar effects
-						<span class="tooltip">General visualization and performance options</span>
-					</span>
-
-					<ul class="switch-bar">
-						<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
-							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in Graph mode)</em></span>
-						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
-							<span class="tooltip">Show full height bars with varying luminance <em>(Bars mode only)</em></span>
-
-						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
-							<span class="tooltip">Vintage LED bars effect <em>(Bars mode only)</em></span>
-						<li class="switch" id="outline" data-prop="outlineBars">Outline
-							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
-
-						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
-							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
+						<li class="switch" id="fps" data-prop="showFPS">FPS
+							<span class="tooltip">Display current frame rate <kbd>H</kbd></span>
 					</ul>
 				</div>
 
 			</div> <!-- .controls -->
-
-		</div> <!-- #settings -->
+		</div> <!-- #advanced -->
 
 		<div id="files_panel" class="panel-main file-panel grid">
 			<div class="locked-panel">
@@ -530,12 +614,6 @@
 
 					<p class="colspan-2">Background media max items:</p>
 					<input id="bg_max_items" type="number">
-
-					<p class="colspan-2">FFT size:</p>
-					<select id="fft_size"></select>
-
-					<p class="colspan-2">FFT smoothing over time:</p>
-					<input id="smoothing" type="number">
 
 					<p class="colspan-2">Fullscren height (%):</p>
 					<input id="fs_height" type="number">

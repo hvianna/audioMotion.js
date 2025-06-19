@@ -148,26 +148,6 @@ a.button:visited {
 	transform: translateX(-50%);
 }
 
-.settings-close {
-	bottom: 2px;
-	cursor: pointer;
-	padding: 0 100px;
-	position: absolute;
-}
-.settings-close::before {
-	color: #666;
-	content: '\276e';
-	display: inline-block;
-	font-size: 18px;
-	transform: rotate(90deg);
-}
-.settings:not(.active) .settings-close {
-	bottom: -2px;
-}
-.settings:not(.active) .settings-close::before {
-	transform: rotate(270deg);
-}
-
 .controls {
 	column-gap: 40px;
 	display: grid;
@@ -714,12 +694,8 @@ div.value {
 	z-index: 1;
 }
 
-.preset-controls {
-	gap: 20px;
-	margin-top: 10px;
-}
 .preset-controls button {
-	position: 8px 0 6px;
+	padding: 6px 0 4px;
 	width: 100%;
 }
 
@@ -798,7 +774,7 @@ div.value {
 .switch-bar .switch:nth-child(even):not([data-active="1"]):hover {
 	border-left-width: 1px;
 	margin-left: -1px;
-	padding-left: 1px;
+	width: calc( 50% + 1px );
 }
 .switch-bar .switch:last-child,
 .switch-bar .switch:nth-last-child(2):nth-child(odd) {
