@@ -555,9 +555,13 @@ a.button:visited {
 	align-items: end;
 }
 
-.gap-med {
+.gap-sm {
 	gap: .5em;
 }
+.gap-md {
+	gap: 1em;
+}
+
 .grid {
 	align-content: start;
 	display: grid;
@@ -766,7 +770,7 @@ div.value {
 	cursor: pointer;
 	display: inline-block;
 	font-weight: 600;
-	margin-top: 6px;
+	margin-top: 3px;
 	padding: 6px 0 4px;
 	text-align: center;
 	text-transform: uppercase;
@@ -831,7 +835,7 @@ div.value {
 	border: 1px solid #adadad;
 	color: #444;
 	cursor: pointer;
-	font-weight: 400;
+	font-weight: 600;
 	font-size: .85rem;
 	padding: 6px 0 4px;
 	position: relative;

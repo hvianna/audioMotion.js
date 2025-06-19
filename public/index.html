@@ -180,41 +180,52 @@
 				<div>
 					<span class="config-label help">Bar Spacing
 						<span class="tooltip">
-							Bar spacing for band modes<br><em>(no effect when LUMI is on)</em>
+							Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em>
 						</span>
 					</span>
 					<div class="value"></div>
 					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
 				</div>
 
-				<div>
-					<span class="config-label help">Line Width
-						<span class="tooltip">
-							Line width for Line Graph mode and Outline effect
+				<div class="flex gap-md">
+					<div>
+						<span class="config-label help">Line Width
+							<span class="tooltip">
+								Line width for Graph mode<br>and Outline bar effect
+							</span>
 						</span>
-					</span>
-					<div class="value"></div>
-					<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
+						<div class="value"></div>
+						<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
+					</div>
+					<div>
+						<span class="config-label help">Fill Opacity
+							<span class="tooltip">
+								Fill opacity for Graph mode<br>and Outline bar effect
+							</span>
+						</span>
+						<div class="value"></div>
+						<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
+					</div>
 				</div>
 
 				<div>
-					<span class="config-label help">Fill Opacity
+					<span class="config-label help">Band count
 						<span class="tooltip">
-							Fill opacity for Line Graph mode and Outline effect
+							Amount of bands to display in Bars mode
 						</span>
 					</span>
 					<div class="value"></div>
-					<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
+					<input id="band_count" data-prop="bandCount" type="range" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 2 -->
 				<div class="column">
 					<span class="config-label help">Analyzer <u>M</u>ode
 						<span class="tooltip">
-						Visualization mode.<br>Enable/disable modes in Config.
+						Visualization mode
 						</span>
 					</span>
-					<select id="mode" data-prop="mode"></select>
+					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
 				</div>
 
 				<div class="rowspan-2">
@@ -231,9 +242,9 @@
 
 					<ul class="switch-bar">
 						<li class="switch" id="link_grads" data-prop="linkGrads">LINK
-							<span class="tooltip">Gradient selection affects both channels</span>
+							<span class="tooltip">Use the same Gradient for both channels</span>
 						<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
-							<span class="tooltip">Split gradients in two different parts<br><em>(for Dual / Vertical channel layout)</em></span>
+							<span class="tooltip">Split gradients in two different parts<br><em>(for Vertical dual-channel layout)</em></span>
 					</ul>
 				</div>
 
@@ -246,14 +257,23 @@
 					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
 				</div>
 
-				<div>
-					<span class="config-label help">Radial Spin
-						<span class="tooltip">
-							Radial spin speed
+				<div class="flex gap-md">
+					<div>
+						<ul class="switch-bar">
+							<li class="switch" id="radial" data-prop="radial">RADIAL
+								<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+						</ul>
+					</div>
+
+					<div>
+						<span class="config-label help">Radial Spin
+							<span class="tooltip">
+								Radial spin speed
+							</span>
 						</span>
-					</span>
-					<div class="value"></div>
-					<input id="spin" data-prop="spin" type="range" class="custom-slider">
+						<div class="value"></div>
+						<input id="spin" data-prop="spin" type="range" class="custom-slider">
+					</div>
 				</div>
 
 			<!-- COLUMN 3 -->
@@ -350,7 +370,7 @@
 				</div>
 
 			<!-- COLUMN 5 -->
-				<div class="column rowspan-5">
+				<div class="column rowspan-3">
 					<span class="config-label help">Switches
 						<span class="tooltip">General visualization and performance options</span>
 					</span>
@@ -385,21 +405,27 @@
 							<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+					</ul>
+				</div>
 
+				<div class="rowspan-2">
+					<span class="config-label help">Bar effects
+						<span class="tooltip">General visualization and performance options</span>
+					</span>
+
+					<ul class="switch-bar">
 						<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
-							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in area/line graph modes)</em></span>
+							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in Graph mode)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
-							<span class="tooltip">Show full height bars with varying luminance <em>(bands modes only)</em></span>
+							<span class="tooltip">Show full height bars with varying luminance <em>(Bars mode only)</em></span>
 
 						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
-							<span class="tooltip">Vintage LED bars effect <em>(bands modes only)</em></span>
+							<span class="tooltip">Vintage LED bars effect <em>(Bars mode only)</em></span>
 						<li class="switch" id="outline" data-prop="outlineBars">Outline
-							<span class="tooltip">Outlined bars <em>(bands modes only)</em></span>
+							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
 
-						<li class="switch" id="radial" data-prop="radial">RADIAL
-							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
-							<span class="tooltip">Rounded tip bars <em>(bands modes only)</em></span>
+							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
 					</ul>
 				</div>
 
@@ -484,14 +510,14 @@
 				<summary>Analyzer Modes
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=analyzer-modes" target="_blank"></a>
 				</summary>
-				<div id="enabled_modes" class="grid grid-2-cols gap-med"></div>
+				<div id="enabled_modes" class="grid grid-2-cols gap-sm"></div>
 			</details>
 
 			<details>
 				<summary>Background Image Fit options
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=background-image-fit-options" target="_blank"></a>
 				</summary>
-				<div id="enabled_bgfit" class="grid grid-2-cols gap-med"></div>
+				<div id="enabled_bgfit" class="grid grid-2-cols gap-sm"></div>
 			</details>
 
 			<details>
@@ -539,7 +565,7 @@
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-configuration" target="_blank"></a>
 				</summary>
 				<div>
-					<div id="enabled_gradients" class="grid grid-3-cols gap-med"></div>
+					<div id="enabled_gradients" class="grid grid-3-cols gap-sm"></div>
 					<p><br><button class="button mt-1" id="add-gradient">Add Gradient</button></p>
 				</div>
 			</details>
@@ -590,7 +616,7 @@
 				<summary>Randomize configuration
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=randomize-configuration" target="_blank"></a>
 				</summary>
-				<div id="random_properties" class="grid grid-3-cols gap-med"></div>
+				<div id="random_properties" class="grid grid-3-cols gap-sm"></div>
 			</details>
 
 			<details>
@@ -614,7 +640,7 @@
 							<td><button class="reset-sens" data-preset="0">Reset</button></td>
 						</tr>
 						<tr>
-							<td>Normal</td>
+							<td>Medium</td>
 							<td><input type="number" class="min-db" data-preset="1"></td>
 							<td><input type="number" class="max-db" data-preset="1"></td>
 							<td><input type="number" class="linear-boost" data-preset="1"></td>

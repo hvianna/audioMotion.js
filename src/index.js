@@ -134,9 +134,10 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  PLAYLIST_PREFIX    = 'pl_';
 
 // Visualization modes
-const MODE_DISCRETE    = '0',
-	  MODE_AREA        = '10',
-	  MODE_LINE        = '101',
+const MODE_BARS        = '11',
+ 	  MODE_DISCRETE    = '0',
+	  MODE_GRAPH       = '10',
+	  MODE_LINE        = '101', // deprecated
 	  MODE_OCTAVE_FULL = '8',
 	  MODE_OCTAVE_HALF = '7',
 	  MODE_OCTAVE_3RD  = '6',
@@ -241,6 +242,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elAnsiBands     = $('#ansi_bands'),
 	  elAutoHide      = $('#auto_hide'),
 	  elBackground    = $('#background'),
+	  elBandCount     = $('#band_count'),
 	  elBarSpace      = $('#bar_space'),
 	  elBgImageDim    = $('#bg_img_dim'),
 	  elBgImageFit    = $('#bg_img_fit'),
@@ -517,6 +519,7 @@ const presets = [
 			alphaBars    : 0,
 			ansiBands    : 0,
 			background   : BG_DEFAULT,
+			bandCount    : MODE_OCTAVE_3RD,
 			barSpace     : 0.1,
 			bgImageDim   : 0.5,
 			bgImageFit   : BGFIT_CENTER,
@@ -659,17 +662,9 @@ const gradients = {
 
 // Visualization modes
 const modeOptions = [
-	{ value: MODE_DISCRETE,    text: 'Discrete frequencies',    disabled: false },
-	{ value: MODE_AREA,        text: 'Area graph',              disabled: false },
-	{ value: MODE_LINE,        text: 'Line graph',              disabled: false },
-	{ value: MODE_OCTAVE_FULL, text: 'Octave bands / 10 bands', disabled: false },
-	{ value: MODE_OCTAVE_HALF, text: '1/2 octave / 20 bands',   disabled: false },
-	{ value: MODE_OCTAVE_3RD,  text: '1/3 octave / 30 bands',   disabled: false },
-	{ value: MODE_OCTAVE_4TH,  text: '1/4 octave / 40 bands',   disabled: false },
-	{ value: MODE_OCTAVE_6TH,  text: '1/6 octave / 60 bands',   disabled: false },
-	{ value: MODE_OCTAVE_8TH,  text: '1/8 octave / 80 bands',   disabled: false },
-	{ value: MODE_OCTAVE_12TH, text: '1/12 octave / 120 bands', disabled: false },
-	{ value: MODE_OCTAVE_24TH, text: '1/24 octave / 240 bands', disabled: false }
+	[ MODE_BARS,     'Bars'  ],
+	[ MODE_DISCRETE, 'FFT'   ],
+	[ MODE_GRAPH,    'Graph' ]
 ];
 
 // Channel Layout options
@@ -862,6 +857,8 @@ const getText = el => {
 
 // return the value of a Settings UI control
 const getControlValue = el => {
+	if ( el == elBandCount )
+		return 9 - el.value;
 	if ( isCustomRadio( el ) )
 		return el.elements[ el.dataset.prop ].value;
 	if ( el.dataset.active !== undefined ) // switches
@@ -874,6 +871,7 @@ const getCurrentSettings = _ => ({
 	alphaBars    : getControlValue( elAlphaBars ),
 	ansiBands    : getControlValue( elAnsiBands ),
 	background   : getControlValue( elBackground ),
+	bandCount    : getControlValue( elBandCount ),
 	barSpace     : getControlValue( elBarSpace ),
 	bgImageDim   : getControlValue( elBgImageDim ),
 	bgImageFit   : getControlValue( elBgImageFit ),
@@ -1042,6 +1040,32 @@ const secondsToTime = ( secs, forceHours ) => {
 	str += ( lead + ( secs / 60 | 0 ) ).slice(-2) + ':' + ( '0' + ( secs % 60 | 0 ) ).slice(-2);
 
 	return sign + str;
+}
+
+// set the value of a Settings UI control
+const setControlValue = ( el, val ) => {
+	if ( el == elMute )
+		toggleMute( val );
+	else if ( el == elSource )
+		setSource( val );
+	else if ( el == elVolume )
+		setVolume( val );
+	else if ( el == elBandCount ) // invert values when setting/getting, so the slider goes from lower to higher band count
+		el.value = 9 - val;
+	else if ( isCustomRadio( el ) ) {
+		// note: el.elements[ prop ].value = val won't work for empty string value
+		const option = el.querySelector(`[value="${val}"]`);
+		if ( option )
+			option.checked = true;
+	}
+	else if ( el.classList.contains('switch') )
+		el.dataset.active = +val;
+	else {
+		el.value = val;
+		if ( el.selectedIndex == -1 ) // fix invalid values in select elements
+			el.selectedIndex = 0;
+	}
+	updateRangeValue( el );
 }
 
 // update configuration options from an existing preset
@@ -2277,35 +2301,25 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
-	if ( thisPreset.barSpace == 1.5 ) // for compatibility with version =< 24.6
+	// convert options from version <= 24.6
+	if ( thisPreset.barSpace == 1.5 )
 		thisPreset.barSpace = 1;
 
+	if ( thisPreset.mode == MODE_LINE )
+		thisPreset.mode = MODE_GRAPH;
+
+	if ( ! [ MODE_DISCRETE, MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
+		thisPreset.bandCount = thisPreset.mode;
+		thisPreset.mode = MODE_BARS;
+	}
+
+	// assign values read from the preset to the UI controls
 	$$('[data-prop]').forEach( el => {
 		const prop = el.dataset.prop,
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
-		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) ) {
-			if ( isCustomRadio( el ) ) {
-				// note: el.elements[ prop ].value = val won't work for empty string value
-				const option = el.querySelector(`[value="${val}"]`);
-				if ( option )
-					option.checked = true;
-			}
-			else if ( el.classList.contains('switch') )
-				el.dataset.active = +val;
-			else if ( el == elMute )
-				toggleMute( val );
-			else if ( el == elSource )
-				setSource( val );
-			else if ( el == elVolume )
-				setVolume( val );
-			else {
-				el.value = val;
-				if ( el.selectedIndex == -1 ) // fix invalid values in select elements
-					el.selectedIndex = 0;
-				updateRangeValue( el );
-			}
-		}
+		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) )
+			setControlValue( el, val );
 	});
 
 	audioMotion.setOptions( {
@@ -2314,9 +2328,11 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		colorMode      : getControlValue( elColorMode ),
 		fadePeaks      : isSwitchOn( elFadePeaks ),
 		fftSize        : getControlValue( elFFTsize ),
+		fillAlpha      : getControlValue( elFillAlpha ),
 		frequencyScale : getControlValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
 		linearAmplitude: isSwitchOn( elLinearAmpl ),
+		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
 		lumiBars       : isSwitchOn( elLumiBars ),
 		maxFPS         : getControlValue( elMaxFPS ),
@@ -2339,7 +2355,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		weightingFilter: getControlValue( elWeighting )
 	} );
 
-	// settings that affect other properties are set by the setProperty() function
+	// settings that affect or are affected by other properties must be set by the setProperty() function
 	setProperty(
 		[ elBackground,
 		elBgImageFit,
@@ -2347,7 +2363,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elChnLayout,
 		elFsHeight,
 		elGravity,
-		elLinkGrads, // needs to be set before the gradients
+		elLinkGrads, // note: this needs to be set before the gradients!
 		elSensitivity,
 		elReflex,
 		elGradient,
@@ -2867,8 +2883,7 @@ function randomizeSettings( force = elSource.checked ) {
 					  range = ( max - min ) / step,
 					  newVal = randomInt( range + 1 ) * step + +min; // coerce min to number
 
-				el.value = ( newVal * 10 | 0 ) / 10; // fix rounding errors (1 decimal place)
-				updateRangeValue( el );
+				setControlValue( el, ( newVal * 10 | 0 ) / 10 ); // fix rounding errors (1 decimal place)
 			}
 			else // selects
 				el.selectedIndex = randomInt( el.options.length );
@@ -3572,6 +3587,11 @@ function setProperty( elems, save = true ) {
 				}
 				break;
 
+			case elBandCount:
+				setControlValue( elMode, getControlValue( elBandCount ) ); // note: elBandCount value must be translated by getControlValue()
+				setProperty( elMode, false );
+				break;
+
 			case elBarSpace:
 				const value = getControlValue( elBarSpace );
 				audioMotion.barSpace = audioMotion.isLumiBars || value == 1 ? 1.5 : value;
@@ -3629,7 +3649,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elFillAlpha:
-				audioMotion.fillAlpha = ( elMode.value == MODE_AREA ) ? 1 : elFillAlpha.value;
+				audioMotion.fillAlpha = elFillAlpha.value;
 				break;
 
 			case elFFTsize :
@@ -3668,7 +3688,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLineWidth:
-				audioMotion.lineWidth = ( elMode.value == MODE_AREA ) ? 0 : elLineWidth.value;
+				audioMotion.lineWidth = elLineWidth.value;
 				break;
 
 			case elLinkGrads:
@@ -3695,21 +3715,8 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elMode:
-				const mode = elMode.value;
-				if ( ! [ MODE_AREA, MODE_LINE ].includes( mode ) )
-					audioMotion.mode = mode;
-				else
-					audioMotion.mode = 10; // graph mode - for both "Area" and "Line"
-
-				if ( mode == MODE_AREA ) {
-					audioMotion.lineWidth = 0;
-					audioMotion.fillAlpha = 1;
-				}
-				else {
-					audioMotion.lineWidth = elLineWidth.value;
-					audioMotion.fillAlpha = elFillAlpha.value;
-				}
-
+				const mode = getControlValue( elMode );
+				audioMotion.mode = ( mode == MODE_BARS ) ? getControlValue( elBandCount ) : mode;
 				setProperty( elBarSpace, false );
 				break;
 
@@ -4532,8 +4539,33 @@ function updateLastConfig() {
  */
 function updateRangeValue( el ) {
 	const elVal = el.previousElementSibling;
-	if ( elVal && elVal.className == 'value' )
-		elVal.innerText = el.value;
+	if ( ! elVal || elVal.className != 'value' )
+		return;
+
+	const translation = val => {
+		if ( el == elBandCount ) {
+			return [
+				'',
+				'10 bands (octaves)',
+				'20 bands (half octaves)',
+				'30 bands (1/3rd oct.)',
+				'40 bands (1/4th oct.)',
+				'60 bands (1/6th oct.)',
+				'80 bands (1/8th oct.)',
+				'120 bands (1/12th oct.)',
+				'240 bands (1/24th oct.)'
+			][ +val || 0 ];
+		}
+		else if ( el == elBarSpace )
+			return val == 0 ? 'None' : ( val == 1 ? 'Legacy' : `${ val * 100 | 0 }%` );
+		else if ( el == elFillAlpha )
+			return val == 0 ? 0 : `${ val * 100 | 0 }%`;
+		else if ( el == elSpin )
+			return val == 0 ? 'OFF' : val + ' RPM';
+		return val;
+	}
+
+	elVal.innerText = translation( el.value );
 }
 
 
@@ -4918,19 +4950,19 @@ function updateRangeValue( el ) {
 
 	// Populate combo boxes
 
-	populateSelect( elMode, modeOptions );
-
 	for ( const i of [16,20,25,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
 
 	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
+	populateCustomRadio( elMode, modeOptions );
+
 	populateCustomRadio( elChnLayout, channelLayoutOptions );
 
 	populateCustomRadio( elSensitivity, [
 		[ '0', 'Low'    ],
-		[ '1', 'Normal' ],
+		[ '1', 'Medium' ],
 		[ '2', 'High'   ]
 	]);
 
@@ -4983,9 +5015,10 @@ function updateRangeValue( el ) {
 
 	setRangeAtts( elBarSpace, 0, 1, .05 );
 	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
-	setRangeAtts( elLineWidth, 1, 3, .5 );
-	setRangeAtts( elFillAlpha, 0, .5, .1 );
+	setRangeAtts( elLineWidth, 0, 3, .5 );
+	setRangeAtts( elFillAlpha, 0, 1, .05 );
 	setRangeAtts( elSpin, 0, 3, 1 );
+	setRangeAtts( elBandCount, 1, 8 );
 
 	// Clear canvas messages
 	setCanvasMsg();
