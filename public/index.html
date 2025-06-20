@@ -153,7 +153,7 @@
 		<div id="settings" class="panel-main settings abs-center">
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
-				<div class="column">
+				<div>
 					<span class="config-label">Presets</span>
 					<div class="preset-controls grid grid-2-cols gap-md">
 						<span class="help"><button id="load_preset">Load</button>
@@ -183,7 +183,7 @@
 				</div>
 
 			<!-- COLUMN 2 -->
-				<div class="column">
+				<div>
 					<span class="config-label">Visualization <u>M</u>ode</span>
 					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
 				</div>
@@ -280,7 +280,7 @@
 				</div>
 
 			<!-- COLUMN 4 -->
-				<div class="column">
+				<div>
 					<span class="config-label help"><u>B</u>ackground
 						<span class="tooltip">
 						Select background option
@@ -327,38 +327,36 @@
 				</div>
 
 			<!-- COLUMN 5 -->
-				<div class="column">
-					<span class="config-label help">Track info
-						<span class="tooltip">General visualization and performance options</span>
-					</span>
+				<div class="last-column">
+					<span class="config-label">Track info</span>
 					<ul class="switch-bar">
 						<li class="switch" id="show_song" data-prop="showSong"><u>I</u>NFO
-							<span class="tooltip">Display song info at song start/end.<br>Customize display times in Config.</span>
+							<span class="tooltip">Display song info at track start/end.<br>Customize in Configuration.</span>
 						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
 							<span class="tooltip">Toggle display of subtitles</span>
 					</ul>
 				</div>
 
-				<div>
+				<div class="last-column">
 					<span class="config-label help"><u>P</u>eaks</u>
 						<span class="tooltip">
-						Toggle amplitude peaks. Customize in Config - General settings.
+						Toggle amplitude peaks. Customize in Configuration &gt; Peaks behavior.
 						</span>
 					</span>
 					<form id="show_peaks" class="custom-radio-buttons" data-prop="showPeaks"></form>
 				</div>
 
-				<div>
+				<div class="last-column">
 					<span class="config-label">X-Axis Labels</span>
 					<form id="scaleX" class="custom-radio-buttons" data-prop="showScaleX"></form>
 				</div>
 
-				<div>
+				<div class="last-column">
 					<span class="config-label">Y-Axis Labels</span>
 					<form id="scaleY" class="custom-radio-buttons" data-prop="showScaleY"></form>
 				</div>
 
-				<div>
+				<div class="last-column">
 					<!-- EMPTY CELL -->
 				</div>
 
@@ -368,7 +366,7 @@
 		<div id="advanced" class="panel-main settings abs-center">
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
-				<div class="column">
+				<div>
 					<!-- EMPTY CELL -->
 				</div>
 
@@ -389,11 +387,9 @@
 				</div>
 
 			<!-- COLUMN 2 -->
-				<div class="column">
+				<div>
 					<span class="config-label help">Bar Spacing
-						<span class="tooltip">
-							Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em>
-						</span>
+						<span class="tooltip">Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em></span>
 					</span>
 					<div class="value"></div>
 					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
@@ -421,10 +417,8 @@
 				</div>
 
 			<!-- COLUMN 3 -->
-				<div class="column">
-					<span class="config-label help">Frequency Range
-						<span class="tooltip">Lowest and highest frequencies displayed in the X-axis</span>
-					</span>
+				<div>
+					<span class="config-label">Frequency Range</span>
 					<div class="flex align-center">
 						<select id="freq_min" data-prop="freqMin"></select>
 						&nbsp;to&nbsp;
@@ -434,13 +428,15 @@
 
 				<div>
 					<span class="config-label help">Frequency Scale
-						<span class="tooltip">Select how frequencies are represented in the X-axis</span>
+						<span class="tooltip">Frequency distribution in the X-axis</span>
 					</span>
 					<form id="freq_scale" class="custom-radio-buttons" data-prop="freqScale"></form>
 				</div>
 
 				<div>
-					<span class="config-label">Octave Bands</span>
+					<span class="config-label help">Octave Bands
+						<span class="tooltip">Use the equal-tempered scale or ANSI/IEC preferred frequencies to generate octave bands</span>
+					</span>
 					<form id="ansi_bands" class="custom-radio-buttons" data-prop="ansiBands"></form>
 				</div>
 
@@ -453,10 +449,10 @@
 				</div>
 
 			<!-- COLUMN 4 -->
-				<div class="column">
+				<div>
 					<span class="config-label help">Analyzer Se<u>n</u>sitivity
 						<span class="tooltip">
-						Improve visualization of songs too quiet or too loud. Customize in Config.
+						Improve visualization of songs too quiet or too loud. Customize in Configuration.
 						</span>
 					</span>
 					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
@@ -464,16 +460,14 @@
 
 				<div>
 					<span class="config-label help">Amplitude Scale
-						<span class="tooltip">Select how amplitudes are represented in the Y-axis</span>
+						<span class="tooltip">Select how volume levels are represented in the Y-axis</span>
 					</span>
 					<form id="linear_amplitude" class="custom-radio-buttons" data-prop="linearAmpl"></form>
 				</div>
 
 				<div>
 					<span class="config-label help">Weighting Filter
-						<span class="tooltip">
-						Select frequency weighthing filter
-						</span>
+						<span class="tooltip">Enhance or attenuate specific frequency ranges (for visualization only)</span>
 					</span>
 					<form id="weighting" class="custom-radio-buttons" data-prop="weighting"></form>
 				</div>
@@ -487,22 +481,26 @@
 				</div>
 
 			<!-- COLUMN 5 -->
-				<div class="column">
-					<span class="config-label">FFT size</span>
-					<select id="fft_size" data-prop="fftSize"></select>
+				<div class="last-column">
+					<span class="config-label help">FFT Size
+						<span class="tooltip">Higher values provide greater detail for low frequencies, but slower response<br>(8k is recommended)</span>
+					</span>
+					<form id="fft_size" class="custom-radio-buttons" data-prop="fftSize"></form>
 				</div>
 
-				<div>
-					<span class="config-label">FFT smoothing over time</span>
+				<div class="last-column">
+					<span class="config-label help">FFT Smoothing
+						<span class="tooltip">Lower values make the analyzer react faster (recommended for larger FFT sizes); increase if it looks too "jumpy"</span>
+					</span>
 					<div class="value"></div>
 					<input id="smoothing" data-prop="smoothing" type="range" class="custom-slider">
 				</div>
 
-				<div>
+				<div class="last-column">
 					<!-- EMPTY CELL -->
 				</div>
 
-				<div class="rowspan-2">
+				<div class="rowspan-2 last-column">
 					<span class="config-label">Performance</span>
 					<ul class="switch-bar">
 						<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
@@ -615,7 +613,7 @@
 					<p class="colspan-2">Background media max items:</p>
 					<input id="bg_max_items" type="number">
 
-					<p class="colspan-2">Fullscren height (%):</p>
+					<p class="colspan-2">Fullscreen height (%):</p>
 					<input id="fs_height" type="number">
 
 					<p class="colspan-2">Maximum frame rate (FPS):</p>

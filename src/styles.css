@@ -7,6 +7,7 @@
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
+	--glass-active-glow: 0 0 6px var(--light-color); /* inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color); */
 	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--mono-font: 'JetBrains Mono', monospace;
@@ -35,6 +36,9 @@ select {
 	font-family: inherit;
 }
 
+input[type="file"] {
+	display: none;
+}
 input[type="text"],
 input[type="number"] {
 	padding: .25em;
@@ -43,6 +47,7 @@ input[type="number"] {
 	margin: 2px 0;
 	width: 60px;
 }
+
 select {
 	padding: .25em 0;
 }
@@ -65,10 +70,10 @@ button:not([disabled]):hover,
 }
 button:not([disabled]):active {
 	background: var(--glass-gradient-active);
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 
 canvas {
@@ -114,13 +119,12 @@ table {
 }
 
 .button {
-	display: inline-block;
+	display: block;
 	text-align: center;
 }
 
 /* remove link styling from links that should look like buttons */
 a.button {
-	color: black;
 	text-decoration: none;
 }
 
@@ -155,13 +159,13 @@ a.button:visited {
 	grid-auto-flow: column;
 	grid-template-columns: repeat(5, 1fr);
 	grid-template-rows: repeat(5, 1fr);
-	padding: 20px;
+	padding: 15px 20px;
 	row-gap: 20px;
 }
 .controls input[type="number"],
 .controls form,
 .controls select {
-	margin: 3px 0;
+	margin-top: 3px;
 	padding-left: 0;
 	padding-right: 0;
 	width: 100%;
@@ -184,7 +188,7 @@ a.button:visited {
 	border-radius: 999px;
 	box-shadow: inset 1px 1px 0 rgba(0,0,0,.4), inset -1px -1px 0 rgba(0,0,0,.2);
 	height: 4px;
-	margin-top: 6px;
+	margin-top: 8px;
 }
 .custom-slider::-moz-range-track {
 	background: linear-gradient(rgba(0,0,0,.5),transparent),rgba(0,0,0,.2);
@@ -199,9 +203,9 @@ a.button:visited {
 	background-size: 100%;
 	border-radius: 50%;
 	box-shadow: 2px 2px 5px 0 #222, 0 0 0 1px #999;
-	height: 16px;
-	margin-top: -7px;
-	width: 16px;
+	height: 18px;
+	margin-top: -8px;
+	width: 18px;
 }
 .custom-slider::-moz-range-thumb {
 	background: url(img/brushed-knob.png);
@@ -209,8 +213,8 @@ a.button:visited {
 	border: none;
 	border-radius: 50%;
 	box-shadow: 2px 2px 5px 0 #222, 0 0 0 1px #999;
-	height: 16px;
-	width: 16px;
+	height: 18px;
+	width: 18px;
 }
 
 #color_mode {
@@ -386,11 +390,11 @@ a.button:visited {
 .thin-button.active,
 .panel-selection input:checked + label {
 	background: var(--glass-gradient-active);
-/*	border-color: #72aa00; */
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	border-color: transparent;
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 .thin-button a {
 	color: inherit;
@@ -627,10 +631,6 @@ a.button:visited {
 	width: 100%;
 }
 
-#local_file {
-	display: none;
-}
-
 div.value {
 	float: right;
 }
@@ -677,6 +677,9 @@ div.value {
 	padding-left: 15px;
 	width: 108px;
 }
+.player-controls .button:first-child:hover {
+	width: 109px;
+}
 .player-controls .button:last-child {
 	border-bottom-right-radius: 20px;
 	border-top-right-radius: 20px;
@@ -694,6 +697,9 @@ div.value {
 	z-index: 1;
 }
 
+.preset-controls {
+	margin: 3px 0;
+}
 .preset-controls button {
 	padding: 6px 0 4px;
 	width: 100%;
@@ -746,6 +752,7 @@ div.value {
 	cursor: pointer;
 	display: inline-block;
 	font-weight: 600;
+	line-height: normal;
 	margin-top: 3px;
 	padding: 6px 0 4px;
 	text-align: center;
@@ -784,9 +791,10 @@ div.value {
 .player-controls .button[data-active="1"],
 .switch-bar .switch[data-active="1"] {
 	background: var(--glass-gradient-active);
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	border-color: transparent;
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 
 /* Custom radio buttons */
@@ -800,11 +808,11 @@ div.value {
 }
 .custom-radio-buttons input:checked + label {
 	background: var(--glass-gradient-active);
-/*	border-color: #72aa00; */
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	border-color: transparent;
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 .custom-radio-buttons label {
 	background: var(--glass-gradient);
@@ -812,7 +820,7 @@ div.value {
 	color: #444;
 	cursor: pointer;
 	font-weight: 600;
-	font-size: .85rem;
+	line-height: normal;
 	padding: 6px 0 4px;
 	position: relative;
 	text-align: center;
@@ -881,7 +889,7 @@ div.value {
 	left: 110%;
 	top: 0;
 }
-.controls .column:last-child .tooltip {
+.controls .last-column .tooltip {
 	left: auto;
 	right: 105%;
 	top: auto;
@@ -1692,12 +1700,12 @@ button.grad-add-stop:hover {
 }
 
 @media screen and (max-width: 1279px) {
-	.controls .column:last-child .tooltip {
+	.controls .last-column .tooltip {
 		left: auto;
 		right: 50px;
 	}
-	.controls .column:last-child .preset-controls .tooltip,
-	.controls .column:last-child .switch-bar .tooltip {
+	.controls .last-column .preset-controls .tooltip,
+	.controls .last-column .switch-bar .tooltip {
 		right: 150px;
 	}
 }
