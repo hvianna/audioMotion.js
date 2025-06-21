@@ -602,7 +602,11 @@ const gradients = {
 				{ pos: .5, color: '#d76d77' },
 				{ pos: 1, color: '#3a1c71' }
 			  ], disabled: false },
-	classic:  { name: 'Classic', disabled: false },
+	classic:  { name: 'Classic', colorStops: [
+				'#f00',
+				{ color: '#ff0', level: .85, pos: .6 },
+				{ color: '#0f0', level: .475 }
+			  ], disabled: false },
 	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
 				'hsl( 208, 0%, 100% )',
 				'hsl( 208, 100%, 35% )'
@@ -634,7 +638,9 @@ const gradients = {
 				{ pos: .1, color: '#34e89e' },
 				{ pos: 1, color: '#0f3443' }
 			  ], disabled: false },
-	prism:    { name: 'Prism', disabled: false },
+	prism:    { name: 'Prism', colorStops: [
+				'#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b'
+			  ], disabled: false },
 	prism_old: { name: 'Prism (legacy)', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -642,7 +648,9 @@ const gradients = {
 				'hsl( 180, 100%, 50% )',
 				'hsl( 240, 100%, 50% )'
 			  ], disabled: true },
-	rainbow:  { name: 'Rainbow', disabled: false },
+	rainbow:  { name: 'Rainbow', dir: 'h', colorStops: [
+				'#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639'
+			  ], disabled: false },
 	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
