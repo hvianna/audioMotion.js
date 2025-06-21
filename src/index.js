@@ -320,7 +320,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
-	  elToggleConsole = $('label[for="panel_console"]'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
@@ -809,6 +808,7 @@ let audioElement = [],
 	canvasMsg = {},
 	currAudio, 					// audio element currently in use
 	currentGradient = null,     // gradient that is currently loaded in gradient editor
+	elToggleConsole,			// defined later because HTML element is generated dynamically in setUIEventListeners()
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
@@ -1353,7 +1353,7 @@ function consoleLog( msg, error, clear ) {
 	if ( clear )
 		content.innerHTML = '';
 
-	if ( error )
+	if ( error && elToggleConsole )
 		elToggleConsole.classList.add('warning');
 
 	if ( msg )
@@ -4073,6 +4073,7 @@ function setUIEventListeners() {
 		const button_id = `panel_${ id }`;
 		elPanelSelection.innerHTML += `<input type="radio" name="panel" id="${ button_id }" value="${ id }"><label class="thin-button" for="${ button_id }">${ label }</label>`;
 	}
+	elToggleConsole = $('label[for="panel_console"]');
 
 	const panelButtons = elPanelSelection.panel; // RadioNodeList
 	panelButtons.forEach( btn => {
