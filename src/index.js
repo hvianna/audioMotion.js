@@ -863,6 +863,9 @@ const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComp
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
 
+// removes accents from a given string, converts it to lowercase and replaces any non-alphanumeric character with optional separator
+const generateSafeKeyName = ( str, separator = '' ) => ( str + '' ).normalize('NFD').replace( /[\u0300-\u036f]/g, '' ).toLowerCase().replace( /[^a-z0-9]/g, separator );
+
 // return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
 const getIndex = node => {
 	if ( ! node )
@@ -4460,17 +4463,16 @@ async function storePlayQueue( name, update = true ) {
 	}
 
 	if ( name ) {
-		let safename = name;
+		let safename;
 
 		if ( ! isSaveQueue && ! update ) {
-			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
-			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
+			safename = generateSafeKeyName( name, '_' );
 
 			let playlists = await get( KEY_PLAYLISTS ) || {},
 				attempt   = 0,
 				basename  = safename;
 
-			while ( playlists.hasOwnProperty( safename ) && attempt < 100 ) {
+			while ( playlists.hasOwnProperty( safename ) && attempt < 1000 ) {
 				safename = basename + '_' + attempt;
 				attempt++;
 			}
