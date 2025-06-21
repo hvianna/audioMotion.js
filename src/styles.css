@@ -545,6 +545,9 @@ a.button:visited {
 .gap-md {
 	gap: 1em;
 }
+.gap-lg {
+	gap: 2em;
+}
 
 .grid {
 	align-content: start;
@@ -1516,6 +1519,10 @@ input.slider:not(:checked) + .slider .slider-on {
 	margin-top: 1rem;
 }
 
+.mt-2 {
+	margin-top: 2rem;
+}
+
 .mt-5px {
 	margin-top: 5px;
 }
@@ -1549,12 +1556,12 @@ button.grad-remove-stop[disabled] {
 
 button.grad-remove-stop:hover:not([disabled]) {
 	border: none;
-	background-color: #c00 !important;
+	background: #c00 !important;
 }
 
 button.grad-add-stop:hover {
 	border: none;
-	background-color: #34a800 !important;
+	background: #34a800 !important;
 }
 
 .grad-add-stop::before {
@@ -1573,6 +1580,27 @@ button.grad-add-stop:hover {
 	display: none;
 }
 
+#enabled_gradients label {
+	position: relative;
+}
+#enabled_gradients label:hover {
+	background: #f0fff0;
+}
+#enabled_gradients label:hover > .grad-edit-link {
+	display: block;
+}
+.grad-edit-link {
+	background: var(--accent-color);
+	border-radius: 4px;
+	bottom: 0;
+	color: #fff;
+	display: none;
+	font-size: .7em;
+	padding: 5px 10px;
+	position: absolute;
+	right: 0;
+	text-decoration: none;
+}
 
 /**
  * Warp Tunnel effect
