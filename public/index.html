@@ -367,7 +367,18 @@
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div>
-					<!-- EMPTY CELL -->
+					<span class="config-label">Export / Import settings</span>
+					<div class="preset-controls grid grid-2-cols gap-md">
+						<span class="help"><a class="button" id="export_settings">Export</a>
+							<span class="tooltip">Export current settings to JSON file</span>
+						</span>
+						<span class="help">
+							<label class="button">Import
+								<input id="import_settings" type="file" accept=".json">
+							</label>
+							<span class="tooltip">Import settings from external JSON file</span>
+						</span>
+					</div>
 				</div>
 
 				<div>

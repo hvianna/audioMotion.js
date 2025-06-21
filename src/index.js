@@ -849,6 +849,9 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
+// return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
+const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
+
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
 
@@ -2299,7 +2302,7 @@ function loadPreferences() {
 /**
  * Load a configuration preset
  *
- * @param {string|number} desired built-in preset key or user preset index
+ * @param {string|number|object} desired built-in preset key or user preset index or settings object (uploaded by user)
  * @param [{boolean}] true to display console message and on-screen alert after loading (default)
  * @param [{boolean}] true to use default values for missing properties
  * @param [{boolean}] true to keep Randomize setting unchanged
@@ -2307,13 +2310,14 @@ function loadPreferences() {
 function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	const isUserPreset = ( +key == key ),
-		  thisPreset   = isUserPreset ? userPresets[ key ].options : getPreset( key ),
+		  isObject     = typeof key == 'object',
+		  thisPreset   = isObject ? key : ( isUserPreset ? userPresets[ key ].options : getPreset( key ) ),
 		  defaults     = getPreset('default');
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
-	if ( alert )
+	if ( alert && ! isObject )
 		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
 
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
@@ -4163,7 +4167,8 @@ function setUIEventListeners() {
 		audioEl.currentTime = duration * elSongProgress.value;
 	});
 
-	// action buttons
+	// load / save presets
+
 	$('#load_preset').addEventListener( 'click', () => {
 		const choices = [];
 
@@ -4207,8 +4212,6 @@ function setUIEventListeners() {
 			choices
 		});
 	});
-
-	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
 
 	// playlist controls
 
@@ -4287,7 +4290,11 @@ function setUIEventListeners() {
 		});
 	});
 
+	// toggle Fullscreen
+	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
+
 	// Picture-In-Picture functionality
+
 	let canvasTrack, pipWindow;
 
 	const pipButton = $('#btn_pip');
@@ -4361,6 +4368,34 @@ function setUIEventListeners() {
 		el.addEventListener( 'click', () => {
 			if ( ! el.open )
 				accordionItems.forEach( item => item.open = false );
+		});
+	});
+
+	// Export / import settings
+
+	const btnExportSettings = $('#export_settings');
+	btnExportSettings.addEventListener( 'click', () => {
+		btnExportSettings.setAttribute( 'href', encodeJSONDataURI( getCurrentSettings() ) );
+		btnExportSettings.setAttribute( 'download', 'audioMotion-settings.json' );
+	});
+
+	const btnImportSettings = $('#import_settings');
+	btnImportSettings.addEventListener( 'input', () => {
+		const fileBlob = btnImportSettings.files[0];
+		btnImportSettings.value = ''; //
+		notie.confirm({
+			text: 'ATTENTION!<br>This will overwrite all current options in the <strong>Settings</strong> and <strong>Advanced</strong> panels!',
+			submitText: 'Continue',
+			submitCallback: () => {
+				fileBlob.text().then( contents => {
+					try {
+						loadPreset( JSON.parse( contents ) );
+					}
+					catch ( e ) {
+						consoleLog( e, true );
+					}
+				});
+			}
 		});
 	});
 }
