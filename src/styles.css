@@ -7,6 +7,7 @@
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
 	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
+	--glass-active-glow: 0 0 6px var(--light-color); /* inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color); */
 	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--mono-font: 'JetBrains Mono', monospace;
@@ -35,6 +36,9 @@ select {
 	font-family: inherit;
 }
 
+input[type="file"] {
+	display: none;
+}
 input[type="text"],
 input[type="number"] {
 	padding: .25em;
@@ -43,6 +47,7 @@ input[type="number"] {
 	margin: 2px 0;
 	width: 60px;
 }
+
 select {
 	padding: .25em 0;
 }
@@ -65,10 +70,10 @@ button:not([disabled]):hover,
 }
 button:not([disabled]):active {
 	background: var(--glass-gradient-active);
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 
 canvas {
@@ -114,13 +119,12 @@ table {
 }
 
 .button {
-	display: inline-block;
+	display: block;
 	text-align: center;
 }
 
 /* remove link styling from links that should look like buttons */
 a.button {
-	color: black;
 	text-decoration: none;
 }
 
@@ -148,26 +152,6 @@ a.button:visited {
 	transform: translateX(-50%);
 }
 
-.settings-close {
-	bottom: 2px;
-	cursor: pointer;
-	padding: 0 100px;
-	position: absolute;
-}
-.settings-close::before {
-	color: #666;
-	content: '\276e';
-	display: inline-block;
-	font-size: 18px;
-	transform: rotate(90deg);
-}
-.settings:not(.active) .settings-close {
-	bottom: -2px;
-}
-.settings:not(.active) .settings-close::before {
-	transform: rotate(270deg);
-}
-
 .controls {
 	column-gap: 40px;
 	display: grid;
@@ -175,13 +159,13 @@ a.button:visited {
 	grid-auto-flow: column;
 	grid-template-columns: repeat(5, 1fr);
 	grid-template-rows: repeat(5, 1fr);
-	padding: 20px;
+	padding: 15px 20px;
 	row-gap: 20px;
 }
 .controls input[type="number"],
 .controls form,
 .controls select {
-	margin: 3px 0;
+	margin-top: 3px;
 	padding-left: 0;
 	padding-right: 0;
 	width: 100%;
@@ -204,7 +188,7 @@ a.button:visited {
 	border-radius: 999px;
 	box-shadow: inset 1px 1px 0 rgba(0,0,0,.4), inset -1px -1px 0 rgba(0,0,0,.2);
 	height: 4px;
-	margin-top: 6px;
+	margin-top: 8px;
 }
 .custom-slider::-moz-range-track {
 	background: linear-gradient(rgba(0,0,0,.5),transparent),rgba(0,0,0,.2);
@@ -219,9 +203,9 @@ a.button:visited {
 	background-size: 100%;
 	border-radius: 50%;
 	box-shadow: 2px 2px 5px 0 #222, 0 0 0 1px #999;
-	height: 16px;
-	margin-top: -7px;
-	width: 16px;
+	height: 18px;
+	margin-top: -8px;
+	width: 18px;
 }
 .custom-slider::-moz-range-thumb {
 	background: url(img/brushed-knob.png);
@@ -229,8 +213,8 @@ a.button:visited {
 	border: none;
 	border-radius: 50%;
 	box-shadow: 2px 2px 5px 0 #222, 0 0 0 1px #999;
-	height: 16px;
-	width: 16px;
+	height: 18px;
+	width: 18px;
 }
 
 #color_mode {
@@ -406,11 +390,11 @@ a.button:visited {
 .thin-button.active,
 .panel-selection input:checked + label {
 	background: var(--glass-gradient-active);
-/*	border-color: #72aa00; */
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	border-color: transparent;
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 .thin-button a {
 	color: inherit;
@@ -555,9 +539,16 @@ a.button:visited {
 	align-items: end;
 }
 
-.gap-med {
+.gap-sm {
 	gap: .5em;
 }
+.gap-md {
+	gap: 1em;
+}
+.gap-lg {
+	gap: 2em;
+}
+
 .grid {
 	align-content: start;
 	display: grid;
@@ -643,10 +634,6 @@ a.button:visited {
 	width: 100%;
 }
 
-#local_file {
-	display: none;
-}
-
 div.value {
 	float: right;
 }
@@ -693,6 +680,9 @@ div.value {
 	padding-left: 15px;
 	width: 108px;
 }
+.player-controls .button:first-child:hover {
+	width: 109px;
+}
 .player-controls .button:last-child {
 	border-bottom-right-radius: 20px;
 	border-top-right-radius: 20px;
@@ -711,11 +701,10 @@ div.value {
 }
 
 .preset-controls {
-	gap: 20px;
-	margin-top: 10px;
+	margin: 3px 0;
 }
 .preset-controls button {
-	position: 8px 0 6px;
+	padding: 6px 0 4px;
 	width: 100%;
 }
 
@@ -766,7 +755,8 @@ div.value {
 	cursor: pointer;
 	display: inline-block;
 	font-weight: 600;
-	margin-top: 6px;
+	line-height: normal;
+	margin-top: 3px;
 	padding: 6px 0 4px;
 	text-align: center;
 	text-transform: uppercase;
@@ -794,7 +784,7 @@ div.value {
 .switch-bar .switch:nth-child(even):not([data-active="1"]):hover {
 	border-left-width: 1px;
 	margin-left: -1px;
-	padding-left: 1px;
+	width: calc( 50% + 1px );
 }
 .switch-bar .switch:last-child,
 .switch-bar .switch:nth-last-child(2):nth-child(odd) {
@@ -804,9 +794,10 @@ div.value {
 .player-controls .button[data-active="1"],
 .switch-bar .switch[data-active="1"] {
 	background: var(--glass-gradient-active);
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	border-color: transparent;
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 
 /* Custom radio buttons */
@@ -820,19 +811,19 @@ div.value {
 }
 .custom-radio-buttons input:checked + label {
 	background: var(--glass-gradient-active);
-/*	border-color: #72aa00; */
-	box-shadow: inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color);
+	border-color: transparent;
+	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
-	text-shadow: 0 0 6px var(--light-color);
+	text-shadow: var(--glass-active-glow);
 }
 .custom-radio-buttons label {
 	background: var(--glass-gradient);
 	border: 1px solid #adadad;
 	color: #444;
 	cursor: pointer;
-	font-weight: 400;
-	font-size: .85rem;
+	font-weight: 600;
+	line-height: normal;
 	padding: 6px 0 4px;
 	position: relative;
 	text-align: center;
@@ -901,7 +892,7 @@ div.value {
 	left: 110%;
 	top: 0;
 }
-.controls .column:last-child .tooltip {
+.controls .last-column .tooltip {
 	left: auto;
 	right: 105%;
 	top: auto;
@@ -1039,6 +1030,9 @@ kbd.wide {
 .filelist li.current {
 	color: #06c;
 }
+.filelist li.error {
+	color: #c00;
+}
 .filelist li.full-panel {
 	align-items: center;
 	display: flex;
@@ -1053,6 +1047,9 @@ kbd.wide {
 .filelist li:hover {
 	background: #06c;
 	color: #fff;
+}
+.filelist li.error:hover {
+	background: #c00;
 }
 
 .filelist [data-type]::before {
@@ -1522,6 +1519,10 @@ input.slider:not(:checked) + .slider .slider-on {
 	margin-top: 1rem;
 }
 
+.mt-2 {
+	margin-top: 2rem;
+}
+
 .mt-5px {
 	margin-top: 5px;
 }
@@ -1555,12 +1556,12 @@ button.grad-remove-stop[disabled] {
 
 button.grad-remove-stop:hover:not([disabled]) {
 	border: none;
-	background-color: #c00 !important;
+	background: #c00 !important;
 }
 
 button.grad-add-stop:hover {
 	border: none;
-	background-color: #34a800 !important;
+	background: #34a800 !important;
 }
 
 .grad-add-stop::before {
@@ -1579,6 +1580,27 @@ button.grad-add-stop:hover {
 	display: none;
 }
 
+#enabled_gradients label {
+	position: relative;
+}
+#enabled_gradients label:hover {
+	background: #f0fff0;
+}
+#enabled_gradients label:hover > .grad-edit-link {
+	display: block;
+}
+.grad-edit-link {
+	background: var(--accent-color);
+	border-radius: 4px;
+	bottom: 0;
+	color: #fff;
+	display: none;
+	font-size: .7em;
+	padding: 5px 10px;
+	position: absolute;
+	right: 0;
+	text-decoration: none;
+}
 
 /**
  * Warp Tunnel effect
@@ -1706,12 +1728,12 @@ button.grad-add-stop:hover {
 }
 
 @media screen and (max-width: 1279px) {
-	.controls .column:last-child .tooltip {
+	.controls .last-column .tooltip {
 		left: auto;
 		right: 50px;
 	}
-	.controls .column:last-child .preset-controls .tooltip,
-	.controls .column:last-child .switch-bar .tooltip {
+	.controls .last-column .preset-controls .tooltip,
+	.controls .last-column .switch-bar .tooltip {
 		right: 150px;
 	}
 }
