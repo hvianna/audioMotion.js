@@ -889,15 +889,17 @@ const getText = el => {
 	return text;
 }
 
-// return the value of a Settings UI control
+// Returns the value of a UI settings control
+// NOTE: this *always* returns a string - be careful when using the value in arithmetic or boolean operations!
 const getControlValue = el => {
+	let ret = el.value;  // basic select and input elements
 	if ( el == elBandCount )
-		return 9 - el.value;
+		ret = 9 - ret;
 	if ( isCustomRadio( el ) )
-		return el.elements[ el.dataset.prop ].value;
+		ret = el.elements[ el.dataset.prop ].value;
 	if ( el.dataset.active !== undefined ) // switches
-		return el.dataset.active;
-	return el.value; // select and input elements
+		ret = el.dataset.active;
+	return '' + ret;
 }
 
 // returns an object with the current settings
