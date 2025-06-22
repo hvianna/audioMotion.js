@@ -602,7 +602,11 @@ const gradients = {
 				{ pos: .5, color: '#d76d77' },
 				{ pos: 1, color: '#3a1c71' }
 			  ], disabled: false },
-	classic:  { name: 'Classic', disabled: false },
+	classic:  { name: 'Classic', colorStops: [
+				'#f00',
+				{ color: '#ff0', level: .85, pos: .6 },
+				{ color: '#0f0', level: .475 }
+			  ], disabled: false },
 	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
 				'hsl( 208, 0%, 100% )',
 				'hsl( 208, 100%, 35% )'
@@ -634,7 +638,9 @@ const gradients = {
 				{ pos: .1, color: '#34e89e' },
 				{ pos: 1, color: '#0f3443' }
 			  ], disabled: false },
-	prism:    { name: 'Prism', disabled: false },
+	prism:    { name: 'Prism', colorStops: [
+				'#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b'
+			  ], disabled: false },
 	prism_old: { name: 'Prism (legacy)', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -642,7 +648,9 @@ const gradients = {
 				'hsl( 180, 100%, 50% )',
 				'hsl( 240, 100%, 50% )'
 			  ], disabled: true },
-	rainbow:  { name: 'Rainbow', disabled: false },
+	rainbow:  { name: 'Rainbow', dir: 'h', colorStops: [
+				'#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639'
+			  ], disabled: false },
 	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -854,6 +862,9 @@ const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComp
 
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
+
+// removes accents from a given string, converts it to lowercase and replaces any non-alphanumeric character with optional separator
+const generateSafeKeyName = ( str, separator = '' ) => ( str + '' ).normalize('NFD').replace( /[\u0300-\u036f]/g, '' ).toLowerCase().replace( /[^a-z0-9]/g, separator );
 
 // return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
 const getIndex = node => {
@@ -1104,6 +1115,13 @@ const setRangeAtts = ( element, min, max, step = 1 ) => {
 	element.min  = min;
 	element.max  = max;
 	element.step = step;
+}
+
+// toggle display of an element
+const toggleDisplay = ( el, status ) => {
+	if ( status === undefined )
+		status = !! el.style.display;
+	el.style.display = status ? '' : 'none';
 }
 
 // promise-compatible `onloadeddata` event handler for media elements
@@ -2008,16 +2026,44 @@ function loadFromStorage( key ) {
 function loadGradientIntoCurrentGradient(gradientKey) {
 	if (!gradients[gradientKey]) throw new Error(`gradients[${gradientKey}] is null or undefined.`);
 
-	const src = gradients[gradientKey];
-	const dest = {};
+	// convert hsl values to rgb hexadecimal string - thanks https://stackoverflow.com/a/64090995
+	const hsl2rgb = ( h, s, l ) => {
+		// h in [0,360] and s,l in [0,1]
+		const a = s * Math.min( l, 1 - l );
+		const f = ( n, k = ( n + h / 30 ) % 12 ) => l - a * Math.max( Math.min( k - 3, 9 - k, 1 ), -1 );
+		let rgb = '#';
+		for ( const i of [ 0, 8, 4 ] )
+			rgb += Math.round( f( i ) * 255 ).toString(16).padStart(2, '0');
+		return rgb;
+	}
 
-	dest.name = src.name;
-	dest.bgColor = src.bgColor;
-	dest.dir = src.dir
-	dest.disabled = src.disabled;
-	dest.key = gradientKey;
+	// split values from a hsl or rgb string (removes % sign from hsl values)
+	const splitValues = str => str.match( /\(\s+(.*),\s+(.*?)%?,\s+(.*?)%?\s+\)/ ).slice(1);
+
+	const src  = gradients[ gradientKey ],
+		  dest = { ...src }; // make a copy of the gradient object
+
 	dest.colorStops = [];
-	for (const stop of src.colorStops) {
+
+	// NOTE: colorStops in our `gradients` objects are normalized (modified!) by the analyzer's registerGradient()
+	//       method, which ensures all colorStops elements are objects with `pos` and `color` attributes!
+
+	// clone the source colorStops and convert all colors to hexadecimal format, required by the HTML color picker
+	for ( const stop of src.colorStops ) {
+		if ( stop.color.startsWith('rgb') ) {
+			const { color } = stop;
+			stop.color = '#';
+			for ( const component of splitValues( color ) )
+				stop.color += ( +component ).toString(16).padStart(2, '0');
+		}
+		else if ( stop.color.startsWith('hsl') ) {
+			const [ h, s, l ] = splitValues( stop.color );
+			stop.color = hsl2rgb( h, s/100, l/100 );
+		}
+		else if ( stop.color.length == 4 ) { // short hexadecimal format
+			const [ _, r, g, b ] = stop.color;
+			stop.color = '#' + r + r + g + g + b + b;
+		}
 		dest.colorStops.push({...stop});
 	}
 
@@ -2209,6 +2255,7 @@ function loadPreferences() {
 	if ( customGradients ) {
 		Object.keys( customGradients ).forEach( key => {
 			gradients[ key ] = customGradients[ key ];
+			gradients[ key ].key = key; // a `key` property indicates this is a custom gradient
 		});
 	}
 
@@ -2587,8 +2634,13 @@ async function loadSubs( audioEl, song ) {
 function openGradientEdit(key) {
 	loadGradientIntoCurrentGradient(key);
 	renderGradientEditor();
-	$('#btn-save-gradient').innerText = 'Save';
-	$('#btn-delete-gradient').style.display = 'block';
+
+	// save and delete buttons are enabled for custom gradients only
+	toggleDisplay( $('#btn-delete-gradient'), !! gradients[ key ].key );
+	toggleDisplay( $('#btn-save-gradient'), !! gradients[ key ].key );
+	toggleDisplay( $('#btn-export-gradient'), true );
+	toggleDisplay( $('#btn-save-gradient-copy'), true );
+
 	location.href = '#gradient-editor';
 }
 
@@ -2604,22 +2656,16 @@ function openGradientEditorNew() {
 			{ pos: 1, color: '#eeeeee' }
 		],
 		disabled: false,
-		key: 'custom-gradient-1'  // using this to keep track of the key of the gradient object in the gradient list
+		key: '', // using this to keep track of the key of the gradient object in the gradient list - will be set by saveGradient()
 	};
 
-	// To prevent accidental overwriting of gradients and to allow duplicate names, a unique internal key is chosen
-	// instead of simply using the name the user chooses for the new gradient.
-
-	// find unique key for new gradient
-	let modifier = 2;
-	while (Object.keys(gradients).some(key => key === currentGradient.key) && modifier < 10) {
-		currentGradient.key = `custom-gradient-${modifier}`;
-		modifier++;
-	}
-
 	renderGradientEditor();
-	$('#btn-save-gradient').innerText = 'Add';
-	$('#btn-delete-gradient').style.display = 'none'; // don't show delete button while editing a new gradient
+
+	// for new gradients only the save button is enabled
+	toggleDisplay( $('#btn-delete-gradient'), false );
+	toggleDisplay( $('#btn-save-gradient'), true );
+	toggleDisplay( $('#btn-export-gradient'), false );
+	toggleDisplay( $('#btn-save-gradient-copy'), false );
 
 	location.href = '#gradient-editor';
 }
@@ -2787,20 +2833,11 @@ function populateEnabledGradients() {
 	deleteChildren(elEnabledGradients);
 
 	Object.keys( gradients ).forEach( key => {
-		// only set up link for editing if this is a custom gradient
-		if (key.startsWith('custom')) {
-			elEnabledGradients.innerHTML +=
-				`<label>
-			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-                   <a href="#" data-grad="${key}" class="grad-edit-link">${gradients[ key ].name}</a>
-                </label>`;
-		} else {
-			elEnabledGradients.innerHTML +=
-				`<label>
-			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[key].disabled ? '' : 'checked'}>
-                   ${gradients[key].name}
-                </label>`;
-		}
+		elEnabledGradients.innerHTML +=
+			`<label>
+				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
+				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit / Export</a>
+			</label>`;
 	});
 
 	$$('.enabledGradient').forEach( el => {
@@ -3228,8 +3265,24 @@ function revokeBlobURL( item ) {
  * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
  * then close the panel.
  */
-function saveGradient() {
+function saveGradient( options = {} ) {
 	if (currentGradient === null) return;
+
+	if ( ! currentGradient.key || options.imported || options.copy ) {
+		let safename = currentGradient.key || generateSafeKeyName( currentGradient.name ); // keep the key when importing, or generate one if not defined
+		currentGradient.key = safename;
+
+		// find unique key for new gradient
+		let modifier = 1;
+		while ( Object.keys( gradients ).some( key => key === currentGradient.key ) && modifier < 1000 ) {
+			currentGradient.key = `${safename}-${modifier}`;
+			modifier++;
+		}
+
+		// if the same name already exists, add a suffix to it
+		while ( Object.keys( gradients ).some( key => gradients[ key ].name === currentGradient.name ) )
+			currentGradient.name += options.imported ? ' (imported)' : ' (copy)';
+	}
 
 	gradients[currentGradient.key] = currentGradient;
 	audioMotion.registerGradient(currentGradient.key, currentGradient);
@@ -3283,8 +3336,8 @@ function savePreferences( key ) {
 	if (! key || key == KEY_CUSTOM_GRADS) {
 		const customGradients = {};
 		Object.keys(gradients)
-			.filter(key => key.startsWith('custom'))
-			.forEach(key => customGradients[key] = gradients[key]);
+			.filter( key => gradients[ key ].key ) // if it has a `key` property it's a custom gradient
+			.forEach( key => customGradients[key] = gradients[key]);
 		saveToStorage( KEY_CUSTOM_GRADS, customGradients);
 	}
 
@@ -4346,9 +4399,38 @@ function setUIEventListeners() {
 	}
 
 	// setup gradient editor controls
-	$('#add-gradient').addEventListener('click', openGradientEditorNew);
-	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
-	$('#btn-delete-gradient').addEventListener('click', deleteGradient );
+	$('#add-gradient').addEventListener('click', () => openGradientEditorNew() );
+	$('#btn-save-gradient').addEventListener( 'click', () => saveGradient() );
+	$('#btn-save-gradient-copy').addEventListener( 'click', () => saveGradient({ copy: true }) );
+	$('#btn-delete-gradient').addEventListener('click', () => {
+		notie.confirm({
+			text: `Do you really want to DELETE <strong>${ currentGradient.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
+			submitText: 'DELETE',
+			submitCallback: () => deleteGradient()
+		});
+	});
+
+	const btnExportGradient = $('#btn-export-gradient');
+	btnExportGradient.addEventListener( 'click', () => {
+		btnExportGradient.setAttribute( 'href', encodeJSONDataURI( currentGradient ) );
+		btnExportGradient.setAttribute( 'download', `audioMotion-gradient-${ currentGradient.key }.json` );
+	});
+
+	const btnImportGradient = $('#import_gradient');
+	btnImportGradient.addEventListener( 'input', () => {
+		const fileBlob = btnImportGradient.files[0];
+		btnImportGradient.value = ''; // clear file (needed for the event to trigger if user loads the same file again)
+		fileBlob.text().then( contents => {
+			try {
+				currentGradient = JSON.parse( contents );
+			}
+			catch ( e ) {
+				consoleLog( e, true );
+				return;
+			}
+			saveGradient({ imported: true });
+		});
+	});
 
 	$('#new-gradient-bkgd').addEventListener('input', (e) => {
 		currentGradient.bgColor = e.target.value;
@@ -4452,17 +4534,16 @@ async function storePlayQueue( name, update = true ) {
 	}
 
 	if ( name ) {
-		let safename = name;
+		let safename;
 
 		if ( ! isSaveQueue && ! update ) {
-			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
-			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
+			safename = generateSafeKeyName( name, '_' );
 
 			let playlists = await get( KEY_PLAYLISTS ) || {},
 				attempt   = 0,
 				basename  = safename;
 
-			while ( playlists.hasOwnProperty( safename ) && attempt < 100 ) {
+			while ( playlists.hasOwnProperty( safename ) && attempt < 1000 ) {
 				safename = basename + '_' + attempt;
 				attempt++;
 			}

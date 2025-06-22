@@ -648,12 +648,17 @@
 			</details>
 
 			<details>
-				<summary>Gradients configuration
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-configuration" target="_blank"></a>
+				<summary>Gradients management
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-management" target="_blank"></a>
 				</summary>
 				<div>
-					<div id="enabled_gradients" class="grid grid-3-cols gap-sm"></div>
-					<p><br><button class="button mt-1" id="add-gradient">Add Gradient</button></p>
+					<div id="enabled_gradients" class="grid grid-2-cols gap-sm"></div>
+					<div class="flex align-center mt-1">
+						<button class="button mt-1" id="add-gradient">Create Gradient</button>
+						<label class="button mt-1">Import Gradient
+							<input id="import_gradient" type="file" accept=".json">
+						</label>
+					</div>
 				</div>
 			</details>
 
@@ -800,10 +805,13 @@
 			</div>
 			<div class="mt-1"><span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span></div>
 			<div class="mt-5px"><input type="color" id="new-gradient-bkgd"></div>
-			<div class="flex align-center mt-1">
+			<div class="grid grid-2-cols gap-lg mt-2">
 				<button id="btn-delete-gradient">Delete</button>
-				<div></div>
-				<button id="btn-save-gradient">Add</button>
+				<button id="btn-save-gradient">Save</button>
+			</div>
+			<div class="grid grid-2-cols gap-lg mt-1">
+				<a class="button" id="btn-export-gradient">Export</a>
+				<button id="btn-save-gradient-copy">Duplicate</button>
 			</div>
 		</div>
 	</div> <!-- #gradient-editor -->
