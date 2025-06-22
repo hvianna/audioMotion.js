@@ -47,7 +47,7 @@ import './styles.css';
 const URL_ORIGIN = location.origin + location.pathname,
 	  VERSION    = packageJson.version;
 
-const AUTOHIDE_DELAY        = 300,				// delay for triggering media panel auto-hide (in milliseconds)
+const AUTOHIDE_DELAY        = 500,				// delay for triggering front panel auto-collapse (in milliseconds)
 	  BG_DIRECTORY          = 'backgrounds', 	// server folder name for built-in backgrounds
 	  MAX_METADATA_REQUESTS = 4,				// max concurrent metadata requests
 	  MAX_QUEUED_SONGS      = 2000,
@@ -4102,15 +4102,15 @@ function setVolume( value ) {
  * NOTE: this is called only once during initialization
  */
 function setUIEventListeners() {
-	// open/close media panel (auto-hide)
+	// collapse front panel on analyzer hover
+	let autoHideTimeout;
 	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked && ! audioMotion.isFullscreen ) {
-			setTimeout( () => {
-				if ( elContainer.matches(':hover') )
-					toggleMediaPanel( false );
-			}, AUTOHIDE_DELAY );
-		}
+		if ( elAutoHide.checked && ! audioMotion.isFullscreen )
+			autoHideTimeout = setTimeout( () => toggleMediaPanel( false ), AUTOHIDE_DELAY );
 	});
+	elContainer.addEventListener( 'mouseleave', () => clearTimeout( autoHideTimeout ) );
+
+	// toggle front panel button (expand/collapse)
 	elTogglePanel.addEventListener( 'click', () => toggleMediaPanel() );
 
 	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
@@ -4143,8 +4143,9 @@ function setUIEventListeners() {
 			}
 		});
 	});
+	// make the first panel visible on initialization
 	$(`#panel_${ mainPanels[0].id }`).checked = true;
-	elMediaPanel.classList.add('active'); // initialize with the first panel visible
+	elMediaPanel.classList.add('active');
 
 	// clear console
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
@@ -4593,9 +4594,9 @@ function syncMetadataToAudioElements( source ) {
 }
 
 /**
- * Show/hide the media panel (for auto-hide feature) and adjust the canvas height
+ * Expand/collapse the front panel and adjust the canvas height
  *
- * @param {boolean} `true` to show the media panel; `false` to hide it; if undefined, toggles the current state
+ * @param {boolean} `true` to expand or `false` to collapse the front panel; if undefined, toggles the current state
  */
 function toggleMediaPanel( show ) {
 	if ( show === undefined )
