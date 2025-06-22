@@ -1410,29 +1410,37 @@ function cycleElement( el, prev ) {
 }
 
 /**
- * Cycle X and Y axis scales
+ * Cycle scale labels for X- and- Y axes
  *
- * @param [prev] {boolean} true to select previous option
- * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
+ * @param [{boolean}] `true` to select previous option
+ * @return {number} integer indicating status (see table below)
  */
 function cycleScale( prev ) {
+// Y X  scale
+// 0 00 (0): x off    y off
+// 0 01 (1): x freqs  y off
+// 0 10 (2): x notes  y off
+// 0 11 (3): not used
+// 1 00 (4): x off    y on
+// 1 01 (5): x freqs  y on
+// 1 10 (6): x notes  y on
+// 1 11 (7): not used
 //
-// TO-DO: UPDATE THIS!!
-//
-/*
-	let scale = +elScaleX.dataset.active + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
+	prev = prev * -2 + 1; // true = -1; false = 1
+	let scale = +getControlValue( elScaleX ) + ( +getControlValue( elScaleY ) << 2 ) + prev;
 
 	if ( scale < 0 )
-		scale = 3;
-	else if ( scale > 3 )
+		scale = 6;
+	else if ( scale == 3 )
+		scale += prev;
+	else if ( scale > 6 )
 		scale = 0;
 
-	elScaleX.dataset.active = scale & 1;
-	elScaleY.dataset.active = scale >> 1;
-
+	setControlValue( elScaleX, scale & 3 );
+	setControlValue( elScaleY, scale >> 2 );
 	setProperty( [ elScaleX, elScaleY ] );
+
 	return scale;
-*/
 }
 
 /**
@@ -1945,8 +1953,10 @@ function keyboardControls( event ) {
 					elRepeat.click();
 					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
 					break;
-				case 'KeyS': 		// toggle X and Y axis scales
-					setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
+				case 'KeyS': 		// toggle scale labels for X- and Y- axes
+					const info   = ['None','Frequencies','Musical Notes',,'Level'],
+						  status = cycleScale( isShiftKey );
+					setCanvasMsg( 'Scale labels: ' + ( status < 5 ? info[ status ] : info[ status - 4 ] + ' + ' + info[ 4 ] ) );
 					break;
 				case 'KeyT': 		// toggle text shadow
 					elNoShadow.click();
