@@ -3591,7 +3591,7 @@ function setOverlay() {
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
-		audioEl.style.display = ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] ? '' : 'none';
+		toggleDisplay( audioEl, ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] );
 
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
@@ -3599,9 +3599,9 @@ function setOverlay() {
 	// enable/disable background image
 	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
 	// set visibility of background video layer
-	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : '';
+	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
 	// enable/disable background dim layer
-	elDim.style.display = ( isVideo && elNoDimVideo.checked ) || ( hasSubs && elNoDimSubs.checked ) ? 'none' : '';
+	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
 
 	return isOverlay;
 }
@@ -3625,7 +3625,7 @@ function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleGradients = () => elGradientRight.style.display = ( getControlValue( elChnLayout ) == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
+	const toggleGradientRight = () => toggleDisplay( elGradientRight, getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ) );
 
 	for ( const el of elems ) {
 		switch ( el ) {
@@ -3690,7 +3690,7 @@ function setProperty( elems, save = true ) {
 				elContainer.classList.toggle( 'repeat', bgFit == BGFIT_REPEAT );
 				elContainer.classList.toggle( 'cover', bgFit == BGFIT_ADJUST || isWarp );
 				elContainer.style.backgroundSize = '';
-				elWarp.style.display = isWarp ? '' : 'none';
+				toggleDisplay( elWarp, isWarp );
 				elWarp.classList.toggle( 'rotating', bgFit == BGFIT_WARP_ROT );
 				elWarp.classList.toggle( 'paused', bgFit == BGFIT_WARP );
 				break;
@@ -3724,7 +3724,7 @@ function setProperty( elems, save = true ) {
 
 			case elChnLayout:
 				audioMotion.channelLayout = getControlValue( elChnLayout );
-				toggleGradients();
+				toggleGradientRight();
 				break;
 
 			case elColorMode:
@@ -3775,7 +3775,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLinkGrads:
-				toggleGradients();
+				toggleGradientRight();
 				if ( isSwitchOn( elLinkGrads ) )
 					setProperty( elGradient, false );
 				break;
@@ -4129,7 +4129,7 @@ function setUIEventListeners() {
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height ) {
 			for ( const panel of mainPanels )
-				$(`#${ panel.id }`).style.display = 'none'; // hide main panels
+				toggleDisplay( $(`#${ panel.id }`), false ); // hide main panels
 		}
 
  		// restore overflow on body (keep the scroll bar always visible when the window is too short)
@@ -4306,7 +4306,7 @@ function setUIEventListeners() {
 		  setToggleButtonText = () => btnToggleFS.innerText = `Switch to ${ useFileSystemAPI ? 'Server' : 'Device' }`;
 
 	if ( ! serverHasMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
-		btnToggleFS.style.display = 'none';
+		toggleDisplay( btnToggleFS, false );
 	else {
 		setToggleButtonText();
 		btnToggleFS.addEventListener( 'click', async () => {
@@ -4331,14 +4331,14 @@ function setUIEventListeners() {
 		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents() ) );
 	}
 	else {
-		btnAddSelected.style.display = 'none';
-		btnAddFolder.style.display = 'none';
+		toggleDisplay( btnAddSelected, false );
+		toggleDisplay( btnAddFolder, false );
 	}
 
 	// local file upload - disabled when the File System API is supported
 	const uploadBtn = $('#local_file');
 	if ( supportsFileSystemAPI )
-		uploadBtn.parentElement.style.display = 'none';
+		toggleDisplay( uploadBtn.parentElement, false );
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
 
@@ -4622,7 +4622,7 @@ function toggleMediaPanel( show ) {
 	// show main panels (hidden by the `transitionend` event listener)
 	if ( show ) {
 		for ( const panel of mainPanels )
-			$(`#${ panel.id }`).style.display = '';
+			toggleDisplay( $(`#${ panel.id }`), true );
 	}
 
 	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
