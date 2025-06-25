@@ -140,13 +140,13 @@
 
 	<div class="panel-area">
 		<div class="bottom-panel">
-			<form id="panel_selection" class="panel-selection"></form>
+			<form id="panel_selection" class="custom-radio-buttons panel-selection"></form>
 			<button id="toggle_panel" class="material-symbols-rounded"></button>
-			<ul class="function-buttons">
-				<li class="thin-button" id="btn_pip"><a href="#!">PIP</a>
-				<li class="thin-button" id="btn_fullscreen"><a href="#!"><u>F</u>ullscreen</a>
-				<li class="thin-button"><a href="#config">Configuration</a>
-				<li class="thin-button"><a href="#help">Help</a>
+			<ul class="button-bar function-buttons">
+				<li id="btn_pip"><a href="#!">PIP</a>
+				<li id="btn_fullscreen"><a href="#!"><u>F</u>ullscreen</a>
+				<li><a href="#config">Configuration</a>
+				<li><a href="#help">Help</a>
 			</ul>
 		</div>
 
@@ -156,15 +156,13 @@
 				<div class="rowspan-2">
 					<span class="config-label">Presets</span>
 					<select id="presets"></select>
-					<div class="flex preset-controls gap-sm">
-						<span class="help width-half">
-							<button id="btn_load_preset">Load</button>
+					<div class="button-bar grid-25-75">
+						<button id="btn_load_preset" class="help">Load
 							<span class="tooltip">Load selected preset</span>
-						</span>
-						<span class="help width-full">
-							<button id="btn_manage_presets">Save / Manage</button>
+						</button>
+						<button id="btn_manage_presets" class="help">Save / Manage
 							<span class="tooltip">Save current settings to a User Preset or manage saved presets</span>
-						</span>
+						</button>
 					</div>
 				</div>
 
@@ -177,8 +175,16 @@
 					<!-- EMPTY CELL -->
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
+				<div class="last-row">
+					<span class="config-label">Restore settings</span>
+					<div class="button-bar">
+						<button id="preset_last" class="help">Session start
+							<span class="tooltip">Restore all settings to as they were when you last launched the app</span>
+						</button>
+						<button id="preset_default" class="help">Defaults
+							<span class="tooltip">Reset all settings to their default values</span>
+						</button>
+					</div>
 				</div>
 
 			<!-- COLUMN 2 -->
@@ -369,52 +375,36 @@
 		<div id="advanced" class="panel-main settings abs-center">
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
-				<div class="rowspan-2">
-					<span class="config-label">Export / Import</span>
-					<div class="preset-controls">
-						<span class="help"><a class="button" id="export_settings">Export settings</a>
-							<span class="tooltip">Export current settings to JSON file</span>
-						</span>
-					</div>
-					<div class="preset-controls">
-						<span class="help">
-							<label class="button">Import settings
-								<input id="import_settings" type="file" accept=".json">
-							</label>
-							<span class="tooltip">Import settings from external JSON file</span>
-						</span>
-					</div>
+				<div>
+					<!-- EMPTY CELL -->
 				</div>
 
 				<div>
 					<!-- EMPTY CELL -->
 				</div>
 
-				<div class="rowspan-2">
-					<span class="config-label">Restore settings</span>
-					<div class="preset-controls">
-						<span class="help">
-							<button id="preset_last">Restore to session start</button>
-							<span class="tooltip">Restore all settings to as they were when you last launched the app</span>
-						</span>
-					</div>
-					<div class="preset-controls">
-						<span class="help">
-							<button id="preset_default">Reset to Defaults</button>
-							<span class="tooltip">Reset all settings to their default values</span>
-						</span>
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="last-row">
+					<span class="config-label">Settings backup</span>
+					<div class="button-bar">
+						<a class="button help" id="export_settings">Export
+							<span class="tooltip">Export current settings to JSON file</span>
+						</a>
+						<label class="button help">Import
+							<input id="import_settings" type="file" accept=".json">
+							<span class="tooltip">Import settings from external JSON file</span>
+						</label>
 					</div>
 				</div>
 
 			<!-- COLUMN 2 -->
-				<div>
-					<span class="config-label help">Bar Spacing
-						<span class="tooltip">Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em></span>
-					</span>
-					<div class="value"></div>
-					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
-				</div>
-
 				<div>
 					<span class="config-label help">Channel Layout
 						<span class="tooltip">

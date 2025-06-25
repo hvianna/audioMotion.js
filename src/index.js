@@ -795,10 +795,10 @@ const subtitlesDefaults = {
 
 // Main panels
 const mainPanels = [
-	{ id: 'files_panel', label: 'Media' },
-	{ id: 'settings', label: 'Settings' },
-	{ id: 'advanced', label: 'Advanced' },
-	{ id: 'console',  label: 'Console'  }
+	{ value: 'files_panel', text: 'Media' },
+	{ value: 'settings', text: 'Settings' },
+	{ value: 'advanced', text: 'Advanced' },
+	{ value: 'console',  text: 'Console'  }
 ];
 
 // Global variables
@@ -2807,14 +2807,18 @@ function populateBackgrounds() {
 /**
  * Populate a custom radio buttons element
  *
- * @param element {object}
- * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
+ * @param {object} parent element (form)
+ * @param {array} of arrays [ value, text ] or objects { value, text, disabled }
+ * @param [{string}] `name` attribute of input elements (if undefined, uses the data-prop of `element`)
  */
-function populateCustomRadio( element, options ) {
+function populateCustomRadio( element, options, name ) {
+	if ( ! name )
+		name = element.dataset.prop;
+
 	const isObject = ! Array.isArray( options[0] );
+
 	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
-		const name = element.dataset.prop,
-			  text = item.text || item[1],
+		const text = item.text || item[1],
 			  val  = item.value || item[0],
 			  id   = name + '-' + val,
 		 	  button = document.createElement('input'),
@@ -4154,7 +4158,7 @@ function setUIEventListeners() {
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height ) {
 			for ( const panel of mainPanels )
-				toggleDisplay( $(`#${ panel.id }`), false ); // hide main panels
+				toggleDisplay( $(`#${ panel.value }`), false ); // hide main panels
 		}
 
  		// restore overflow on body (keep the scroll bar always visible when the window is too short)
@@ -4163,11 +4167,8 @@ function setUIEventListeners() {
 
 	// main panel selection
 	const elPanelSelection = $('#panel_selection');
-	for ( const { id, label } of mainPanels ) {
-		const button_id = `panel_${ id }`;
-		elPanelSelection.innerHTML += `<input type="radio" name="panel" id="${ button_id }" value="${ id }"><label class="thin-button" for="${ button_id }">${ label }</label>`;
-	}
-	elToggleConsole = $('label[for="panel_console"]');
+	populateCustomRadio( elPanelSelection, mainPanels, 'panel' );
+	elToggleConsole = $('label[for="panel-console"]');
 
 	const panelButtons = elPanelSelection.panel; // RadioNodeList
 	panelButtons.forEach( btn => {
@@ -4181,7 +4182,7 @@ function setUIEventListeners() {
 		});
 	});
 	// make the first panel visible on initialization
-	$(`#panel_${ mainPanels[0].id }`).checked = true;
+	$(`#panel-${ mainPanels[0].value }`).checked = true;
 	elMediaPanel.classList.add('active');
 
 	// clear console
@@ -4630,7 +4631,7 @@ function toggleMediaPanel( show ) {
 	// show main panels (hidden by the `transitionend` event listener)
 	if ( show ) {
 		for ( const panel of mainPanels )
-			toggleDisplay( $(`#${ panel.id }`), true );
+			toggleDisplay( $(`#${ panel.value }`), true );
 	}
 
 	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
