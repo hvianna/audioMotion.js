@@ -153,14 +153,17 @@
 		<div id="settings" class="panel-main settings abs-center">
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
-				<div>
+				<div class="rowspan-2">
 					<span class="config-label">Presets</span>
-					<div class="preset-controls grid grid-2-cols gap-md">
-						<span class="help"><button id="load_preset">Load</button>
-							<span class="tooltip">Load a configuration preset</span>
+					<select id="presets"></select>
+					<div class="flex preset-controls gap-sm">
+						<span class="help width-half">
+							<button id="btn_load_preset">Load</button>
+							<span class="tooltip">Load selected preset</span>
 						</span>
-						<span class="help"><button id="btn_save">Save / Edit</button>
-							<span class="tooltip">Save current settings to a User Preset and manage saved presets</span>
+						<span class="help width-full">
+							<button id="btn_manage_presets">Save / Manage</button>
+							<span class="tooltip">Save current settings to a User Preset or manage saved presets</span>
 						</span>
 					</div>
 				</div>
@@ -168,10 +171,6 @@
 				<div>
 					<span class="config-label">R<u>a</u>ndomize settings</span>
 					<select id="random_mode" data-prop="randomMode"></select>
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
 				</div>
 
 				<div>
@@ -226,7 +225,7 @@
 				<div class="column rowspan-2">
 					<span class="config-label help"><u>G</u>radients
 						<span class="tooltip">
-							Gradients for left and right channels. Enable/disable gradients in Config.
+							Gradients for left and right channels. Manage gradients in Configuration.
 						</span>
 					</span>
 
@@ -370,14 +369,16 @@
 		<div id="advanced" class="panel-main settings abs-center">
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
-				<div>
-					<span class="config-label">Export / Import settings</span>
-					<div class="preset-controls grid grid-2-cols gap-md">
-						<span class="help"><a class="button" id="export_settings">Export</a>
+				<div class="rowspan-2">
+					<span class="config-label">Export / Import</span>
+					<div class="preset-controls">
+						<span class="help"><a class="button" id="export_settings">Export settings</a>
 							<span class="tooltip">Export current settings to JSON file</span>
 						</span>
+					</div>
+					<div class="preset-controls">
 						<span class="help">
-							<label class="button">Import
+							<label class="button">Import settings
 								<input id="import_settings" type="file" accept=".json">
 							</label>
 							<span class="tooltip">Import settings from external JSON file</span>
@@ -389,16 +390,20 @@
 					<!-- EMPTY CELL -->
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
+				<div class="rowspan-2">
+					<span class="config-label">Restore settings</span>
+					<div class="preset-controls">
+						<span class="help">
+							<button id="preset_last">Restore to session start</button>
+							<span class="tooltip">Restore all settings to as they were when you last launched the app</span>
+						</span>
+					</div>
+					<div class="preset-controls">
+						<span class="help">
+							<button id="preset_default">Reset to Defaults</button>
+							<span class="tooltip">Reset all settings to their default values</span>
+						</span>
+					</div>
 				</div>
 
 			<!-- COLUMN 2 -->

@@ -742,6 +742,13 @@ div.value {
 	padding: 6px 0 10px;
 }
 
+.width-full {
+	width: 100%;
+}
+.width-half {
+	width: 50%;
+}
+
 .switch input {
 	display: none;
 }

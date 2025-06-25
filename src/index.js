@@ -161,6 +161,9 @@ const PEAKS_OFF  = 0,
 	  PEAKS_ON   = 1,
 	  PEAKS_FADE = 2;
 
+const PRESET_KEY_DEFAULT = 'default',
+	  PRESET_KEY_LAST_SESSION = 'last';
+
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
@@ -293,6 +296,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
+	  elPresets       = $('#presets'),
 	  elRadial        = $('#radial'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
@@ -509,13 +513,13 @@ const presets = [
 	},
 
 	{
-		key: 'last',
+		key: PRESET_KEY_LAST_SESSION,
 		name: 'Last session',
 		options: {}
 	},
 
 	{
-		key: 'default',
+		key: PRESET_KEY_DEFAULT,
 		name: 'Restore defaults',
 		options: {
 			alphaBars    : 0,
@@ -563,17 +567,6 @@ const presets = [
 			splitGrad    : 0,
 			volume       : 1,
 			weighting    : WEIGHT_NONE
-		}
-	},
-
-	{
-		key: 'legacy',
-		name: 'Legacy options test',
-		options: {
-			fadePeaks : '1',
-			showPeaks : '0',
-			noteLabels: '1',
-			showScaleX: '0'
 		}
 	}
 ];
@@ -1686,6 +1679,8 @@ function eraseUserPreset( index, force ) {
 	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
 
 	notie.alert({ text: `Deleted ${ userPresetText }` });
+
+	populatePresets();
 }
 
 /**
@@ -2243,7 +2238,7 @@ function loadPreferences() {
 		  { fftSize, smoothing } = storedGeneralOptions;
 
 	// Merge defaults with the last session settings (if any)
-	setPreset( 'last', { ...getPreset('default'), fftSize, smoothing, ...lastConfig } );
+	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), fftSize, smoothing, ...lastConfig } );
 
 	// Load user presets
 	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
@@ -2371,13 +2366,16 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	const isUserPreset = ( +key == key ),
 		  isObject     = typeof key == 'object',
 		  thisPreset   = isObject ? key : ( isUserPreset ? userPresets[ key ].options : getPreset( key ) ),
-		  defaults     = getPreset('default');
+		  defaults     = getPreset( PRESET_KEY_DEFAULT );
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
 	if ( alert && ! isObject )
-		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+
+	if ( key == PRESET_KEY_DEFAULT )
+		delete thisPreset.volume; // don't reset the volume when restoring to defaults!
 
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
@@ -2896,6 +2894,31 @@ function populateGradients() {
 			setProperty( el );
 		}
 	}
+}
+
+
+/**
+ * Populate presets selection box
+ */
+function populatePresets() {
+
+	const addGroup = ( label, options ) => {
+		const optGroup = document.createElement('optgroup');
+		optGroup.label = label;
+		for ( const [ value, text ] of options )
+			optGroup.appendChild( new Option( text, value ) );
+		elPresets.appendChild( optGroup );
+	}
+
+	deleteChildren( elPresets );
+	elPresets.appendChild( new Option( 'Select a preset to load', '' ) );
+
+	const savedPresets = userPresets.map( ( item, index ) => [ index, item.name ? `[${index + 1}] ${item.name}` : '' ] ).filter( ( [ value, text ] ) => !! text );
+
+	if ( savedPresets.length )
+		addGroup( 'User Presets', savedPresets );
+
+	addGroup( 'Built-in Presets', presets.filter( item => ! [ PRESET_KEY_LAST_SESSION, PRESET_KEY_DEFAULT ].includes( item.key ) ).map( item => [ item.key, item.name ] ) );
 }
 
 /**
@@ -3489,6 +3512,8 @@ function saveUserPreset( index, options, name, force ) {
 		setCanvasMsg( text, 5 );
 	else
 		notie.alert({ text });
+
+	populatePresets();
 }
 
 /**
@@ -4235,34 +4260,14 @@ function setUIEventListeners() {
 
 	// load / save presets
 
-	$('#load_preset').addEventListener( 'click', () => {
-		const choices = [];
-
-		presets.forEach( item => {
-			if ( ! isEmpty( item.options ) )
-				choices.push( { text: item.name + ( item.key == 'default' ? ' (warning: resets Volume!)' : '' ), handler: () => loadPreset( item.key ) } );
-		});
-
-		choices.push({
-			text: '<strong>USER PRESETS →</strong>', handler: () => {
-				const userChoices = [];
-				getUserPresets().forEach( ( text, index ) => {
-					userChoices.push( { text, handler: () => loadPreset( index ) } );
-				});
-				notie.select({
-					text: 'LOAD PRESET:',
-					choices: userChoices
-				});
-			}
-		});
-
-		notie.select({
-			text: 'LOAD PRESET:',
-			choices
-		});
+	$('#btn_load_preset').addEventListener( 'click', () => {
+		const key = elPresets.value;
+		if ( key )
+			loadPreset( key );
+		elPresets.value = '';
 	});
 
-	$('#btn_save').addEventListener( 'click', () => {
+	$('#btn_manage_presets').addEventListener( 'click', () => {
 		const choices = [];
 		getUserPresets().forEach( ( text, index ) => {
 			const options = userPresets[ index ].options;
@@ -4274,10 +4279,13 @@ function setUIEventListeners() {
 		});
 
 		notie.select({
-			text: '<strong>Click slot to SAVE - Use buttons to Edit or Delete</strong>',
+			text: '<strong>Click slot to SAVE - Use buttons to Rename or Delete</strong>',
 			choices
 		});
 	});
+
+	$('#preset_last').addEventListener( 'click', () => loadPreset( PRESET_KEY_LAST_SESSION ) );
+	$('#preset_default').addEventListener( 'click', () => loadPreset( PRESET_KEY_DEFAULT ) );
 
 	// playlist controls
 
@@ -5102,6 +5110,8 @@ function updateRangeValue( el ) {
 
 	// Populate combo boxes
 
+	populatePresets();
+
 	for ( const i of [16,20,25,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
 
@@ -5323,7 +5333,7 @@ function updateRangeValue( el ) {
 			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
-		loadPreset( 'last', false, true );
+		loadPreset( PRESET_KEY_LAST_SESSION, false, true );
 
 		if ( isBgDirLocked || isLastDirLocked ) {
 			elMediaPanel.classList.add('locked');
