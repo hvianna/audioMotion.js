@@ -5211,7 +5211,7 @@ function updateRangeValue( el ) {
 
 	setRangeAtts( elBandCount, 1, 8 );
 	setRangeAtts( elBarSpace, 0, 1, .05 );
-	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
+	setRangeAtts( elBgImageDim, 0.1, 1, .05 );
 	setRangeAtts( elFillAlpha, 0, 1, .05 );
 	setRangeAtts( elLineWidth, 0, 3, .5 );
 	setRangeAtts( elSmoothing, 0, .95, .05 );
