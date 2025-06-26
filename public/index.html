@@ -156,10 +156,15 @@
 				<div class="rowspan-2">
 					<span class="config-label">Presets</span>
 					<select id="presets"></select>
-					<div class="button-bar grid-25-75">
-						<button id="btn_load_preset" class="help">Load
-							<span class="tooltip">Load selected preset</span>
+					<div class="button-bar">
+						<button id="preset_last" class="help">Session start
+							<span class="tooltip">Restore all settings to as they were when you last launched the app</span>
 						</button>
+						<button id="preset_default" class="help">Defaults
+							<span class="tooltip">Reset all settings to their default values</span>
+						</button>
+					</div>
+					<div class="button-bar">
 						<button id="btn_manage_presets" class="help">Save / Manage
 							<span class="tooltip">Save current settings to a User Preset or manage saved presets</span>
 						</button>
@@ -176,14 +181,15 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label">Restore settings</span>
+					<span class="config-label">Import / Export Settings</span>
 					<div class="button-bar">
-						<button id="preset_last" class="help">Session start
-							<span class="tooltip">Restore all settings to as they were when you last launched the app</span>
-						</button>
-						<button id="preset_default" class="help">Defaults
-							<span class="tooltip">Reset all settings to their default values</span>
-						</button>
+						<label class="button help">Import
+							<input id="import_settings" type="file" accept=".json">
+							<span class="tooltip">Import settings from external JSON file</span>
+						</label>
+						<a class="button help" id="export_settings">Export
+							<span class="tooltip">Export current settings to JSON file</span>
+						</a>
 					</div>
 				</div>
 
@@ -391,17 +397,8 @@
 					<!-- EMPTY CELL -->
 				</div>
 
-				<div class="last-row">
-					<span class="config-label">Settings backup</span>
-					<div class="button-bar">
-						<a class="button help" id="export_settings">Export
-							<span class="tooltip">Export current settings to JSON file</span>
-						</a>
-						<label class="button help">Import
-							<input id="import_settings" type="file" accept=".json">
-							<span class="tooltip">Import settings from external JSON file</span>
-						</label>
-					</div>
+				<div>
+					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 2 -->

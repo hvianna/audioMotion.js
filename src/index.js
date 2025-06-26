@@ -4261,11 +4261,16 @@ function setUIEventListeners() {
 
 	// load / save presets
 
-	$('#btn_load_preset').addEventListener( 'click', () => {
+	elPresets.addEventListener( 'input', () => {
 		const key = elPresets.value;
-		if ( key )
-			loadPreset( key );
-		elPresets.value = '';
+		if ( key ) {
+			notie.confirm({
+				text: `Load preset ${ getText( elPresets ) }?`,
+				submitText: 'LOAD',
+				submitCallback: () => loadPreset( key )
+			});
+			elPresets.value = '';
+		}
 	});
 
 	$('#btn_manage_presets').addEventListener( 'click', () => {
@@ -4285,8 +4290,15 @@ function setUIEventListeners() {
 		});
 	});
 
-	$('#preset_last').addEventListener( 'click', () => loadPreset( PRESET_KEY_LAST_SESSION ) );
-	$('#preset_default').addEventListener( 'click', () => loadPreset( PRESET_KEY_DEFAULT ) );
+	for ( const [ el, key ] of [ [ $('#preset_last'), PRESET_KEY_LAST_SESSION ], [ $('#preset_default'), PRESET_KEY_DEFAULT ] ] ) {
+		el.addEventListener( 'click', () => {
+			notie.confirm({
+				text: `Restore all options in <strong>Settings</strong> and <strong>Advanced</strong> panels to ${ key == PRESET_KEY_DEFAULT ? 'defaults' : 'session start' }?`,
+				submitText: 'RESTORE',
+				submitCallback: () => loadPreset( key )
+			});
+		});
+	}
 
 	// playlist controls
 
@@ -4486,10 +4498,10 @@ function setUIEventListeners() {
 	const btnImportSettings = $('#import_settings');
 	btnImportSettings.addEventListener( 'input', () => {
 		const fileBlob = btnImportSettings.files[0];
-		btnImportSettings.value = ''; //
+		btnImportSettings.value = ''; // clear file
 		notie.confirm({
 			text: 'ATTENTION!<br>This will overwrite all current options in the <strong>Settings</strong> and <strong>Advanced</strong> panels!',
-			submitText: 'Continue',
+			submitText: 'IMPORT',
 			submitCallback: () => {
 				fileBlob.text().then( contents => {
 					try {
