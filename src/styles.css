@@ -1693,9 +1693,18 @@ button.grad-add-stop:hover {
 /* Responsive layout */
 
 @media screen and (max-width: 1000px) {
+	header h1 {
+		font-size: 26px;
+	}
 	#file_explorer,
 	#playlist_panel {
 		margin: 0 5px;
+	}
+	.bottom-panel {
+		padding: 0 5px;
+	}
+	.controls {
+		column-gap: 20px;
 	}
 	.controls-left {
 		margin-left: 20px;
@@ -1706,14 +1715,10 @@ button.grad-add-stop:hover {
 	.file-panel {
 		grid-template-columns: 1fr 110px 1fr;
 	}
-}
-
-@media screen and (max-width: 1279px) {
-	.controls .last-column .tooltip {
-		left: auto;
-		right: 50px;
+	.panel-internal {
+		margin: 0;
 	}
-	.controls .last-column .switch-bar .tooltip {
-		right: 150px;
+	.progress-bar {
+		padding: 0;
 	}
 }
