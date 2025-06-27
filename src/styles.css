@@ -586,10 +586,6 @@ a.button:visited {
 	width: 100%;
 }
 
-div.value {
-	float: right;
-}
-
 .center {
 	text-align: center;
 }
@@ -684,6 +680,12 @@ div.value {
 	margin: 0;
 	padding: 6px 0 10px;
 }
+
+.value {
+	float: right;
+}
+
+/* Switches */
 
 .switch input {
 	display: none;
@@ -1699,7 +1701,7 @@ button.grad-add-stop:hover {
 
 /* Responsive layout */
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 1225px) {
 	header h1 {
 		font-size: 26px;
 	}
@@ -1727,5 +1729,11 @@ button.grad-add-stop:hover {
 	}
 	.progress-bar {
 		padding: 0;
+	}
+	.value {
+		height: 1em;
+		max-width: 40%;
+		overflow: hidden;
+		text-align: right;
 	}
 }
