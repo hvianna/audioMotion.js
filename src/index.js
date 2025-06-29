@@ -175,27 +175,22 @@ const REFLEX_OFF  = '0',
 	  REFLEX_SHORT= '3';
 
 // Property keys for Randomize settings
-const RND_ALPHA       = 'alpha',
-	  RND_BACKGROUND  = 'nobg',
-	  RND_BARSPACING  = 'barSp',
-	  RND_BGIMAGEFIT  = 'imgfit',
-	  RND_CHNLAYOUT   = 'stereo',
-	  RND_COLORMODE   = 'colormode',
-	  RND_FILLOPACITY = 'fill',
-	  RND_GRADIENT    = 'gradient',
-	  RND_LEDS        = 'leds',
-	  RND_LINEWIDTH   = 'line',
-	  RND_LUMI        = 'lumi',
-	  RND_MIRROR      = 'mirror',
-	  RND_MODE        = 'mode',
-	  RND_OUTLINE     = 'outline',
-	  RND_PEAKS       = 'peaks',
-	  RND_PRESETS     = 'presets',
-	  RND_RADIAL      = 'radial',
-	  RND_SPIN        = 'spin',
-	  RND_REFLEX      = 'reflex',
-	  RND_ROUND       = 'round',
-	  RND_SPLIT       = 'split';
+const RND_ALPHA      = 'alpha',
+	  RND_BACKGROUND = 'nobg',
+	  RND_BANDCOUNT  = 'bands',
+	  RND_BGIMAGEFIT = 'imgfit',
+	  RND_COLORMODE  = 'colormode',
+	  RND_GRADIENT   = 'gradient',
+	  RND_LEDS       = 'leds',
+	  RND_LUMI       = 'lumi',
+	  RND_MODE       = 'mode',
+	  RND_OUTLINE    = 'outline',
+	  RND_PEAKS      = 'peaks',
+	  RND_PRESETS    = 'presets',
+	  RND_RADIAL     = 'radial',
+	  RND_REFLEX     = 'reflex',
+	  RND_ROUND      = 'round',
+	  RND_SPLIT      = 'split';
 
 // Frequency scales
 const SCALE_BARK   = 'bark',
@@ -692,27 +687,22 @@ const channelLayoutOptions = [
 
 // Randomize options
 const randomProperties = [
-	{ value: RND_ALPHA,       text: 'Alpha',          disabled: false },
-	{ value: RND_MODE,        text: 'Analyzer Mode',  disabled: false },
-	{ value: RND_BACKGROUND,  text: 'Background',     disabled: false },
-	{ value: RND_BARSPACING,  text: 'Bar Spacing',    disabled: false },
-	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',   disabled: false },
-	{ value: RND_CHNLAYOUT,   text: 'Channel Layout', disabled: false },
-	{ value: RND_COLORMODE,   text: 'Color Mode',     disabled: false },
-	{ value: RND_FILLOPACITY, text: 'Fill Opacity',   disabled: false },
-	{ value: RND_GRADIENT,    text: 'Gradients',      disabled: false },
-	{ value: RND_LEDS,        text: 'LEDs',           disabled: false },
-	{ value: RND_LINEWIDTH,   text: 'Line Width',     disabled: false },
-	{ value: RND_LUMI,        text: 'Lumi',           disabled: false },
-	{ value: RND_MIRROR,      text: 'Mirror',         disabled: false },
-	{ value: RND_OUTLINE,     text: 'Outline',        disabled: false },
-	{ value: RND_PEAKS,       text: 'Peaks',          disabled: false },
-	{ value: RND_RADIAL,      text: 'Radial',         disabled: false },
-	{ value: RND_SPIN,        text: 'Radial Spin',    disabled: false },
-	{ value: RND_REFLEX,      text: 'Reflex',         disabled: false },
-	{ value: RND_ROUND,       text: 'Round',          disabled: false },
-	{ value: RND_SPLIT,       text: 'Split',          disabled: false },
-	{ value: RND_PRESETS,     text: 'User Presets',   disabled: true }
+	{ value: RND_PRESETS,     text: 'User Presets',  disabled: true  },
+	{ value: RND_ALPHA,       text: 'Alpha',         disabled: false },
+	{ value: RND_MODE,        text: 'Analyzer Mode', disabled: false },
+	{ value: RND_BACKGROUND,  text: 'Background',    disabled: false },
+	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
+	{ value: RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
+	{ value: RND_COLORMODE,   text: 'Color Mode',    disabled: false },
+	{ value: RND_GRADIENT,    text: 'Gradients',     disabled: false },
+	{ value: RND_LEDS,        text: 'LEDs',          disabled: false },
+	{ value: RND_LUMI,        text: 'Lumi',          disabled: false },
+	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
+	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
+	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
+	{ value: RND_REFLEX,      text: 'Reflex',        disabled: false },
+	{ value: RND_ROUND,       text: 'Round',         disabled: false },
+	{ value: RND_SPLIT,       text: 'Split',         disabled: false }
 ];
 
 // Sensitivity presets
@@ -1562,7 +1552,7 @@ function doConfigPanel() {
 	const elProperties = $('#random_properties');
 
 	randomProperties.forEach( prop => {
-		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
+		elProperties.innerHTML += `<label${ prop.value == RND_PRESETS ? ' class="colspan-3"' : '' }><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
 	});
 
 	$$('.randomProperty').forEach( el => {
@@ -3013,11 +3003,11 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_BACKGROUND ) )
 		randomizeControl( elBackground );
 
+	if ( isEnabled( RND_BANDCOUNT ) )
+		randomizeControl( elBandCount );
+
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
-
-	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeControl( elChnLayout, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
 
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
@@ -3028,23 +3018,18 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
 
-	if ( isEnabled( RND_LUMI ) )
-		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
-
-	if ( isEnabled( RND_LINEWIDTH ) )
-		randomizeControl( elLineWidth );
-
-	if ( isEnabled( RND_FILLOPACITY ) )
-		randomizeControl( elFillAlpha );
-
-	if ( isEnabled( RND_BARSPACING ) )
-		randomizeControl( elBarSpace );
+	if ( isEnabled( RND_LUMI ) ) {
+		// no LUMI when LEDs are on and background is image or video
+		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) );
+	}
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
 
-	if ( isEnabled( RND_REFLEX ) )
-		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
+	if ( isEnabled( RND_REFLEX ) ) {
+		// no full reflex with LEDs
+		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) );
+	}
 
 	if ( isEnabled( RND_RADIAL ) )
 		randomizeControl( elRadial );
@@ -3052,20 +3037,13 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_ROUND ) )
 		randomizeControl( elRoundBars );
 
-	if ( isEnabled( RND_SPIN ) )
-		randomizeControl( elSpin );
-
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
-
-	if ( isEnabled( RND_MIRROR ) )
-		randomizeControl( elMirror );
 
 	if ( isEnabled( RND_GRADIENT ) ) {
 		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
 			randomizeControl( el );
 	}
-
 }
 
 /**
