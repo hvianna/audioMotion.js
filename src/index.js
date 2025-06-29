@@ -118,7 +118,6 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
 	  KEY_DISABLED_GRADS = 'disabled-gradients',
-	  KEY_DISABLED_MODES = 'disabled-modes',
 	  KEY_DISABLED_PROPS = 'disabled-properties',
 	  KEY_DISPLAY_OPTS   = 'display-options',
 	  KEY_FORCE_FS_API   = 'force-filesystem',
@@ -1531,9 +1530,6 @@ function doConfigPanel() {
 	// helper function to validate range value
 	const isValidRange = el => ( +el.value >= +el.min && +el.value <= +el.max );
 
-	// Enabled visualization modes
-	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
-
 	// Enabled Background Image Fit options
 	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
@@ -2241,9 +2237,6 @@ function loadPreferences() {
 		else if ( ! isEmpty( userPresets[ i ] ) && ! userPresets[ i ].options ) // make sure 'options' exists
 			userPresets[ i ] = { options: userPresets[ i ] };
 	}
-
-	// Load disabled modes preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
 
 	// Load disabled background image fit options
 	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
@@ -3341,9 +3334,6 @@ function savePlaylist( index ) {
 function savePreferences( key ) {
 	// helper function
 	const getDisabledItems = items => items.map( ( { value, disabled } ) => ( { value, disabled } ) );
-
-	if ( ! key || key == KEY_DISABLED_MODES )
-		saveToStorage( KEY_DISABLED_MODES, getDisabledItems( modeOptions ) );
 
 	if ( ! key || key == KEY_DISABLED_BGFIT )
 		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
