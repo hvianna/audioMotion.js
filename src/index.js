@@ -171,7 +171,8 @@ const PRESET_EMPTY  = 'Empty slot',
 // Reflex options
 const REFLEX_OFF  = '0',
 	  REFLEX_ON   = '1',
-	  REFLEX_FULL = '2';
+	  REFLEX_FULL = '2',
+	  REFLEX_SHORT= '3';
 
 // Property keys for Randomize settings
 const RND_ALPHA       = 'alpha',
@@ -987,7 +988,7 @@ const isPIP = _ => elContainer.classList.contains('pip');
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
 
 // returns a boolean with the current status of a UI switch
-const isSwitchOn = el => el.dataset.active == '1';
+const isSwitchOn = el => !! +getControlValue( el );
 
 // check if a video file is loaded in the current audio element
 const isVideoLoaded = () => FILE_EXT_VIDEO.includes( parsePath( audioElement[ currAudio ].dataset.file ).extension );
@@ -3891,6 +3892,11 @@ function setProperty( elems, save = true ) {
 
 			case elReflex:
 				switch ( getControlValue( elReflex ) ) {
+					case REFLEX_SHORT:
+						audioMotion.reflexRatio = .25;
+						audioMotion.reflexAlpha = .2;
+						break;
+
 					case REFLEX_ON:
 						audioMotion.reflexRatio = .4;
 						audioMotion.reflexAlpha = .2;
@@ -5153,9 +5159,10 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elReflex, [
-		[ '0', 'Off'  ],
-		[ '1', 'On'   ],
-		[ '2', 'Full' ]
+		[ REFLEX_OFF,   'Off'    ],
+		[ REFLEX_SHORT, '25%'    ],
+		[ REFLEX_ON,    '40%'    ],
+		[ REFLEX_FULL,  'Mirror' ]
 	]);
 
 	populateSelect( elBgImageFit, bgFitOptions );
@@ -5174,7 +5181,7 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elWeighting, [
-		[ WEIGHT_NONE, 'OFF' ],
+		[ WEIGHT_NONE, 'Off' ],
 		[ WEIGHT_A,    'A'   ],
 		[ WEIGHT_B,    'B'   ],
 		[ WEIGHT_C,    'C'   ],
