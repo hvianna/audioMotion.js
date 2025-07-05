@@ -294,6 +294,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elPlaylists     = $('#playlists'),
 	  elPresets       = $('#presets'),
 	  elRadial        = $('#radial'),
+	  elRadius        = $('#radius'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
@@ -463,6 +464,7 @@ const presets = [
 			mode         : MODE_OCTAVE_4TH,
 			outlineBars  : 0,
 			radial       : 1,
+			radius       : .35,
 			randomMode   : 0,
 			showPeaks    : PEAKS_ON,
 			showScaleX   : SCALEXY_ON,
@@ -547,6 +549,7 @@ const presets = [
 			noShadow     : 1,
 			outlineBars  : 0,
 			radial       : 0,
+			radius       : .35,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			repeat       : 0,
@@ -915,6 +918,7 @@ const getCurrentSettings = _ => ({
 	noShadow     : getControlValue( elNoShadow ),
 	outlineBars  : getControlValue( elOutline ),
 	radial       : getControlValue( elRadial ),
+	radius       : getControlValue( elRadius ),
 	randomMode   : getControlValue( elRandomMode ),
 	reflex       : getControlValue( elReflex ),
 	repeat       : getControlValue( elRepeat ),
@@ -2412,6 +2416,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		peakFadeTime   : getControlValue( elPeakFade ),
 		peakHoldTime   : getControlValue( elPeakHold ),
 		radial         : isSwitchOn( elRadial ),
+		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
 		showScaleY     : +getControlValue( elScaleY ),
@@ -3841,6 +3846,10 @@ function setProperty( elems, save = true ) {
 				setProperty( elBarSpace, false );
 				break;
 
+			case elRadius:
+				audioMotion.radius = getControlValue( elRadius );
+				break;
+
 			case elRandomMode:
 				const option = elRandomMode.value;
 
@@ -4688,6 +4697,7 @@ function updateRangeValue( el ) {
 		return;
 
 	const translation = val => {
+		const { abs, sign } = Math;
 		if ( el == elBandCount ) {
 			return [
 				'',
@@ -4706,7 +4716,7 @@ function updateRangeValue( el ) {
 		else if ( el == elFillAlpha )
 			return val == 0 ? 0 : `${ val * 100 | 0 }%`;
 		else if ( el == elSpin )
-			return val == 0 ? 'OFF' : val + ' RPM';
+			return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
 		return val;
 	}
 
@@ -5204,8 +5214,9 @@ function updateRangeValue( el ) {
 	setRangeAtts( elBgImageDim, 0.1, 1, .05 );
 	setRangeAtts( elFillAlpha, 0, 1, .05 );
 	setRangeAtts( elLineWidth, 0, 3, .5 );
+	setRangeAtts( elRadius, 0, 1, .05 );
 	setRangeAtts( elSmoothing, 0, .95, .05 );
-	setRangeAtts( elSpin, 0, 3, 1 );
+	setRangeAtts( elSpin, -10, 10, 1 );
 
 	// Clear canvas messages
 	setCanvasMsg();

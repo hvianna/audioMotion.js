@@ -365,6 +365,10 @@
 				</div>
 
 				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="last-row">
 					<span class="config-label">Import / Export Settings</span>
 					<div class="button-bar">
 						<label class="button help">Import
@@ -375,10 +379,6 @@
 							<span class="tooltip">Export current settings to JSON file</span>
 						</a>
 					</div>
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 2 -->
@@ -411,13 +411,15 @@
 				</div>
 
 				<div>
+					<span class="config-label">Radial Size</span>
+					<div class="value"></div>
+					<input id="radius" data-prop="radius" type="range" class="custom-slider">
+				</div>
+
+				<div class="last-row">
 					<span class="config-label">Radial Spin</span>
 					<div class="value"></div>
 					<input id="spin" data-prop="spin" type="range" class="custom-slider">
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 3 -->
@@ -466,14 +468,14 @@
 				</div>
 
 				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="last-row">
 					<span class="config-label help">Octave Bands
 						<span class="tooltip">Use the equal-tempered scale or ANSI/IEC preferred frequencies to generate octave bands</span>
 					</span>
 					<form id="ansi_bands" class="custom-radio-buttons" data-prop="ansiBands"></form>
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 5 -->
@@ -497,14 +499,14 @@
 				</div>
 
 				<div class="last-column">
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="last-column last-row">
 					<span class="config-label help">Weighting Filter
 						<span class="tooltip">Enhance or attenuate specific frequency ranges (for visualization only)</span>
 					</span>
 					<form id="weighting" class="custom-radio-buttons" data-prop="weighting"></form>
-				</div>
-
-				<div class="last-column">
-					<!-- EMPTY CELL -->
 				</div>
 
 			</div> <!-- .controls -->
