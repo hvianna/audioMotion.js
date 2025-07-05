@@ -4645,9 +4645,10 @@ function toggleInfo() {
 function toggleMultiChannel() {
 	const { destination }     = audioMotion.audioCtx,
 		  { maxChannelCount } = destination,
-		  isSurround          = elSurround.checked && maxChannelCount > 2;
+		  isSurround          = elSurround.checked;
 
-	destination.channelCount = isSurround ? maxChannelCount : Math.min( 2, maxChannelCount );
+	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
+	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
 	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
 }
 
