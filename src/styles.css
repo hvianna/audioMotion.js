@@ -1157,6 +1157,9 @@ kbd.wide {
 #console-content::-webkit-scrollbar-thumb {
 	background-color: #080;
 }
+#console-content a {
+	color: inherit;
+}
 #console-content div {
 	margin-left: 8.75em;
 	text-indent: -9em;

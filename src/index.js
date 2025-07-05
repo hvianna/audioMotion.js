@@ -5246,7 +5246,7 @@ function updateRangeValue( el ) {
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
-			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
+			consoleLog( 'No browser support for File System Access API. Cannot access files from local device. <a href="https://audiomotion.app/docs/#/known-issues?id=file-system-access-api" target="_blank">Learn more...</a>', forceFileSystemAPI );
 
 		saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
 		loadSavedPlaylists();
