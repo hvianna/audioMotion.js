@@ -287,6 +287,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
+	  elPanelSelection= $('#panel_selection'),
 	  elPeakFade      = $('#peak_fade'),
 	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
@@ -4140,10 +4141,6 @@ function setUIEventListeners() {
 	});
 
 	// main panel selection
-	const elPanelSelection = $('#panel_selection');
-	populateCustomRadio( elPanelSelection, mainPanels, 'panel' );
-	elToggleConsole = $('label[for="panel-console"]');
-
 	const panelButtons = elPanelSelection.panel; // RadioNodeList
 	panelButtons.forEach( btn => {
 		btn.addEventListener( 'click', evt => {
@@ -4155,6 +4152,7 @@ function setUIEventListeners() {
 			}
 		});
 	});
+
 	// make the first panel visible on initialization
 	$(`#panel-${ mainPanels[0].value }`).checked = true;
 	elMediaPanel.classList.add('active');
@@ -4961,10 +4959,14 @@ function updateRangeValue( el ) {
 
 	// BEGIN INITIALIZATION -----------------------------------------------------------------------
 
+	let initDone = false;
+
+	// Create the main panel selection buttons
+	populateCustomRadio( elPanelSelection, mainPanels, 'panel' );
+	elToggleConsole = $('label[for="panel-console"]');
+
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
-
-	let initDone = false;
 
 	consoleLog( `audioMotion v${VERSION} initializing...` );
 	consoleLog( `User agent: ${navigator.userAgent}` );
