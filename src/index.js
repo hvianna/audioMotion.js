@@ -2645,19 +2645,25 @@ function openGradientEdit(key) {
 }
 
 /**
- * Build a new gradient, set it as the current gradient, then render the gradient editor.
+ * Build a new gradient (or duplicate the current one), set it as the current gradient, then render the gradient editor.
  */
-function openGradientEditorNew() {
-	currentGradient = {
-		name: 'New Gradient',
-		bgColor: '#111111',
-		colorStops: [
-			{ pos: .1, color: '#222222' },
-			{ pos: 1, color: '#eeeeee' }
-		],
-		disabled: false,
-		key: '', // using this to keep track of the key of the gradient object in the gradient list - will be set by saveGradient()
-	};
+function openGradientEditorNew( makeCopy ) {
+	if ( makeCopy ) {
+		currentGradient.name += ' (copy)';
+		currentGradient.key = '';
+	}
+	else {
+		currentGradient = {
+			name: 'New Gradient',
+			bgColor: '#111111',
+			colorStops: [
+				{ pos: .1, color: '#222222' },
+				{ pos: 1, color: '#eeeeee' }
+			],
+			disabled: false,
+			key: '', // using this to keep track of the key of the gradient object in the gradient list - will be set by saveGradient()
+		};
+	}
 
 	renderGradientEditor();
 
@@ -3282,11 +3288,12 @@ function revokeBlobURL( item ) {
  * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
  * then close the panel.
  */
-function saveGradient( options = {} ) {
+function saveGradient( isImported ) {
 	if (currentGradient === null) return;
 
-	if ( ! currentGradient.key || options.imported || options.copy ) {
-		let safename = currentGradient.key || generateSafeKeyName( currentGradient.name ); // keep the key when importing, or generate one if not defined
+	if ( ! currentGradient.key || isImported ) {
+		// use the given key when importing a gradient or generate a key for new (and copied) gradients
+		let safename = isImported && currentGradient.key || generateSafeKeyName( currentGradient.name );
 		currentGradient.key = safename;
 
 		// find unique key for new gradient
@@ -3297,8 +3304,11 @@ function saveGradient( options = {} ) {
 		}
 
 		// if the same name already exists, add a suffix to it
-		while ( Object.keys( gradients ).some( key => gradients[ key ].name === currentGradient.name ) )
-			currentGradient.name += options.imported ? ' (imported)' : ' (copy)';
+		modifier = 1;
+		while ( Object.keys( gradients ).some( key => gradients[ key ].name === currentGradient.name ) && modifier < 1000 ) {
+			currentGradient.name += ` (${modifier})`;
+			modifier++;
+		}
 	}
 
 	gradients[currentGradient.key] = currentGradient;
@@ -4416,7 +4426,7 @@ function setUIEventListeners() {
 	// setup gradient editor controls
 	$('#add-gradient').addEventListener('click', () => openGradientEditorNew() );
 	$('#btn-save-gradient').addEventListener( 'click', () => saveGradient() );
-	$('#btn-save-gradient-copy').addEventListener( 'click', () => saveGradient({ copy: true }) );
+	$('#btn-save-gradient-copy').addEventListener( 'click', () => openGradientEditorNew( true ) );
 	$('#btn-delete-gradient').addEventListener('click', () => {
 		notie.confirm({
 			text: `Do you really want to DELETE <strong>${ currentGradient.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
@@ -4443,7 +4453,7 @@ function setUIEventListeners() {
 				consoleLog( e, true );
 				return;
 			}
-			saveGradient({ imported: true });
+			saveGradient( true ); // indicate this is an imported gradient
 		});
 	});
 
