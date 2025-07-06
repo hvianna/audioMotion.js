@@ -47,10 +47,11 @@ import './styles.css';
 const URL_ORIGIN = location.origin + location.pathname,
 	  VERSION    = packageJson.version;
 
-const AUTOHIDE_DELAY        = 300,				// delay for triggering media panel auto-hide (in milliseconds)
+const AUTOHIDE_DELAY        = 500,				// delay for triggering front panel auto-collapse (in milliseconds)
 	  BG_DIRECTORY          = 'backgrounds', 	// server folder name for built-in backgrounds
 	  MAX_METADATA_REQUESTS = 4,				// max concurrent metadata requests
-	  MAX_QUEUED_SONGS      = 2000;
+	  MAX_QUEUED_SONGS      = 2000,
+	  NEXT_TRACK            = -1;				// for loadSong()
 
 // Background option values
 const BG_DEFAULT = '0',
@@ -117,7 +118,6 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_CUSTOM_PRESET  = 'custom-preset',
 	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
 	  KEY_DISABLED_GRADS = 'disabled-gradients',
-	  KEY_DISABLED_MODES = 'disabled-modes',
 	  KEY_DISABLED_PROPS = 'disabled-properties',
 	  KEY_DISPLAY_OPTS   = 'display-options',
 	  KEY_FORCE_FS_API   = 'force-filesystem',
@@ -133,9 +133,10 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  PLAYLIST_PREFIX    = 'pl_';
 
 // Visualization modes
-const MODE_DISCRETE    = '0',
-	  MODE_AREA        = '10',
-	  MODE_LINE        = '101',
+const MODE_BARS        = '11',
+ 	  MODE_DISCRETE    = '0',
+	  MODE_GRAPH       = '10',
+	  MODE_LINE        = '101', // deprecated
 	  MODE_OCTAVE_FULL = '8',
 	  MODE_OCTAVE_HALF = '7',
 	  MODE_OCTAVE_3RD  = '6',
@@ -154,6 +155,14 @@ const OSD_SIZE_S = '0',
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
 
+// Valid values for showPeaks
+const PEAKS_OFF  = 0,
+	  PEAKS_ON   = 1,
+	  PEAKS_FADE = 2;
+
+const PRESET_KEY_DEFAULT = 'default',
+	  PRESET_KEY_LAST_SESSION = 'last';
+
 // User presets placeholders
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
@@ -161,36 +170,37 @@ const PRESET_EMPTY  = 'Empty slot',
 // Reflex options
 const REFLEX_OFF  = '0',
 	  REFLEX_ON   = '1',
-	  REFLEX_FULL = '2';
+	  REFLEX_FULL = '2',
+	  REFLEX_SHORT= '3';
 
 // Property keys for Randomize settings
-const RND_ALPHA       = 'alpha',
-	  RND_BACKGROUND  = 'nobg',
-	  RND_BARSPACING  = 'barSp',
-	  RND_BGIMAGEFIT  = 'imgfit',
-	  RND_CHNLAYOUT   = 'stereo',
-	  RND_COLORMODE   = 'colormode',
-	  RND_FILLOPACITY = 'fill',
-	  RND_GRADIENT    = 'gradient',
-	  RND_LEDS        = 'leds',
-	  RND_LINEWIDTH   = 'line',
-	  RND_LUMI        = 'lumi',
-	  RND_MIRROR      = 'mirror',
-	  RND_MODE        = 'mode',
-	  RND_OUTLINE     = 'outline',
-	  RND_PEAKS       = 'peaks',
-	  RND_PRESETS     = 'presets',
-	  RND_RADIAL      = 'radial',
-	  RND_SPIN        = 'spin',
-	  RND_REFLEX      = 'reflex',
-	  RND_ROUND       = 'round',
-	  RND_SPLIT       = 'split';
+const RND_ALPHA      = 'alpha',
+	  RND_BACKGROUND = 'nobg',
+	  RND_BANDCOUNT  = 'bands',
+	  RND_BGIMAGEFIT = 'imgfit',
+	  RND_COLORMODE  = 'colormode',
+	  RND_GRADIENT   = 'gradient',
+	  RND_LEDS       = 'leds',
+	  RND_LUMI       = 'lumi',
+	  RND_MODE       = 'mode',
+	  RND_OUTLINE    = 'outline',
+	  RND_PEAKS      = 'peaks',
+	  RND_PRESETS    = 'presets',
+	  RND_RADIAL     = 'radial',
+	  RND_REFLEX     = 'reflex',
+	  RND_ROUND      = 'round',
+	  RND_SPLIT      = 'split';
 
 // Frequency scales
 const SCALE_BARK   = 'bark',
 	  SCALE_LINEAR = 'linear',
 	  SCALE_LOG    = 'log',
 	  SCALE_MEL    = 'mel';
+
+// X- and Y- scale switches
+const SCALEXY_OFF  = 0,
+	  SCALEXY_ON   = 1,
+	  SCALEX_NOTES = 2;
 
 // Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.json',
@@ -227,8 +237,8 @@ const WEIGHT_NONE = '',
 	  WEIGHT_468  = '468';
 
 // Minimum window height to fit the entire player without a scrollbar
-// 270px (canvas min-height) + 132px (player main panel) + 430px (media panel)
-const WINDOW_MIN_HEIGHT = 832;
+// 270px (canvas min-height) + 144px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
+const WINDOW_MIN_HEIGHT = 812;
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -240,7 +250,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elAnsiBands     = $('#ansi_bands'),
 	  elAutoHide      = $('#auto_hide'),
 	  elBackground    = $('#background'),
-	  elBalance       = $('#balance'),
+	  elBandCount     = $('#band_count'),
 	  elBarSpace      = $('#bar_space'),
 	  elBgImageDim    = $('#bg_img_dim'),
 	  elBgImageFit    = $('#bg_img_fit'),
@@ -251,7 +261,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
-	  elFadePeaks     = $('#fade_peaks'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
@@ -275,15 +284,17 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elNoDimSubs     = $('#no_dim_subs'),
 	  elNoDimVideo    = $('#no_dim_video'),
 	  elNoShadow      = $('#no_shadow'),
-	  elNoteLabels    = $('#note_labels'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
+	  elPanelSelection= $('#panel_selection'),
 	  elPeakFade      = $('#peak_fade'),
 	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
+	  elPresets       = $('#presets'),
 	  elRadial        = $('#radial'),
+	  elRadius        = $('#radius'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
@@ -310,8 +321,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
-	  elToggleConsole = $('#toggle_console'),
-	  elToggleSettings= $('#toggle_settings'),
+  	  elSurround      = $('#enable_surround'),
+	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
 	  elVolume        = $('#volume'),
@@ -349,15 +360,14 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_12TH,
-			noteLabels   : 1,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_ON,
 			roundBars    : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEX_NOTES,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -386,14 +396,13 @@ const presets = [
 			outlineBars  : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_3RD,
-			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			roundBars    : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEXY_ON,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -421,13 +430,12 @@ const presets = [
 			linkGrads    : 0,
 			mirror       : 0,
 			mode         : MODE_LINE,
-			noteLabels   : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
-			showPeaks    : 0,
-			showScaleX   : 0,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_OFF,
+			showScaleX   : SCALEXY_OFF,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -455,13 +463,13 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_4TH,
-			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 1,
+			radius       : .35,
 			randomMode   : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEXY_ON,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			spin         : 1,
 			splitGrad    : 0,
@@ -489,15 +497,14 @@ const presets = [
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_OCTAVE_8TH,
-			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_FULL,
 			roundBars    : 1,
-			showPeaks    : 0,
-			showScaleX   : 0,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_OFF,
+			showScaleX   : SCALEXY_OFF,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			splitGrad    : 0,
 			weighting    : WEIGHT_D
@@ -505,25 +512,25 @@ const presets = [
 	},
 
 	{
-		key: 'last',
+		key: PRESET_KEY_LAST_SESSION,
 		name: 'Last session',
 		options: {}
 	},
 
 	{
-		key: 'default',
+		key: PRESET_KEY_DEFAULT,
 		name: 'Restore defaults',
 		options: {
 			alphaBars    : 0,
 			ansiBands    : 0,
 			background   : BG_DEFAULT,
-			balance      : 0,
+			bandCount    : MODE_OCTAVE_3RD,
 			barSpace     : 0.1,
 			bgImageDim   : 0.5,
 			bgImageFit   : BGFIT_CENTER,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
-			fadePeaks    : 0,
+			fftSize      : 8192,
 			fillAlpha    : 0.1,
 			freqMax      : 20000,
 			freqMin      : 20,
@@ -541,20 +548,21 @@ const presets = [
 			mode         : MODE_DISCRETE,
 			mute         : 0,
 			noShadow     : 1,
-			noteLabels   : 0,
 			outlineBars  : 0,
 			radial       : 0,
+			radius       : .35,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			repeat       : 0,
 			roundBars    : 0,
 			sensitivity  : 1,
 			showFPS      : 0,
-			showPeaks    : 1,
-			showScaleX   : 1,
-			showScaleY   : 0,
+			showPeaks    : PEAKS_ON,
+			showScaleX   : SCALEXY_ON,
+			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
 			showSubtitles: 1,
+			smoothing    : .7,
 			spin         : 2,
 			splitGrad    : 0,
 			volume       : 1,
@@ -587,7 +595,11 @@ const gradients = {
 				{ pos: .5, color: '#d76d77' },
 				{ pos: 1, color: '#3a1c71' }
 			  ], disabled: false },
-	classic:  { name: 'Classic', disabled: false },
+	classic:  { name: 'Classic', colorStops: [
+				'#f00',
+				{ color: '#ff0', level: .85, pos: .6 },
+				{ color: '#0f0', level: .475 }
+			  ], disabled: false },
 	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
 				'hsl( 208, 0%, 100% )',
 				'hsl( 208, 100%, 35% )'
@@ -619,7 +631,9 @@ const gradients = {
 				{ pos: .1, color: '#34e89e' },
 				{ pos: 1, color: '#0f3443' }
 			  ], disabled: false },
-	prism:    { name: 'Prism', disabled: false },
+	prism:    { name: 'Prism', colorStops: [
+				'#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b'
+			  ], disabled: false },
 	prism_old: { name: 'Prism (legacy)', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -627,7 +641,9 @@ const gradients = {
 				'hsl( 180, 100%, 50% )',
 				'hsl( 240, 100%, 50% )'
 			  ], disabled: true },
-	rainbow:  { name: 'Rainbow', disabled: false },
+	rainbow:  { name: 'Rainbow', dir: 'h', colorStops: [
+				'#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639'
+			  ], disabled: false },
 	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -660,50 +676,37 @@ const gradients = {
 
 // Visualization modes
 const modeOptions = [
-	{ value: MODE_DISCRETE,    text: 'Discrete frequencies',    disabled: false },
-	{ value: MODE_AREA,        text: 'Area graph',              disabled: false },
-	{ value: MODE_LINE,        text: 'Line graph',              disabled: false },
-	{ value: MODE_OCTAVE_FULL, text: 'Octave bands / 10 bands', disabled: false },
-	{ value: MODE_OCTAVE_HALF, text: '1/2 octave / 20 bands',   disabled: false },
-	{ value: MODE_OCTAVE_3RD,  text: '1/3 octave / 30 bands',   disabled: false },
-	{ value: MODE_OCTAVE_4TH,  text: '1/4 octave / 40 bands',   disabled: false },
-	{ value: MODE_OCTAVE_6TH,  text: '1/6 octave / 60 bands',   disabled: false },
-	{ value: MODE_OCTAVE_8TH,  text: '1/8 octave / 80 bands',   disabled: false },
-	{ value: MODE_OCTAVE_12TH, text: '1/12 octave / 120 bands', disabled: false },
-	{ value: MODE_OCTAVE_24TH, text: '1/24 octave / 240 bands', disabled: false }
+	[ MODE_BARS,     'Bars'  ],
+	[ MODE_DISCRETE, 'FFT'   ],
+	[ MODE_GRAPH,    'Graph' ]
 ];
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ CHANNEL_SINGLE,     'Singl' ],
-	[ CHANNEL_COMBINED,   'Comb'  ],
-	[ CHANNEL_HORIZONTAL, 'Horiz' ],
-	[ CHANNEL_VERTICAL,   'Vert'  ]
+	[ CHANNEL_SINGLE,     'Single' ],
+	[ CHANNEL_COMBINED,   'Comb'   ],
+	[ CHANNEL_HORIZONTAL, 'Horiz'  ],
+	[ CHANNEL_VERTICAL,   'Vert'   ]
 ];
 
 // Randomize options
 const randomProperties = [
-	{ value: RND_ALPHA,       text: 'Alpha',          disabled: false },
-	{ value: RND_MODE,        text: 'Analyzer Mode',  disabled: false },
-	{ value: RND_BACKGROUND,  text: 'Background',     disabled: false },
-	{ value: RND_BARSPACING,  text: 'Bar Spacing',    disabled: false },
-	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',   disabled: false },
-	{ value: RND_CHNLAYOUT,   text: 'Channel Layout', disabled: false },
-	{ value: RND_COLORMODE,   text: 'Color Mode',     disabled: false },
-	{ value: RND_FILLOPACITY, text: 'Fill Opacity',   disabled: false },
-	{ value: RND_GRADIENT,    text: 'Gradients',      disabled: false },
-	{ value: RND_LEDS,        text: 'LEDs',           disabled: false },
-	{ value: RND_LINEWIDTH,   text: 'Line Width',     disabled: false },
-	{ value: RND_LUMI,        text: 'Lumi',           disabled: false },
-	{ value: RND_MIRROR,      text: 'Mirror',         disabled: false },
-	{ value: RND_OUTLINE,     text: 'Outline',        disabled: false },
-	{ value: RND_PEAKS,       text: 'Peaks',          disabled: false },
-	{ value: RND_RADIAL,      text: 'Radial',         disabled: false },
-	{ value: RND_SPIN,        text: 'Radial Spin',    disabled: false },
-	{ value: RND_REFLEX,      text: 'Reflex',         disabled: false },
-	{ value: RND_ROUND,       text: 'Round',          disabled: false },
-	{ value: RND_SPLIT,       text: 'Split',          disabled: false },
-	{ value: RND_PRESETS,     text: 'User Presets',   disabled: true }
+	{ value: RND_PRESETS,     text: 'User Presets',  disabled: true  },
+	{ value: RND_ALPHA,       text: 'Alpha',         disabled: false },
+	{ value: RND_MODE,        text: 'Analyzer Mode', disabled: false },
+	{ value: RND_BACKGROUND,  text: 'Background',    disabled: false },
+	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
+	{ value: RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
+	{ value: RND_COLORMODE,   text: 'Color Mode',    disabled: false },
+	{ value: RND_GRADIENT,    text: 'Gradients',     disabled: false },
+	{ value: RND_LEDS,        text: 'LEDs',          disabled: false },
+	{ value: RND_LUMI,        text: 'Lumi',          disabled: false },
+	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
+	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
+	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
+	{ value: RND_REFLEX,      text: 'Reflex',        disabled: false },
+	{ value: RND_ROUND,       text: 'Round',         disabled: false },
+	{ value: RND_SPLIT,       text: 'Split',         disabled: false }
 ];
 
 // Sensitivity presets
@@ -736,14 +739,13 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFFTsize, elFsHeight, elMaxFPS, elNoDimSubs,
-								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSmoothing ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs,
+								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 100,
-	fftSize    : 8192,
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
@@ -752,7 +754,7 @@ const generalOptionsDefaults = {
 	pipRatio   : 2.35,
 	saveDir    : true,
 	saveQueue  : true,
-	smoothing  : .7,
+	surround   : false
 }
 
 const maxFpsOptions = [
@@ -787,21 +789,29 @@ const subtitlesDefaults = {
 	position  : SUBS_POS_TOP
 }
 
+// Main panels
+const mainPanels = [
+	{ value: 'files_panel', text: 'Media' },
+	{ value: 'settings', text: 'Settings' },
+	{ value: 'advanced', text: 'Advanced' },
+	{ value: 'console',  text: 'Console'  }
+];
+
 // Global variables
 let audioElement = [],
 	audioMotion,
 	bgImages = [],
 	bgVideos = [],
-	canvasMsg,
+	canvasMsg = {},
 	currAudio, 					// audio element currently in use
 	currentGradient = null,     // gradient that is currently loaded in gradient editor
+	elToggleConsole,			// defined later because HTML element is generated dynamically in setUIEventListeners()
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
-	panNode,					// stereoPanner node for balance control
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -836,8 +846,14 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
+// return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
+const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
+
 // precision fix for floating point numbers
 const fixFloating = value => Math.round( value * 100 ) / 100;
+
+// removes accents from a given string, converts it to lowercase and replaces any non-alphanumeric character with optional separator
+const generateSafeKeyName = ( str, separator = '' ) => ( str + '' ).normalize('NFD').replace( /[\u0300-\u036f]/g, '' ).toLowerCase().replace( /[^a-z0-9]/g, separator );
 
 // return the index of an element inside its parent - based on https://stackoverflow.com/a/13657635/2370385
 const getIndex = node => {
@@ -862,13 +878,17 @@ const getText = el => {
 	return text;
 }
 
-// return the value of a Settings UI control
+// Returns the value of a UI settings control
+// NOTE: this *always* returns a string - be careful when using the value in arithmetic or boolean operations!
 const getControlValue = el => {
+	let ret = el.value;  // basic select and input elements
+	if ( el == elBandCount )
+		ret = 9 - ret;
 	if ( isCustomRadio( el ) )
-		return el.elements[ el.dataset.prop ].value;
+		ret = el.elements[ el.dataset.prop ].value;
 	if ( el.dataset.active !== undefined ) // switches
-		return el.dataset.active;
-	return el.value; // select and input elements
+		ret = el.dataset.active;
+	return '' + ret;
 }
 
 // returns an object with the current settings
@@ -876,12 +896,13 @@ const getCurrentSettings = _ => ({
 	alphaBars    : getControlValue( elAlphaBars ),
 	ansiBands    : getControlValue( elAnsiBands ),
 	background   : getControlValue( elBackground ),
+	bandCount    : getControlValue( elBandCount ),
 	barSpace     : getControlValue( elBarSpace ),
 	bgImageDim   : getControlValue( elBgImageDim ),
 	bgImageFit   : getControlValue( elBgImageFit ),
 	channelLayout: getControlValue( elChnLayout ),
 	colorMode    : getControlValue( elColorMode ),
-	fadePeaks    : getControlValue( elFadePeaks ),
+	fftSize      : getControlValue( elFFTsize ),
 	fillAlpha    : getControlValue( elFillAlpha ),
 	freqMax		 : getControlValue( elRangeMax ),
 	freqMin		 : getControlValue( elRangeMin ),
@@ -897,9 +918,9 @@ const getCurrentSettings = _ => ({
 	mirror       : getControlValue( elMirror ),
 	mode         : getControlValue( elMode ),
 	noShadow     : getControlValue( elNoShadow ),
-	noteLabels   : getControlValue( elNoteLabels ),
 	outlineBars  : getControlValue( elOutline ),
 	radial       : getControlValue( elRadial ),
+	radius       : getControlValue( elRadius ),
 	randomMode   : getControlValue( elRandomMode ),
 	reflex       : getControlValue( elReflex ),
 	repeat       : getControlValue( elRepeat ),
@@ -911,6 +932,7 @@ const getCurrentSettings = _ => ({
 	showScaleY 	 : getControlValue( elScaleY ),
 	showSong     : getControlValue( elShowSong ),
 	showSubtitles: getControlValue( elShowSubtitles ),
+	smoothing    : getControlValue( elSmoothing ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
 	weighting    : getControlValue( elWeighting )
@@ -962,7 +984,7 @@ const isPIP = _ => elContainer.classList.contains('pip');
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
 
 // returns a boolean with the current status of a UI switch
-const isSwitchOn = el => el.dataset.active == '1';
+const isSwitchOn = el => !! +getControlValue( el );
 
 // check if a video file is loaded in the current audio element
 const isVideoLoaded = () => FILE_EXT_VIDEO.includes( parsePath( audioElement[ currAudio ].dataset.file ).extension );
@@ -1046,6 +1068,32 @@ const secondsToTime = ( secs, forceHours ) => {
 	return sign + str;
 }
 
+// set the value of a Settings UI control
+const setControlValue = ( el, val ) => {
+	if ( el == elMute )
+		toggleMute( val );
+	else if ( el == elSource )
+		setSource( val );
+	else if ( el == elVolume )
+		setVolume( val );
+	else if ( el == elBandCount ) // invert values when setting/getting, so the slider goes from lower to higher band count
+		el.value = 9 - val;
+	else if ( isCustomRadio( el ) ) {
+		// note: el.elements[ prop ].value = val won't work for empty string value
+		const option = el.querySelector(`[value="${val}"]`);
+		if ( option )
+			option.checked = true;
+	}
+	else if ( el.classList.contains('switch') )
+		el.dataset.active = +val;
+	else {
+		el.value = val;
+		if ( el.selectedIndex == -1 ) // fix invalid values in select elements
+			el.selectedIndex = 0;
+	}
+	updateRangeValue( el );
+}
+
 // update configuration options from an existing preset
 const setPreset = ( key, options ) => {
 	const index = getPresetIndex( key );
@@ -1060,6 +1108,25 @@ const setRangeAtts = ( element, min, max, step = 1 ) => {
 	element.max  = max;
 	element.step = step;
 }
+
+// toggle display of an element
+const toggleDisplay = ( el, status ) => {
+	if ( status === undefined )
+		status = !! el.style.display;
+	el.style.display = status ? '' : 'none';
+}
+
+// promise-compatible `onloadeddata` event handler for media elements
+const waitForLoadedData = async audioEl => new Promise( ( resolve, reject ) => {
+	audioEl.onerror = () => {
+		audioEl.onerror = audioEl.onloadeddata = null;
+		reject();
+	}
+	audioEl.onloadeddata = () => {
+		audioEl.onerror = audioEl.onloadeddata = null;
+		resolve();
+	};
+});
 
 // GENERAL FUNCTIONS ------------------------------------------------------------------------------
 
@@ -1123,7 +1190,7 @@ function addMetadata( metadata, target ) {
 /**
  * Add a song to the play queue
  *
- * @param {object} { file, handle, subs }
+ * @param {object} { file, handle, dirHandle, subs }
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
@@ -1150,10 +1217,12 @@ function addSongToPlayQueue( fileObject, content ) {
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
 		trackData.duration = content.duration || '';
 		trackData.codec    = content.codec || extension.toUpperCase();
+//		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
 
 		trackData.file     = uri; 				// for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
-		newEl.subs         = fileObject.subs;
+		newEl.dirHandle    = fileObject.dirHandle;
+		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
 		playlist.appendChild( newEl );
 
@@ -1165,11 +1234,11 @@ function addSongToPlayQueue( fileObject, content ) {
 
 		if ( queueLength() == 1 && ! isPlaying() )
 			loadSong(0).then( () => resolve(1) );
-		else
+		else {
+			if ( playlistPos > queueLength() - 3 )
+				loadSong( NEXT_TRACK );
 			resolve(1);
-
-		if ( playlistPos > queueLength() - 3 )
-			loadNextSong();
+		}
 	});
 }
 
@@ -1192,22 +1261,6 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 	});
 
 	return ret;
-}
-
-/**
- * Increase or decrease balance
- */
-function changeBalance( incr ) {
-	let newVal = incr ? fixFloating( ( +elBalance.dataset.value || 0 ) + incr * .1 ) : 0;
-
-	if ( newVal < -1 )
-		newVal = -1;
-	else if ( newVal > 1 )
-		newVal = 1;
-
-	setBalance( newVal );
-	setCanvasMsg( `Balance: ${ newVal == 0 ? 'CENTER' : ( Math.abs( newVal ) * 100 ) + '% ' + ( newVal > 0 ? 'Right' : 'Left' ) }` );
-	updateLastConfig();
 }
 
 /**
@@ -1241,13 +1294,15 @@ function changeVolume( incr ) {
 
 /**
  * Clear audio element
+ *
+ * @param {number|HTMLMediaElement} index to media element, or object itself
  */
 function clearAudioElement( n = currAudio ) {
-	const audioEl   = audioElement[ n ],
+	const audioEl   = n instanceof HTMLMediaElement ? n : audioElement[ n ],
 		  trackData = audioEl.dataset;
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
-	loadSubs( audioEl, null );
+	loadSubs( audioEl ); // clear subtitles track
 	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
 	audioEl.load();
 
@@ -1311,8 +1366,8 @@ function consoleLog( msg, error, clear ) {
 	if ( clear )
 		content.innerHTML = '';
 
-	if ( error )
-		$('#toggle_console').classList.add('warning');
+	if ( error && elToggleConsole )
+		elToggleConsole.classList.add('warning');
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -1345,23 +1400,36 @@ function cycleElement( el, prev ) {
 }
 
 /**
- * Cycle X and Y axis scales
+ * Cycle scale labels for X- and- Y axes
  *
- * @param [prev] {boolean} true to select previous option
- * @return integer (bit 0 = scale X status; bit 1 = scale Y status)
+ * @param [{boolean}] `true` to select previous option
+ * @return {number} integer indicating status (see table below)
  */
 function cycleScale( prev ) {
-	let scale = +elScaleX.dataset.active + ( elScaleY.dataset.active << 1 ) + ( prev ? -1 : 1 );
+// Y X  scale
+// 0 00 (0): x off    y off
+// 0 01 (1): x freqs  y off
+// 0 10 (2): x notes  y off
+// 0 11 (3): not used
+// 1 00 (4): x off    y on
+// 1 01 (5): x freqs  y on
+// 1 10 (6): x notes  y on
+// 1 11 (7): not used
+//
+	prev = prev * -2 + 1; // true = -1; false = 1
+	let scale = +getControlValue( elScaleX ) + ( +getControlValue( elScaleY ) << 2 ) + prev;
 
 	if ( scale < 0 )
-		scale = 3;
-	else if ( scale > 3 )
+		scale = 6;
+	else if ( scale == 3 )
+		scale += prev;
+	else if ( scale > 6 )
 		scale = 0;
 
-	elScaleX.dataset.active = scale & 1;
-	elScaleY.dataset.active = scale >> 1;
-
+	setControlValue( elScaleX, scale & 3 );
+	setControlValue( elScaleY, scale >> 2 );
 	setProperty( [ elScaleX, elScaleY ] );
+
 	return scale;
 }
 
@@ -1405,7 +1473,7 @@ function deleteGradient() {
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
-	if ( elPlaylists[ index ].dataset.isLocal ) {
+	if ( elPlaylists[ index ].value ) {
 		notie.confirm({
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
@@ -1429,8 +1497,6 @@ function deletePlaylist( index ) {
 			},
 		});
 	}
-	else if ( elPlaylists[ index ].value )
-		notie.alert({ text: 'Cannot delete a server playlist!' });
 }
 
 /**
@@ -1469,9 +1535,6 @@ function doConfigPanel() {
 	// helper function to validate range value
 	const isValidRange = el => ( +el.value >= +el.min && +el.value <= +el.max );
 
-	// Enabled visualization modes
-	buildOptions( $('#enabled_modes'), 'enabledMode', modeOptions, elMode, KEY_DISABLED_MODES );
-
 	// Enabled Background Image Fit options
 	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
@@ -1490,7 +1553,7 @@ function doConfigPanel() {
 	const elProperties = $('#random_properties');
 
 	randomProperties.forEach( prop => {
-		elProperties.innerHTML += `<label><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
+		elProperties.innerHTML += `<label${ prop.value == RND_PRESETS ? ' class="colspan-3"' : '' }><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
 	});
 
 	$$('.randomProperty').forEach( el => {
@@ -1608,6 +1671,8 @@ function eraseUserPreset( index, force ) {
 	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
 
 	notie.alert({ text: `Deleted ${ userPresetText }` });
+
+	populatePresets();
 }
 
 /**
@@ -1660,32 +1725,39 @@ async function fullscreen() {
 /**
  * Try to get a cover image from the song's folder
  */
-function getFolderCover( uri ) {
-	return new Promise( resolve => {
-		const path = parsePath( uri ).path; // extract path (no filename)
+async function getFolderCover( target ) {
+	const { path } = parsePath( target.dataset.file ), // extract path from filename
+		  { dirHandle } = target;
 
-		if ( ! webServer || isExternalURL( uri ) )
-			resolve(''); // nothing to do when in serverless mode or external file
-		else if ( folderImages[ path ] !== undefined )
-			resolve( path + folderImages[ path ] ); // use the stored image URL for this path
-		else {
-			fetch( path )
-				.then( response => {
-					return response.ok ? response.text() : null;
-				})
-				.then( content => {
-					let imageUrl = '';
-					if ( content ) {
-						const dirContents = fileExplorer.parseDirectory( content );
-						if ( dirContents.cover )
-							imageUrl = dirContents.cover;
-					}
-					folderImages[ path ] = imageUrl;
-					resolve( path + imageUrl );
-				})
-				.catch( e => resolve('') );
+	if ( ! webServer || isExternalURL( path ) )
+		return ''; // nothing to do when in serverless mode or external file
+	else if ( folderImages[ path ] !== undefined )
+		return folderImages[ path ]; // use the stored image URL for this path
+	else {
+		if ( target.handle && ! dirHandle )
+			return ''; // filesystem mode, but no dirHandle available (entry from old playlist) - quit
+
+		let imageUrl = '';
+
+		try {
+			const contents = await fileExplorer.getDirectoryContents( path, dirHandle );
+
+			if ( contents && contents.cover ) {
+				const { handle, name } = contents.cover;
+				if ( handle ) {
+					const blob = await handle.getFile();
+					imageUrl = URL.createObjectURL( blob );
+				}
+				else
+					imageUrl = path + name;
+			}
 		}
-	});
+		catch( e ) {}
+
+		folderImages[ path ] = imageUrl;
+
+		return imageUrl;
+	}
 }
 
 /**
@@ -1726,9 +1798,7 @@ function keyboardControls( event ) {
 					changeVolume(-1);
 				break;
 			case 'ArrowLeft': 	// rewind
-				if ( isShiftKey )
-					changeBalance(-1);
-				else if ( isFastSearch ) {
+				if ( isFastSearch ) {
 					setCanvasMsg( 'Rewind', 1 );
 					fastSearch(-1);
 				}
@@ -1736,9 +1806,7 @@ function keyboardControls( event ) {
 					scheduleFastSearch('k', -1);
 				break;
 			case 'ArrowRight': 	// fast forward
-				if ( isShiftKey )
-					changeBalance(1);
-				else if ( isFastSearch ) {
+				if ( isFastSearch ) {
 					setCanvasMsg( 'Fast forward', 1 );
 					fastSearch();
 				}
@@ -1784,7 +1852,7 @@ function keyboardControls( event ) {
 					else
 						playlistPos--;
 					if ( queueLength() )
-						loadNextSong();
+						loadSong( NEXT_TRACK );
 					else {
 						clearAudioElement( nextAudio );
 						if ( ! isPlaying() )
@@ -1865,21 +1933,17 @@ function keyboardControls( event ) {
 					setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
 					break;
 				case 'KeyP': 		// toggle peaks display
-					if ( isShiftKey ) {
-						elFadePeaks.click();
-						setCanvasMsg( 'Fade Peaks ' + onOff( elFadePeaks ) );
-					}
-					else {
-						elShowPeaks.click();
-						setCanvasMsg( 'Peaks ' + onOff( elShowPeaks ) );
-					}
+					cycleElement( elShowPeaks, isShiftKey );
+					setCanvasMsg( 'Peaks ' + getText( elShowPeaks ) );
 					break;
 				case 'KeyR': 		// toggle playlist repeat
 					elRepeat.click();
 					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
 					break;
-				case 'KeyS': 		// toggle X and Y axis scales
-					setCanvasMsg( 'Scale: ' + ['None','Frequency (Hz)','Level (dB)','Both'][ cycleScale( isShiftKey ) ] );
+				case 'KeyS': 		// toggle scale labels for X- and Y- axes
+					const info   = ['None','Frequencies','Musical Notes',,'Level'],
+						  status = cycleScale( isShiftKey );
+					setCanvasMsg( 'Scale labels: ' + ( status < 5 ? info[ status ] : info[ status - 4 ] + ' + ' + info[ 4 ] ) );
 					break;
 				case 'KeyT': 		// toggle text shadow
 					elNoShadow.click();
@@ -1932,17 +1996,17 @@ function loadAudioSource( audioEl, newSource ) {
  * @param {boolean}   `true` to start playing
  * @returns {Promise} resolves to a string containing the URL created for the blob
  */
-function loadFileBlob( fileBlob, audioEl, playIt ) {
-	return new Promise( resolve => {
-		const url = URL.createObjectURL( fileBlob );
-		loadAudioSource( audioEl, url );
-		audioEl.onloadeddata = () => {
-			if ( playIt )
-				audioEl.play();
-			audioEl.onloadeddata = null;
-			resolve( url );
-		};
-	});
+async function loadFileBlob( fileBlob, audioEl, playIt ) {
+	const url = URL.createObjectURL( fileBlob );
+	loadAudioSource( audioEl, url );
+	try {
+		await waitForLoadedData( audioEl );
+		if ( playIt )
+			audioEl.play();
+	}
+	catch ( e ) {}
+
+	return url;
 }
 
 /**
@@ -1961,16 +2025,44 @@ function loadFromStorage( key ) {
 function loadGradientIntoCurrentGradient(gradientKey) {
 	if (!gradients[gradientKey]) throw new Error(`gradients[${gradientKey}] is null or undefined.`);
 
-	const src = gradients[gradientKey];
-	const dest = {};
+	// convert hsl values to rgb hexadecimal string - thanks https://stackoverflow.com/a/64090995
+	const hsl2rgb = ( h, s, l ) => {
+		// h in [0,360] and s,l in [0,1]
+		const a = s * Math.min( l, 1 - l );
+		const f = ( n, k = ( n + h / 30 ) % 12 ) => l - a * Math.max( Math.min( k - 3, 9 - k, 1 ), -1 );
+		let rgb = '#';
+		for ( const i of [ 0, 8, 4 ] )
+			rgb += Math.round( f( i ) * 255 ).toString(16).padStart(2, '0');
+		return rgb;
+	}
 
-	dest.name = src.name;
-	dest.bgColor = src.bgColor;
-	dest.dir = src.dir
-	dest.disabled = src.disabled;
-	dest.key = gradientKey;
+	// split values from a hsl or rgb string (removes % sign from hsl values)
+	const splitValues = str => str.match( /\(\s+(.*),\s+(.*?)%?,\s+(.*?)%?\s+\)/ ).slice(1);
+
+	const src  = gradients[ gradientKey ],
+		  dest = { ...src }; // make a copy of the gradient object
+
 	dest.colorStops = [];
-	for (const stop of src.colorStops) {
+
+	// NOTE: colorStops in our `gradients` objects are normalized (modified!) by the analyzer's registerGradient()
+	//       method, which ensures all colorStops elements are objects with `pos` and `color` attributes!
+
+	// clone the source colorStops and convert all colors to hexadecimal format, required by the HTML color picker
+	for ( const stop of src.colorStops ) {
+		if ( stop.color.startsWith('rgb') ) {
+			const { color } = stop;
+			stop.color = '#';
+			for ( const component of splitValues( color ) )
+				stop.color += ( +component ).toString(16).padStart(2, '0');
+		}
+		else if ( stop.color.startsWith('hsl') ) {
+			const [ h, s, l ] = splitValues( stop.color );
+			stop.color = hsl2rgb( h, s/100, l/100 );
+		}
+		else if ( stop.color.length == 4 ) { // short hexadecimal format
+			const [ _, r, g, b ] = stop.color;
+			stop.color = '#' + r + r + g + g + b + b;
+		}
 		dest.colorStops.push({...stop});
 	}
 
@@ -1995,41 +2087,6 @@ function loadLocalFile( obj ) {
 			.then( metadata => addMetadata( metadata, audioEl ) )
 			.catch( e => {} );
 	}
-}
-
-/**
- * Loads next song into the audio element not currently in use
- */
-async function loadNextSong() {
-	const next    = ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0,
-		  song    = playlist.children[ next ],
-		  audioEl = audioElement[ nextAudio ];
-
-	setSubtitlesDisplay(); // avoid stuck subtitles on track change
-
-	if ( song ) {
-		addMetadata( song, audioEl );
-		if ( song.handle ) {
-			try {
-				await song.handle.requestPermission();
-			}
-			catch( e ) {}
-			song.handle.getFile()
-				.then( fileBlob => loadFileBlob( fileBlob, audioEl ) )
-				.then( () => audioEl.load() )
-				.catch( e => {
-					consoleLog( `Error loading ${ song.dataset.file }`, true );
-					clearAudioElement( nextAudio );
-				});
-		}
-		else {
-			loadAudioSource( audioEl, song.dataset.file );
-			audioEl.load();
-		}
-		loadSubs( audioEl, song.subs );
-	}
-
-	skipping = false; // finished skipping track
 }
 
 /**
@@ -2062,12 +2119,14 @@ function loadPlaylist( fileObject ) {
 					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
 						songInfo = parsePath( line ).baseName;
 
-					let handle, subs;
+					let handle, dirHandle;
 
-					// if it's an external URL just add it to the queue as is
+					// external URLs do not require any processing
 					if ( ! isExternalURL( line ) ) {
+
+						// finds the filesystem handle for this file and its directory
 						if ( useFileSystemAPI ) {
-							( { handle, subs } = await fileExplorer.getHandles( line ) );
+							( { handle, dirHandle } = await fileExplorer.getHandles( line ) );
 							if ( ! handle ) {
 								consoleLog( `Cannot resolve file handle for ${ line }`, true );
 								songInfo = '';
@@ -2081,21 +2140,9 @@ function loadPlaylist( fileObject ) {
 						// if it's not an absolute path, prepend the current path to it
 						if ( line[1] != ':' && line[0] != '/' )
 							line = path + line;
-
-						if ( ! useFileSystemAPI ) {
-							// look for subtitles (server mode)
-							try {
-								const src = line.slice( 0, line.lastIndexOf('.') ) + '.vtt',
-								 	  res = await fetch( src, { method: 'HEAD' } );
-
-								if ( res.ok )
-									subs = { src };
-							}
-							catch( e ) {}
-						}
 					}
 
-					promises.push( addSongToPlayQueue( { file: line, handle, subs }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
+					promises.push( addSongToPlayQueue( { file: line, handle, dirHandle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
 					songInfo = '';
 				}
 				else if ( line.startsWith('#EXTINF') )
@@ -2105,6 +2152,8 @@ function loadPlaylist( fileObject ) {
 			}
 			resolveAddedSongs();
 		}
+
+		// --- main fuction ---
 
 		if ( ! path ) {
 			resolve( -1 );
@@ -2141,8 +2190,9 @@ function loadPlaylist( fileObject ) {
 
 			if ( Array.isArray( list ) ) {
 				list.forEach( entry => {
-					const { file, handle, subs, content } = entry;
-					promises.push( addSongToPlayQueue( { file, handle, subs }, content ) );
+					const { file, handle, dirHandle, subs, content } = entry;
+					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
+					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 				});
 				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
@@ -2172,11 +2222,15 @@ function loadPreferences() {
 		}
 	}
 
-	const lastConfig    = loadFromStorage( KEY_LAST_CONFIG ),
-	 	  isLastSession = lastConfig !== null;
+	const lastConfig        = loadFromStorage( KEY_LAST_CONFIG ),
+	 	  isLastSession     = lastConfig !== null;
+
+	// for compatibility with v24.6 (down to v21.11), when FFT size and smoothing were stored in the general settings
+	const storedGeneralOptions   = loadFromStorage( KEY_GENERAL_OPTS ) || {},
+		  { fftSize, smoothing } = storedGeneralOptions;
 
 	// Merge defaults with the last session settings (if any)
-	setPreset( 'last', { ...getPreset('default'), ...lastConfig } );
+	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), fftSize, smoothing, ...lastConfig } );
 
 	// Load user presets
 	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
@@ -2189,9 +2243,6 @@ function loadPreferences() {
 			userPresets[ i ] = { options: userPresets[ i ] };
 	}
 
-	// Load disabled modes preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_MODES ), modeOptions );
-
 	// Load disabled background image fit options
 	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
 
@@ -2200,6 +2251,7 @@ function loadPreferences() {
 	if ( customGradients ) {
 		Object.keys( customGradients ).forEach( key => {
 			gradients[ key ] = customGradients[ key ];
+			gradients[ key ].key = key; // a `key` property indicates this is a custom gradient
 		});
 	}
 
@@ -2232,11 +2284,6 @@ function loadPreferences() {
 
 	// General settings
 
-	for ( let i = 10; i < 16; i++ )
-		elFFTsize[ elFFTsize.options.length ] = new Option( 2**i );
-
-	setRangeAtts( elSmoothing, 0, .9, .1 );
-
 	populateSelect( elPIPRatio, pipRatioOptions );
 
 	setRangeAtts( elFsHeight, 25, 100, 5 );
@@ -2257,7 +2304,9 @@ function loadPreferences() {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
-	setGeneralOptions( { ...generalOptionsDefaults, ...( loadFromStorage( KEY_GENERAL_OPTS ) || {} ) } );
+	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
+
+	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
 
 	// Peak settings
 
@@ -2298,7 +2347,7 @@ function loadPreferences() {
 /**
  * Load a configuration preset
  *
- * @param {string|number} desired built-in preset key or user preset index
+ * @param {string|number|object} desired built-in preset key or user preset index or settings object (uploaded by user)
  * @param [{boolean}] true to display console message and on-screen alert after loading (default)
  * @param [{boolean}] true to use default values for missing properties
  * @param [{boolean}] true to keep Randomize setting unchanged
@@ -2306,88 +2355,89 @@ function loadPreferences() {
 function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	const isUserPreset = ( +key == key ),
-		  thisPreset   = isUserPreset ? userPresets[ key ].options : getPreset( key ),
-		  defaults     = getPreset('default');
+		  isObject     = typeof key == 'object',
+		  thisPreset   = isObject ? key : ( isUserPreset ? userPresets[ key ].options : getPreset( key ) ),
+		  defaults     = getPreset( PRESET_KEY_DEFAULT );
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
-	if ( alert )
-		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+	if ( alert && ! isObject )
+		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+
+	if ( key == PRESET_KEY_DEFAULT )
+		delete thisPreset.volume; // don't reset the volume when restoring to defaults!
 
 	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
+	// convert options from version <= 24.6
+	if ( thisPreset.barSpace == 1.5 )
+		thisPreset.barSpace = 1;
+
+	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks )
+		thisPreset.showPeaks = PEAKS_FADE;
+
+	if ( thisPreset.mode == MODE_LINE )
+		thisPreset.mode = MODE_GRAPH;
+
+	if ( ! [ MODE_DISCRETE, MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
+		thisPreset.bandCount = thisPreset.mode;
+		thisPreset.mode = MODE_BARS;
+	}
+
+	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
+		thisPreset.showScaleX = SCALEX_NOTES;
+
+	// assign values read from the preset to the UI controls
 	$$('[data-prop]').forEach( el => {
 		const prop = el.dataset.prop,
 			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
-		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) ) {
-			if ( isCustomRadio( el ) ) {
-				// note: el.elements[ prop ].value = val won't work for empty string value
-				const option = el.querySelector(`[value="${val}"]`);
-				if ( option )
-					option.checked = true;
-			}
-			else if ( el.classList.contains('switch') )
-				el.dataset.active = +val;
-			else if ( el == elBalance )
-				setBalance( val );
-			else if ( el == elMute )
-				toggleMute( val );
-			else if ( el == elSource )
-				setSource( val );
-			else if ( el == elVolume )
-				setVolume( val );
-			else {
-				el.value = val;
-				if ( el.selectedIndex == -1 ) // fix invalid values in select elements
-					el.selectedIndex = 0;
-				updateRangeValue( el );
-			}
-		}
+		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) )
+			setControlValue( el, val );
 	});
 
 	audioMotion.setOptions( {
 		alphaBars      : isSwitchOn( elAlphaBars ),
-		ansiBands      : isSwitchOn( elAnsiBands ),
+		ansiBands      : +getControlValue( elAnsiBands ),
 		colorMode      : getControlValue( elColorMode ),
-		fadePeaks      : isSwitchOn( elFadePeaks ),
 		fftSize        : getControlValue( elFFTsize ),
+		fillAlpha      : getControlValue( elFillAlpha ),
 		frequencyScale : getControlValue( elFreqScale ),
 		ledBars        : isSwitchOn( elLedDisplay ),
-		linearAmplitude: isSwitchOn( elLinearAmpl ),
+		linearAmplitude: +getControlValue( elLinearAmpl ),
+		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
 		lumiBars       : isSwitchOn( elLumiBars ),
 		maxFPS         : getControlValue( elMaxFPS ),
 		maxFreq        : getControlValue( elRangeMax ),
 		minFreq        : getControlValue( elRangeMin ),
 		mirror         : getControlValue( elMirror ),
-		noteLabels     : isSwitchOn( elNoteLabels ),
 		outlineBars    : isSwitchOn( elOutline ),
 		peakFadeTime   : getControlValue( elPeakFade ),
 		peakHoldTime   : getControlValue( elPeakHold ),
 		radial         : isSwitchOn( elRadial ),
+		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
-		showPeaks      : isSwitchOn( elShowPeaks ),
-		showScaleX     : isSwitchOn( elScaleX ),
-		showScaleY     : isSwitchOn( elScaleY ),
+		showScaleY     : +getControlValue( elScaleY ),
 		smoothing      : getControlValue( elSmoothing ),
 		spinSpeed      : getControlValue( elSpin ),
 		splitGradient  : isSwitchOn( elSplitGrad ),
 		weightingFilter: getControlValue( elWeighting )
 	} );
 
-	// settings that affect other properties are set by the setProperty() function
+	// settings that affect or are affected by other properties must be set by the setProperty() function
 	setProperty(
 		[ elBackground,
 		elBgImageFit,
 		elBgImageDim,
 		elChnLayout,
+		elShowPeaks, // also sets fadePeaks
 		elFsHeight,
 		elGravity,
-		elLinkGrads, // needs to be set before the gradients
+		elLinkGrads, // note: this needs to be set before the gradients!
 		elSensitivity,
 		elReflex,
 		elGradient,
@@ -2395,6 +2445,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elShowSubtitles,
+		elScaleX, // also sets noteLabels
 		elMode ]
 	);
 
@@ -2447,9 +2498,13 @@ async function loadSavedPlaylists( keyName ) {
 
 	// add playlists to the selection box
 	if ( playlists ) {
-		for ( const key of Object.keys( playlists ) ) {
+		const playlistKeys = Object.keys( playlists ),
+			  collator     = new Intl.Collator();
+
+		playlistKeys.sort( ( keyA, keyB ) => collator.compare( playlists[ keyA ], playlists[ keyB ] ) );
+
+		for ( const key of playlistKeys ) {
 			const item = new Option( playlists[ key ], key );
-			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
 			elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -2464,58 +2519,74 @@ async function loadSavedPlaylists( keyName ) {
  * @param {boolean}   `true` to start playing
  * @returns {Promise} resolves to a boolean indicating success or failure (invalid queue index)
  */
-function loadSong( n, playIt ) {
-	return new Promise( async resolve => {
-		const audioEl = audioElement[ currAudio ];
-		const finish = () => {
-			updatePlaylistUI();
-			loadNextSong();
-			resolve( true );
+async function loadSong( n, playIt ) {
+	const isCurrent = n !== NEXT_TRACK,
+		  index     = isCurrent ? n : ( ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0 ),
+		  audioEl   = audioElement[ isCurrent ? currAudio : nextAudio ],
+		  song      = playlist.children[ index ];
+
+	if ( ! isCurrent )
+		setSubtitlesDisplay(); // avoid stuck subtitles on track change
+
+	let success = false;
+
+	if ( song ) {
+		if ( isCurrent )
+			playlistPos = index;
+
+		addMetadata( song, audioEl );
+		loadSubs( audioEl, song );
+
+		if ( song.handle ) {
+			// file system mode
+			try {
+				await song.handle.requestPermission();
+				const fileBlob = await song.handle.getFile();
+				await loadFileBlob( fileBlob, audioEl, playIt );
+				success = true;
+			}
+			catch( e ) {
+				consoleLog( `Error loading ${ song.dataset.file }`, true );
+				clearAudioElement( audioEl );
+			}
+		}
+		else {
+			// web server mode
+			loadAudioSource( audioEl, song.dataset.file );
+			try {
+				await waitForLoadedData( audioEl );
+				if ( isCurrent && playIt )
+					audioEl.play();
+				success = true;
+			}
+			catch( e ) {} // error will be handled (logged) by `audioOnError()`
 		}
 
-		if ( playlist.children[ n ] ) {
-			playlistPos = n;
-			const song = playlist.children[ playlistPos ];
-			addMetadata( song, audioEl );
-
-			if ( song.handle ) {
-				try {
-					await song.handle.requestPermission();
-				}
-				catch( e ) {}
-				song.handle.getFile()
-					.then( fileBlob => loadFileBlob( fileBlob, audioEl, playIt ) )
-					.then( () => finish() )
-					.catch( e => {
-						consoleLog( `Error loading ${ song.dataset.file }`, true );
-						clearAudioElement( currAudio );
-						resolve( false );
-					});
+		if ( success ) {
+			if ( isCurrent ) {
+				updatePlaylistUI();
+				loadSong( NEXT_TRACK );
 			}
-			else {
-				loadAudioSource( audioEl, song.dataset.file );
-				audioEl.onloadeddata = () => {
-					if ( playIt )
-						audioEl.play();
-					audioEl.onloadeddata = null;
-					finish();
-				};
-			}
-
-			loadSubs( audioEl, song.subs );
+			else
+				audioEl.load();
 		}
-		else
-			resolve( false );
-	});
+
+		song.classList.toggle( 'error', ! success );
+	}
+
+	if ( ! isCurrent )
+		skipping = false; // finished skipping track
+
+	return success;
 }
 
 /**
  * Load subtitles file to audio element track
  *
  * @param {object} audio element
- * @param {object} subtitles object { src, lang, handle }
+ * @param {object|null} song object or `null` to clear subtitles track
  */
-function loadSubs( audioEl, subs ) {
+async function loadSubs( audioEl, song ) {
 	// References:
 	// https://www.w3.org/wiki/VTT_Concepts
 	// https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
@@ -2525,6 +2596,26 @@ function loadSubs( audioEl, subs ) {
 	// revoke any previous object URL
 	if ( isBlob( subsTrack.src ) )
 		URL.revokeObjectURL( subsTrack.src );
+
+	let { subs } = song || {};
+
+	if ( song && ! subs && isSwitchOn( elShowSubtitles ) && ! isExternalURL( song.dataset.file ) ) {
+		// search for subs for this file
+		const { path, baseName } = parsePath( song.dataset.file );
+		let contents;
+
+		// playlists saved in v24.6 didn't store the `dirHandle` property
+		if ( song.dirHandle || ! song.handle )
+			contents = await fileExplorer.getDirectoryContents( path, song.dirHandle );
+
+		if ( contents ) {
+			const targetFile = contents.files.find( entry => entry.name.startsWith( baseName ) );
+			if ( targetFile && targetFile.subs ) {
+				subs = targetFile.subs;
+				song.subs = subs; // add the subs to the entry in the play queue
+			}
+		}
+	}
 
 	if ( subs ) {
 		const { src, lang, handle } = subs;
@@ -2549,39 +2640,44 @@ function loadSubs( audioEl, subs ) {
 function openGradientEdit(key) {
 	loadGradientIntoCurrentGradient(key);
 	renderGradientEditor();
-	$('#btn-save-gradient').innerText = 'Save';
-	$('#btn-delete-gradient').style.display = 'block';
+
+	// save and delete buttons are enabled for custom gradients only
+	toggleDisplay( $('#btn-delete-gradient'), !! gradients[ key ].key );
+	toggleDisplay( $('#btn-save-gradient'), !! gradients[ key ].key );
+	toggleDisplay( $('#btn-export-gradient'), true );
+	toggleDisplay( $('#btn-save-gradient-copy'), true );
+
 	location.href = '#gradient-editor';
 }
 
 /**
- * Build a new gradient, set it as the current gradient, then render the gradient editor.
+ * Build a new gradient (or duplicate the current one), set it as the current gradient, then render the gradient editor.
  */
-function openGradientEditorNew() {
-	currentGradient = {
-		name: 'New Gradient',
-		bgColor: '#111111',
-		colorStops: [
-			{ pos: .1, color: '#222222' },
-			{ pos: 1, color: '#eeeeee' }
-		],
-		disabled: false,
-		key: 'custom-gradient-1'  // using this to keep track of the key of the gradient object in the gradient list
-	};
-
-	// To prevent accidental overwriting of gradients and to allow duplicate names, a unique internal key is chosen
-	// instead of simply using the name the user chooses for the new gradient.
-
-	// find unique key for new gradient
-	let modifier = 2;
-	while (Object.keys(gradients).some(key => key === currentGradient.key) && modifier < 10) {
-		currentGradient.key = `custom-gradient-${modifier}`;
-		modifier++;
+function openGradientEditorNew( makeCopy ) {
+	if ( makeCopy ) {
+		currentGradient.name += ' (copy)';
+		currentGradient.key = '';
+	}
+	else {
+		currentGradient = {
+			name: 'New Gradient',
+			bgColor: '#111111',
+			colorStops: [
+				{ pos: .1, color: '#222222' },
+				{ pos: 1, color: '#eeeeee' }
+			],
+			disabled: false,
+			key: '', // using this to keep track of the key of the gradient object in the gradient list - will be set by saveGradient()
+		};
 	}
 
 	renderGradientEditor();
-	$('#btn-save-gradient').innerText = 'Add';
-	$('#btn-delete-gradient').style.display = 'none'; // don't show delete button while editing a new gradient
+
+	// for new gradients only the save button is enabled
+	toggleDisplay( $('#btn-delete-gradient'), false );
+	toggleDisplay( $('#btn-save-gradient'), true );
+	toggleDisplay( $('#btn-export-gradient'), false );
+	toggleDisplay( $('#btn-save-gradient-copy'), false );
 
 	location.href = '#gradient-editor';
 }
@@ -2613,18 +2709,18 @@ function playNextSong( play ) {
 
 	if ( play && audioElement[ currAudio ].src ) { // note: play() on empty element never resolves!
 		audioElement[ currAudio ].play()
-		.then( () => loadNextSong() )
+		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
-				loadNextSong();
+				loadSong( NEXT_TRACK );
 				playNextSong( true );
 			}
 		});
 	}
 	else
-		loadNextSong();
+		loadSong( NEXT_TRACK );
 
 	updatePlaylistUI();
 	return true;
@@ -2713,14 +2809,18 @@ function populateBackgrounds() {
 /**
  * Populate a custom radio buttons element
  *
- * @param element {object}
- * @param options {array} arrays [ value, text ] or objects { value, text, disabled }
+ * @param {object} parent element (form)
+ * @param {array} of arrays [ value, text ] or objects { value, text, disabled }
+ * @param [{string}] `name` attribute of input elements (if undefined, uses the data-prop of `element`)
  */
-function populateCustomRadio( element, options ) {
+function populateCustomRadio( element, options, name ) {
+	if ( ! name )
+		name = element.dataset.prop;
+
 	const isObject = ! Array.isArray( options[0] );
+
 	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
-		const name = element.dataset.prop,
-			  text = item.text || item[1],
+		const text = item.text || item[1],
 			  val  = item.value || item[0],
 			  id   = name + '-' + val,
 		 	  button = document.createElement('input'),
@@ -2743,26 +2843,22 @@ function populateCustomRadio( element, options ) {
  */
 function populateEnabledGradients() {
 	// Enabled gradients
-	const elEnabledGradients = $('#enabled_gradients');
+	const elEnabledGradients = $('#enabled_gradients'),
+		  gradientKeys       = Object.keys( gradients ),
+		  collator           = new Intl.Collator();
+
+	// case-insensitive sorting with international characters support - https://stackoverflow.com/a/40390844/2370385
+	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
 
 	// reset
 	deleteChildren(elEnabledGradients);
 
-	Object.keys( gradients ).forEach( key => {
-		// only set up link for editing if this is a custom gradient
-		if (key.startsWith('custom')) {
-			elEnabledGradients.innerHTML +=
-				`<label>
-			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-                   <a href="#" data-grad="${key}" class="grad-edit-link">${gradients[ key ].name}</a>
-                </label>`;
-		} else {
-			elEnabledGradients.innerHTML +=
-				`<label>
-			       <input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[key].disabled ? '' : 'checked'}>
-                   ${gradients[key].name}
-                </label>`;
-		}
+	gradientKeys.forEach( key => {
+		elEnabledGradients.innerHTML +=
+			`<label>
+				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
+				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit / Export</a>
+			</label>`;
 	});
 
 	$$('.enabledGradient').forEach( el => {
@@ -2794,12 +2890,17 @@ function populateEnabledGradients() {
  * Populate UI gradient selection combo box
  */
 function populateGradients() {
+	const gradientKeys = Object.keys( gradients ),
+		  collator     = new Intl.Collator();
+
+	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
+
 	for ( const el of [ elGradient, elGradientRight ] ) {
 		let grad = el.value;
 		deleteChildren( el );
 
 		// add the option to the html select element for the user interface
-		for ( const key of Object.keys( gradients ) ) {
+		for ( const key of gradientKeys ) {
 			if ( ! gradients[ key ].disabled )
 				el.options[ el.options.length ] = new Option( gradients[ key ].name, key );
 		}
@@ -2809,6 +2910,31 @@ function populateGradients() {
 			setProperty( el );
 		}
 	}
+}
+
+
+/**
+ * Populate presets selection box
+ */
+function populatePresets() {
+
+	const addGroup = ( label, options ) => {
+		const optGroup = document.createElement('optgroup');
+		optGroup.label = label;
+		for ( const [ value, text ] of options )
+			optGroup.appendChild( new Option( text, value ) );
+		elPresets.appendChild( optGroup );
+	}
+
+	deleteChildren( elPresets );
+	elPresets.appendChild( new Option( 'Select a preset to load', '' ) );
+
+	const savedPresets = userPresets.map( ( item, index ) => [ index, item.name ? `[${index + 1}] ${item.name}` : '' ] ).filter( ( [ value, text ] ) => !! text );
+
+	if ( savedPresets.length )
+		addGroup( 'User Presets', savedPresets );
+
+	addGroup( 'Built-in Presets', presets.filter( item => ! [ PRESET_KEY_LAST_SESSION, PRESET_KEY_DEFAULT ].includes( item.key ) ).map( item => [ item.key, item.name ] ) );
 }
 
 /**
@@ -2871,8 +2997,7 @@ function randomizeSettings( force = elSource.checked ) {
 					  range = ( max - min ) / step,
 					  newVal = randomInt( range + 1 ) * step + +min; // coerce min to number
 
-				el.value = ( newVal * 10 | 0 ) / 10; // fix rounding errors (1 decimal place)
-				updateRangeValue( el );
+				setControlValue( el, ( newVal * 10 | 0 ) / 10 ); // fix rounding errors (1 decimal place)
 			}
 			else // selects
 				el.selectedIndex = randomInt( el.options.length );
@@ -2899,11 +3024,11 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_BACKGROUND ) )
 		randomizeControl( elBackground );
 
+	if ( isEnabled( RND_BANDCOUNT ) )
+		randomizeControl( elBandCount );
+
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
-
-	if ( isEnabled( RND_CHNLAYOUT ) )
-		randomizeControl( elChnLayout, newVal => newVal != CHANNEL_COMBINED ); // remove dual-combined from randomize
 
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
@@ -2914,23 +3039,18 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
 
-	if ( isEnabled( RND_LUMI ) )
-		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) ); // no LUMI when LEDs are on and background is image or video
-
-	if ( isEnabled( RND_LINEWIDTH ) )
-		randomizeControl( elLineWidth );
-
-	if ( isEnabled( RND_FILLOPACITY ) )
-		randomizeControl( elFillAlpha );
-
-	if ( isEnabled( RND_BARSPACING ) )
-		randomizeControl( elBarSpace );
+	if ( isEnabled( RND_LUMI ) ) {
+		// no LUMI when LEDs are on and background is image or video
+		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) );
+	}
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
 
-	if ( isEnabled( RND_REFLEX ) )
-		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) ); // no full reflex with LEDs
+	if ( isEnabled( RND_REFLEX ) ) {
+		// no full reflex with LEDs
+		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) );
+	}
 
 	if ( isEnabled( RND_RADIAL ) )
 		randomizeControl( elRadial );
@@ -2938,20 +3058,13 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_ROUND ) )
 		randomizeControl( elRoundBars );
 
-	if ( isEnabled( RND_SPIN ) )
-		randomizeControl( elSpin );
-
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
-
-	if ( isEnabled( RND_MIRROR ) )
-		randomizeControl( elMirror );
 
 	if ( isEnabled( RND_GRADIENT ) ) {
 		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
 			randomizeControl( el );
 	}
-
 }
 
 /**
@@ -3159,8 +3272,8 @@ async function retrieveMetadata() {
 				if ( metadata ) {
 					addMetadata( metadata, queueItem ); // add metadata to play queue item
 					syncMetadataToAudioElements( queueItem );
-					if ( ! queueItem.handle && ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( uri ).then( cover => {
+					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+						getFolderCover( queueItem ).then( cover => {
 							queueItem.dataset.cover = cover;
 							syncMetadataToAudioElements( queueItem );
 						});
@@ -3191,8 +3304,28 @@ function revokeBlobURL( item ) {
  * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
  * then close the panel.
  */
-function saveGradient() {
+function saveGradient( isImported ) {
 	if (currentGradient === null) return;
+
+	if ( ! currentGradient.key || isImported ) {
+		// use the given key when importing a gradient or generate a key for new (and copied) gradients
+		let safename = isImported && currentGradient.key || generateSafeKeyName( currentGradient.name );
+		currentGradient.key = safename;
+
+		// find unique key for new gradient
+		let modifier = 1;
+		while ( Object.keys( gradients ).some( key => key === currentGradient.key ) && modifier < 1000 ) {
+			currentGradient.key = `${safename}-${modifier}`;
+			modifier++;
+		}
+
+		// if the same name already exists, add a suffix to it
+		modifier = 1;
+		while ( Object.keys( gradients ).some( key => gradients[ key ].name === currentGradient.name ) && modifier < 1000 ) {
+			currentGradient.name += ` (${modifier})`;
+			modifier++;
+		}
+	}
 
 	gradients[currentGradient.key] = currentGradient;
 	audioMotion.registerGradient(currentGradient.key, currentGradient);
@@ -3208,12 +3341,9 @@ function saveGradient() {
  * Save/update an existing playlist
  */
 function savePlaylist( index ) {
-
-	if ( elPlaylists[ index ].value == '' )
+	if ( ! index )
 		storePlayQueue();
-	else if ( ! elPlaylists[ index ].dataset.isLocal )
-		notie.alert({ text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
-	else
+	else {
 		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
 			submitText: 'Overwrite',
 			submitCallback: () => {
@@ -3223,6 +3353,7 @@ function savePlaylist( index ) {
 				notie.alert({ text: 'Canceled' });
 			}
 		});
+	}
 }
 
 /**
@@ -3234,9 +3365,6 @@ function savePreferences( key ) {
 	// helper function
 	const getDisabledItems = items => items.map( ( { value, disabled } ) => ( { value, disabled } ) );
 
-	if ( ! key || key == KEY_DISABLED_MODES )
-		saveToStorage( KEY_DISABLED_MODES, getDisabledItems( modeOptions ) );
-
 	if ( ! key || key == KEY_DISABLED_BGFIT )
 		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
 
@@ -3246,8 +3374,8 @@ function savePreferences( key ) {
 	if (! key || key == KEY_CUSTOM_GRADS) {
 		const customGradients = {};
 		Object.keys(gradients)
-			.filter(key => key.startsWith('custom'))
-			.forEach(key => customGradients[key] = gradients[key]);
+			.filter( key => gradients[ key ].key ) // if it has a `key` property it's a custom gradient
+			.forEach( key => customGradients[key] = gradients[key]);
 		saveToStorage( KEY_CUSTOM_GRADS, customGradients);
 	}
 
@@ -3282,7 +3410,6 @@ function savePreferences( key ) {
 			autoHide   : elAutoHide.checked,
 			bgLocation : elBgLocation.value,
 			bgMaxItems : elBgMaxItems.value,
-			fftSize    : elFFTsize.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
 			noDimSubs  : elNoDimSubs.checked,
@@ -3290,7 +3417,7 @@ function savePreferences( key ) {
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
-			smoothing  : elSmoothing.value
+			surround   : elSurround.checked
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -3389,6 +3516,8 @@ function saveUserPreset( index, options, name, force ) {
 		setCanvasMsg( text, 5 );
 	else
 		notie.alert({ text });
+
+	populatePresets();
 }
 
 /**
@@ -3410,16 +3539,6 @@ function scheduleFastSearch( mode, dir = 1 ) {
  */
 function setBackgroundImage( url ) {
 	document.documentElement.style.setProperty( '--background-image', url ? `url('${ url.replace( /['()]/g, '\\$&' ) }')` : 'none' );
-}
-
-/**
- * Set balance
- */
-function setBalance( value ) {
-	elBalance.dataset.value = value;
-	if ( panNode )
-		panNode.pan.value = Math.log10( 9 * Math.abs( value ) + 1 ) * Math.sign( value );
-	elBalance.querySelector('.marker').style.transform = `rotate( ${ 145 * value - 90 }deg )`;
 }
 
 /**
@@ -3467,7 +3586,6 @@ function setGeneralOptions( options ) {
 	elAutoHide.checked  = options.autoHide;
 	elBgLocation.value  = options.bgLocation;
 	elBgMaxItems.value  = options.bgMaxItems;
-	elFFTsize.value     = options.fftSize;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
 	elNoDimSubs.checked = options.noDimSubs;
@@ -3476,7 +3594,7 @@ function setGeneralOptions( options ) {
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
-	elSmoothing.value   = options.smoothing;
+	elSurround.checked  = options.surround;
 }
 
 /**
@@ -3503,7 +3621,7 @@ function setOverlay() {
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
-		audioEl.style.display = ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] ? '' : 'none';
+		toggleDisplay( audioEl, ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] );
 
 	audioMotion.overlay = isOverlay;
 	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
@@ -3511,9 +3629,9 @@ function setOverlay() {
 	// enable/disable background image
 	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
 	// set visibility of background video layer
-	elVideo.style.display = isVideo || bgOption != BG_VIDEO ? 'none' : '';
+	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
 	// enable/disable background dim layer
-	elDim.style.display = ( isVideo && elNoDimVideo.checked ) || ( hasSubs && elNoDimSubs.checked ) ? 'none' : '';
+	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
 
 	return isOverlay;
 }
@@ -3537,7 +3655,7 @@ function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleGradients = () => elGradientRight.style.display = ( getControlValue( elChnLayout ) == CHANNEL_SINGLE || isSwitchOn( elLinkGrads ) ) ? 'none' : '';
+	const toggleGradientRight = () => toggleDisplay( elGradientRight, getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ) );
 
 	for ( const el of elems ) {
 		switch ( el ) {
@@ -3546,7 +3664,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elAnsiBands:
-				audioMotion.ansiBands = isSwitchOn( elAnsiBands );
+				audioMotion.ansiBands = +getControlValue( elAnsiBands );
 				break;
 
 			case elAutoHide:
@@ -3586,8 +3704,14 @@ function setProperty( elems, save = true ) {
 				}
 				break;
 
+			case elBandCount:
+				setControlValue( elMode, getControlValue( elBandCount ) ); // note: elBandCount value must be translated by getControlValue()
+				setProperty( elMode, false );
+				break;
+
 			case elBarSpace:
-				audioMotion.barSpace = audioMotion.isLumiBars ? 1.5 : getControlValue( elBarSpace );
+				const value = getControlValue( elBarSpace );
+				audioMotion.barSpace = audioMotion.isLumiBars || value == 1 ? 1.5 : value;
 				break;
 
 			case elBgImageFit:
@@ -3596,7 +3720,7 @@ function setProperty( elems, save = true ) {
 				elContainer.classList.toggle( 'repeat', bgFit == BGFIT_REPEAT );
 				elContainer.classList.toggle( 'cover', bgFit == BGFIT_ADJUST || isWarp );
 				elContainer.style.backgroundSize = '';
-				elWarp.style.display = isWarp ? '' : 'none';
+				toggleDisplay( elWarp, isWarp );
 				elWarp.classList.toggle( 'rotating', bgFit == BGFIT_WARP_ROT );
 				elWarp.classList.toggle( 'paused', bgFit == BGFIT_WARP );
 				break;
@@ -3630,23 +3754,19 @@ function setProperty( elems, save = true ) {
 
 			case elChnLayout:
 				audioMotion.channelLayout = getControlValue( elChnLayout );
-				toggleGradients();
+				toggleGradientRight();
 				break;
 
 			case elColorMode:
 				audioMotion.colorMode = getControlValue( elColorMode );
 				break;
 
-			case elFadePeaks:
-				audioMotion.fadePeaks = isSwitchOn( elFadePeaks );
-				break;
-
 			case elFillAlpha:
-				audioMotion.fillAlpha = ( elMode.value == MODE_AREA ) ? 1 : elFillAlpha.value;
+				audioMotion.fillAlpha = elFillAlpha.value;
 				break;
 
 			case elFFTsize :
-				audioMotion.fftSize = elFFTsize.value;
+				audioMotion.fftSize = getControlValue( elFFTsize );
 				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 				break;
 
@@ -3677,15 +3797,15 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLinearAmpl:
-				audioMotion.linearAmplitude = isSwitchOn( elLinearAmpl );
+				audioMotion.linearAmplitude = +getControlValue( elLinearAmpl );
 				break;
 
 			case elLineWidth:
-				audioMotion.lineWidth = ( elMode.value == MODE_AREA ) ? 0 : elLineWidth.value;
+				audioMotion.lineWidth = elLineWidth.value;
 				break;
 
 			case elLinkGrads:
-				toggleGradients();
+				toggleGradientRight();
 				if ( isSwitchOn( elLinkGrads ) )
 					setProperty( elGradient, false );
 				break;
@@ -3708,21 +3828,8 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elMode:
-				const mode = elMode.value;
-				if ( ! [ MODE_AREA, MODE_LINE ].includes( mode ) )
-					audioMotion.mode = mode;
-				else
-					audioMotion.mode = 10; // graph mode - for both "Area" and "Line"
-
-				if ( mode == MODE_AREA ) {
-					audioMotion.lineWidth = 0;
-					audioMotion.fillAlpha = 1;
-				}
-				else {
-					audioMotion.lineWidth = elLineWidth.value;
-					audioMotion.fillAlpha = elFillAlpha.value;
-				}
-
+				const mode = getControlValue( elMode );
+				audioMotion.mode = ( mode == MODE_BARS ) ? getControlValue( elBandCount ) : mode;
 				setProperty( elBarSpace, false );
 				break;
 
@@ -3733,10 +3840,6 @@ function setProperty( elems, save = true ) {
 			case elNoDimSubs:
 			case elNoDimVideo:
 				setOverlay();
-				break;
-
-			case elNoteLabels:
-				audioMotion.noteLabels = isSwitchOn( elNoteLabels );
 				break;
 
 			case elOSDFontSize:
@@ -3769,6 +3872,10 @@ function setProperty( elems, save = true ) {
 				setProperty( elBarSpace, false );
 				break;
 
+			case elRadius:
+				audioMotion.radius = getControlValue( elRadius );
+				break;
+
 			case elRandomMode:
 				const option = elRandomMode.value;
 
@@ -3789,6 +3896,11 @@ function setProperty( elems, save = true ) {
 
 			case elReflex:
 				switch ( getControlValue( elReflex ) ) {
+					case REFLEX_SHORT:
+						audioMotion.reflexRatio = .25;
+						audioMotion.reflexAlpha = .2;
+						break;
+
 					case REFLEX_ON:
 						audioMotion.reflexRatio = .4;
 						audioMotion.reflexAlpha = .2;
@@ -3825,11 +3937,12 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elScaleX:
-				audioMotion.showScaleX = isSwitchOn( elScaleX );
+				audioMotion.showScaleX = getControlValue( elScaleX ) != SCALEXY_OFF;
+				audioMotion.noteLabels = getControlValue( elScaleX ) == SCALEX_NOTES;
 				break;
 
 			case elScaleY:
-				audioMotion.showScaleY = isSwitchOn( elScaleY );
+				audioMotion.showScaleY = +getControlValue( elScaleY );
 				break;
 
 			case elSensitivity:
@@ -3842,7 +3955,8 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elShowPeaks:
-				audioMotion.showPeaks = isSwitchOn( elShowPeaks );
+				audioMotion.showPeaks = getControlValue( elShowPeaks ) != PEAKS_OFF;
+				audioMotion.fadePeaks = getControlValue( elShowPeaks ) == PEAKS_FADE;
 				break;
 
 			case elShowSubtitles:
@@ -3884,6 +3998,10 @@ function setProperty( elems, save = true ) {
 
 			case elSubsPosition:
 				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				break;
+
+			case elSurround:
+				toggleMultiChannel();
 				break;
 
 			case elWeighting:
@@ -4039,40 +4157,46 @@ function setVolume( value ) {
  * NOTE: this is called only once during initialization
  */
 function setUIEventListeners() {
-	// open/close media panel (auto-hide)
+	// collapse front panel on analyzer hover
+	let autoHideTimeout;
 	elContainer.addEventListener( 'mouseenter', () => {
-		if ( elAutoHide.checked && ! audioMotion.isFullscreen ) {
-			setTimeout( () => {
-				if ( elContainer.matches(':hover') )
-					toggleMediaPanel( false );
-			}, AUTOHIDE_DELAY );
-		}
+		if ( elAutoHide.checked && ! audioMotion.isFullscreen )
+			autoHideTimeout = setTimeout( () => toggleMediaPanel( false ), AUTOHIDE_DELAY );
 	});
-	$('.panel-area').addEventListener( 'mouseenter', () => toggleMediaPanel( true ) );
+	elContainer.addEventListener( 'mouseleave', () => clearTimeout( autoHideTimeout ) );
 
-	// wait for the transition on the analyzer container to end (triggered by toggleMediaPanel())
+	// toggle front panel button (expand/collapse)
+	elTogglePanel.addEventListener( 'click', () => toggleMediaPanel() );
+
+	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
 	elContainer.addEventListener( 'transitionend', () => {
-		if ( elContainer.style.height )
-			elMediaPanel.style.display = 'none'; // hide media panel
+		if ( elContainer.style.height ) {
+			for ( const panel of mainPanels )
+				toggleDisplay( $(`#${ panel.value }`), false ); // hide main panels
+		}
+
  		// restore overflow on body (keep the scroll bar always visible when the window is too short)
 		document.body.style.overflowY = window.innerHeight < WINDOW_MIN_HEIGHT ? 'scroll' : '';
 	});
 
-	// open/close settings panel
-	elToggleSettings.addEventListener( 'click', () => {
-		toggleMediaPanel( true );
-		toggleSettingsPanel();
+	// main panel selection
+	const panelButtons = elPanelSelection.panel; // RadioNodeList
+	panelButtons.forEach( btn => {
+		btn.addEventListener( 'click', evt => {
+			panelButtons.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
+			toggleMediaPanel( true ); // make sure the main panel is expanded
+			if ( btn.value == 'console' ) {
+				elToggleConsole.classList.remove('warning');
+				consoleLog(); // update scroll only
+			}
+		});
 	});
-	$('.settings-close').addEventListener( 'click', () => toggleSettingsPanel() );
 
-	// open/close console
-	elToggleConsole.addEventListener( 'click', () => {
-		toggleMediaPanel( true );
-		toggleConsole();
-		elToggleConsole.classList.remove('warning');
-		consoleLog(); // update scroll only
-	});
-	$('#console-close').addEventListener( 'click', () => toggleConsole() );
+	// make the first panel visible on initialization
+	$(`#panel-${ mainPanels[0].value }`).checked = true;
+	elMediaPanel.classList.add('active');
+
+	// clear console
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 
 	// settings switches
@@ -4083,15 +4207,15 @@ function setUIEventListeners() {
 		});
 	});
 
-	// settings combo boxes and sliders ('change' event is only triggered for select and input elements)
+	// settings combo boxes and sliders
 	$$('[data-prop]').forEach( el => {
 		if ( isCustomRadio( el ) ) {
 			el.elements[ el.dataset.prop ].forEach( btn => {
 				btn.addEventListener( 'click', () => setProperty( el ) );
 			});
 		}
-		else {
-			el.addEventListener( 'change', () => {
+		else { // 'input' event is triggered for select and input elements
+			el.addEventListener( 'input', () => {
 				setProperty( el );
 				updateRangeValue( el );
 			});
@@ -4107,25 +4231,15 @@ function setUIEventListeners() {
 		}
 	}
 
-	// volume and balance knobs
+	// volume knob
 	let wheelTimer;
-	[ elVolume,
-	  elBalance ].forEach( el => {
-	  	el.addEventListener( 'wheel', e => {
-			e.preventDefault(); // prevent scrolling the window
-			if ( wheelTimer )
-				return;
-			wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
-			const incr = Math.sign( e.deltaY || 0 );
-			if ( el == elVolume )
-				changeVolume( incr );
-			else
-				changeBalance( incr );
-		});
-	});
-
-	elBalance.addEventListener( 'dblclick', () => {
-		changeBalance(0);
+	elVolume.addEventListener( 'wheel', e => {
+		e.preventDefault(); // prevent scrolling the window
+		if ( wheelTimer )
+			return;
+		wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
+		const incr = Math.sign( e.deltaY || 0 );
+		changeVolume( incr );
 	});
 
 	// player controls
@@ -4156,35 +4270,21 @@ function setUIEventListeners() {
 		audioEl.currentTime = duration * elSongProgress.value;
 	});
 
-	// action buttons
-	$('#load_preset').addEventListener( 'click', () => {
-		const choices = [];
+	// load / save presets
 
-		presets.forEach( item => {
-			if ( ! isEmpty( item.options ) )
-				choices.push( { text: item.name + ( item.key == 'default' ? ' (warning: resets Volume!)' : '' ), handler: () => loadPreset( item.key ) } );
-		});
-
-		choices.push({
-			text: '<strong>USER PRESETS →</strong>', handler: () => {
-				const userChoices = [];
-				getUserPresets().forEach( ( text, index ) => {
-					userChoices.push( { text, handler: () => loadPreset( index ) } );
-				});
-				notie.select({
-					text: 'LOAD PRESET:',
-					choices: userChoices
-				});
-			}
-		});
-
-		notie.select({
-			text: 'LOAD PRESET:',
-			choices
-		});
+	elPresets.addEventListener( 'input', () => {
+		const key = elPresets.value;
+		if ( key ) {
+			notie.confirm({
+				text: `Load preset ${ getText( elPresets ) }?`,
+				submitText: 'LOAD',
+				submitCallback: () => loadPreset( key )
+			});
+			elPresets.value = '';
+		}
 	});
 
-	$('#btn_save').addEventListener( 'click', () => {
+	$('#btn_manage_presets').addEventListener( 'click', () => {
 		const choices = [];
 		getUserPresets().forEach( ( text, index ) => {
 			const options = userPresets[ index ].options;
@@ -4196,12 +4296,20 @@ function setUIEventListeners() {
 		});
 
 		notie.select({
-			text: '<strong>Click slot to SAVE - Use buttons to Edit or Delete</strong>',
+			text: '<strong>Click slot to SAVE - Use buttons to Rename or Delete</strong>',
 			choices
 		});
 	});
 
-	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
+	for ( const [ el, key ] of [ [ $('#preset_last'), PRESET_KEY_LAST_SESSION ], [ $('#preset_default'), PRESET_KEY_DEFAULT ] ] ) {
+		el.addEventListener( 'click', () => {
+			notie.confirm({
+				text: `Restore all options in <strong>Settings</strong> and <strong>Advanced</strong> panels to ${ key == PRESET_KEY_DEFAULT ? 'defaults' : 'session start' }?`,
+				submitText: 'RESTORE',
+				submitCallback: () => loadPreset( key )
+			});
+		});
+	}
 
 	// playlist controls
 
@@ -4230,7 +4338,7 @@ function setUIEventListeners() {
 		  setToggleButtonText = () => btnToggleFS.innerText = `Switch to ${ useFileSystemAPI ? 'Server' : 'Device' }`;
 
 	if ( ! serverHasMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
-		btnToggleFS.style.display = 'none';
+		toggleDisplay( btnToggleFS, false );
 	else {
 		setToggleButtonText();
 		btnToggleFS.addEventListener( 'click', async () => {
@@ -4251,18 +4359,18 @@ function setUIEventListeners() {
 		  btnAddFolder   = $('#btn_add_folder');
 
 	if ( serverHasMedia || useFileSystemAPI ) {
-		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getFolderContents('.selected') ) );
-		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getFolderContents() ) );
+		btnAddSelected.addEventListener( 'mousedown', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents('.selected') ) );
+		btnAddFolder.addEventListener( 'click', () => addBatchToPlayQueue( fileExplorer.getCurrentFolderContents() ) );
 	}
 	else {
-		btnAddSelected.style.display = 'none';
-		btnAddFolder.style.display = 'none';
+		toggleDisplay( btnAddSelected, false );
+		toggleDisplay( btnAddFolder, false );
 	}
 
 	// local file upload - disabled when the File System API is supported
 	const uploadBtn = $('#local_file');
 	if ( supportsFileSystemAPI )
-		uploadBtn.parentElement.style.display = 'none';
+		toggleDisplay( uploadBtn.parentElement, false );
 	else
 		uploadBtn.addEventListener( 'change', e => loadLocalFile( e.target ) );
 
@@ -4280,7 +4388,11 @@ function setUIEventListeners() {
 		});
 	});
 
+	// toggle Fullscreen
+	$('#btn_fullscreen').addEventListener( 'click', fullscreen );
+
 	// Picture-In-Picture functionality
+
 	let canvasTrack, pipWindow;
 
 	const pipButton = $('#btn_pip');
@@ -4332,9 +4444,38 @@ function setUIEventListeners() {
 	}
 
 	// setup gradient editor controls
-	$('#add-gradient').addEventListener('click', openGradientEditorNew);
-	$('#btn-save-gradient').addEventListener( 'click', saveGradient );
-	$('#btn-delete-gradient').addEventListener('click', deleteGradient );
+	$('#add-gradient').addEventListener('click', () => openGradientEditorNew() );
+	$('#btn-save-gradient').addEventListener( 'click', () => saveGradient() );
+	$('#btn-save-gradient-copy').addEventListener( 'click', () => openGradientEditorNew( true ) );
+	$('#btn-delete-gradient').addEventListener('click', () => {
+		notie.confirm({
+			text: `Do you really want to DELETE <strong>${ currentGradient.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
+			submitText: 'DELETE',
+			submitCallback: () => deleteGradient()
+		});
+	});
+
+	const btnExportGradient = $('#btn-export-gradient');
+	btnExportGradient.addEventListener( 'click', () => {
+		btnExportGradient.setAttribute( 'href', encodeJSONDataURI( currentGradient ) );
+		btnExportGradient.setAttribute( 'download', `audioMotion-gradient-${ currentGradient.key }.json` );
+	});
+
+	const btnImportGradient = $('#import_gradient');
+	btnImportGradient.addEventListener( 'input', () => {
+		const fileBlob = btnImportGradient.files[0];
+		btnImportGradient.value = ''; // clear file (needed for the event to trigger if user loads the same file again)
+		fileBlob.text().then( contents => {
+			try {
+				currentGradient = JSON.parse( contents );
+			}
+			catch ( e ) {
+				consoleLog( e, true );
+				return;
+			}
+			saveGradient( true ); // indicate this is an imported gradient
+		});
+	});
 
 	$('#new-gradient-bkgd').addEventListener('input', (e) => {
 		currentGradient.bgColor = e.target.value;
@@ -4354,6 +4495,34 @@ function setUIEventListeners() {
 		el.addEventListener( 'click', () => {
 			if ( ! el.open )
 				accordionItems.forEach( item => item.open = false );
+		});
+	});
+
+	// Export / import settings
+
+	const btnExportSettings = $('#export_settings');
+	btnExportSettings.addEventListener( 'click', () => {
+		btnExportSettings.setAttribute( 'href', encodeJSONDataURI( getCurrentSettings() ) );
+		btnExportSettings.setAttribute( 'download', 'audioMotion-settings.json' );
+	});
+
+	const btnImportSettings = $('#import_settings');
+	btnImportSettings.addEventListener( 'input', () => {
+		const fileBlob = btnImportSettings.files[0];
+		btnImportSettings.value = ''; // clear file
+		notie.confirm({
+			text: 'ATTENTION!<br>This will overwrite all current options in the <strong>Settings</strong> and <strong>Advanced</strong> panels!',
+			submitText: 'IMPORT',
+			submitCallback: () => {
+				fileBlob.text().then( contents => {
+					try {
+						loadPreset( JSON.parse( contents ) );
+					}
+					catch ( e ) {
+						consoleLog( e, true );
+					}
+				});
+			}
 		});
 	});
 }
@@ -4410,17 +4579,16 @@ async function storePlayQueue( name, update = true ) {
 	}
 
 	if ( name ) {
-		let safename = name;
+		let safename;
 
 		if ( ! isSaveQueue && ! update ) {
-			safename = safename.normalize('NFD').replace( /[\u0300-\u036f]/g, '' ); // remove accents
-			safename = safename.toLowerCase().replace( /[^a-z0-9]/g, '_' );
+			safename = generateSafeKeyName( name, '_' );
 
 			let playlists = await get( KEY_PLAYLISTS ) || {},
 				attempt   = 0,
 				basename  = safename;
 
-			while ( playlists.hasOwnProperty( safename ) && attempt < 100 ) {
+			while ( playlists.hasOwnProperty( safename ) && attempt < 1000 ) {
 				safename = basename + '_' + attempt;
 				attempt++;
 			}
@@ -4434,8 +4602,8 @@ async function storePlayQueue( name, update = true ) {
 
 		for ( const item of playlist.childNodes ) {
 			const { album, artist, codec, duration, file, title } = item.dataset,
-				  { handle, subs } = item;
-			songs.push( { file, handle, subs, content: { album, artist, codec, duration, title } } );
+				  { handle, dirHandle } = item;
+			songs.push( { file, handle, dirHandle, content: { album, artist, codec, duration, title } } );
 		}
 
 		if ( isSaveQueue )
@@ -4470,34 +4638,28 @@ function syncMetadataToAudioElements( source ) {
 }
 
 /**
- * Open/close the Console
+ * Expand/collapse the front panel and adjust the canvas height
  *
- * @param {boolean} desired state - if undefined, inverts the current state
- */
-function toggleConsole( force ) {
-	$('#console').classList.toggle( 'active', elToggleConsole.classList.toggle( 'active', force ) );
-}
-
-/**
- * Show/hide the media panel (for auto-hide feature) and adjust the canvas height
- *
- * @param {boolean} `true` to show the media panel, otherwise hide it
+ * @param {boolean} `true` to expand or `false` to collapse the front panel; if undefined, toggles the current state
  */
 function toggleMediaPanel( show ) {
+	if ( show === undefined )
+		show = !! elContainer.style.height;
+
 	// disable overflow to avoid scrollbar while the analyzer area is expanding (when the window is tall enough)
-	// it will be restored by the `transitionend` event listener on the container
+	// it will be restored by the `transitionend` event listener on the container, set in setUIEventListeners()
 	if ( window.innerHeight >= WINDOW_MIN_HEIGHT )
 		document.body.style.overflowY = 'hidden';
 
-	if ( show )
-		elMediaPanel.style.display = '';
-	else {
-		// when hiding, also close the console and the settings panel
-		toggleConsole( false );
-		toggleSettingsPanel( false );
+	// show main panels (hidden by the `transitionend` event listener)
+	if ( show ) {
+		for ( const panel of mainPanels )
+			toggleDisplay( $(`#${ panel.value }`), true );
 	}
 
-	elContainer.style.height = show ? '' : 'calc( 100vh - 160px )';
+	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
+	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
+	elTogglePanel.classList.toggle( 'closed', ! show );
 }
 
 /**
@@ -4510,6 +4672,19 @@ function toggleInfo() {
 		setCanvasMsg(); // if already showing all info, turn it off
 	else // increase the information level (0 -> 1 -> 2) and reset the display timeout
 		setCanvasMsg( ( canvasMsg.info | 0 ) + 1, +elInfoTimeout.value || Infinity ); // NOTE: canvasMsg.info may be undefined
+}
+
+/**
+ * Toggle multi-channel audio output
+ */
+function toggleMultiChannel() {
+	const { destination }     = audioMotion.audioCtx,
+		  { maxChannelCount } = destination,
+		  isSurround          = elSurround.checked;
+
+	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
+	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
+	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
 }
 
 /**
@@ -4545,21 +4720,11 @@ function toggleMute( mute ) {
 }
 
 /**
- * Open/close the Settings panel
- *
- * @param {boolean} desired state - if undefined, inverts the current state
- */
-function toggleSettingsPanel( force ) {
-	$('#settings').classList.toggle( 'active', elToggleSettings.classList.toggle( 'active', force ) );
-}
-
-/**
  * Update last used configuration
  */
 function updateLastConfig() {
 	saveToStorage( KEY_LAST_CONFIG, {
 		...getCurrentSettings(),
-		balance  : elBalance.dataset.value,
 		micSource: elSource.checked,
 		mute     : elMute.checked,
 		volume   : elVolume.dataset.value,
@@ -4571,8 +4736,34 @@ function updateLastConfig() {
  */
 function updateRangeValue( el ) {
 	const elVal = el.previousElementSibling;
-	if ( elVal && elVal.className == 'value' )
-		elVal.innerText = el.value;
+	if ( ! elVal || elVal.className != 'value' )
+		return;
+
+	const translation = val => {
+		const { abs, sign } = Math;
+		if ( el == elBandCount ) {
+			return [
+				'',
+				'10 bands (octaves)',
+				'20 bands (half octaves)',
+				'30 bands (1/3rd oct.)',
+				'40 bands (1/4th oct.)',
+				'60 bands (1/6th oct.)',
+				'80 bands (1/8th oct.)',
+				'120 bands (1/12th oct.)',
+				'240 bands (1/24th oct.)'
+			][ +val || 0 ];
+		}
+		else if ( el == elBarSpace )
+			return val == 0 ? 'None' : ( val == 1 ? 'Legacy' : `${ val * 100 | 0 }%` );
+		else if ( el == elFillAlpha )
+			return val == 0 ? 0 : `${ val * 100 | 0 }%`;
+		else if ( el == elSpin )
+			return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
+		return val;
+	}
+
+	elVal.innerText = translation( el.value );
 }
 
 
@@ -4821,10 +5012,14 @@ function updateRangeValue( el ) {
 
 	// BEGIN INITIALIZATION -----------------------------------------------------------------------
 
+	let initDone = false;
+
+	// Create the main panel selection buttons
+	populateCustomRadio( elPanelSelection, mainPanels, 'panel' );
+	elToggleConsole = $('label[for="panel-console"]');
+
 	// Log all JS errors to our UI console
 	window.addEventListener( 'error', event => consoleLog( `Unexpected ${event.error}`, true ) );
-
-	let initDone = false;
 
 	consoleLog( `audioMotion v${VERSION} initializing...` );
 	consoleLog( `User agent: ${navigator.userAgent}` );
@@ -4884,6 +5079,19 @@ function updateRangeValue( el ) {
 	if ( userMediaPanel == PANEL_CLOSE || ( serverConfig.mediaPanel == PANEL_CLOSE && userMediaPanel != PANEL_OPEN ) )
 		toggleMediaPanel( false );
 
+	// Create audioMotion analyzer
+
+	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
+
+	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
+		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
+		fsElement: elContainer,
+		onCanvasDraw: displayCanvasMsg,
+		onCanvasResize: showCanvasInfo
+	});
+
+	const audioCtx = audioMotion.audioCtx;
+
 	// Load preferences from localStorage
 	const isLastSession = loadPreferences();
 
@@ -4912,29 +5120,11 @@ function updateRangeValue( el ) {
 			playlistPos = getIndex( playlist.querySelector('.current') );
 			if ( evt.newIndex == 0 && ! isPlaying() )
 				loadSong(0);
-			loadNextSong();
+			else
+				loadSong( NEXT_TRACK );
 			storePlayQueue( true );
 		}
 	});
-
-	// Create audioMotion analyzer
-
-	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
-
-	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
-		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
-		fsElement: elContainer,
-		onCanvasDraw: displayCanvasMsg,
-		onCanvasResize: showCanvasInfo
-	});
-
-	const audioCtx = audioMotion.audioCtx;
-
-	// create panNode for balance control - NOTE: no support on Safari < 14.1
-	if ( audioCtx.createStereoPanner ) {
-		panNode = audioCtx.createStereoPanner();
-		audioMotion.connectInput( panNode );
-	}
 
 	// Initialize and connect audio elements
 
@@ -4950,10 +5140,7 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		if ( panNode )
-			audioCtx.createMediaElementSource( audioElement[ i ] ).connect( panNode );
-		else
-			audioMotion.connectInput( audioElement[ i ] );
+		audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );
@@ -4965,7 +5152,7 @@ function updateRangeValue( el ) {
 
 	// Populate combo boxes
 
-	populateSelect( elMode, modeOptions );
+	populatePresets();
 
 	for ( const i of [16,20,25,30,40,50,60,100,250,500,1000,2000] )
 		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
@@ -4973,37 +5160,32 @@ function updateRangeValue( el ) {
 	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
 		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
 
+	populateCustomRadio( elMode, modeOptions );
+
 	populateCustomRadio( elChnLayout, channelLayoutOptions );
 
 	populateCustomRadio( elSensitivity, [
 		[ '0', 'Low'    ],
-		[ '1', 'Normal' ],
+		[ '1', 'Medium' ],
 		[ '2', 'High'   ]
 	]);
 
-	populateCustomRadio( elBarSpace, [
-		[ '1.5',  'Min' ],
-		[ '0.1',  '10' ],
-		[ '0.25', '25' ],
-		[ '0.5',  '50' ],
-		[ '0.75', '75' ]
-	]);
-
 	populateSelect( elRandomMode, [
-		[ '0',   'OFF'             ],
-		[ '1',   'On track change' ],
-		[ '2',   '5 seconds'       ],
-		[ '6',   '15 seconds'      ],
-		[ '12',  '30 seconds'      ],
-		[ '24',  '1 minute'        ],
-		[ '48',  '2 minutes'       ],
-		[ '120', '5 minutes'       ]
+		[ '0',   'OFF'              ],
+		[ '1',   'On track change'  ],
+		[ '2',   'every 5 seconds'  ],
+		[ '6',   'every 15 seconds' ],
+		[ '12',  'every 30 seconds' ],
+		[ '24',  'every minute'     ],
+		[ '48',  'every 2 minutes'  ],
+		[ '120', 'every 5 minutes'  ]
 	]);
 
 	populateCustomRadio( elReflex, [
-		[ '0', 'Off'  ],
-		[ '1', 'On'   ],
-		[ '2', 'Full' ]
+		[ REFLEX_OFF,   'Off'    ],
+		[ REFLEX_SHORT, '25%'    ],
+		[ REFLEX_ON,    '40%'    ],
+		[ REFLEX_FULL,  'Mirror' ]
 	]);
 
 	populateSelect( elBgImageFit, bgFitOptions );
@@ -5015,14 +5197,14 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elFreqScale, [
-		[ SCALE_BARK,   'Bark' ],
-		[ SCALE_LINEAR, 'Lin'  ],
-		[ SCALE_LOG,    'Log'  ],
-		[ SCALE_MEL,    'Mel'  ]
+		[ SCALE_BARK,   'Bark'   ],
+		[ SCALE_LINEAR, 'Linear' ],
+		[ SCALE_LOG,    'Log'    ],
+		[ SCALE_MEL,    'Mel'    ]
 	]);
 
 	populateCustomRadio( elWeighting, [
-		[ WEIGHT_NONE, 'OFF' ],
+		[ WEIGHT_NONE, 'Off' ],
 		[ WEIGHT_A,    'A'   ],
 		[ WEIGHT_B,    'B'   ],
 		[ WEIGHT_C,    'C'   ],
@@ -5036,10 +5218,48 @@ function updateRangeValue( el ) {
 		[ COLOR_LEVEL,    'Level' ]
 	]);
 
-	setRangeAtts( elBgImageDim, 0.1, 1, .1 );
-	setRangeAtts( elLineWidth, 1, 3, .5 );
-	setRangeAtts( elFillAlpha, 0, .5, .1 );
-	setRangeAtts( elSpin, 0, 3, 1 );
+	populateCustomRadio( elShowPeaks, [
+		[ PEAKS_OFF,  'Off'  ],
+		[ PEAKS_ON,   'Drop' ],
+		[ PEAKS_FADE, 'Fade' ]
+	]);
+
+	populateCustomRadio( elScaleX, [
+		[ SCALEXY_OFF,  'Off'   ],
+		[ SCALEXY_ON,   'Freqs' ],
+		[ SCALEX_NOTES, 'Notes' ]
+	]);
+
+	populateCustomRadio( elScaleY, [
+		[ SCALEXY_OFF, 'Off' ],
+		[ SCALEXY_ON,  'On'  ]
+	]);
+
+	populateCustomRadio( elAnsiBands, [
+		[ 0, 'Tempered' ],
+		[ 1, 'ANSI/IEC' ]
+	]);
+
+	populateCustomRadio( elLinearAmpl, [
+		[ 0, 'Decibels' ],
+		[ 1,  'Linear'  ]
+	]);
+
+	let fftOptions = [];
+	for ( let i = 10; i < 16; i++ ) {
+		const size = 2 ** i;
+		fftOptions.push( [ size, `${ size / 1024 | 0 }k` ] );
+	}
+	populateCustomRadio( elFFTsize, fftOptions );
+
+	setRangeAtts( elBandCount, 1, 8 );
+	setRangeAtts( elBarSpace, 0, 1, .05 );
+	setRangeAtts( elBgImageDim, 0.1, 1, .05 );
+	setRangeAtts( elFillAlpha, 0, 1, .05 );
+	setRangeAtts( elLineWidth, 0, 3, .5 );
+	setRangeAtts( elRadius, 0, 1, .05 );
+	setRangeAtts( elSmoothing, 0, .95, .05 );
+	setRangeAtts( elSpin, -10, 10, 1 );
 
 	// Clear canvas messages
 	setCanvasMsg();
@@ -5080,7 +5300,7 @@ function updateRangeValue( el ) {
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
-			consoleLog( 'No browser support for File System Access API. Cannot access files from local device.', forceFileSystemAPI );
+			consoleLog( 'No browser support for File System Access API. Cannot access files from local device. <a href="https://audiomotion.app/docs/#/known-issues?id=file-system-access-api" target="_blank">Learn more...</a>', forceFileSystemAPI );
 
 		saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
 		loadSavedPlaylists();
@@ -5104,7 +5324,8 @@ function updateRangeValue( el ) {
 						let items    = evt.items.length ? evt.items : [ evt.item ],
 							promises = [];
 						items.forEach( item => {
-							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle: item.handle, subs: item.subs } ) );
+							const { handle, dirHandle, subs } = item;
+							promises.push( addToPlayQueue( { file: fileExplorer.makePath( item.dataset.path ), handle, dirHandle, subs } ) );
 							item.remove();
 						});
 						Promise.all( promises ).then( () => storePlayQueue( true ) );
@@ -5156,7 +5377,7 @@ function updateRangeValue( el ) {
 			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
-		loadPreset( 'last', false, true );
+		loadPreset( PRESET_KEY_LAST_SESSION, false, true );
 
 		if ( isBgDirLocked || isLastDirLocked ) {
 			elMediaPanel.classList.add('locked');
@@ -5165,6 +5386,7 @@ function updateRangeValue( el ) {
 		else
 			enterLastDir();
 
+		setProperty( elSurround );
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;

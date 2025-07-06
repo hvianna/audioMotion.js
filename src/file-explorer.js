@@ -3,7 +3,7 @@
  * File explorer module
  *
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2024 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2025 Henrique Vianna <hvianna@gmail.com>
  */
 
 const defaultRoot           = '/music',
@@ -48,7 +48,8 @@ function updateUI( content, scrollTop ) {
 		li.dataset.path = fileName;
 		li.dataset.subs = + !! item.subs; // used to show the 'subs' badge in the file list
 		li.innerText    = fileName;
-		li.handle       = item.handle; // for File System API accesses
+		li.handle       = item.handle;    // for File System API accesses
+		li.dirHandle    = item.dirHandle;
 		li.subs         = item.subs;
 
 		ui_files.append( li );
@@ -85,7 +86,7 @@ function updateUI( content, scrollTop ) {
 		if ( cover && cover.handle )
 			cover.handle.getFile().then( fileBlob => setBgImage( URL.createObjectURL( fileBlob ) ) );
 		else
-			setBgImage( cover ? makePath( cover ) : '' );
+			setBgImage( cover ? makePath( cover.name ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -99,7 +100,7 @@ function updateUI( content, scrollTop ) {
  * @param {number} [scrollTop] scrollTop attribute for the filelist container
  * @returns {Promise<boolean>} A promise that resolves to true if the directory change was successful, or false otherwise
  */
-function enterDir( target, scrollTop ) {
+async function enterDir( target, scrollTop ) {
 
 	let handle      = ! target || typeof target == 'string' ? null : target,
 		savedHandle = currentDirHandle,
@@ -122,47 +123,25 @@ function enterDir( target, scrollTop ) {
 
 	ui_files.classList.add( CLASS_LOADING );
 
-	return new Promise( async resolve => {
+	if ( currentDirHandle && handle )
+		currentDirHandle = handle;
 
-		const parseContent = content => {
-			ui_files.classList.remove( CLASS_LOADING );
-			if ( content !== false ) {
-				content = parseDirectory( content );
-				updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
-				if ( enterDirCallback )
-					enterDirCallback( currentPath );
-				resolve( true );
-			}
-			else {
-				currentPath = savedPath;
-				currentDirHandle = savedHandle;
-				resolve( false );
-				// in case of error we don't `updateUI()`, to keep the current directory contents in the explorer
-			}
-		}
+	const content = await getDirectoryContents( makePath(), currentDirHandle );
 
-		if ( currentDirHandle ) { // File System API
-			if ( handle )
-				currentDirHandle = handle;
+	ui_files.classList.remove( CLASS_LOADING );
 
-			let content = [];
-			try {
-				for await ( const p of currentDirHandle.entries() )
-					content.push( p );
-			}
-			catch( e ) {
-				content = false;
-			}
-			parseContent( content );
-		}
-		else {
-			const url = makePath();
-			fetch( url )
-				.then( response => response.ok ? response.text() : false )
-				.then( content => parseContent( content ) )
-				.catch( () => parseContent( false ) );
-		}
-	});
+	if ( content !== false ) {
+		updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
+		if ( enterDirCallback )
+			enterDirCallback( currentPath );
+		return true;
+	}
+	else {
+		currentPath = savedPath;
+		currentDirHandle = savedHandle;
+		return false;
+		// in case of error we don't `updateUI()`, to keep the current directory contents in the explorer
+	}
 }
 
 /**
@@ -242,24 +221,56 @@ export function makePath( fileName ) {
  * @param {string} [selector='li']  optional CSS selector
  * @returns {array} list of music files and playlists only
  */
-export function getFolderContents( selector = 'li' ) {
+export function getCurrentFolderContents( selector = 'li' ) {
 
 	let contents = [];
 
 	ui_files.querySelectorAll( selector ).forEach( entry => {
-		const { handle, subs } = entry,
-			  { path, type }   = entry.dataset;
+		const { path, type } = entry.dataset,
+			  { handle, dirHandle, subs } = entry;
+
 		if ( ['file', 'list'].includes( type ) )
-			contents.push( { file: makePath( path ), handle, subs, type } );
+			contents.push( { file: makePath( path ), handle, dirHandle, subs, type } );
 	});
 	return contents;
 }
 
 /**
- * Resolve a pathname and return the handles for the media file and corresponding subtitles file (if any)
+ * Returns the contents of a given directory
+ *
+ * @param {string} URL of the directory to read in webserver mode
+ * @param {FileSystemDirectoryHandle} handle of the directory to read in filesystem mode (takes precedence, if defined)
+ * @returns {array|false} Directory entries; `false` in case of access error
+ */
+export async function getDirectoryContents( path, dirHandle ) {
+
+	let content;
+
+	try {
+		if ( supportsFileSystemAPI && dirHandle instanceof FileSystemDirectoryHandle ) {
+			// File System Access API
+			content = [];
+			for await ( const [ name, handle ] of dirHandle.entries() ) // entries() iterator returns an array
+				content.push( { name, handle, dirHandle } ); // we convert it to our own fileObj
+		}
+		else {
+			// Web server
+			const response = await fetch( path );
+			content = response.ok ? await response.text() : false;
+		}
+	}
+	catch( e ) {
+		content = false;
+	}
+
+	return content === false ? false : parseDirectory( content, path );
+}
+
+/**
+ * Resolve a pathname and return the filesystem handles for the file and its directory
  *
  * @param {string} path to filename (must be relative to currentPath)
- * @returns {object} { handle, subs }
+ * @returns {object} { handle, dirHandle }
  */
 export async function getHandles( pathname ) {
 	const workPath   = [ ...currentPath ],
@@ -284,16 +295,8 @@ export async function getHandles( pathname ) {
 		}
 	}
 
-	let filename = targetPath.shift(),
-		basename = filename.slice( 0, filename.lastIndexOf('.') ),
-		subs;
-
-	try {
-		subs = { handle: await handle.getFileHandle( basename + '.vtt' ) };
-	}
-	catch( e ) {
-		// subs not found for this file
-	}
+	const filename  = targetPath.shift(),
+		  dirHandle = handle;
 
 	try {
 		handle = await handle.getFileHandle( filename );
@@ -302,7 +305,7 @@ export async function getHandles( pathname ) {
 		handle = undefined; // requested file not found
 	}
 
-	return { handle, subs }
+	return { handle, dirHandle }
 }
 
 /**
@@ -343,10 +346,17 @@ export function parseWebIndex( content ) {
 /**
  * Parses filenames from standard web server or File System API directory listing
  *
- * @param {string}   content HTML body of a web server directory listing
+ * @param {string|array} HTML body of a web directory listing OR array of file system entries
+ * @param [{string}] directory path (if undefined, considers the current directory)
  * @returns {object} folder/cover image, list of directories, list of files
  */
-export function parseDirectory( content ) {
+export function parseDirectory( content, path ) {
+
+	// NOTE: `path` is currently used only to generate the correct `src` for subs files when
+	//       reading an arbitrary directory. For all other files, only the filename is included.
+	//
+	// TO-DO: add an extra `path` or `src` property to *all* entries in the returned object,
+	//        so we don't have to deal with this everywhere else!
 
 	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
 		  subsExtensions  = /\.vtt$/i;
@@ -362,9 +372,10 @@ export function parseDirectory( content ) {
 		return arr.find( el => ( el.name || el ).match( regexp ) );
 	}
 
-	if ( useFileSystemAPI ) {
-		for ( const [ name, handle ] of content ) {
-			const fileObj = { name, handle };
+	if ( Array.isArray( content ) && supportsFileSystemAPI ) {
+		// File System entries
+		for ( const fileObj of content ) {
+			const { name, handle, dirHandle } = fileObj;
 			if ( handle instanceof FileSystemDirectoryHandle )
 				dirs.push( fileObj );
 			else if ( handle instanceof FileSystemFileHandle ) {
@@ -378,6 +389,7 @@ export function parseDirectory( content ) {
 		}
 	}
 	else {
+		// Web server HTML content
 		for ( const { url, file } of parseWebIndex( content ) ) {
 			const fileObj = { name: file };
 			if ( url.slice( -1 ) == '/' ) {
@@ -403,7 +415,7 @@ export function parseDirectory( content ) {
 			  fileEntry = files.find( el => el.name.startsWith( basename ) );
 
 		if ( fileEntry )
-			fileEntry.subs = { src: makePath( name ), lang, handle };
+			fileEntry.subs = { src: path ? path + name : makePath( name ), lang, handle };
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
@@ -539,7 +551,7 @@ export function create( container, options = {} ) {
 		const item = e.target;
 		if ( item && item.nodeName == 'LI' ) {
 			if ( dblClickCallback && ['file','list'].includes( item.dataset.type ) )
-				dblClickCallback( { file: makePath( item.dataset.path ), handle: item.handle, subs: item.subs }, e );
+				dblClickCallback( { file: makePath( item.dataset.path ), handle: item.handle, dirHandle: item.dirHandle, subs: item.subs }, e );
 		}
 	});
 
