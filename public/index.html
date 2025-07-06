@@ -206,6 +206,10 @@
 				</div>
 
 				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="last-row">
 					<span class="config-label help">Se<u>n</u>sitivity
 						<span class="tooltip">
 						Improve visualization of songs too quiet or too loud. Customize in Configuration.
@@ -214,11 +218,27 @@
 					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
+			<!-- COLUMN 3 -->
+				<div class="column rowspan-2">
+					<span class="config-label help"><u>G</u>radients
+						<span class="tooltip">
+							Gradients for left and right channels. Manage gradients in Configuration.
+						</span>
+					</span>
+
+					<div class="flex align-center">
+						<select id="gradient" data-prop="gradient"></select>
+						<select id="gradientRight" data-prop="gradientRight"></select>
+					</div>
+
+					<ul class="switch-bar">
+						<li class="switch" id="link_grads" data-prop="linkGrads">LINK
+							<span class="tooltip">Use the same Gradient for both channels</span>
+						<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
+							<span class="tooltip">Split gradients in two different parts<br><em>(for Vertical dual-channel layout)</em></span>
+					</ul>
 				</div>
 
-			<!-- COLUMN 3 -->
 				<div>
 					<span class="config-label help"><u>B</u>ackground
 						<span class="tooltip">
@@ -249,26 +269,6 @@
 					<input id="bg_img_dim" type="range" data-prop="bgImageDim" class="custom-slider">
 				</div>
 
-				<div class="column rowspan-2">
-					<span class="config-label help"><u>G</u>radients
-						<span class="tooltip">
-							Gradients for left and right channels. Manage gradients in Configuration.
-						</span>
-					</span>
-
-					<div class="flex align-center">
-						<select id="gradient" data-prop="gradient"></select>
-						<select id="gradientRight" data-prop="gradientRight"></select>
-					</div>
-
-					<ul class="switch-bar">
-						<li class="switch" id="link_grads" data-prop="linkGrads">LINK
-							<span class="tooltip">Use the same Gradient for both channels</span>
-						<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
-							<span class="tooltip">Split gradients in two different parts<br><em>(for Vertical dual-channel layout)</em></span>
-					</ul>
-				</div>
-
 			<!-- COLUMN 4 -->
 				<div class="rowspan-2">
 					<span class="config-label">Effects</span>
@@ -296,6 +296,10 @@
 				</div>
 
 				<div>
+					<!-- EMPTY CELL -->
+				</div>
+
+				<div class="last-row">
 					<span class="config-label help">Refle<u>x</u>
 						<span class="tooltip">
 						Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
@@ -335,7 +339,7 @@
 					<form id="scaleX" class="custom-radio-buttons" data-prop="showScaleX"></form>
 				</div>
 
-				<div class="last-column">
+				<div class="last-column last-row">
 					<span class="config-label">Y-Axis Label<u>s</u></span>
 					<form id="scaleY" class="custom-radio-buttons" data-prop="showScaleY"></form>
 				</div>

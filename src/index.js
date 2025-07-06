@@ -2837,12 +2837,17 @@ function populateCustomRadio( element, options, name ) {
  */
 function populateEnabledGradients() {
 	// Enabled gradients
-	const elEnabledGradients = $('#enabled_gradients');
+	const elEnabledGradients = $('#enabled_gradients'),
+		  gradientKeys       = Object.keys( gradients ),
+		  collator           = new Intl.Collator();
+
+	// case-insensitive sorting with international characters support - https://stackoverflow.com/a/40390844/2370385
+	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
 
 	// reset
 	deleteChildren(elEnabledGradients);
 
-	Object.keys( gradients ).forEach( key => {
+	gradientKeys.forEach( key => {
 		elEnabledGradients.innerHTML +=
 			`<label>
 				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
@@ -2879,12 +2884,17 @@ function populateEnabledGradients() {
  * Populate UI gradient selection combo box
  */
 function populateGradients() {
+	const gradientKeys = Object.keys( gradients ),
+		  collator     = new Intl.Collator();
+
+	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
+
 	for ( const el of [ elGradient, elGradientRight ] ) {
 		let grad = el.value;
 		deleteChildren( el );
 
 		// add the option to the html select element for the user interface
-		for ( const key of Object.keys( gradients ) ) {
+		for ( const key of gradientKeys ) {
 			if ( ! gradients[ key ].disabled )
 				el.options[ el.options.length ] = new Option( gradients[ key ].name, key );
 		}
