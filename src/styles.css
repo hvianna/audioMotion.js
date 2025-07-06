@@ -163,12 +163,10 @@ a.button:visited {
 	padding: 15px 20px;
 	row-gap: 20px;
 }
-.controls input[type="number"],
 .controls form,
-.controls select {
+.controls select,
+.controls .button-bar {
 	margin-top: 3px;
-	padding-left: 0;
-	padding-right: 0;
 	width: 100%;
 }
 .controls select {
@@ -343,65 +341,23 @@ a.button:visited {
 	padding: 0 25px;
 }
 
-.panel-selection {
-	z-index: 2; /* so active buttons glow can overflow the containing div */
+.function-buttons {
+	grid-template-columns: repeat( 4, 100px ) !important; /* `auto-fit` doesn't seem to work with justify ?? */
+	justify-self: end;
+	z-index: 2;
 }
-.panel-selection input {
-	display: none;
+
+.panel-selection {
+	grid-template-columns: repeat( auto-fit, 100px ) !important;
+	z-index: 2; /* so active buttons glow can overflow the containing div */
 }
 .panel-selection input:checked + label::before {
 	content: '\e313';
 	font-family: 'Material Symbols Rounded';
 	font-size: 1.25em;
-	line-height: .75;
+	line-height: .9;
 	margin-left: -1em;
 	position: absolute;
-}
-
-.thin-button {
-	background: var(--glass-gradient);
-	border: 1px solid #999;
-	color: #333;
-	cursor: pointer;
-	display: inline-block;
-	font-weight: 400;
-	font-size: .85rem;
-	min-width: 100px;
-	padding: 7px 0 5px;
-	position: relative;
-	text-align: center;
-}
-.thin-button:first-child,
-.thin-button:first-of-type {
-	border-bottom-left-radius: 999px;
-	border-top-left-radius: 999px;
-}
-.thin-button:last-child,
-.thin-button:last-of-type {
-	border-bottom-right-radius: 999px;
-	border-top-right-radius: 999px;
-}
-.thin-button:not(:last-child) {
-	border-right-width: 0;
-}
-.thin-button:hover {
-	background: var(--glass-gradient-hover);
-	border-color: #72aa00;
-}
-.thin-button.active,
-.panel-selection input:checked + label {
-	background: var(--glass-gradient-active);
-	border-color: transparent;
-	box-shadow: var(--glass-active-glow);
-	color: #293d00;
-	font-weight: 600;
-	text-shadow: var(--glass-active-glow);
-}
-.thin-button a {
-	color: inherit;
-	display: block;
-	padding: 7px 0 5px;
-	text-decoration: none;
 }
 
 #toggle_panel {
@@ -415,15 +371,6 @@ a.button:visited {
 }
 #toggle_panel.closed::before {
 	content: '\e5d7';
-}
-
-.function-buttons {
-	justify-self: end;
-	z-index: 2;
-}
-
-.function-buttons .thin-button {
-	padding: 0;
 }
 
 /* main panels */
@@ -560,6 +507,10 @@ a.button:visited {
 .grid-3-cols {
 	grid-template-columns: repeat(3, 1fr);
 }
+.grid-25-75 {
+	grid-template-columns: .5fr 1fr !important;
+}
+
 .colspan-2 {
 	grid-column: span 2;
 }
@@ -635,10 +586,6 @@ a.button:visited {
 	width: 100%;
 }
 
-div.value {
-	float: right;
-}
-
 .center {
 	text-align: center;
 }
@@ -701,14 +648,6 @@ div.value {
 	z-index: 1;
 }
 
-.preset-controls {
-	margin: 3px 0;
-}
-.preset-controls button {
-	padding: 6px 0 4px;
-	width: 100%;
-}
-
 .help {
 	position: relative;
 	text-decoration: none;
@@ -742,6 +681,12 @@ div.value {
 	padding: 6px 0 10px;
 }
 
+.value {
+	float: right;
+}
+
+/* Switches */
+
 .switch input {
 	display: none;
 }
@@ -755,7 +700,7 @@ div.value {
 	color: #333;
 	cursor: pointer;
 	display: inline-block;
-	font-weight: 600;
+	font-weight: 400;
 	line-height: normal;
 	margin-top: 3px;
 	padding: 6px 0 4px;
@@ -769,18 +714,18 @@ div.value {
 }
 .switch-bar .switch:nth-child(odd) {
 	border-left-width: 1px;
-	border-bottom-left-radius: 12px;
-	border-top-left-radius: 12px;
+	border-bottom-left-radius: 999px;
+	border-top-left-radius: 999px;
 }
 .switch-bar .switch:last-child:nth-child(odd) {
-	border-bottom-right-radius: 12px;
-	border-top-right-radius: 12px;
+	border-bottom-right-radius: 999px;
+	border-top-right-radius: 999px;
 	width: 100%;
 }
 .switch-bar .switch:nth-child(even) {
-	border-bottom-right-radius: 12px;
+	border-bottom-right-radius: 999px;
 	border-left-color: transparent;
-	border-top-right-radius: 12px;
+	border-top-right-radius: 999px;
 }
 .switch-bar .switch:nth-child(even):not([data-active="1"]):hover {
 	border-left-width: 1px;
@@ -801,55 +746,97 @@ div.value {
 	text-shadow: var(--glass-active-glow);
 }
 
-/* Custom radio buttons */
+/* Custom radio buttons and button bars */
 
-.custom-radio-buttons {
+.custom-radio-buttons,
+.button-bar {
 	display: grid;
 	grid-template-columns: repeat( auto-fit, minmax( 0, 1fr ) );
+}
+.button-bar li {
+	display: block;
 }
 .custom-radio-buttons input {
 	display: none;
 }
-.custom-radio-buttons input:checked + label {
+.custom-radio-buttons input:checked + label,
+.button-bar button:active,
+.button-bar .button:active,
+.button-bar li.active > a {
 	background: var(--glass-gradient-active);
 	border-color: transparent;
 	box-shadow: var(--glass-active-glow);
 	color: #293d00;
-	font-weight: 600;
 	text-shadow: var(--glass-active-glow);
+	z-index: 1; /* improve border look on adjacent elements */
 }
-.custom-radio-buttons label {
+.custom-radio-buttons label,
+.button-bar button,
+.button-bar .button,
+.button-bar li a {
 	background: var(--glass-gradient);
 	border: 1px solid #adadad;
+	border-radius: 0; /* override button style */
 	color: #333;
 	cursor: pointer;
-	font-weight: 600;
+	display: block;
+	font-size: .85rem;
+	font-weight: 400;
 	line-height: normal;
 	padding: 6px 0 4px;
 	position: relative;
 	text-align: center;
+	text-decoration: none;
 /*	text-transform: uppercase; */
 /*	transition: .15s ease-in; */
 }
-.custom-radio-buttons label:first-of-type {
+.custom-radio-buttons label:first-of-type,
+.button-bar button:first-child,
+.button-bar .button:first-child,
+.button-bar li:first-of-type > a {
 	border-bottom-left-radius: 999px;
 	border-top-left-radius: 999px;
 }
-.custom-radio-buttons label:last-of-type {
+.custom-radio-buttons label:last-of-type,
+.button-bar button:last-child,
+.button-bar .button:last-child,
+.button-bar li:last-of-type > a {
 	border-bottom-right-radius: 999px;
 	border-top-right-radius: 999px;
 }
-.custom-radio-buttons label:not(:last-of-type) {
+.custom-radio-buttons label:not(:last-of-type),
+.button-bar button:not(:last-child),
+.button-bar .button:not(:last-child),
+.button-bar li:not(:last-of-type) > a {
 	border-right-width: 0;
 }
-.custom-radio-buttons label:hover {
+.custom-radio-buttons label:hover,
+.button-bar button:not(:active):hover,
+.button-bar .button:not(:active):hover,
+.button-bar li:not(.active):hover > a {
 	background: var(--glass-gradient-hover);
 	border-color: #72aa00;
 }
-.custom-radio-buttons label:not(:last-of-type):hover {
+.custom-radio-buttons label:not(:last-of-type):hover,
+.button-bar button:not(:last-child):hover,
+.button-bar .button:not(:last-child):hover,
+.button-bar li:not(:last-of-type):hover > a {
 	border-right-width: 1px !important;
 	margin-right: -1px;
 	z-index: 1;
+}
+
+.button-bar .help:not(:only-child) .tooltip {
+	left: 0;
+	top: 40px;
+}
+.last-column .button-bar .help .tooltip {
+    left: auto;
+    right: 0;
+}
+.last-row .button-bar .help:not(:only-child) .tooltip {
+	bottom: 40px;
+	top: auto;
 }
 
 /* Tooltips */
@@ -893,12 +880,6 @@ div.value {
 	left: 110%;
 	top: 0;
 }
-.controls .last-column .tooltip {
-	left: auto;
-	right: 105%;
-	top: auto;
-	transform: translateY(-50%);
-}
 .player-controls .tooltip {
 	left: 50%;
 	top: 50px;
@@ -910,6 +891,14 @@ div.value {
 }
 .tooltip kbd {
 	margin-left: .5em;
+}
+
+.last-column .config-label .tooltip,
+.last-column .switch-bar .tooltip {
+	left: auto;
+	right: 105%;
+	top: auto;
+	transform: translateY(-50%);
 }
 
 .shortcuts {
@@ -1167,6 +1156,9 @@ kbd.wide {
 }
 #console-content::-webkit-scrollbar-thumb {
 	background-color: #080;
+}
+#console-content a {
+	color: inherit;
 }
 #console-content div {
 	margin-left: 8.75em;
@@ -1712,10 +1704,19 @@ button.grad-add-stop:hover {
 
 /* Responsive layout */
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 1225px) {
+	header h1 {
+		font-size: 26px;
+	}
 	#file_explorer,
 	#playlist_panel {
 		margin: 0 5px;
+	}
+	.bottom-panel {
+		padding: 0 5px;
+	}
+	.controls {
+		column-gap: 20px;
 	}
 	.controls-left {
 		margin-left: 20px;
@@ -1726,15 +1727,16 @@ button.grad-add-stop:hover {
 	.file-panel {
 		grid-template-columns: 1fr 110px 1fr;
 	}
-}
-
-@media screen and (max-width: 1279px) {
-	.controls .last-column .tooltip {
-		left: auto;
-		right: 50px;
+	.panel-internal {
+		margin: 0;
 	}
-	.controls .last-column .preset-controls .tooltip,
-	.controls .last-column .switch-bar .tooltip {
-		right: 150px;
+	.progress-bar {
+		padding: 0;
+	}
+	.value {
+		height: 1em;
+		max-width: 40%;
+		overflow: hidden;
+		text-align: right;
 	}
 }
