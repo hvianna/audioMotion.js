@@ -320,6 +320,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
+  	  elSurround      = $('#enable_surround'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
@@ -752,7 +753,7 @@ const bgFitOptions = [
 
 // General settings
 const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs,
-								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue ];
+								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -765,7 +766,8 @@ const generalOptionsDefaults = {
 	noDimSubs  : true,
 	pipRatio   : 2.35,
 	saveDir    : true,
-	saveQueue  : true
+	saveQueue  : true,
+	surround   : false
 }
 
 const maxFpsOptions = [
@@ -2308,6 +2310,8 @@ function loadPreferences() {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
+	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
+
 	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
 
 	// Peak settings
@@ -3378,7 +3382,8 @@ function savePreferences( key ) {
 			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
-			saveQueue  : elSaveQueue.checked
+			saveQueue  : elSaveQueue.checked,
+			surround   : elSurround.checked
 		}
 		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
 	}
@@ -3553,6 +3558,7 @@ function setGeneralOptions( options ) {
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
+	elSurround.checked  = options.surround;
 }
 
 /**
@@ -3947,6 +3953,10 @@ function setProperty( elems, save = true ) {
 
 			case elSubsPosition:
 				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				break;
+
+			case elSurround:
+				toggleMultiChannel();
 				break;
 
 			case elWeighting:
@@ -4631,6 +4641,19 @@ function toggleInfo() {
 }
 
 /**
+ * Toggle multi-channel audio output
+ */
+function toggleMultiChannel() {
+	const { destination }     = audioMotion.audioCtx,
+		  { maxChannelCount } = destination,
+		  isSurround          = elSurround.checked;
+
+	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
+	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
+	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
+}
+
+/**
  * Update the playlist shown to the user
  */
 function updatePlaylistUI() {
@@ -5017,6 +5040,19 @@ function updateRangeValue( el ) {
 	if ( userMediaPanel == PANEL_CLOSE || ( serverConfig.mediaPanel == PANEL_CLOSE && userMediaPanel != PANEL_OPEN ) )
 		toggleMediaPanel( false );
 
+	// Create audioMotion analyzer
+
+	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
+
+	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
+		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
+		fsElement: elContainer,
+		onCanvasDraw: displayCanvasMsg,
+		onCanvasResize: showCanvasInfo
+	});
+
+	const audioCtx = audioMotion.audioCtx;
+
 	// Load preferences from localStorage
 	const isLastSession = loadPreferences();
 
@@ -5050,19 +5086,6 @@ function updateRangeValue( el ) {
 			storePlayQueue( true );
 		}
 	});
-
-	// Create audioMotion analyzer
-
-	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
-
-	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
-		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
-		fsElement: elContainer,
-		onCanvasDraw: displayCanvasMsg,
-		onCanvasResize: showCanvasInfo
-	});
-
-	const audioCtx = audioMotion.audioCtx;
 
 	// Initialize and connect audio elements
 
@@ -5320,6 +5343,7 @@ function updateRangeValue( el ) {
 		else
 			enterLastDir();
 
+		setProperty( elSurround );
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
