@@ -2564,9 +2564,9 @@ async function loadSong( n, playIt ) {
 			else
 				audioEl.load();
 		}
-	}
 
-	song.classList.toggle( 'error', ! success );
+		song.classList.toggle( 'error', ! success );
+	}
 
 	if ( ! isCurrent )
 		skipping = false; // finished skipping track
