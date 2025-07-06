@@ -4,15 +4,24 @@
 
 ### Added: <!-- {docsify-ignore} -->
 
-+ Support for surround audio output (experimental - for now it only works with single channel analyzer layout)
++ New **Advanced** panel to declutter the **Settings** panel of less-used options;
++ New **Band Count** setting;
++ New **Radial Size** setting;
++ More intermediate values for *Background Image Dim*, *Bar Spacing*, *FFT Smoothing*, *Fill Opacity*, *Radial Spin* and *Reflex*;
++ Support for 5.1 surround audio output (experimental - works only with single-channel layout for now);
++ Import and export Settings - share your analyzer configuration suggestions in [Discussions > Resources > Settings](https://github.com/hvianna/audioMotion.js/discussions/categories/settings);
++ Import and export Gradients - share your creations in [Discussions > Resources > Gradients](https://github.com/hvianna/audioMotion.js/discussions/categories/gradients);
 
 ### Changed & improved: <!-- {docsify-ignore} -->
 
-+ User interface overhaul: more consistent look for panels, buttons and controls; added a button to expand/collapse the front panel; increased some font sizes;
-+ Balance control has been removed;
++ User interface overhaul with increased font sizes and more consistent look among panels, buttons and other controls;
++ The **Analyzer Mode** selection has been simplified into three options: Bars (formerly band modes), FFT (formerly *Discrete Frequencies*) and Graph (consolidates *Area* and *Line* graphs);
++ Added a button to expand/collapse the front panel (the panel no longer auto-expands when moving the mouse near the bottom of the screen);
++ Improved hover detection and increased the delay for auto-collapsing the front panel on analyzer hover; also this is now **disabled by default**;
 + Improved detection and loading of subtitle files;
-+ Improved hover detection and increased the delay for auto-collapsing the front panel on analyzer hover (this option is now **disabled by default**);
-+ Increased the default maximum number of background image files from 20 to 100.
++ Increased the default maximum number of background image files from 20 to 100;
++ Gradients and saved playlists are now listed in alphabetical order in their selection boxes;
++ Balance control has been removed.
 
 ### Fixed: <!-- {docsify-ignore} -->
 
