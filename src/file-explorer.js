@@ -420,10 +420,9 @@ export function parseDirectory( content, path ) {
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 
-	const customSort = ( a, b ) => {
-		const collator = new Intl.Collator(); // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
-		return collator.compare( a.name, b.name );
-	}
+	// case-insensitive sorting with international charset support - thanks https://stackoverflow.com/a/40390844/2370385
+	const collator = new Intl.Collator(),
+		  customSort = ( a, b ) => collator.compare( a.name, b.name );
 
 	return { cover, dirs: dirs.sort( customSort ), files: files.sort( customSort ) }
 }
