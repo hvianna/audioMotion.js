@@ -1471,7 +1471,7 @@ function deleteGradient() {
  * Delete a playlist from localStorage
  */
 function deletePlaylist( index ) {
-	if ( elPlaylists[ index ].dataset.isLocal ) {
+	if ( elPlaylists[ index ].value ) {
 		notie.confirm({
 			text: `Do you really want to DELETE the "${elPlaylists[ index ].innerText}" playlist?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'Delete',
@@ -1495,8 +1495,6 @@ function deletePlaylist( index ) {
 			},
 		});
 	}
-	else if ( elPlaylists[ index ].value )
-		notie.alert({ text: 'Cannot delete a server playlist!' });
 }
 
 /**
@@ -2496,9 +2494,13 @@ async function loadSavedPlaylists( keyName ) {
 
 	// add playlists to the selection box
 	if ( playlists ) {
-		for ( const key of Object.keys( playlists ) ) {
+		const playlistKeys = Object.keys( playlists ),
+			  collator     = new Intl.Collator();
+
+		playlistKeys.sort( ( keyA, keyB ) => collator.compare( playlists[ keyA ], playlists[ keyB ] ) );
+
+		for ( const key of playlistKeys ) {
 			const item = new Option( playlists[ key ], key );
-			item.dataset.isLocal = '1';
 			if ( key == keyName )
 				item.selected = true;
 			elPlaylists.options[ elPlaylists.options.length ] = item;
@@ -3335,12 +3337,9 @@ function saveGradient( isImported ) {
  * Save/update an existing playlist
  */
 function savePlaylist( index ) {
-
-	if ( elPlaylists[ index ].value == '' )
+	if ( ! index )
 		storePlayQueue();
-	else if ( ! elPlaylists[ index ].dataset.isLocal )
-		notie.alert({ text: 'This is a server playlist which cannot be overwritten.<br>Click "Save as..." to create a new local playlist.', time: 5 });
-	else
+	else {
 		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
 			submitText: 'Overwrite',
 			submitCallback: () => {
@@ -3350,6 +3349,7 @@ function savePlaylist( index ) {
 				notie.alert({ text: 'Canceled' });
 			}
 		});
+	}
 }
 
 /**
