@@ -88,6 +88,9 @@ const DATASET_TEMPLATE = {
 	title: ''
 };
 
+// CSS classes
+const CSS_CLASS_COMPACT = 'compact';
+
 // Channel Layouts
 const CHANNEL_COMBINED   = 'dual-combined',
  	  CHANNEL_HORIZONTAL = 'dual-horizontal',
@@ -298,6 +301,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
+	  elReduceOnVideo = $('#reduce_video'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
 	  elRoundBars     = $('#round_bars'),
@@ -739,8 +743,8 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs,
-								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs, elNoDimVideo,
+								 elOSDFontSize, elPIPRatio, elReduceOnVideo, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -752,6 +756,7 @@ const generalOptionsDefaults = {
 	noDimVideo : true,
 	noDimSubs  : true,
 	pipRatio   : 2.35,
+	reduceOnVideo: true,
 	saveDir    : true,
 	saveQueue  : true,
 	surround   : false
@@ -1332,7 +1337,7 @@ function clearPlayQueue() {
 /**
  * Recalculate global variables and resize the canvas used for OSD
  */
-function computeFontSizes( instance = audioMotion ) {
+function resizeOSD( instance = audioMotion ) {
 
 	const factors = [ 24, 17, 13.5 ], // approx. 45px, 64px, 80px for 1080px canvas (baseSize)
 		  dPR     = instance.pixelRatio,
@@ -3415,6 +3420,7 @@ function savePreferences( key ) {
 			noDimSubs  : elNoDimSubs.checked,
 			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
+			reduceOnVideo: elReduceOnVideo.checked,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
 			surround   : elSurround.checked
@@ -3592,6 +3598,7 @@ function setGeneralOptions( options ) {
 	elNoDimVideo.checked= options.noDimVideo;
 	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
+	elReduceOnVideo.checked = options.reduceOnVideo;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
 	elSurround.checked  = options.surround;
@@ -3632,6 +3639,10 @@ function setOverlay() {
 	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
 	// enable/disable background dim layer
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
+
+	// toggle reduced analyzer
+	elAnalyzer.classList.toggle( CSS_CLASS_COMPACT, isVideo && elReduceOnVideo.checked );
+	elContainer.classList.toggle( CSS_CLASS_COMPACT, isVideo && elReduceOnVideo.checked );
 
 	return isOverlay;
 }
@@ -3843,7 +3854,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elOSDFontSize:
-				computeFontSizes();
+				resizeOSD();
 				break;
 
 			case elOutline:
@@ -3892,6 +3903,10 @@ function setProperty( elems, save = true ) {
 				while ( +elRangeMax.value <= +elRangeMin.value )
 					elRangeMax.selectedIndex++;
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
+
+			case elReduceOnVideo:
+				setOverlay();
 				break;
 
 			case elReflex:
@@ -4785,12 +4800,9 @@ function updateRangeValue( el ) {
 
 	// Callback function to handle canvas size changes (onCanvasResize)
 	const showCanvasInfo = ( reason, instance ) => {
-		// resize OSD canvas and recalculate variables used for info display
-		// note: the global `audioMotion` object is not set yet during the `create` event, so we must pass the instance
-		computeFontSizes( instance );
-
+		// note: the global `audioMotion` object is not yet set during the 'create' event, so we need to use the passed instance object
+		resizeOSD( instance );
 		let msg;
-
 		switch ( reason ) {
 			case 'create':
 				consoleLog( `Display resolution: ${ instance.fsWidth } x ${ instance.fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
@@ -4809,7 +4821,6 @@ function updateRangeValue( el ) {
 				// don't display any message for window/canvas resizing
 				return;
 		}
-
 		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
 	}
 
@@ -5356,6 +5367,21 @@ function updateRangeValue( el ) {
 	notie.setOptions({
 		positions: { alert: 'bottom' }
 	});
+
+	// Observe resize events on the container element and adjust the OSD canvas accordingly
+	// NOTE: the onCanvasResize callback won't trigger when using the reduced analyzer!
+	if ( window.ResizeObserver ) {
+		let resizeTimeout;
+		const observer = new ResizeObserver( () => {
+			if ( ! resizeTimeout ) {
+				resizeTimeout = setTimeout( () => {
+					resizeOSD();
+					resizeTimeout = 0;
+				}, 60 );
+			}
+		});
+		observer.observe( elContainer );
+	}
 
 	// Wait for all async operations to finish before loading the last used settings
 	Promise.all( [ retrieveBackgrounds(), fileExplorerPromise ] ).then( async () => {
