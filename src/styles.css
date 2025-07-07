@@ -278,12 +278,17 @@ a.button:visited {
 
 .bg-container video,
 .bg-dim {
+	/* note: these affect both the background video layer and the main video elements! */
 	height: 100%;
 	left: 0;
 	object-fit: cover;
 	position: absolute;
 	top: 0;
 	width: 100%;
+}
+.bg-container:fullscreen #player0,
+.bg-container:fullscreen #player1 {
+	object-fit: contain;
 }
 
 .bg-container.pip {
@@ -315,6 +320,10 @@ a.button:visited {
 }
 .bg-container:not(:-webkit-full-screen) .analyzer {
 	height: 100% !important;
+}
+.bg-container:-webkit-full-screen #player0,
+.bg-container:-webkit-full-screen #player1 {
+	object-fit: contain;
 }
 
 .osd {
