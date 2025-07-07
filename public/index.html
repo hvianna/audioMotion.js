@@ -237,6 +237,9 @@
 						<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
 							<span class="tooltip">Split gradients in two different parts<br><em>(for Vertical dual-channel layout)</em></span>
 					</ul>
+					<div class="button-bar">
+						<button id="manage_gradients">Manage Gradients</button>
+					</div>
 				</div>
 
 				<div>
@@ -632,12 +635,12 @@
 				</div>
 			</details>
 
-			<details>
+			<details id="gradients_management">
 				<summary>Gradients management
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-management" target="_blank"></a>
 				</summary>
 				<div>
-					<div id="enabled_gradients" class="grid grid-2-cols gap-sm"></div>
+					<div id="enabled_gradients" class="grid grid-2-cols"></div>
 					<div class="flex align-center mt-1">
 						<button class="button mt-1" id="add-gradient">Create Gradient</button>
 						<label class="button mt-1">Import Gradient

@@ -285,12 +285,17 @@ a.button:visited {
 
 .bg-container video,
 .bg-dim {
+	/* note: these affect both the background video layer and the main video elements! */
 	height: 100%;
 	left: 0;
 	object-fit: cover;
 	position: absolute;
 	top: 0;
 	width: 100%;
+}
+.bg-container:fullscreen #player0,
+.bg-container:fullscreen #player1 {
+	object-fit: contain;
 }
 
 .bg-container.mini video {
@@ -326,6 +331,10 @@ a.button:visited {
 }
 .bg-container:not(:-webkit-full-screen) .analyzer:not(.mini) {
 	height: 100% !important;
+}
+.bg-container:-webkit-full-screen #player0,
+.bg-container:-webkit-full-screen #player1 {
+	object-fit: contain;
 }
 
 .osd {
@@ -1585,10 +1594,13 @@ button.grad-add-stop:hover {
 }
 
 #enabled_gradients label {
+	padding: .25em;
 	position: relative;
 }
 #enabled_gradients label:hover {
-	background: #f0fff0;
+	background: #f8f8f8;
+	border-bottom-left-radius: 6px;
+	border-top-left-radius: 6px;
 }
 #enabled_gradients label:hover > .grad-edit-link {
 	display: block;
@@ -1596,14 +1608,16 @@ button.grad-add-stop:hover {
 .grad-edit-link {
 	background: var(--accent-color);
 	border-radius: 4px;
-	bottom: 0;
 	color: #fff;
 	display: none;
-	font-size: .7em;
-	padding: 5px 10px;
+	font-size: .9em;
+	padding: .7em 1.4em;
 	position: absolute;
 	right: 0;
 	text-decoration: none;
+	text-transform: uppercase;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 /**

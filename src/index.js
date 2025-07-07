@@ -2857,7 +2857,7 @@ function populateEnabledGradients() {
 		elEnabledGradients.innerHTML +=
 			`<label>
 				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit / Export</a>
+				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit</a>
 			</label>`;
 	});
 
@@ -4489,13 +4489,23 @@ function setUIEventListeners() {
 		currentGradient.dir = e.target.checked ? 'h' : undefined;
 	});
 
-	// Config panel accordion
-	const accordionItems = $$('details');
+	// Configuration panel accordion
+
+	const accordionItems      = $$('details'),
+		  closeAccordionItems = _ => accordionItems.forEach( item => item.open = false );
+
 	accordionItems.forEach( el => {
 		el.addEventListener( 'click', () => {
 			if ( ! el.open )
-				accordionItems.forEach( item => item.open = false );
+				closeAccordionItems();
 		});
+	});
+
+	// "Manage Gradients" button on Settings panel
+	$('#manage_gradients').addEventListener( 'click', () => {
+		location.href = '#config';
+		closeAccordionItems();
+		$('#gradients_management').open = true;
 	});
 
 	// Export / import settings
