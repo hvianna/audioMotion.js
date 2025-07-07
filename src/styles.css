@@ -1574,10 +1574,13 @@ button.grad-add-stop:hover {
 }
 
 #enabled_gradients label {
+	padding: .25em;
 	position: relative;
 }
 #enabled_gradients label:hover {
-	background: #f0fff0;
+	background: #f8f8f8;
+	border-bottom-left-radius: 6px;
+	border-top-left-radius: 6px;
 }
 #enabled_gradients label:hover > .grad-edit-link {
 	display: block;
@@ -1585,14 +1588,16 @@ button.grad-add-stop:hover {
 .grad-edit-link {
 	background: var(--accent-color);
 	border-radius: 4px;
-	bottom: 0;
 	color: #fff;
 	display: none;
-	font-size: .7em;
-	padding: 5px 10px;
+	font-size: .9em;
+	padding: .7em 1.4em;
 	position: absolute;
 	right: 0;
 	text-decoration: none;
+	text-transform: uppercase;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 /**
