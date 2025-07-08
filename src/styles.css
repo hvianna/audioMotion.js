@@ -10,7 +10,7 @@
 	--glass-active-glow: 0 0 6px var(--light-color); /* inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color); */
 	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
-	--compact-height: 80px;
+	--compact-height: max( 50px, 10% );
 	--mono-font: 'JetBrains Mono', monospace;
 }
 
@@ -246,7 +246,6 @@ a.button:visited {
 	width: 100%;
 }
 .analyzer.compact {
-	background: black;
 	bottom: 0;
 	height: var(--compact-height) !important;
 	top: auto;

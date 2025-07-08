@@ -301,6 +301,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
+	  elReduceOnSubs  = $('#reduce_subs'),
 	  elReduceOnVideo = $('#reduce_video'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
@@ -743,8 +744,8 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs, elNoDimVideo,
-								 elOSDFontSize, elPIPRatio, elReduceOnVideo, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs, elNoDimVideo, elOSDFontSize,
+								 elPIPRatio, elReduceOnSubs, elReduceOnVideo, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -756,6 +757,7 @@ const generalOptionsDefaults = {
 	noDimVideo : true,
 	noDimSubs  : true,
 	pipRatio   : 2.35,
+	reduceOnSubs : false,
 	reduceOnVideo: true,
 	saveDir    : true,
 	saveQueue  : true,
@@ -3420,6 +3422,7 @@ function savePreferences( key ) {
 			noDimSubs  : elNoDimSubs.checked,
 			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
+			reduceOnSubs : elReduceOnSubs.checked,
 			reduceOnVideo: elReduceOnVideo.checked,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
@@ -3598,6 +3601,7 @@ function setGeneralOptions( options ) {
 	elNoDimVideo.checked= options.noDimVideo;
 	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
+	elReduceOnSubs.checked  = options.reduceOnSubs;
 	elReduceOnVideo.checked = options.reduceOnVideo;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
@@ -3624,7 +3628,8 @@ function setOverlay() {
 	const bgOption  = elBackground.value[0],
 		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
-		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
+		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK ),
+		  isCompact = ( elReduceOnVideo.checked && isVideo ) || ( elReduceOnSubs.checked && hasSubs && ! isVideo );
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
@@ -3641,8 +3646,8 @@ function setOverlay() {
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
 
 	// toggle reduced analyzer
-	elAnalyzer.classList.toggle( CSS_CLASS_COMPACT, isVideo && elReduceOnVideo.checked );
-	elContainer.classList.toggle( CSS_CLASS_COMPACT, isVideo && elReduceOnVideo.checked );
+	elAnalyzer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
+	elContainer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
 
 	return isOverlay;
 }
@@ -3905,6 +3910,7 @@ function setProperty( elems, save = true ) {
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
+			case elReduceOnSubs:
 			case elReduceOnVideo:
 				setOverlay();
 				break;
