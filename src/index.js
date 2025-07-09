@@ -326,6 +326,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
+	  elSubsPosAudio  = $('#subs_position_audio'),
   	  elSurround      = $('#enable_surround'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
@@ -744,8 +745,7 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs, elNoDimVideo, elOSDFontSize,
-								 elPIPRatio, elReduceOnSubs, elReduceOnVideo, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -754,11 +754,7 @@ const generalOptionsDefaults = {
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
-	noDimVideo : true,
-	noDimSubs  : true,
 	pipRatio   : 2.35,
-	reduceOnSubs : false,
-	reduceOnVideo: true,
 	saveDir    : true,
 	saveQueue  : true,
 	surround   : false
@@ -788,12 +784,17 @@ const peakOptionsDefaults = {
 }
 
 // Subtitles configuration options
-const subtitlesElements = [ elSubsBackground, elSubsColor, elSubsPosition ];
+const subsOptionsElements = [ elNoDimSubs, elNoDimVideo, elReduceOnSubs, elReduceOnVideo, elSubsBackground, elSubsColor, elSubsPosition, elSubsPosAudio ];
 
-const subtitlesDefaults = {
-	background: SUBS_BG_SHADOW,
-	color     : SUBS_COLOR_WHITE,
-	position  : SUBS_POS_TOP
+const subsOptionsDefaults = {
+	background   : SUBS_BG_SHADOW,
+	color        : SUBS_COLOR_WHITE,
+	noDimVideo   : true,
+	noDimSubs    : true,
+	posAudio     : SUBS_POS_TOP,
+	position     : SUBS_POS_BOTTOM,
+	reduceOnSubs : false,
+	reduceOnVideo: true
 }
 
 // Main panels
@@ -898,7 +899,7 @@ const getControlValue = el => {
 	return '' + ret;
 }
 
-// returns an object with the current settings
+// Returns an object with the current analyzer settings (Settings and Advanced panels)
 const getCurrentSettings = _ => ({
 	alphaBars    : getControlValue( elAlphaBars ),
 	ansiBands    : getControlValue( elAnsiBands ),
@@ -993,8 +994,8 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => !! +getControlValue( el );
 
-// check if a video file is loaded in the current audio element
-const isVideoLoaded = () => FILE_EXT_VIDEO.includes( parsePath( audioElement[ currAudio ].dataset.file ).extension );
+// check if a video file is loaded in the media element
+const isVideoLoaded = ( audioEl = audioElement[ currAudio ] ) => FILE_EXT_VIDEO.includes( parsePath( audioEl.dataset.file ).extension );
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => typeof path == 'string' ? path.replace( /\\/g, '/' ) : path;
@@ -1638,12 +1639,12 @@ function doConfigPanel() {
 	});
 
 	// Subtitle settings
-	subtitlesElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
+	subsOptionsElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
 	$('#reset_subs').addEventListener( 'click', () => {
-		setSubtitlesOptions( subtitlesDefaults );
-		setProperty( subtitlesElements );
+		setSubtitlesOptions( subsOptionsDefaults );
+		setProperty( subsOptionsElements );
 	});
-	setProperty( subtitlesElements ); // initialize subtitles settings
+	setProperty( subsOptionsElements ); // initialize subtitles settings
 }
 
 /**
@@ -2340,13 +2341,16 @@ function loadPreferences() {
 		[ SUBS_COLOR_YELLOW, 'Yellow' ]
 	]);
 
-	populateSelect( elSubsPosition, [
+	const subsPositionOptions = [
 		[ SUBS_POS_TOP,    'Top'    ],
 		[ SUBS_POS_CENTER, 'Center' ],
 		[ SUBS_POS_BOTTOM, 'Bottom' ]
-	]);
+	];
+	populateSelect( elSubsPosition, subsPositionOptions );
+	populateSelect( elSubsPosAudio, subsPositionOptions );
 
-	setSubtitlesOptions( { ...subtitlesDefaults, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
+	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -3419,11 +3423,7 @@ function savePreferences( key ) {
 			bgMaxItems : elBgMaxItems.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
-			noDimSubs  : elNoDimSubs.checked,
-			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
-			reduceOnSubs : elReduceOnSubs.checked,
-			reduceOnVideo: elReduceOnVideo.checked,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
 			surround   : elSurround.checked
@@ -3442,9 +3442,14 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
 		const subtitlesOptions = {
-			background: elSubsBackground.value,
-			color     : elSubsColor.value,
-			position  : elSubsPosition.value
+			background   : elSubsBackground.value,
+			color        : elSubsColor.value,
+			noDimSubs    : elNoDimSubs.checked,
+			noDimVideo   : elNoDimVideo.checked,
+			position     : elSubsPosition.value,
+			posAudio     : elSubsPosAudio.value,
+			reduceOnSubs : elReduceOnSubs.checked,
+			reduceOnVideo: elReduceOnVideo.checked
 		}
 		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
 	}
@@ -3597,12 +3602,8 @@ function setGeneralOptions( options ) {
 	elBgMaxItems.value  = options.bgMaxItems;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
-	elNoDimSubs.checked = options.noDimSubs;
-	elNoDimVideo.checked= options.noDimVideo;
 	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
-	elReduceOnSubs.checked  = options.reduceOnSubs;
-	elReduceOnVideo.checked = options.reduceOnVideo;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
 	elSurround.checked  = options.surround;
@@ -3629,7 +3630,7 @@ function setOverlay() {
 		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
 		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK ),
-		  isCompact = ( elReduceOnVideo.checked && isVideo ) || ( elReduceOnSubs.checked && hasSubs && ! isVideo );
+		  isCompact = ( elReduceOnVideo.checked && isVideo ) || ( elReduceOnSubs.checked && hasSubs );
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
@@ -4017,8 +4018,9 @@ function setProperty( elems, save = true ) {
 				setSubtitlesColors();
 				break;
 
+			case elSubsPosAudio:
 			case elSubsPosition:
-				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				setSubtitlesPosition();
 				break;
 
 			case elSurround:
@@ -4036,7 +4038,7 @@ function setProperty( elems, save = true ) {
 				savePreferences( KEY_GENERAL_OPTS );
 			else if ( peakOptionsElements.includes( el ) )
 				savePreferences( KEY_PEAK_OPTIONS );
-			else if ( subtitlesElements.includes( el ) )
+			else if ( subsOptionsElements.includes( el ) )
 				savePreferences( KEY_SUBTITLES_OPTS );
 			else
 				updateLastConfig();
@@ -4123,44 +4125,53 @@ function setSubtitlesDisplay() {
  * Set subtitles configuration options
  */
 function setSubtitlesOptions( options ) {
-	elSubsBackground.value = options.background;
-	elSubsColor.value      = options.color;
-	elSubsPosition.value   = options.position;
+	elNoDimSubs.checked     = options.noDimSubs;
+	elNoDimVideo.checked    = options.noDimVideo;
+	elReduceOnSubs.checked  = options.reduceOnSubs;
+	elReduceOnVideo.checked = options.reduceOnVideo;
+	elSubsBackground.value  = options.background;
+	elSubsColor.value       = options.color;
+	elSubsPosition.value    = options.position;
+	elSubsPosAudio.value    = options.posAudio;
 }
 
 /**
- * Set the vertical position of all subtitle "cues"
+ * Set the vertical position of subtitle "cues"
  *
- * @param {object} event
+ * @param [{object}] event - when called by subs loaded into a media element
  */
 function setSubtitlesPosition( event ) {
-	if ( ! event.target.track )
-		return;
+	// no event means position config changed, so we reset subtitle tracks on both media elements
+	const targets = event ? [ event.target ] : $$('track');
 
-	let align, line, snap = false;
+ 	for ( const target of targets ) {
+		let align, line, snap = false;
 
-	switch( elSubsPosition.value ) {
-		case SUBS_POS_BOTTOM:
-			align = 'end';
-			line  = 95;
-			break;
+		const desiredPos = ( isVideoLoaded( target.parentElement ) ? elSubsPosition : elSubsPosAudio ).value;
 
-		case SUBS_POS_CENTER:
-			align = 'center';
-			line  = 50;
-			break;
+		switch ( desiredPos ) {
+			case SUBS_POS_BOTTOM:
+				align = 'end';
+				line  = 95;
+				break;
 
-		default: // SUBS_POS_TOP
-			align = 'start';
-			line  = 1;
-			snap  = true;
-	}
+			case SUBS_POS_CENTER:
+				align = 'center';
+				line  = 50;
+				break;
 
-	// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
-	for ( const cue of event.target.track.cues ) {
-		cue.line        = line;
-		cue.snapToLines = snap;  // when false, `line` represents a percentage
-		cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+			default: // SUBS_POS_TOP
+				align = 'start';
+				line  = 1;
+				snap  = true;
+		}
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
+		for ( const cue of target.track.cues ) {
+			cue.line        = line;
+			cue.snapToLines = snap;  // when false, `line` represents a percentage
+			cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+		}
 	}
 }
 

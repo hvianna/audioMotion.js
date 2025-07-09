@@ -625,17 +625,10 @@
 
 					<p class="colspan-3"></p>
 					<p class="colspan-3"><label><input type="checkbox" id="auto_hide"> Auto-collapse front panel on analyzer hover</label></p>
-
-					<p class="colspan-3"><label><input type="checkbox" id="no_dim_subs"> Disable Background Dim when displaying subtitles</label></p>
-					<p class="colspan-3"><label><input type="checkbox" id="no_dim_video"> Disable Background Dim when playing video</label></p>
-
 					<p class="colspan-3"><label><input type="checkbox" id="enable_surround"> Enable 5.1 surround audio output (experimental)</label></p>
 
 					<p class="colspan-3"><label><input type="checkbox" id="save_dir"> Remember last music folder</label></p>
 					<p class="colspan-3"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
-
-					<p class="colspan-3"><label><input type="checkbox" id="reduce_subs"> Use compact analyzer when audio has subtitles</label></p>
-					<p class="colspan-3"><label><input type="checkbox" id="reduce_video"> Use compact analyzer when playing video</label></p>
 
 					<p class="colspan-3"><br><button id="reset_general">Reset to defaults</button></p>
 				</div>
@@ -744,19 +737,30 @@
 			</details>
 
 			<details>
-				<summary class="colspan-2">Subtitles configuration
+				<summary class="colspan-2">Subtitles & Video
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles-configuration" target="_blank"></a>
 				</summary>
 
 				<div class="general-settings grid grid-2-cols align-center">
-					<p>Background:</p>
+					<p>Subtitles Background:</p>
 					<select id="subs_background"></select>
 
-					<p>Text color:</p>
+					<p>Subtitles Color:</p>
 					<select id="subs_color"></select>
 
-					<p>Vertical position:</p>
+					<p>Subtitles Position (for audio):</p>
+					<select id="subs_position_audio"></select>
+
+					<p>Subtitles Position (for video):</p>
 					<select id="subs_position"></select>
+
+					<p class="colspan-2"><br>When displaying subtitles:</p>
+					<label><input type="checkbox" id="no_dim_subs"> Disable background dim</label>
+					<label><input type="checkbox" id="reduce_subs"> Use compact analyzer</label>
+
+					<p class="colspan-2"><br>When playing videos:</p>
+					<label><input type="checkbox" id="no_dim_video"> Disable background dim</label>
+					<label><input type="checkbox" id="reduce_video"> Use compact analyzer</label>
 
 					<p><br><button id="reset_subs">Reset to defaults</button></p>
 				</div>
