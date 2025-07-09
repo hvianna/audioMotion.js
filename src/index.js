@@ -4102,7 +4102,7 @@ async function setSource( isMicSource, callback ) {
  */
 function setSubtitlesColors() {
 	// remove all CSS classes related to subtitles
-	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR }).*`, 'gi' ), '' ); // /(subs-bg-|subs-color-).*/gi
+	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR })\\S*`, 'gi' ), '' ); // /(subs-bg-|subs-color-)\S*/gi
 	// add classes for the current settings
 	elContainer.classList.add( SUBS_CSS_BG + elSubsBackground.value, SUBS_CSS_COLOR + elSubsColor.value );
 }
