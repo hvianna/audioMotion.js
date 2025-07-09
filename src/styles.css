@@ -10,6 +10,7 @@
 	--glass-active-glow: 0 0 6px var(--light-color); /* inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color); */
 	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
+	--compact-height: max( 50px, 10% );
 	--mono-font: 'JetBrains Mono', monospace;
 }
 
@@ -244,6 +245,11 @@ a.button:visited {
 	top: 0;
 	width: 100%;
 }
+.analyzer.compact {
+	bottom: 0;
+	height: var(--compact-height) !important;
+	top: auto;
+}
 
 .bg-container {
 	background: #000;
@@ -268,11 +274,11 @@ a.button:visited {
 	position: relative !important;
 	transition: none;
 }
-.bg-container:fullscreen .analyzer {
+.bg-container:fullscreen .analyzer:not(.compact) {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.bg-container:not(:fullscreen) .analyzer {
+.bg-container:not(:fullscreen) .analyzer:not(.compact) {
 	height: 100% !important;
 }
 
@@ -289,6 +295,11 @@ a.button:visited {
 .bg-container:fullscreen #player0,
 .bg-container:fullscreen #player1 {
 	object-fit: contain;
+}
+
+.bg-container.compact #player0,
+.bg-container.compact #player1 {
+	height: calc( 100% - var(--compact-height) );
 }
 
 .bg-container.pip {
@@ -314,11 +325,11 @@ a.button:visited {
 	position: relative !important;
 	width: 100%;
 }
-.bg-container:-webkit-full-screen .analyzer {
+.bg-container:-webkit-full-screen .analyzer:not(.compact) {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.bg-container:not(:-webkit-full-screen) .analyzer {
+.bg-container:not(:-webkit-full-screen) .analyzer:not(.compact) {
 	height: 100% !important;
 }
 .bg-container:-webkit-full-screen #player0,

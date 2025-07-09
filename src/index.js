@@ -88,6 +88,9 @@ const DATASET_TEMPLATE = {
 	title: ''
 };
 
+// CSS classes
+const CSS_CLASS_COMPACT = 'compact';
+
 // Channel Layouts
 const CHANNEL_COMBINED   = 'dual-combined',
  	  CHANNEL_HORIZONTAL = 'dual-horizontal',
@@ -298,6 +301,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
+	  elReduceOnSubs  = $('#reduce_subs'),
+	  elReduceOnVideo = $('#reduce_video'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
 	  elRoundBars     = $('#round_bars'),
@@ -321,6 +326,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
+	  elSubsPosAudio  = $('#subs_position_audio'),
   	  elSurround      = $('#enable_surround'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
@@ -739,8 +745,7 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs,
-								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -749,8 +754,6 @@ const generalOptionsDefaults = {
 	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
-	noDimVideo : true,
-	noDimSubs  : true,
 	pipRatio   : 2.35,
 	saveDir    : true,
 	saveQueue  : true,
@@ -781,12 +784,17 @@ const peakOptionsDefaults = {
 }
 
 // Subtitles configuration options
-const subtitlesElements = [ elSubsBackground, elSubsColor, elSubsPosition ];
+const subsOptionsElements = [ elNoDimSubs, elNoDimVideo, elReduceOnSubs, elReduceOnVideo, elSubsBackground, elSubsColor, elSubsPosition, elSubsPosAudio ];
 
-const subtitlesDefaults = {
-	background: SUBS_BG_SHADOW,
-	color     : SUBS_COLOR_WHITE,
-	position  : SUBS_POS_TOP
+const subsOptionsDefaults = {
+	background   : SUBS_BG_SHADOW,
+	color        : SUBS_COLOR_WHITE,
+	noDimVideo   : true,
+	noDimSubs    : true,
+	posAudio     : SUBS_POS_TOP,
+	position     : SUBS_POS_BOTTOM,
+	reduceOnSubs : false,
+	reduceOnVideo: true
 }
 
 // Main panels
@@ -891,7 +899,7 @@ const getControlValue = el => {
 	return '' + ret;
 }
 
-// returns an object with the current settings
+// Returns an object with the current analyzer settings (Settings and Advanced panels)
 const getCurrentSettings = _ => ({
 	alphaBars    : getControlValue( elAlphaBars ),
 	ansiBands    : getControlValue( elAnsiBands ),
@@ -986,8 +994,8 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => !! +getControlValue( el );
 
-// check if a video file is loaded in the current audio element
-const isVideoLoaded = () => FILE_EXT_VIDEO.includes( parsePath( audioElement[ currAudio ].dataset.file ).extension );
+// check if a video file is loaded in the media element
+const isVideoLoaded = ( audioEl = audioElement[ currAudio ] ) => FILE_EXT_VIDEO.includes( parsePath( audioEl.dataset.file ).extension );
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => typeof path == 'string' ? path.replace( /\\/g, '/' ) : path;
@@ -1332,7 +1340,7 @@ function clearPlayQueue() {
 /**
  * Recalculate global variables and resize the canvas used for OSD
  */
-function computeFontSizes( instance = audioMotion ) {
+function resizeOSD( instance = audioMotion ) {
 
 	const factors = [ 24, 17, 13.5 ], // approx. 45px, 64px, 80px for 1080px canvas (baseSize)
 		  dPR     = instance.pixelRatio,
@@ -1631,12 +1639,12 @@ function doConfigPanel() {
 	});
 
 	// Subtitle settings
-	subtitlesElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
+	subsOptionsElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
 	$('#reset_subs').addEventListener( 'click', () => {
-		setSubtitlesOptions( subtitlesDefaults );
-		setProperty( subtitlesElements );
+		setSubtitlesOptions( subsOptionsDefaults );
+		setProperty( subsOptionsElements );
 	});
-	setProperty( subtitlesElements ); // initialize subtitles settings
+	setProperty( subsOptionsElements ); // initialize subtitles settings
 }
 
 /**
@@ -2333,13 +2341,16 @@ function loadPreferences() {
 		[ SUBS_COLOR_YELLOW, 'Yellow' ]
 	]);
 
-	populateSelect( elSubsPosition, [
+	const subsPositionOptions = [
 		[ SUBS_POS_TOP,    'Top'    ],
 		[ SUBS_POS_CENTER, 'Center' ],
 		[ SUBS_POS_BOTTOM, 'Bottom' ]
-	]);
+	];
+	populateSelect( elSubsPosition, subsPositionOptions );
+	populateSelect( elSubsPosAudio, subsPositionOptions );
 
-	setSubtitlesOptions( { ...subtitlesDefaults, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
+	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -3412,8 +3423,6 @@ function savePreferences( key ) {
 			bgMaxItems : elBgMaxItems.value,
 			fsHeight   : elFsHeight.value,
 			maxFPS     : elMaxFPS.value,
-			noDimSubs  : elNoDimSubs.checked,
-			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
@@ -3433,9 +3442,14 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
 		const subtitlesOptions = {
-			background: elSubsBackground.value,
-			color     : elSubsColor.value,
-			position  : elSubsPosition.value
+			background   : elSubsBackground.value,
+			color        : elSubsColor.value,
+			noDimSubs    : elNoDimSubs.checked,
+			noDimVideo   : elNoDimVideo.checked,
+			position     : elSubsPosition.value,
+			posAudio     : elSubsPosAudio.value,
+			reduceOnSubs : elReduceOnSubs.checked,
+			reduceOnVideo: elReduceOnVideo.checked
 		}
 		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
 	}
@@ -3588,8 +3602,6 @@ function setGeneralOptions( options ) {
 	elBgMaxItems.value  = options.bgMaxItems;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
-	elNoDimSubs.checked = options.noDimSubs;
-	elNoDimVideo.checked= options.noDimVideo;
 	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
@@ -3617,7 +3629,8 @@ function setOverlay() {
 	const bgOption  = elBackground.value[0],
 		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
-		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
+		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK ),
+		  isCompact = ( elReduceOnVideo.checked && isVideo ) || ( elReduceOnSubs.checked && hasSubs );
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
@@ -3632,6 +3645,10 @@ function setOverlay() {
 	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
 	// enable/disable background dim layer
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
+
+	// toggle reduced analyzer
+	elAnalyzer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
+	elContainer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
 
 	return isOverlay;
 }
@@ -3843,7 +3860,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elOSDFontSize:
-				computeFontSizes();
+				resizeOSD();
 				break;
 
 			case elOutline:
@@ -3892,6 +3909,11 @@ function setProperty( elems, save = true ) {
 				while ( +elRangeMax.value <= +elRangeMin.value )
 					elRangeMax.selectedIndex++;
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
+
+			case elReduceOnSubs:
+			case elReduceOnVideo:
+				setOverlay();
 				break;
 
 			case elReflex:
@@ -3996,8 +4018,9 @@ function setProperty( elems, save = true ) {
 				setSubtitlesColors();
 				break;
 
+			case elSubsPosAudio:
 			case elSubsPosition:
-				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				setSubtitlesPosition();
 				break;
 
 			case elSurround:
@@ -4015,7 +4038,7 @@ function setProperty( elems, save = true ) {
 				savePreferences( KEY_GENERAL_OPTS );
 			else if ( peakOptionsElements.includes( el ) )
 				savePreferences( KEY_PEAK_OPTIONS );
-			else if ( subtitlesElements.includes( el ) )
+			else if ( subsOptionsElements.includes( el ) )
 				savePreferences( KEY_SUBTITLES_OPTS );
 			else
 				updateLastConfig();
@@ -4081,7 +4104,7 @@ async function setSource( isMicSource, callback ) {
  */
 function setSubtitlesColors() {
 	// remove all CSS classes related to subtitles
-	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR }).*`, 'gi' ), '' ); // /(subs-bg-|subs-color-).*/gi
+	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR })\\S*`, 'gi' ), '' ); // /(subs-bg-|subs-color-)\S*/gi
 	// add classes for the current settings
 	elContainer.classList.add( SUBS_CSS_BG + elSubsBackground.value, SUBS_CSS_COLOR + elSubsColor.value );
 }
@@ -4102,44 +4125,53 @@ function setSubtitlesDisplay() {
  * Set subtitles configuration options
  */
 function setSubtitlesOptions( options ) {
-	elSubsBackground.value = options.background;
-	elSubsColor.value      = options.color;
-	elSubsPosition.value   = options.position;
+	elNoDimSubs.checked     = options.noDimSubs;
+	elNoDimVideo.checked    = options.noDimVideo;
+	elReduceOnSubs.checked  = options.reduceOnSubs;
+	elReduceOnVideo.checked = options.reduceOnVideo;
+	elSubsBackground.value  = options.background;
+	elSubsColor.value       = options.color;
+	elSubsPosition.value    = options.position;
+	elSubsPosAudio.value    = options.posAudio;
 }
 
 /**
- * Set the vertical position of all subtitle "cues"
+ * Set the vertical position of subtitle "cues"
  *
- * @param {object} event
+ * @param [{object}] event - when called by subs loaded into a media element
  */
 function setSubtitlesPosition( event ) {
-	if ( ! event.target.track )
-		return;
+	// no event means position config changed, so we reset subtitle tracks on both media elements
+	const targets = event ? [ event.target ] : $$('track');
 
-	let align, line, snap = false;
+ 	for ( const target of targets ) {
+		let align, line, snap = false;
 
-	switch( elSubsPosition.value ) {
-		case SUBS_POS_BOTTOM:
-			align = 'end';
-			line  = 95;
-			break;
+		const desiredPos = ( isVideoLoaded( target.parentElement ) ? elSubsPosition : elSubsPosAudio ).value;
 
-		case SUBS_POS_CENTER:
-			align = 'center';
-			line  = 50;
-			break;
+		switch ( desiredPos ) {
+			case SUBS_POS_BOTTOM:
+				align = 'end';
+				line  = 95;
+				break;
 
-		default: // SUBS_POS_TOP
-			align = 'start';
-			line  = 1;
-			snap  = true;
-	}
+			case SUBS_POS_CENTER:
+				align = 'center';
+				line  = 50;
+				break;
 
-	// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
-	for ( const cue of event.target.track.cues ) {
-		cue.line        = line;
-		cue.snapToLines = snap;  // when false, `line` represents a percentage
-		cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+			default: // SUBS_POS_TOP
+				align = 'start';
+				line  = 1;
+				snap  = true;
+		}
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
+		for ( const cue of target.track.cues ) {
+			cue.line        = line;
+			cue.snapToLines = snap;  // when false, `line` represents a percentage
+			cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+		}
 	}
 }
 
@@ -4785,12 +4817,9 @@ function updateRangeValue( el ) {
 
 	// Callback function to handle canvas size changes (onCanvasResize)
 	const showCanvasInfo = ( reason, instance ) => {
-		// resize OSD canvas and recalculate variables used for info display
-		// note: the global `audioMotion` object is not set yet during the `create` event, so we must pass the instance
-		computeFontSizes( instance );
-
+		// note: the global `audioMotion` object is not yet set during the 'create' event, so we need to use the passed instance object
+		resizeOSD( instance );
 		let msg;
-
 		switch ( reason ) {
 			case 'create':
 				consoleLog( `Display resolution: ${ instance.fsWidth } x ${ instance.fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
@@ -4809,7 +4838,6 @@ function updateRangeValue( el ) {
 				// don't display any message for window/canvas resizing
 				return;
 		}
-
 		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
 	}
 
@@ -5356,6 +5384,21 @@ function updateRangeValue( el ) {
 	notie.setOptions({
 		positions: { alert: 'bottom' }
 	});
+
+	// Observe resize events on the container element and adjust the OSD canvas accordingly
+	// NOTE: the onCanvasResize callback won't trigger when using the reduced analyzer!
+	if ( window.ResizeObserver ) {
+		let resizeTimeout;
+		const observer = new ResizeObserver( () => {
+			if ( ! resizeTimeout ) {
+				resizeTimeout = setTimeout( () => {
+					resizeOSD();
+					resizeTimeout = 0;
+				}, 60 );
+			}
+		});
+		observer.observe( elContainer );
+	}
 
 	// Wait for all async operations to finish before loading the last used settings
 	Promise.all( [ retrieveBackgrounds(), fileExplorerPromise ] ).then( async () => {
