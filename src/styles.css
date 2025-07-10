@@ -45,10 +45,6 @@ input[type="text"],
 input[type="number"] {
 	padding: .25em;
 }
-input[type="number"] {
-	margin: 2px 0;
-	width: 60px;
-}
 
 select {
 	padding: .25em 0;
@@ -467,13 +463,29 @@ a.button:visited {
 	padding: 6px;
 	text-align: center;
 }
+.config-panel input[type="number"],
+.config-panel input[type="range"],
+.config-panel select {
+	margin: 2px 0;
+	width: 90px;
+}
+
+.config-panel .sensitivity-presets input[type="number"] {
+	width: 60px;
+}
+
 .config-panel input[type="checkbox"] {
 	accent-color: var(--accent-color);
 	margin: 4px 0;
 }
+
 .config-panel p {
 	margin: .5em 0;
 }
+.config-panel p label input {
+	margin: 0 !important;
+}
+
 .config-panel > div:last-child {
 	padding-bottom: 2em;
 }
@@ -548,20 +560,6 @@ a.button:visited {
 }
 .rowspan-5 {
 	grid-row: span 5;
-}
-
-.general-settings input[type="number"],
-.general-settings input[type="range"],
-.general-settings select {
-	margin: 2px 0;
-	width: 90px;
-}
-
-.general-settings label {
-	margin: .5em 0;
-}
-.general-settings label input {
-	margin: 0 !important;
 }
 
 .config-label {
@@ -1594,7 +1592,6 @@ button.grad-add-stop:hover {
 }
 
 #enabled_gradients label {
-	padding: .25em;
 	position: relative;
 }
 #enabled_gradients label:hover {

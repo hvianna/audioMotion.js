@@ -723,12 +723,15 @@ const sensitivityDefaults = [
 ];
 
 // On-screen information display options
+const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elShowCount, elShowCover, elTrackTimeout ];
+
 const infoDisplayDefaults = {
 	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
 	track : 10,   // display time (secs) on track change
 	end   : 10,   // display time (secs) at the end of the song
 	covers: true, // show album covers in song information
-	count : true  // show song number and play queue count
+	count : true, // show song number and play queue count
+	osdFontSize: OSD_SIZE_M
 }
 
 // Background Image Fit options
@@ -745,13 +748,12 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 100,
-	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
 	maxFPS     : 60,
 	pipRatio   : 2.35,
@@ -993,6 +995,9 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => !! +getControlValue( el );
+
+// check if a number input element has a valid value (always returns true if element type is not 'number')
+const isValidRange = el => el.type != 'number' || ( +el.value >= +el.min && +el.value <= +el.max );
 
 // check if a video file is loaded in the media element
 const isVideoLoaded = ( audioEl = audioElement[ currAudio ] ) => FILE_EXT_VIDEO.includes( parsePath( audioEl.dataset.file ).extension );
@@ -1540,9 +1545,6 @@ function doConfigPanel() {
 		});
 	}
 
-	// helper function to validate range value
-	const isValidRange = el => ( +el.value >= +el.min && +el.value <= +el.max );
-
 	// Enabled Background Image Fit options
 	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
@@ -1599,51 +1601,39 @@ function doConfigPanel() {
 		}
 	});
 
-	// On-screen display options
-	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover, elShowCount ] )
-		el.addEventListener( 'change', () => savePreferences( KEY_DISPLAY_OPTS ) );
+	// Listen for changes on common configuration elements
+	for ( const el of [ ...infoOptionsElements, ...generalOptionsElements, ...peakOptionsElements, ...subsOptionsElements ] ) {
+		el.addEventListener( 'change', () => {
+			if ( isValidRange( el ) )
+				setProperty( el );
+			el.classList.toggle( 'field-error', ! isValidRange( el ) );
+		});
+	}
 
+	// Reset On-screen display settings
 	$('#reset_osd').addEventListener( 'click', () => {
 		setInfoOptions( infoDisplayDefaults );
 		savePreferences( KEY_DISPLAY_OPTS );
 	});
 
-	// General settings
-	generalOptionsElements.forEach( el => {
-		el.addEventListener( 'change', () => {
-			const isValid = el.type != 'number' || isValidRange( el );
-			if ( isValid )
-				setProperty( el );
-			el.classList.toggle( 'field-error', ! isValid );
-		});
-	});
-
+	// Reset General settings
 	$('#reset_general').addEventListener( 'click', () => {
 		setGeneralOptions( generalOptionsDefaults );
 		setProperty( generalOptionsElements );
 	});
 
-	// Peak settings
-	peakOptionsElements.forEach( el => {
-		el.addEventListener( 'change', () => {
-			const isValid = el.type != 'number' || isValidRange( el );
-			if ( isValid )
-				setProperty( el );
-			el.classList.toggle( 'field-error', ! isValid );
-		});
-	});
-
+	// Reset Peak settings
 	$('#reset_peak').addEventListener( 'click', () => {
 		setPeakOptions( peakOptionsDefaults );
 		setProperty( peakOptionsElements );
 	});
 
-	// Subtitle settings
-	subsOptionsElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
+	// Reset Subtitle & Video settings
 	$('#reset_subs').addEventListener( 'click', () => {
 		setSubtitlesOptions( subsOptionsDefaults );
 		setProperty( subsOptionsElements );
 	});
+
 	setProperty( subsOptionsElements ); // initialize subtitles settings
 }
 
@@ -2287,9 +2277,6 @@ function loadPreferences() {
 		elLinearBoost[ index ].value = preset.boost || sensitivityDefaults[ index ].boost;
 	});
 
-	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
-
 	// General settings
 
 	populateSelect( elPIPRatio, pipRatioOptions );
@@ -2306,15 +2293,20 @@ function loadPreferences() {
 
 	setRangeAtts( elBgMaxItems, 0, 1000 );
 
+	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
+
+	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
+
+	// On-screen display options
+
 	populateSelect( elOSDFontSize, [
 		[ OSD_SIZE_S, 'Small'  ],
 		[ OSD_SIZE_M, 'Medium' ],
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
-	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
-
-	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
+	// merge saved options (if any) with the defaults and set UI fields
+	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
 
 	// Peak settings
 
@@ -3411,7 +3403,8 @@ function savePreferences( key ) {
 			track : elTrackTimeout.value,
 			end   : elEndTimeout.value,
 			covers: elShowCover.checked,
-			count : elShowCount.checked
+			count : elShowCount.checked,
+			osdFontSize: elOSDFontSize.value
 		}
 		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
 	}
@@ -3602,7 +3595,6 @@ function setGeneralOptions( options ) {
 	elBgMaxItems.value  = options.bgMaxItems;
 	elFsHeight.value    = options.fsHeight;
 	elMaxFPS.value      = options.maxFPS;
-	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
@@ -3616,6 +3608,7 @@ function setInfoOptions( options ) {
 	elInfoTimeout.value  = options.info;
 	elTrackTimeout.value = options.track;
 	elEndTimeout.value   = options.end;
+	elOSDFontSize.value  = options.osdFontSize;
 	elShowCover.checked  = options.covers;
 	elShowCount.checked  = options.count;
 }
@@ -4036,6 +4029,8 @@ function setProperty( elems, save = true ) {
 		if ( save ) {
 			if ( generalOptionsElements.includes( el ) )
 				savePreferences( KEY_GENERAL_OPTS );
+			else if ( infoOptionsElements.includes( el ) )
+				savePreferences( KEY_DISPLAY_OPTS );
 			else if ( peakOptionsElements.includes( el ) )
 				savePreferences( KEY_PEAK_OPTIONS );
 			else if ( subsOptionsElements.includes( el ) )

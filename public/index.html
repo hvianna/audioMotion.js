@@ -604,7 +604,7 @@
 				<summary class="colspan-2">General settings
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=general-settings" target="_blank"></a>
 				</summary>
-				<div class="general-settings grid grid-3-cols align-center">
+				<div class="grid grid-3-cols align-center">
 					<p class="colspan-2">Background media source:</p>
 					<select id="bg_location"></select>
 
@@ -616,9 +616,6 @@
 
 					<p class="colspan-2">Maximum frame rate (FPS):</p>
 					<select id="max_fps"></select>
-
-					<p class="colspan-2">On-screen display font size:</p>
-					<select id="osd_font_size"></select>
 
 					<p class="colspan-2">PIP aspect ratio:</p>
 					<select id="pip_ratio"></select>
@@ -639,7 +636,7 @@
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=gradients-management" target="_blank"></a>
 				</summary>
 				<div>
-					<div id="enabled_gradients" class="grid grid-2-cols"></div>
+					<div id="enabled_gradients" class="grid grid-2-cols gap-sm"></div>
 					<div class="flex align-center mt-1">
 						<button class="button mt-1" id="add-gradient">Create Gradient</button>
 						<label class="button mt-1">Import Gradient
@@ -650,26 +647,33 @@
 			</details>
 
 			<details>
-				<summary>On-screen information display options
+				<summary>On-screen information display
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=on-screen-information-display-options" target="_blank"></a>
 				</summary>
-				<div>
-					<p>Duration (in seconds) of displayed information:</p>
-					<div class="grid grid-2-cols">
-						<p>On analyzer click or <kbd>D</kbd> key:</p>
-						<div><input id="info_timeout" type="number" min="0"> <strong>(0 = continuous)</strong></div>
+				<div class="grid grid-2-cols align-center">
+					<p>Font size:</p>
+					<select id="osd_font_size"></select>
 
-						<p>At song beginning:</p>
-						<div><input id="track_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+					<p class="colspan-2"><br>Duration (in seconds) of displayed information:</p>
 
-						<p>At song end:</p>
-						<div><input id="end_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
-					</div>
-					<p>Song info shows:&nbsp;
+					<p>Analyzer click or <kbd>D</kbd> key:</p>
+					<div><input id="info_timeout" type="number" min="0"> <strong>(0 = continuous)</strong></div>
+
+					<p>At song beginning:</p>
+					<div><input id="track_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+
+					<p>At song end:</p>
+					<div><input id="end_timeout" type="number" min="0"> <strong>(0 = disable)</strong></div>
+
+					<p class="colspan-2"></p>
+
+					<p>Song info includes:</p>
+					<div>
 						<label><input type="checkbox" id="show_cover"> album cover</label>&nbsp; &nbsp;
 						<label><input type="checkbox" id="show_count"> track count</label>
-					</p>
-					<p><br><button id="reset_osd">Reset to defaults</button></p>
+					</div>
+
+					<p class="colspan-2"><br><button id="reset_osd">Reset to defaults</button></p>
 				</div>
 			</details>
 
@@ -677,7 +681,7 @@
 				<summary>Peaks behavior
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=peaks-behavior" target="_blank"></a>
 				</summary>
-				<div class="general-settings grid grid-2-cols align-center">
+				<div class="grid grid-2-cols align-center">
 					<p>Gravity (kpx/s²):</p>
 					<input id="gravity" type="number">
 
@@ -702,7 +706,7 @@
 				<summary>Sensitivity presets
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=sensitivity-presets" target="_blank"></a>
 				</summary>
-				<div>
+				<div class="sensitivity-presets">
 					<table class="table-fixed">
 						<tr>
 							<th>Preset</th>
@@ -741,7 +745,7 @@
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=subtitles-configuration" target="_blank"></a>
 				</summary>
 
-				<div class="general-settings grid grid-2-cols align-center">
+				<div class="grid grid-2-cols align-center">
 					<p>Subtitles Background:</p>
 					<select id="subs_background"></select>
 
@@ -754,7 +758,7 @@
 					<p>Subtitles Position (for video):</p>
 					<select id="subs_position"></select>
 
-					<p class="colspan-2"><br>When displaying subtitles:</p>
+					<p class="colspan-2"><br>When media has subtitles:</p>
 					<label><input type="checkbox" id="no_dim_subs"> Disable background dim</label>
 					<label><input type="checkbox" id="reduce_subs"> Use compact analyzer</label>
 
