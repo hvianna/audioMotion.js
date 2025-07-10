@@ -273,6 +273,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elGradientRight = $('#gradientRight'),
 	  elGravity       = $('#gravity'),
 	  elInfoTimeout   = $('#info_timeout'),
+	  elInvertVolume  = $('#invert_volume'),
 	  elLedDisplay    = $('#led_display'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
@@ -748,13 +749,14 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elInvertVolume, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 100,
 	fsHeight   : 100,
+	invertVol  : false,
 	maxFPS     : 60,
 	pipRatio   : 2.35,
 	saveDir    : true,
@@ -3415,6 +3417,7 @@ function savePreferences( key ) {
 			bgLocation : elBgLocation.value,
 			bgMaxItems : elBgMaxItems.value,
 			fsHeight   : elFsHeight.value,
+			invertVol  : elInvertVolume.checked,
 			maxFPS     : elMaxFPS.value,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
@@ -3594,6 +3597,7 @@ function setGeneralOptions( options ) {
 	elBgLocation.value  = options.bgLocation;
 	elBgMaxItems.value  = options.bgMaxItems;
 	elFsHeight.value    = options.fsHeight;
+	elInvertVolume.checked = options.invertVol;
 	elMaxFPS.value      = options.maxFPS;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
@@ -4265,7 +4269,7 @@ function setUIEventListeners() {
 		if ( wheelTimer )
 			return;
 		wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
-		const incr = Math.sign( e.deltaY || 0 );
+		const incr = Math.sign( e.deltaY || 0 ) * ( elInvertVolume.checked ? -1 : 1 );
 		changeVolume( incr );
 	});
 
