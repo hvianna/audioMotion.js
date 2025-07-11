@@ -605,14 +605,14 @@
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/users-manual?id=general-settings" target="_blank"></a>
 				</summary>
 				<div class="grid grid-3-cols align-center">
+					<p class="colspan-2">Analyzer height on fullscreen (%):</p>
+					<input id="fs_height" type="number">
+
 					<p class="colspan-2">Background media source:</p>
 					<select id="bg_location"></select>
 
 					<p class="colspan-2">Background media max items:</p>
 					<input id="bg_max_items" type="number">
-
-					<p class="colspan-2">Fullscreen height (%):</p>
-					<input id="fs_height" type="number">
 
 					<p class="colspan-2">Maximum frame rate (FPS):</p>
 					<select id="max_fps"></select>
@@ -766,6 +766,8 @@
 					<p class="colspan-2"><br>When playing videos:</p>
 					<label><input type="checkbox" id="no_dim_video"> Disable background dim</label>
 					<label><input type="checkbox" id="reduce_video"> Use compact analyzer</label>
+
+					<p class="colspan-2"><br><label><input type="checkbox" id="video_fill"> Video fills screen height in fullscreen (no letterboxing)</label></p>
 
 					<p><br><button id="reset_subs">Reset to defaults</button></p>
 				</div>

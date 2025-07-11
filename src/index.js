@@ -89,7 +89,8 @@ const DATASET_TEMPLATE = {
 };
 
 // CSS classes
-const CSS_CLASS_COMPACT = 'compact';
+const CSS_CLASS_COMPACT   = 'compact',
+	  CSS_CLASS_FIT_VIDEO = 'fit-video';
 
 // Channel Layouts
 const CHANNEL_COMBINED   = 'dual-combined',
@@ -332,6 +333,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
+	  elVideoFill     = $('#video_fill'),
 	  elVolume        = $('#volume'),
 	  elWarp          = $('#warp'),				// "warp" effect layer
 	  elWeighting     = $('#weighting');
@@ -788,7 +790,7 @@ const peakOptionsDefaults = {
 }
 
 // Subtitles configuration options
-const subsOptionsElements = [ elNoDimSubs, elNoDimVideo, elReduceOnSubs, elReduceOnVideo, elSubsBackground, elSubsColor, elSubsPosition, elSubsPosAudio ];
+const subsOptionsElements = [ elNoDimSubs, elNoDimVideo, elReduceOnSubs, elReduceOnVideo, elSubsBackground, elSubsColor, elSubsPosition, elSubsPosAudio, elVideoFill ];
 
 const subsOptionsDefaults = {
 	background   : SUBS_BG_SHADOW,
@@ -798,7 +800,8 @@ const subsOptionsDefaults = {
 	posAudio     : SUBS_POS_TOP,
 	position     : SUBS_POS_BOTTOM,
 	reduceOnSubs : false,
-	reduceOnVideo: true
+	reduceOnVideo: true,
+	videoFill    : true
 }
 
 // Main panels
@@ -1636,7 +1639,6 @@ function doConfigPanel() {
 		setProperty( subsOptionsElements );
 	});
 
-	setProperty( subsOptionsElements ); // initialize subtitles settings
 }
 
 /**
@@ -2440,7 +2442,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageDim,
 		elChnLayout,
 		elShowPeaks, // also sets fadePeaks
-		elFsHeight,
 		elGravity,
 		elLinkGrads, // note: this needs to be set before the gradients!
 		elSensitivity,
@@ -3445,7 +3446,8 @@ function savePreferences( key ) {
 			position     : elSubsPosition.value,
 			posAudio     : elSubsPosAudio.value,
 			reduceOnSubs : elReduceOnSubs.checked,
-			reduceOnVideo: elReduceOnVideo.checked
+			reduceOnVideo: elReduceOnVideo.checked,
+			videoFill    : elVideoFill.checked
 		}
 		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
 	}
@@ -4024,6 +4026,10 @@ function setProperty( elems, save = true ) {
 				toggleMultiChannel();
 				break;
 
+			case elVideoFill:
+				elContainer.classList.toggle( CSS_CLASS_FIT_VIDEO, ! elVideoFill.checked );
+				break;
+
 			case elWeighting:
 				audioMotion.weightingFilter = getControlValue( elWeighting );
 				break;
@@ -4132,6 +4138,7 @@ function setSubtitlesOptions( options ) {
 	elSubsColor.value       = options.color;
 	elSubsPosition.value    = options.position;
 	elSubsPosAudio.value    = options.posAudio;
+	elVideoFill.checked     = options.videoFill;
 }
 
 /**
@@ -5438,7 +5445,9 @@ function updateRangeValue( el ) {
 		else
 			enterLastDir();
 
-		setProperty( elSurround );
+		// Initialize necessary global configuration settings (not in the preset)
+		setProperty( [ elFsHeight, elSurround, elVideoFill, ...subsOptionsElements ], false );
+
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;

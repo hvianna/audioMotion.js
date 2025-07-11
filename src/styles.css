@@ -288,8 +288,8 @@ a.button:visited {
 	top: 0;
 	width: 100%;
 }
-.bg-container:fullscreen #player0,
-.bg-container:fullscreen #player1 {
+.bg-container.fit-video:fullscreen #player0,
+.bg-container.fit-video:fullscreen #player1 {
 	object-fit: contain;
 }
 
@@ -328,8 +328,8 @@ a.button:visited {
 .bg-container:not(:-webkit-full-screen) .analyzer:not(.compact) {
 	height: 100% !important;
 }
-.bg-container:-webkit-full-screen #player0,
-.bg-container:-webkit-full-screen #player1 {
+.bg-container.fit-video:-webkit-full-screen #player0,
+.bg-container.fit-video:-webkit-full-screen #player1 {
 	object-fit: contain;
 }
 
