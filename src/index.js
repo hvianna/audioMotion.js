@@ -263,6 +263,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elChnLayout     = $('#channel_layout'),
 	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
+	  elDebug         = $('#debug'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
@@ -1450,6 +1451,29 @@ function cycleScale( prev ) {
 	setProperty( [ elScaleX, elScaleY ] );
 
 	return scale;
+}
+
+/**
+ * Log a debug message and object to the player console
+ *
+ * @param [{string}] log message
+ * @param [{object}] additional object
+ */
+function debugLog( msg, obj ) {
+	if ( typeof msg == 'object' ) {
+		obj = msg;
+		msg = '';
+	}
+	if ( obj ) {
+		msg += ( msg ? ', ' : '' ) + '{ ';
+		let i = 0;
+		for ( const [ key, value ] of Object.entries( obj ) ) {
+			msg += ( i ? ', ' : '' ) + key + ': ' + value;
+			i++;
+		}
+		msg += ' }';
+	}
+	consoleLog( msg );
 }
 
 /**
@@ -2693,8 +2717,7 @@ function openGradientEditorNew( makeCopy ) {
  * Play next song on queue
  */
 function playNextSong( play ) {
-
-	window.DEBUG && console.log('playNextSong', { play, playlistPos, skipping } );
+	elDebug.checked && debugLog( 'playNextSong', { play, playlistPos, skipping } );
 
 	if ( skipping || elSource.checked || playlistPos > queueLength() - 1 )
 		return true;
@@ -2720,7 +2743,7 @@ function playNextSong( play ) {
 		audioElement[ currAudio ].play()
 		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
-			window.DEBUG && console.log( { err } );
+			elDebug.checked && debugLog( { err } );
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
@@ -4238,8 +4261,15 @@ function setUIEventListeners() {
 	$(`#panel-${ mainPanels[0].value }`).checked = true;
 	elMediaPanel.classList.add('active');
 
-	// clear console
+	// console actions - clear and copy to clipboard
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
+	$('#console-copy').addEventListener( 'click', () => {
+		let text = '';
+		for ( const line of $$('#console-content div') )
+			text += line.innerText + '\n';
+		if ( navigator.clipboard )
+			navigator.clipboard.writeText( text );
+	});
 
 	// settings switches
 	$$('.switch').forEach( el => {
@@ -4883,7 +4913,7 @@ function updateRangeValue( el ) {
 
 		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
 		if ( remaining < interval && isPlaying() ) {
-			window.DEBUG && console.log( 'Early track skip', { interval } );
+			elDebug.checked && debugLog( 'gapless track skip', { interval } );
 			playNextSong();
 		}
 
@@ -5021,7 +5051,7 @@ function updateRangeValue( el ) {
 
 	const audioOnEnded = _ => {
 		const isNextSong = playNextSong( true );
-		window.DEBUG && console.log( 'audioOnEnded', { isNextSong } );
+		elDebug.checked && debugLog( 'audioOnEnded', { isNextSong } );
 		if ( ! isNextSong ) {
 			stop();
 			setCanvasMsg( 'Queue ended', 10 );

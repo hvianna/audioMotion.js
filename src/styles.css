@@ -1153,6 +1153,33 @@ kbd.wide {
 	color: #f33;
 }
 
+.console-nav {
+	position: absolute;
+	right: 20px;
+}
+.console-nav button,
+.console-nav .button {
+	background: var(--display-background);
+	border: 1px solid #0c0 !important;
+	color: #0c0;
+	cursor: pointer;
+	display: block;
+	font-size: 12px;
+	margin: .5em 0;
+	padding: 2px 6px;
+	text-transform: uppercase;
+	width: 80px;
+}
+.console-nav button:hover,
+.console-nav .button:hover,
+.console-nav input:checked + label {
+	background: #0c0;
+	color: #000;
+}
+.console-nav input {
+	display: none;
+}
+
 #console-content {
 	background: var(--display-background);
 	border-radius: 6px;
@@ -1181,25 +1208,6 @@ kbd.wide {
 #console-content div {
 	margin-left: 8.75em;
 	text-indent: -9em;
-}
-
-#console-clear {
-	background: var(--display-background);
-	border: 1px solid #0c0;
-	color: #0c0;
-	cursor: pointer;
-	font-size: 12px;
-	padding: 2px 6px;
-	position: absolute;
-	text-transform: uppercase;
-	top: 10px;
-}
-#console-clear {
-	right: 20px;
-}
-#console-clear:hover {
-	background: #0c0;
-	color: #000;
 }
 
 .credits {
