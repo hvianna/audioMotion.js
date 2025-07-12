@@ -899,10 +899,10 @@ const getControlValue = el => {
 	let ret = el.value;  // basic select and input elements
 	if ( el == elBandCount )
 		ret = 9 - ret;
-	if ( isCustomRadio( el ) )
+	else if ( isCustomRadio( el ) )
 		ret = el.elements[ el.dataset.prop ].value;
-	if ( el.dataset.active !== undefined ) // switches
-		ret = el.dataset.active;
+	else if ( el.className.includes('switch') )
+		ret = el.dataset.active || 0; // note: may be undefined; in this case, make sure to return 0
 	return '' + ret;
 }
 
@@ -2693,6 +2693,8 @@ function openGradientEditorNew( makeCopy ) {
  */
 function playNextSong( play ) {
 
+	window.DEBUG && console.log('playNextSong', { play, playlistPos, skipping } );
+
 	if ( skipping || elSource.checked || playlistPos > queueLength() - 1 )
 		return true;
 
@@ -2717,6 +2719,7 @@ function playNextSong( play ) {
 		audioElement[ currAudio ].play()
 		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
+			window.DEBUG && console.log( { err } );
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
@@ -4603,7 +4606,8 @@ function skipTrack( back = false ) {
  * Player stop button
  */
 function stop() {
-	audioElement[ currAudio ].pause();
+	for ( const audioEl of audioElement )
+		audioEl.pause();
 	setCanvasMsg();
 	loadSong( 0 );
 }
@@ -4876,8 +4880,10 @@ function updateRangeValue( el ) {
 			  { timestamp } = data;
 
 		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-		if ( remaining < .1 )
-			playNextSong( true );
+		if ( remaining < .1 && isPlaying() ) {
+			window.DEBUG && console.log('Early track skip for gapless playback');
+			playNextSong();
+		}
 
 		// set song info display at the end of the song
 		if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && timestamp > canvasMsg.endTime && isPlaying() )
@@ -5012,8 +5018,10 @@ function updateRangeValue( el ) {
 	// event handlers for audio elements
 
 	const audioOnEnded = _ => {
-		if ( ! playNextSong( true ) ) {
-			loadSong( 0 );
+		const isNextSong = playNextSong( true );
+		window.DEBUG && console.log( 'audioOnEnded', { isNextSong } );
+		if ( ! isNextSong ) {
+			stop();
 			setCanvasMsg( 'Queue ended', 10 );
 			if ( isPIP() )
 				pipVideo.pause();
