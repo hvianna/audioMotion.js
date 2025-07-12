@@ -824,6 +824,7 @@ let audioElement = [],
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
+	latency = 0,
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
@@ -4875,13 +4876,14 @@ function updateRangeValue( el ) {
 			  endTimeout = +elEndTimeout.value,
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
+			  interval   = latency + 1 / instance.fps,
 			  noShadow   = isSwitchOn( elNoShadow ),
 			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
 		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-		if ( remaining < .1 && isPlaying() ) {
-			window.DEBUG && console.log('Early track skip for gapless playback');
+		if ( remaining < interval && isPlaying() ) {
+			window.DEBUG && console.log( 'Early track skip', { interval } );
 			playNextSong();
 		}
 
@@ -5456,7 +5458,9 @@ function updateRangeValue( el ) {
 		// Initialize necessary global configuration settings (not in the preset)
 		setProperty( [ elFsHeight, elSurround, elVideoFill, ...subsOptionsElements ], false );
 
-		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
+		latency = ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency;
+
+		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ latency * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
 	});
