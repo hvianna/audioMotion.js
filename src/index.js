@@ -826,9 +826,11 @@ let audioElement = [],
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
 	latency = 0,
+	mediaNodes = [],			// mediaElementSource nodes used to connect to the stereoPanner node
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
+	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -4765,9 +4767,21 @@ function toggleMultiChannel() {
 		  { maxChannelCount } = destination,
 		  isSurround          = elSurround.checked;
 
+	if ( panNode ) {
+		audioMotion.disconnectInput();
+		if ( isSurround ) {
+			for ( const node of mediaNodes )
+				audioMotion.connectInput( node );
+		}
+		else // on stereo mode we use the panNode to fix mono audio playing only on the left channel
+			audioMotion.connectInput( panNode );
+	}
+
 	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
 	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
 	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
+
+	elDebug.checked && debugLog( 'connected nodes', audioMotion.connectedSources );
 }
 
 /**
@@ -5215,6 +5229,9 @@ function updateRangeValue( el ) {
 	currAudio = 0;
 	nextAudio = 1;
 
+	if ( audioCtx.createStereoPanner ) // NOTE: no support on Safari < 14.1
+		panNode = audioCtx.createStereoPanner();
+
 	for ( const i of [0,1] ) {
 		audioElement[ i ] = $( `#player${i}` );
 		clearAudioElement( i );
@@ -5224,7 +5241,12 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		audioMotion.connectInput( audioElement[ i ] );
+		if ( panNode ) {
+			mediaNodes[ i ] = audioCtx.createMediaElementSource( audioElement[ i ] );
+			mediaNodes[ i ].connect( panNode );
+		}
+		else
+			audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );
