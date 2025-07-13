@@ -4874,17 +4874,20 @@ function updateRangeValue( el ) {
 	const showCanvasInfo = ( reason, instance ) => {
 		// note: the global `audioMotion` object is not yet set during the 'create' event, so we need to use the passed instance object
 		resizeOSD( instance );
+
+		const { canvas, fsWidth, fsHeight, isFullscreen, loRes, pixelRatio } = instance;
+
 		let msg;
 		switch ( reason ) {
 			case 'create':
-				consoleLog( `Display resolution: ${ instance.fsWidth } x ${ instance.fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
+				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
 				msg = 'Canvas created';
 				break;
 			case 'lores':
-				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${ instance.dPR })`;
+				msg = `Lo-res ${ loRes ? 'ON' : 'OFF' } (pixelRatio = ${ pixelRatio })`;
 				break;
 			case 'fschange':
-				msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
+				msg = `${ isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
 				break;
 			case 'user' :
 				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
@@ -4893,7 +4896,7 @@ function updateRangeValue( el ) {
 				// don't display any message for window/canvas resizing
 				return;
 		}
-		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
+		consoleLog( `${ msg || reason }. Canvas size is ${ canvas.width } x ${ canvas.height } px` );
 	}
 
 	/**
