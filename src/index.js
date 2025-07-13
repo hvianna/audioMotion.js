@@ -88,6 +88,11 @@ const DATASET_TEMPLATE = {
 	title: ''
 };
 
+// CSS classes
+const CSS_CLASS_COMPACT   = 'compact',
+	  CSS_CLASS_FIT_VIDEO = 'fit-video',
+	  CSS_CLASS_WARNING   = 'warning';
+
 // Channel Layouts
 const CHANNEL_COMBINED   = 'dual-combined',
  	  CHANNEL_HORIZONTAL = 'dual-horizontal',
@@ -259,6 +264,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elChnLayout     = $('#channel_layout'),
 	  elColorMode     = $('#color_mode'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
+	  elDebug         = $('#debug'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
@@ -270,6 +276,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elGradientRight = $('#gradientRight'),
 	  elGravity       = $('#gravity'),
 	  elInfoTimeout   = $('#info_timeout'),
+	  elInvertVolume  = $('#invert_volume'),
 	  elLedDisplay    = $('#led_display'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
@@ -298,6 +305,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elRandomMode    = $('#random_mode'),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
+	  elReduceOnSubs  = $('#reduce_subs'),
+	  elReduceOnVideo = $('#reduce_video'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
 	  elRoundBars     = $('#round_bars'),
@@ -321,10 +330,12 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
+	  elSubsPosAudio  = $('#subs_position_audio'),
   	  elSurround      = $('#enable_surround'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
+	  elVideoFill     = $('#video_fill'),
 	  elVolume        = $('#volume'),
 	  elWarp          = $('#warp'),				// "warp" effect layer
 	  elWeighting     = $('#weighting');
@@ -717,12 +728,15 @@ const sensitivityDefaults = [
 ];
 
 // On-screen information display options
+const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elShowCount, elShowCover, elTrackTimeout ];
+
 const infoDisplayDefaults = {
 	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
 	track : 10,   // display time (secs) on track change
 	end   : 10,   // display time (secs) at the end of the song
 	covers: true, // show album covers in song information
-	count : true  // show song number and play queue count
+	count : true, // show song number and play queue count
+	osdFontSize: OSD_SIZE_M
 }
 
 // Background Image Fit options
@@ -739,18 +753,15 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elMaxFPS, elNoDimSubs,
-								 elNoDimVideo, elOSDFontSize, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elInvertVolume, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
 	bgLocation : BGFOLDER_SERVER,
 	bgMaxItems : 100,
-	osdFontSize: OSD_SIZE_M,
 	fsHeight   : 100,
+	invertVol  : false,
 	maxFPS     : 60,
-	noDimVideo : true,
-	noDimSubs  : true,
 	pipRatio   : 2.35,
 	saveDir    : true,
 	saveQueue  : true,
@@ -781,12 +792,18 @@ const peakOptionsDefaults = {
 }
 
 // Subtitles configuration options
-const subtitlesElements = [ elSubsBackground, elSubsColor, elSubsPosition ];
+const subsOptionsElements = [ elNoDimSubs, elNoDimVideo, elReduceOnSubs, elReduceOnVideo, elSubsBackground, elSubsColor, elSubsPosition, elSubsPosAudio, elVideoFill ];
 
-const subtitlesDefaults = {
-	background: SUBS_BG_SHADOW,
-	color     : SUBS_COLOR_WHITE,
-	position  : SUBS_POS_TOP
+const subsOptionsDefaults = {
+	background   : SUBS_BG_SHADOW,
+	color        : SUBS_COLOR_WHITE,
+	noDimVideo   : true,
+	noDimSubs    : true,
+	posAudio     : SUBS_POS_TOP,
+	position     : SUBS_POS_BOTTOM,
+	reduceOnSubs : false,
+	reduceOnVideo: true,
+	videoFill    : true
 }
 
 // Main panels
@@ -809,9 +826,12 @@ let audioElement = [],
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
+	latency = 0,
+	mediaNodes = [],			// mediaElementSource nodes used to connect to the stereoPanner node
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
+	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
 	playlist, 					// play queue
 	playlistPos, 				// index to the current song in the queue
 	randomModeTimer,
@@ -884,14 +904,14 @@ const getControlValue = el => {
 	let ret = el.value;  // basic select and input elements
 	if ( el == elBandCount )
 		ret = 9 - ret;
-	if ( isCustomRadio( el ) )
+	else if ( isCustomRadio( el ) )
 		ret = el.elements[ el.dataset.prop ].value;
-	if ( el.dataset.active !== undefined ) // switches
-		ret = el.dataset.active;
+	else if ( el.className.includes('switch') )
+		ret = el.dataset.active || 0; // note: may be undefined; in this case, make sure to return 0
 	return '' + ret;
 }
 
-// returns an object with the current settings
+// Returns an object with the current analyzer settings (Settings and Advanced panels)
 const getCurrentSettings = _ => ({
 	alphaBars    : getControlValue( elAlphaBars ),
 	ansiBands    : getControlValue( elAnsiBands ),
@@ -986,8 +1006,11 @@ const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => !! +getControlValue( el );
 
-// check if a video file is loaded in the current audio element
-const isVideoLoaded = () => FILE_EXT_VIDEO.includes( parsePath( audioElement[ currAudio ].dataset.file ).extension );
+// check if a number input element has a valid value (always returns true if element type is not 'number')
+const isValidRange = el => el.type != 'number' || ( +el.value >= +el.min && +el.value <= +el.max );
+
+// check if a video file is loaded in the media element
+const isVideoLoaded = ( audioEl = audioElement[ currAudio ] ) => FILE_EXT_VIDEO.includes( parsePath( audioEl.dataset.file ).extension );
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => typeof path == 'string' ? path.replace( /\\/g, '/' ) : path;
@@ -1332,7 +1355,7 @@ function clearPlayQueue() {
 /**
  * Recalculate global variables and resize the canvas used for OSD
  */
-function computeFontSizes( instance = audioMotion ) {
+function resizeOSD( instance = audioMotion ) {
 
 	const factors = [ 24, 17, 13.5 ], // approx. 45px, 64px, 80px for 1080px canvas (baseSize)
 		  dPR     = instance.pixelRatio,
@@ -1363,11 +1386,13 @@ function consoleLog( msg, error, clear ) {
 	 	  dt = new Date(),
 		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
 
-	if ( clear )
+	if ( clear ) {
 		content.innerHTML = '';
+		elToggleConsole.classList.remove( CSS_CLASS_WARNING );
+	}
 
 	if ( error && elToggleConsole )
-		elToggleConsole.classList.add('warning');
+		elToggleConsole.classList.add( CSS_CLASS_WARNING );
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -1431,6 +1456,29 @@ function cycleScale( prev ) {
 	setProperty( [ elScaleX, elScaleY ] );
 
 	return scale;
+}
+
+/**
+ * Log a debug message and object to the player console
+ *
+ * @param [{string}] log message
+ * @param [{object}] additional object
+ */
+function debugLog( msg, obj ) {
+	if ( typeof msg == 'object' ) {
+		obj = msg;
+		msg = '';
+	}
+	if ( obj ) {
+		msg += ( msg ? ', ' : '' ) + '{ ';
+		let i = 0;
+		for ( const [ key, value ] of Object.entries( obj ) ) {
+			msg += ( i ? ', ' : '' ) + key + ': ' + value;
+			i++;
+		}
+		msg += ' }';
+	}
+	consoleLog( msg );
 }
 
 /**
@@ -1532,9 +1580,6 @@ function doConfigPanel() {
 		});
 	}
 
-	// helper function to validate range value
-	const isValidRange = el => ( +el.value >= +el.min && +el.value <= +el.max );
-
 	// Enabled Background Image Fit options
 	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
@@ -1591,52 +1636,39 @@ function doConfigPanel() {
 		}
 	});
 
-	// On-screen display options
-	for ( const el of [ elInfoTimeout, elTrackTimeout, elEndTimeout, elShowCover, elShowCount ] )
-		el.addEventListener( 'change', () => savePreferences( KEY_DISPLAY_OPTS ) );
+	// Listen for changes on common configuration elements
+	for ( const el of [ ...infoOptionsElements, ...generalOptionsElements, ...peakOptionsElements, ...subsOptionsElements ] ) {
+		el.addEventListener( 'change', () => {
+			if ( isValidRange( el ) )
+				setProperty( el );
+			el.classList.toggle( 'field-error', ! isValidRange( el ) );
+		});
+	}
 
+	// Reset On-screen display settings
 	$('#reset_osd').addEventListener( 'click', () => {
 		setInfoOptions( infoDisplayDefaults );
-		savePreferences( KEY_DISPLAY_OPTS );
+		setProperty( infoOptionsElements );
 	});
 
-	// General settings
-	generalOptionsElements.forEach( el => {
-		el.addEventListener( 'change', () => {
-			const isValid = el.type != 'number' || isValidRange( el );
-			if ( isValid )
-				setProperty( el );
-			el.classList.toggle( 'field-error', ! isValid );
-		});
-	});
-
+	// Reset General settings
 	$('#reset_general').addEventListener( 'click', () => {
 		setGeneralOptions( generalOptionsDefaults );
 		setProperty( generalOptionsElements );
 	});
 
-	// Peak settings
-	peakOptionsElements.forEach( el => {
-		el.addEventListener( 'change', () => {
-			const isValid = el.type != 'number' || isValidRange( el );
-			if ( isValid )
-				setProperty( el );
-			el.classList.toggle( 'field-error', ! isValid );
-		});
-	});
-
+	// Reset Peak settings
 	$('#reset_peak').addEventListener( 'click', () => {
 		setPeakOptions( peakOptionsDefaults );
 		setProperty( peakOptionsElements );
 	});
 
-	// Subtitle settings
-	subtitlesElements.forEach( el => el.addEventListener( 'change', () => setProperty( el ) ) );
+	// Reset Subtitle & Video settings
 	$('#reset_subs').addEventListener( 'click', () => {
-		setSubtitlesOptions( subtitlesDefaults );
-		setProperty( subtitlesElements );
+		setSubtitlesOptions( subsOptionsDefaults );
+		setProperty( subsOptionsElements );
 	});
-	setProperty( subtitlesElements ); // initialize subtitles settings
+
 }
 
 /**
@@ -2279,9 +2311,6 @@ function loadPreferences() {
 		elLinearBoost[ index ].value = preset.boost || sensitivityDefaults[ index ].boost;
 	});
 
-	// On-screen display options - merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
-
 	// General settings
 
 	populateSelect( elPIPRatio, pipRatioOptions );
@@ -2298,15 +2327,20 @@ function loadPreferences() {
 
 	setRangeAtts( elBgMaxItems, 0, 1000 );
 
+	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
+
+	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
+
+	// On-screen display options
+
 	populateSelect( elOSDFontSize, [
 		[ OSD_SIZE_S, 'Small'  ],
 		[ OSD_SIZE_M, 'Medium' ],
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
-	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
-
-	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
+	// merge saved options (if any) with the defaults and set UI fields
+	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
 
 	// Peak settings
 
@@ -2333,13 +2367,16 @@ function loadPreferences() {
 		[ SUBS_COLOR_YELLOW, 'Yellow' ]
 	]);
 
-	populateSelect( elSubsPosition, [
+	const subsPositionOptions = [
 		[ SUBS_POS_TOP,    'Top'    ],
 		[ SUBS_POS_CENTER, 'Center' ],
 		[ SUBS_POS_BOTTOM, 'Bottom' ]
-	]);
+	];
+	populateSelect( elSubsPosition, subsPositionOptions );
+	populateSelect( elSubsPosAudio, subsPositionOptions );
 
-	setSubtitlesOptions( { ...subtitlesDefaults, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
+	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
 
 	return isLastSession;
 }
@@ -2435,7 +2472,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageDim,
 		elChnLayout,
 		elShowPeaks, // also sets fadePeaks
-		elFsHeight,
 		elGravity,
 		elLinkGrads, // note: this needs to be set before the gradients!
 		elSensitivity,
@@ -2686,6 +2722,7 @@ function openGradientEditorNew( makeCopy ) {
  * Play next song on queue
  */
 function playNextSong( play ) {
+	elDebug.checked && debugLog( 'playNextSong', { play, playlistPos, skipping } );
 
 	if ( skipping || elSource.checked || playlistPos > queueLength() - 1 )
 		return true;
@@ -2711,6 +2748,7 @@ function playNextSong( play ) {
 		audioElement[ currAudio ].play()
 		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
+			elDebug.checked && debugLog( { err } );
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
@@ -2857,7 +2895,7 @@ function populateEnabledGradients() {
 		elEnabledGradients.innerHTML +=
 			`<label>
 				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit / Export</a>
+				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit</a>
 			</label>`;
 	});
 
@@ -3400,7 +3438,8 @@ function savePreferences( key ) {
 			track : elTrackTimeout.value,
 			end   : elEndTimeout.value,
 			covers: elShowCover.checked,
-			count : elShowCount.checked
+			count : elShowCount.checked,
+			osdFontSize: elOSDFontSize.value
 		}
 		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
 	}
@@ -3411,9 +3450,8 @@ function savePreferences( key ) {
 			bgLocation : elBgLocation.value,
 			bgMaxItems : elBgMaxItems.value,
 			fsHeight   : elFsHeight.value,
+			invertVol  : elInvertVolume.checked,
 			maxFPS     : elMaxFPS.value,
-			noDimSubs  : elNoDimSubs.checked,
-			noDimVideo : elNoDimVideo.checked,
 			pipRatio   : elPIPRatio.value,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
@@ -3433,9 +3471,15 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
 		const subtitlesOptions = {
-			background: elSubsBackground.value,
-			color     : elSubsColor.value,
-			position  : elSubsPosition.value
+			background   : elSubsBackground.value,
+			color        : elSubsColor.value,
+			noDimSubs    : elNoDimSubs.checked,
+			noDimVideo   : elNoDimVideo.checked,
+			position     : elSubsPosition.value,
+			posAudio     : elSubsPosAudio.value,
+			reduceOnSubs : elReduceOnSubs.checked,
+			reduceOnVideo: elReduceOnVideo.checked,
+			videoFill    : elVideoFill.checked
 		}
 		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
 	}
@@ -3587,10 +3631,8 @@ function setGeneralOptions( options ) {
 	elBgLocation.value  = options.bgLocation;
 	elBgMaxItems.value  = options.bgMaxItems;
 	elFsHeight.value    = options.fsHeight;
+	elInvertVolume.checked = options.invertVol;
 	elMaxFPS.value      = options.maxFPS;
-	elNoDimSubs.checked = options.noDimSubs;
-	elNoDimVideo.checked= options.noDimVideo;
-	elOSDFontSize.value = options.osdFontSize;
 	elPIPRatio.value    = options.pipRatio;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
@@ -3604,6 +3646,7 @@ function setInfoOptions( options ) {
 	elInfoTimeout.value  = options.info;
 	elTrackTimeout.value = options.track;
 	elEndTimeout.value   = options.end;
+	elOSDFontSize.value  = options.osdFontSize;
 	elShowCover.checked  = options.covers;
 	elShowCount.checked  = options.count;
 }
@@ -3617,7 +3660,8 @@ function setOverlay() {
 	const bgOption  = elBackground.value[0],
 		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
-		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK );
+		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK ),
+		  isCompact = ( elReduceOnVideo.checked && isVideo ) || ( elReduceOnSubs.checked && hasSubs );
 
 	// set visibility of video elements
 	for ( const audioEl of audioElement )
@@ -3632,6 +3676,10 @@ function setOverlay() {
 	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
 	// enable/disable background dim layer
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
+
+	// toggle reduced analyzer
+	elAnalyzer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
+	elContainer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
 
 	return isOverlay;
 }
@@ -3843,7 +3891,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elOSDFontSize:
-				computeFontSizes();
+				resizeOSD();
 				break;
 
 			case elOutline:
@@ -3892,6 +3940,11 @@ function setProperty( elems, save = true ) {
 				while ( +elRangeMax.value <= +elRangeMin.value )
 					elRangeMax.selectedIndex++;
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
+
+			case elReduceOnSubs:
+			case elReduceOnVideo:
+				setOverlay();
 				break;
 
 			case elReflex:
@@ -3996,12 +4049,17 @@ function setProperty( elems, save = true ) {
 				setSubtitlesColors();
 				break;
 
+			case elSubsPosAudio:
 			case elSubsPosition:
-				setSubtitlesPosition( { target: audioElement[ currAudio ].querySelector('track') } );
+				setSubtitlesPosition();
 				break;
 
 			case elSurround:
 				toggleMultiChannel();
+				break;
+
+			case elVideoFill:
+				elContainer.classList.toggle( CSS_CLASS_FIT_VIDEO, ! elVideoFill.checked );
 				break;
 
 			case elWeighting:
@@ -4013,9 +4071,11 @@ function setProperty( elems, save = true ) {
 		if ( save ) {
 			if ( generalOptionsElements.includes( el ) )
 				savePreferences( KEY_GENERAL_OPTS );
+			else if ( infoOptionsElements.includes( el ) )
+				savePreferences( KEY_DISPLAY_OPTS );
 			else if ( peakOptionsElements.includes( el ) )
 				savePreferences( KEY_PEAK_OPTIONS );
-			else if ( subtitlesElements.includes( el ) )
+			else if ( subsOptionsElements.includes( el ) )
 				savePreferences( KEY_SUBTITLES_OPTS );
 			else
 				updateLastConfig();
@@ -4081,7 +4141,7 @@ async function setSource( isMicSource, callback ) {
  */
 function setSubtitlesColors() {
 	// remove all CSS classes related to subtitles
-	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR }).*`, 'gi' ), '' ); // /(subs-bg-|subs-color-).*/gi
+	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR })\\S*`, 'gi' ), '' ); // /(subs-bg-|subs-color-)\S*/gi
 	// add classes for the current settings
 	elContainer.classList.add( SUBS_CSS_BG + elSubsBackground.value, SUBS_CSS_COLOR + elSubsColor.value );
 }
@@ -4102,44 +4162,54 @@ function setSubtitlesDisplay() {
  * Set subtitles configuration options
  */
 function setSubtitlesOptions( options ) {
-	elSubsBackground.value = options.background;
-	elSubsColor.value      = options.color;
-	elSubsPosition.value   = options.position;
+	elNoDimSubs.checked     = options.noDimSubs;
+	elNoDimVideo.checked    = options.noDimVideo;
+	elReduceOnSubs.checked  = options.reduceOnSubs;
+	elReduceOnVideo.checked = options.reduceOnVideo;
+	elSubsBackground.value  = options.background;
+	elSubsColor.value       = options.color;
+	elSubsPosition.value    = options.position;
+	elSubsPosAudio.value    = options.posAudio;
+	elVideoFill.checked     = options.videoFill;
 }
 
 /**
- * Set the vertical position of all subtitle "cues"
+ * Set the vertical position of subtitle "cues"
  *
- * @param {object} event
+ * @param [{object}] event - when called by subs loaded into a media element
  */
 function setSubtitlesPosition( event ) {
-	if ( ! event.target.track )
-		return;
+	// no event means position config changed, so we reset subtitle tracks on both media elements
+	const targets = event ? [ event.target ] : $$('track');
 
-	let align, line, snap = false;
+ 	for ( const target of targets ) {
+		let align, line, snap = false;
 
-	switch( elSubsPosition.value ) {
-		case SUBS_POS_BOTTOM:
-			align = 'end';
-			line  = 95;
-			break;
+		const desiredPos = ( isVideoLoaded( target.parentElement ) ? elSubsPosition : elSubsPosAudio ).value;
 
-		case SUBS_POS_CENTER:
-			align = 'center';
-			line  = 50;
-			break;
+		switch ( desiredPos ) {
+			case SUBS_POS_BOTTOM:
+				align = 'end';
+				line  = 95;
+				break;
 
-		default: // SUBS_POS_TOP
-			align = 'start';
-			line  = 1;
-			snap  = true;
-	}
+			case SUBS_POS_CENTER:
+				align = 'center';
+				line  = 50;
+				break;
 
-	// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
-	for ( const cue of event.target.track.cues ) {
-		cue.line        = line;
-		cue.snapToLines = snap;  // when false, `line` represents a percentage
-		cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+			default: // SUBS_POS_TOP
+				align = 'start';
+				line  = 1;
+				snap  = true;
+		}
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/VTTCue
+		for ( const cue of target.track.cues ) {
+			cue.line        = line;
+			cue.snapToLines = snap;  // when false, `line` represents a percentage
+			cue.lineAlign   = align; // ignored by Chromium; doesn't seem to work as expected on Firefox (v125)
+		}
 	}
 }
 
@@ -4186,7 +4256,7 @@ function setUIEventListeners() {
 			panelButtons.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
 			toggleMediaPanel( true ); // make sure the main panel is expanded
 			if ( btn.value == 'console' ) {
-				elToggleConsole.classList.remove('warning');
+				elToggleConsole.classList.remove( CSS_CLASS_WARNING );
 				consoleLog(); // update scroll only
 			}
 		});
@@ -4196,8 +4266,19 @@ function setUIEventListeners() {
 	$(`#panel-${ mainPanels[0].value }`).checked = true;
 	elMediaPanel.classList.add('active');
 
-	// clear console
+	// console actions - clear, copy, debug
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
+	$('#console-copy').addEventListener( 'click', () => {
+		let text = '';
+		for ( const line of $$('#console-content div') )
+			text += line.innerText + '\n';
+		if ( navigator.clipboard ) {
+			navigator.clipboard.writeText( text )
+				.then( () => consoleLog('Console messages copied to clipboard') )
+				.catch( err => consoleLog( err, true ) );
+		}
+	});
+	elDebug.addEventListener( 'click', () => consoleLog( `Debug ${ elDebug.checked ? 'enabled' : 'disabled' }` ) );
 
 	// settings switches
 	$$('.switch').forEach( el => {
@@ -4238,7 +4319,7 @@ function setUIEventListeners() {
 		if ( wheelTimer )
 			return;
 		wheelTimer = setTimeout( () => wheelTimer = false, 50 ); // 50ms delay for reduced mouse/touchpad sensitivity on Mac
-		const incr = Math.sign( e.deltaY || 0 );
+		const incr = Math.sign( e.deltaY || 0 ) * ( elInvertVolume.checked ? -1 : 1 );
 		changeVolume( incr );
 	});
 
@@ -4489,13 +4570,23 @@ function setUIEventListeners() {
 		currentGradient.dir = e.target.checked ? 'h' : undefined;
 	});
 
-	// Config panel accordion
-	const accordionItems = $$('details');
+	// Configuration panel accordion
+
+	const accordionItems      = $$('details'),
+		  closeAccordionItems = _ => accordionItems.forEach( item => item.open = false );
+
 	accordionItems.forEach( el => {
 		el.addEventListener( 'click', () => {
 			if ( ! el.open )
-				accordionItems.forEach( item => item.open = false );
+				closeAccordionItems();
 		});
+	});
+
+	// "Manage Gradients" button on Settings panel
+	$('#manage_gradients').addEventListener( 'click', () => {
+		location.href = '#config';
+		closeAccordionItems();
+		$('#gradients_management').open = true;
 	});
 
 	// Export / import settings
@@ -4555,7 +4646,8 @@ function skipTrack( back = false ) {
  * Player stop button
  */
 function stop() {
-	audioElement[ currAudio ].pause();
+	for ( const audioEl of audioElement )
+		audioEl.pause();
 	setCanvasMsg();
 	loadSong( 0 );
 }
@@ -4682,9 +4774,21 @@ function toggleMultiChannel() {
 		  { maxChannelCount } = destination,
 		  isSurround          = elSurround.checked;
 
+	if ( panNode ) {
+		audioMotion.disconnectInput();
+		if ( isSurround ) {
+			for ( const node of mediaNodes )
+				audioMotion.connectInput( node );
+		}
+		else // on stereo mode we use the panNode to fix mono audio playing only on the left channel
+			audioMotion.connectInput( panNode );
+	}
+
 	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
 	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
 	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
+
+	elDebug.checked && debugLog( 'connected nodes', audioMotion.connectedSources );
 }
 
 /**
@@ -4775,22 +4879,22 @@ function updateRangeValue( el ) {
 
 	// Callback function to handle canvas size changes (onCanvasResize)
 	const showCanvasInfo = ( reason, instance ) => {
-		// resize OSD canvas and recalculate variables used for info display
-		// note: the global `audioMotion` object is not set yet during the `create` event, so we must pass the instance
-		computeFontSizes( instance );
+		// note: the global `audioMotion` object is not yet set during the 'create' event, so we need to use the passed instance object
+		resizeOSD( instance );
+
+		const { canvas, fsWidth, fsHeight, isFullscreen, loRes, pixelRatio } = instance;
 
 		let msg;
-
 		switch ( reason ) {
 			case 'create':
-				consoleLog( `Display resolution: ${ instance.fsWidth } x ${ instance.fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
+				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
 				msg = 'Canvas created';
 				break;
 			case 'lores':
-				msg = `Lo-res ${ instance.loRes ? 'ON' : 'OFF' } (pixelRatio = ${ instance.dPR })`;
+				msg = `Lo-res ${ loRes ? 'ON' : 'OFF' } (pixelRatio = ${ pixelRatio })`;
 				break;
 			case 'fschange':
-				msg = `${ instance.isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
+				msg = `${ isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
 				break;
 			case 'user' :
 				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
@@ -4799,8 +4903,7 @@ function updateRangeValue( el ) {
 				// don't display any message for window/canvas resizing
 				return;
 		}
-
-		consoleLog( `${ msg || reason }. Canvas size is ${ instance.canvas.width } x ${ instance.canvas.height } px` );
+		consoleLog( `${ msg || reason }. Canvas size is ${ canvas.width } x ${ canvas.height } px` );
 	}
 
 	/**
@@ -4827,13 +4930,16 @@ function updateRangeValue( el ) {
 			  endTimeout = +elEndTimeout.value,
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
+			  interval   = latency + 1 / instance.fps,
 			  noShadow   = isSwitchOn( elNoShadow ),
 			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
 		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
-		if ( remaining < .1 )
-			playNextSong( true );
+		if ( remaining < interval && isPlaying() ) {
+			elDebug.checked && debugLog( 'gapless track skip', { interval } );
+			playNextSong();
+		}
 
 		// set song info display at the end of the song
 		if ( endTimeout > 0 && remaining <= endTimeout && isSwitchOn( elShowSong ) && timestamp > canvasMsg.endTime && isPlaying() )
@@ -4968,8 +5074,10 @@ function updateRangeValue( el ) {
 	// event handlers for audio elements
 
 	const audioOnEnded = _ => {
-		if ( ! playNextSong( true ) ) {
-			loadSong( 0 );
+		const isNextSong = playNextSong( true );
+		elDebug.checked && debugLog( 'audioOnEnded', { isNextSong } );
+		if ( ! isNextSong ) {
+			stop();
 			setCanvasMsg( 'Queue ended', 10 );
 			if ( isPIP() )
 				pipVideo.pause();
@@ -5013,6 +5121,18 @@ function updateRangeValue( el ) {
 	// BEGIN INITIALIZATION -----------------------------------------------------------------------
 
 	let initDone = false;
+
+	// Read URL parameters
+	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
+		  urlParams      = new URL( window.location ).searchParams,
+		  userMode       = urlParams.get('mode'),
+		  userMediaPanel = urlParams.get('mediaPanel'),
+		  enableDebug    = urlParams.get('debug') != null;
+
+	if ( enableDebug ) {
+		elDebug.checked = true;
+		consoleLog('Debug enabled via URL parameter');
+	}
 
 	// Create the main panel selection buttons
 	populateCustomRadio( elPanelSelection, mainPanels, 'panel' );
@@ -5065,11 +5185,7 @@ function updateRangeValue( el ) {
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
-	// Read URL parameters
-	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
-		  urlParams      = new URL( window.location ).searchParams,
-		  userMode       = urlParams.get('mode'),
-		  userMediaPanel = urlParams.get('mediaPanel');
+	// check options enabled via URL parameters
 
 	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : loadFromStorage( KEY_FORCE_FS_API ) ) );
 
@@ -5131,6 +5247,9 @@ function updateRangeValue( el ) {
 	currAudio = 0;
 	nextAudio = 1;
 
+	if ( audioCtx.createStereoPanner ) // NOTE: no support on Safari < 14.1
+		panNode = audioCtx.createStereoPanner();
+
 	for ( const i of [0,1] ) {
 		audioElement[ i ] = $( `#player${i}` );
 		clearAudioElement( i );
@@ -5140,7 +5259,12 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		audioMotion.connectInput( audioElement[ i ] );
+		if ( panNode ) {
+			mediaNodes[ i ] = audioCtx.createMediaElementSource( audioElement[ i ] );
+			mediaNodes[ i ].connect( panNode );
+		}
+		else
+			audioMotion.connectInput( audioElement[ i ] );
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );
@@ -5347,6 +5471,21 @@ function updateRangeValue( el ) {
 		positions: { alert: 'bottom' }
 	});
 
+	// Observe resize events on the container element and adjust the OSD canvas accordingly
+	// NOTE: the onCanvasResize callback won't trigger when using the reduced analyzer!
+	if ( window.ResizeObserver ) {
+		let resizeTimeout;
+		const observer = new ResizeObserver( () => {
+			if ( ! resizeTimeout ) {
+				resizeTimeout = setTimeout( () => {
+					resizeOSD();
+					resizeTimeout = 0;
+				}, 60 );
+			}
+		});
+		observer.observe( elContainer );
+	}
+
 	// Wait for all async operations to finish before loading the last used settings
 	Promise.all( [ retrieveBackgrounds(), fileExplorerPromise ] ).then( async () => {
 		// helper function - enter last used directory and load saved play queue
@@ -5386,8 +5525,12 @@ function updateRangeValue( el ) {
 		else
 			enterLastDir();
 
-		setProperty( elSurround );
-		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ ( ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency ) * 1e3 | 0 }ms` );
+		// Initialize necessary global configuration settings (not in the preset)
+		setProperty( [ elFsHeight, elSurround, elVideoFill, ...subsOptionsElements ], false );
+
+		latency = ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency;
+
+		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ latency * 1e3 | 0 }ms` );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
 	});
