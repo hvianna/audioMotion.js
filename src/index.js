@@ -90,7 +90,8 @@ const DATASET_TEMPLATE = {
 
 // CSS classes
 const CSS_CLASS_COMPACT   = 'compact',
-	  CSS_CLASS_FIT_VIDEO = 'fit-video';
+	  CSS_CLASS_FIT_VIDEO = 'fit-video',
+	  CSS_CLASS_WARNING   = 'warning';
 
 // Channel Layouts
 const CHANNEL_COMBINED   = 'dual-combined',
@@ -1385,11 +1386,13 @@ function consoleLog( msg, error, clear ) {
 	 	  dt = new Date(),
 		  time = dt.toLocaleTimeString( [], { hour12: false } ) + '.' + String( dt.getMilliseconds() ).padStart( 3, '0' );
 
-	if ( clear )
+	if ( clear ) {
 		content.innerHTML = '';
+		elToggleConsole.classList.remove( CSS_CLASS_WARNING );
+	}
 
 	if ( error && elToggleConsole )
-		elToggleConsole.classList.add('warning');
+		elToggleConsole.classList.add( CSS_CLASS_WARNING );
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -4253,7 +4256,7 @@ function setUIEventListeners() {
 			panelButtons.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
 			toggleMediaPanel( true ); // make sure the main panel is expanded
 			if ( btn.value == 'console' ) {
-				elToggleConsole.classList.remove('warning');
+				elToggleConsole.classList.remove( CSS_CLASS_WARNING );
 				consoleLog(); // update scroll only
 			}
 		});
@@ -4263,15 +4266,19 @@ function setUIEventListeners() {
 	$(`#panel-${ mainPanels[0].value }`).checked = true;
 	elMediaPanel.classList.add('active');
 
-	// console actions - clear and copy to clipboard
+	// console actions - clear, copy, debug
 	$('#console-clear').addEventListener( 'click', () => consoleLog( 'Console cleared.', false, true ) );
 	$('#console-copy').addEventListener( 'click', () => {
 		let text = '';
 		for ( const line of $$('#console-content div') )
 			text += line.innerText + '\n';
-		if ( navigator.clipboard )
-			navigator.clipboard.writeText( text );
+		if ( navigator.clipboard ) {
+			navigator.clipboard.writeText( text )
+				.then( () => consoleLog('Console messages copied to clipboard') )
+				.catch( err => consoleLog( err, true ) );
+		}
 	});
+	elDebug.addEventListener( 'click', () => consoleLog( `Debug ${ elDebug.checked ? 'enabled' : 'disabled' }` ) );
 
 	// settings switches
 	$$('.switch').forEach( el => {
@@ -5115,6 +5122,18 @@ function updateRangeValue( el ) {
 
 	let initDone = false;
 
+	// Read URL parameters
+	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
+		  urlParams      = new URL( window.location ).searchParams,
+		  userMode       = urlParams.get('mode'),
+		  userMediaPanel = urlParams.get('mediaPanel'),
+		  enableDebug    = urlParams.get('debug') != null;
+
+	if ( enableDebug ) {
+		elDebug.checked = true;
+		consoleLog('Debug enabled via URL parameter');
+	}
+
 	// Create the main panel selection buttons
 	populateCustomRadio( elPanelSelection, mainPanels, 'panel' );
 	elToggleConsole = $('label[for="panel-console"]');
@@ -5166,11 +5185,7 @@ function updateRangeValue( el ) {
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
-	// Read URL parameters
-	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
-		  urlParams      = new URL( window.location ).searchParams,
-		  userMode       = urlParams.get('mode'),
-		  userMediaPanel = urlParams.get('mediaPanel');
+	// check options enabled via URL parameters
 
 	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : loadFromStorage( KEY_FORCE_FS_API ) ) );
 
