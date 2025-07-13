@@ -1648,7 +1648,7 @@ function doConfigPanel() {
 	// Reset On-screen display settings
 	$('#reset_osd').addEventListener( 'click', () => {
 		setInfoOptions( infoDisplayDefaults );
-		savePreferences( KEY_DISPLAY_OPTS );
+		setProperty( infoOptionsElements );
 	});
 
 	// Reset General settings
