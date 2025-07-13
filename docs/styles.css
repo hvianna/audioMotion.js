@@ -14,6 +14,17 @@
 	--cover-heading-font-size-max: 100;
 	--sidebar-name-font-family: Orbitron, var(--base-font-family);
 	--sidebar-name-font-weight: 900;
+
+	--col-1: 2%;
+	--col-2: 21.4%;
+	--col-3: 40.8%;
+	--col-4: 60%;
+	--col-5: 79.5%;
+	--row-1: 14.331%;
+	--row-2: 29%;
+	--row-3: 44.586%;
+	--row-4: 61%;
+	--row-5: 76.5%;
 }
 
 @media (min-width: 1200px) {
@@ -94,16 +105,22 @@ p ~ .table-wrapper table {
 	font-size: 80%;
 }
 
-/* Settings panel image highlight areas */
+/* Settings and Advanced panels image highlight areas */
 
+.advanced-panel,
 .settings-panel {
-	background: url(img/settings-panel.png);
+	aspect-ratio: 1400/440;
 	background-size: contain;
-	height: 305px;
 	line-height: 0;
 	margin: 0 auto;
 	position: relative;
-	width: 800px;
+	width: 100%;
+}
+.advanced-panel {
+	background-image: url(img/advanced-panel.png);
+}
+.settings-panel {
+	background-image: url(img/settings-panel.png);
 }
 
 [class*="highlight-"] {
@@ -113,7 +130,8 @@ p ~ .table-wrapper table {
 	--width: 101%;
 }
 .active[class*="highlight-"] {
-	--width: 155px;
+	--height: 16.5%;
+	--width: 18.5%;
 }
 [class*="highlight-"]::before {
 	--top-left: var(--left) var(--top);
@@ -128,7 +146,7 @@ p ~ .table-wrapper table {
 	position: absolute;
 	top: 0;
 	transition: all .3s;
-	width: 101%;
+	width: 100%;
 }
 .active[class*="highlight-"]::before {
 	background: #fffa;
@@ -149,97 +167,104 @@ p ~ .table-wrapper table {
 }
 
 .active.highlight-preset {
-	--top: 8px;
-	--left: 10px;
-	--height: 52px;
+	--height: 28%;
+	--left: var(--col-1);
+	--top: var(--row-1);
 }
 .active.highlight-randomize {
-	--top: 57px;
-	--left: 10px;
-	--height: 58px;
-}
-.active.highlight-bar-spacing {
-	--top: 114px;
-	--left: 10px;
-	--height: 58px;
-}
-.active.highlight-line-width-fill-opacity {
-	--top: 170px;
-	--left: 10px;
-	--height: 120px;
+	--left: var(--col-1);
+	--top: var(--row-3);
 }
 .active.highlight-mode {
-	--top: 2px;
-	--left: 166px;
-	--height: 58px;
+	--left: var(--col-2);
+	--top: var(--row-1);
 }
-.active.highlight-gradients {
-	--top: 57px;
-	--left: 166px;
-	--height: 85px;
+.active.highlight-band-count {
+	--left: var(--col-2);
+	--top: var(--row-2);
 }
 .active.highlight-color-mode {
-	--top: 172px;
-	--left: 166px;
-	--height: 58px;
+	--left: var(--col-2);
+	--top: var(--row-3);
 }
-.active.highlight-radial-spin {
-	--top: 232px;
-	--left: 166px;
-	--height: 58px;
-}
-.active.highlight-background {
-	--top: 2px;
-	--left: 322px;
-	--height: 58px;
-}
-.active.highlight-bgimagefit {
-	--top: 57px;
-	--left: 322px;
-	--height: 58px;
-}
-.active.highlight-background-dim {
-	--top: 114px;
-	--left: 322px;
-	--height: 58px;
-}
-.active.highlight-reflex {
-	--top: 172px;
-	--left: 322px;
-	--height: 58px;
-}
-.active.highlight-mirror {
-	--top: 232px;
-	--left: 322px;
-	--height: 58px;
-}
-.active.highlight-frequency-range {
-	--top: 2px;
-	--left: 479px;
-	--height: 58px;
-}
-.active.highlight-frequency-scale {
-	--top: 57px;
-	--left: 479px;
-	--height: 58px;
+.active.highlight-color-mode {
+	--left: var(--col-2);
+	--top: var(--row-3);
 }
 .active.highlight-sensitivity {
-	--top: 114px;
-	--left: 479px;
-	--height: 58px;
+	--left: var(--col-2);
+	--top: var(--row-5);
 }
-.active.highlight-weighting {
-	--top: 172px;
-	--left: 479px;
-	--height: 58px;
+
+.active.highlight-gradients {
+	--height: 28%;
+	--left: var(--col-3);
+	--top: var(--row-1);
 }
-.active.highlight-channel-layout {
-	--top: 232px;
-	--left: 479px;
-	--height: 58px;
+
+.active.highlight-background {
+	--left: var(--col-3);
+	--top: var(--row-3);
+}
+.active.highlight-bgimagefit {
+	--left: var(--col-3);
+	--top: var(--row-4);
+}
+.active.highlight-background-dim {
+	--left: var(--col-3);
+	--top: var(--row-5);
+}
+.active.highlight-reflex {
+	--left: var(--col-4);
+	--top: var(--row-5);
 }
 .active.highlight-switches {
-	--top: 2px;
-	--left: 635px;
-	--height: 270px;
+	--height: 28%;
+	--left: var(--col-4);
+	--top: var(--row-1);
+}
+
+/* Advanced panel */
+
+.active.highlight-channel-layout {
+	--left: var(--col-1);
+	--top: var(--row-1);
+}
+.active.highlight-mirror {
+	--left: var(--col-1);
+	--top: var(--row-2);
+}
+.active.highlight-bar-spacing {
+	--left: var(--col-2);
+	--top: var(--row-1);
+}
+.active.highlight-fill-opacity {
+	--left: var(--col-2);
+	--top: var(--row-2);
+}
+.active.highlight-line-width {
+	--left: var(--col-2);
+	--top: var(--row-3);
+}
+.active.highlight-radial-size {
+	--left: var(--col-2);
+	--top: var(--row-4);
+}
+.active.highlight-radial-spin {
+	--left: var(--col-2);
+	--top: var(--row-5);
+}
+.active.highlight-frequency-range {
+	--left: var(--col-4);
+	--top: var(--row-1);
+}
+.active.highlight-frequency-scale {
+	--left: var(--col-4);
+	--top: var(--row-2);
+}
+
+
+.active.highlight-weighting {
+	--left: var(--col-5);
+	--top: var(--row-5);
 }

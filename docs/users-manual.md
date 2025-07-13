@@ -2,11 +2,13 @@
 
 ![screenshot2](img/screenshot2.png)
 
-## Main Panel
+## Front Panel
 
-![main-panel](img/main-panel.png)
+![front-panel](img/front-panel.png)
 
 ### Source selection
+
+<img src="img/UI_source.png" class="img-right">
 
 Toggles between using the app's own media player or your microphone as the audio source for the analyzer.
 
@@ -30,22 +32,20 @@ These are your standard media control buttons.
 
 Below the player controls you'll find the current track's elapsed time, progress bar and remaining time.
 
-![player-controls-and-progress-bar](img/player-controls-and-progress-bar.png)
+![player-controls-and-progress-bar](img/track-progress-bar.png)
 
 You can drag the progress bar cursor to fast forward or rewind, or click anywhere on the bar to quickly jump to the relative position on the track.
 
 ### Speakers and Volume
 
-<img src="img/UI_source.png" class="img-right">
+<img src="img/UI_volume.png" class="img-right">
 
-The **Speakers** switch enables or disables audio output to speakers (or headphones) connected to your device.
+The **Speakers** switch enables or disables audio output to your speakers or headphones.
 
 When [Source](#source-selection) is switched to MIC, Speakers are automatically turned off to prevent audio feedback loop.
 If you're using headphones you can safely turn it on, in order to hear the input audio.
 
-<img src="img/UI_volume.png" class="img-right">
-
-Hover the mouse over the **Volume** knob and use the **mouse wheel** to turn the volume up or down.
+Hover the mouse over the **Volume** knob and use the **mouse wheel** to turn the volume up or down (if the scroll direction doesn't feel natural to you, invert its behavior in Configuration > General settings).
 
 Volume can also be adjusted with the **Up** and **Down** arrow keys.
 
@@ -53,7 +53,12 @@ Volume can also be adjusted with the **Up** and **Down** arrow keys.
 
 - **Media** - opens the [Media Panel](#media-panel)
 - **Settings** - opens the [Settings panel](#settings-panel)
+- **Advanced** - opens the [Advanced panel](#advanced-panel)
 - **Console** - opens the message [Console](#console)
+
+### Collapse/expand front panel
+
+Click the <img src="img/front-panel-collapse.png" style="vertical-align: middle"> button to collapse or expand the front panel. When collapsed, the analyzer area is increased.
 
 ### Function buttons
 
@@ -221,32 +226,6 @@ Selects random visualization settings on track change or time interval.
 
 You can choose which settings may be changed by Randomize in [Config - Randomize configuration](#randomize-configuration).
 
-### Bar spacing
-
-<div class="settings-panel highlight-bar-spacing"></div>
-
-This setting is effective only when an [octave bands mode](#analyzer-mode) is selected. Avaliable options are:
-
-| Bar Spacing | Description |
-|-------------|-------------|
-**MIN** | ~1px spacing between analyzer bars
-**10**  | 10% spacing, 90% bar width (default)
-**25**  | 25% spacing, 75% bar width
-**50**  | 50% spacing, 50% bar width
-**75**  | 75% spacing, 25% bar width
-
-### Line Width and Fill Opacity
-
-<div class="settings-panel highlight-line-width-fill-opacity"></div>
-
-These settings are effective only for [Line graph mode](#analyzer-mode) or when [OUTLINE](#switches) switch is on.
-
-**Line Width** controls the thickness of the graph line or outline stroke.
-
-**Fill Opacity** adjusts the transparency of the graph area or bar fill. The [ALPHA](#switches) switch, when active, has precedence over the Fill Opacity (for octave bands modes only).
-
-!> On **Firefox**, Fill Opacity may not work properly with [Radial](#switches) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
-
 ### Analyzer Mode
 
 <div class="settings-panel highlight-mode"></div>
@@ -255,12 +234,37 @@ Selects the visualization mode.
 
 | Mode | Description |
 |------|-------------|
-| **Discrete frequencies** | Displays amplitudes of individual frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation
-| **Area graph** | Uses the discrete frequency data points to create a filled area graph
-| **Line graph** | Connects all the discrete data points in a continuous line graph - [line width and fill opacity](#line-width-and-fill-opacity) can be customized
-| **Bands** | Frequencies are grouped in bands. When [Frequency Scale](#frequency-scale) is set to **LOG**, each bar represents the *n*th part of an octave
+| **Bars** | When [Frequency Scale](#frequency-scale) is set to **LOG**, each bar represents the *n*th part of an octave, otherwise the frequency spectrum is divided in the number of bands selected by [Band Count](#band-count).
+| **FFT** | Displays individual discrete frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation.
+| **Graph** | Uses the FFT data points to create an area or line graph - the [line width](#line-width) and [fill opacity](#fill-opacity) can be customized in the Advanced panel.
 
 You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
+
+### Band Count
+
+<div class="settings-panel highlight-band-count"></div>
+
+How many bands should be displayed in Bars mode, or which fraction of an octave should be used for each bar.
+
+### Bar Color Mode
+
+<div class="settings-panel highlight-color-mode"></div>
+
+Selects the desired mode for coloring the analyzer bars. This property has no effect in **Area Graph** and **Line Graph** [modes](#analyzer-mode).
+
+| Color Mode | Description | Preview ('prism' gradient)
+|------------|-------------|----------------------------
+| GRADIENT   | Analyzer bars are painted with the currently selected [Gradients](#gradients). | ![prism](img/gradient-prism.png)
+| INDEX      | Each analyzer bar is painted with a **single color** from the selected gradients, starting with the first color applied to the first bar, and so on, cycling through the available colors. | ![prism-bar-index](img/gradient-prism-bar-index.png)
+| LEVEL      | Colors from the selected gradient are used to paint each bar, according to its current level (amplitude). | ![prism-bar-level](img/gradient-prism-bar-level.png)
+
+### Sensitivity
+
+<div class="settings-panel highlight-sensitivity"></div>
+
+Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
+
+Presets for low, medium and high sensitivity can be customized in **[Configuration > Sensitivity presets](#sensitivity-presets).**
 
 ### Gradients
 
@@ -276,25 +280,6 @@ The **LINK** and **SPLIT** switches control some specific features when using a 
 |:----------|:------------|
 | **LINK**  | Uses the same gradient for both analyzer channels.
 | **SPLIT** | Splits the gradient between both channels (**VERT** [channel layout](#channel-layout) only), so each channel will use different colors.
-
-### Color Mode
-
-<div class="settings-panel highlight-color-mode"></div>
-
-Selects the desired mode for coloring the analyzer bars. This property has no effect in **Area Graph** and **Line Graph** [modes](#analyzer-mode).
-
-| Color Mode | Description | Preview ('prism' gradient)
-|------------|-------------|----------------------------
-| GRADIENT   | Analyzer bars are painted with the currently selected [Gradients](#gradients). | ![prism](img/gradient-prism.png)
-| INDEX      | Each analyzer bar is painted with a **single color** from the selected gradients, starting with the first color applied to the first bar, and so on, cycling through the available colors. | ![prism-bar-index](img/gradient-prism-bar-index.png)
-| LEVEL      | Colors from the selected gradient are used to paint each bar, according to its current level (amplitude). | ![prism-bar-level](img/gradient-prism-bar-level.png)
-
-### Radial Spin
-
-<div class="settings-panel highlight-radial-spin"></div>
-
-Configure the radial analyzer spinning speed, when [RADIAL](#switches) switch is on.
-
 
 ### Background
 
@@ -354,84 +339,7 @@ Adjusts the brightness of images and videos shown in the background of the spect
 
 **By default, Background Dim is disabled when playing a video track or displaying subtitles.** This behavior can be configured in [Config - General settings](#general-settings).
 
-### Reflex
-
-<div class="settings-panel highlight-reflex"></div>
-
-Selects a vertical reflection effect. On [bands modes](#analyzer-mode), this setting has no effect when the [LUMI](#switches) switch is active.
-
-| Reflex: On | Reflex: Mirrored |
-|:-----------:|:-------------:|
-| ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
-
-### Mirror
-
-<div class="settings-panel highlight-mirror"></div>
-
-Selects a horizontal mirroring effect to the left (low frequencies at the center) or to the right (high frequencies at the center).
-
-| Mirror: Left | Mirror: Right |
-|:-----------:|:-------------:|
-| ![mirror-left](img/mirror-left.png) | ![mirror-right](img/mirror-right.png)
-
-### Frequency Range
-
-<div class="settings-panel highlight-frequency-range"></div>
-
-The lowest and highest frequencies represented in the spectrum analyzer. You can use this feature to "zoom in" a specific frequency range.
-
-### Frequency Scale
-
-<div class="settings-panel highlight-frequency-scale"></div>
-
-| Scale    | Description | Frequency distribution preview (10Hz - 24kHz range)
-|----------|-------------|-----------------------------------
-| **BARK** | Bark scale | ![scale-bark](img/scale-bark.png)
-| **LIN**  | Linear scale | ![scale-linear](img/scale-linear.png)
-| **LOG**  | Logarithmic scale | ![scale-log-ansi](img/scale-log-ansi.png)
-| **MEL**  | Mel scale | ![scale-mel](img/scale-mel.png)
-
-Logarithmic scale allows the visualization of proper **octave bands** (see [Analyzer Mode](#analyzer-mode)) and it's also recommended when using the [**NOTES**](#switches) switch.
-
-[*Bark*](https://en.wikipedia.org/wiki/Bark_scale) and [*Mel*](https://en.wikipedia.org/wiki/Mel_scale) are perceptual pitch scales, which may provide better visualization of mid-range frequencies, when compared to log or linear scales.
-
-### Sensitivity
-
-<div class="settings-panel highlight-sensitivity"></div>
-
-Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
-
-Presets for low, normal and high sensitivity can be customized in **[Config - Sensitivity presets](#sensitivity-presets).**
-
-### Weighting
-
-<div class="settings-panel highlight-weighting"></div>
-
-[Weighting filter](https://en.wikipedia.org/wiki/Weighting_filter) applied to frequency data for spectrum visualization.
-
-Each filter applies a different curve of gain/attenuation to specific frequency ranges, but the general idea is to adjust the
-visualization of frequencies to which the human ear is more or less sensitive.
-
-![weighting-filters-curves](img/weighting-filters-curves.png)
-
-?> Weighting filters **do NOT** affect audio output. Some filters may impact performance, due to increased real-time data processing.
-
-### Channel Layout
-
-<div class="settings-panel highlight-channel-layout"></div>
-
-Selects single or dual channel display, with different layout options:
-
-| Channel Layout | Description |
-|----------------|-------------|
-| **SINGL** | Single channel analyzer, representing the combined output of both left and right channels.
-| **COMB**  | Dual channel analyzer, both channels overlaid. Works best with [**Line Graph** mode](#analyzer-mode) or [**OUTLINE**](#switches) switch on.
-| **HORIZ** | Dual channel, side by side - see [Mirror](#mirror) for additional layout options.
-| **VERT**  | Dual channel, left channel at the top half of the canvas and right channel at the bottom.
-
-The channel layout setting does NOT affect stereo audio output.
-
-### Switches
+### Effects
 
 <div class="settings-panel highlight-switches"></div>
 
@@ -448,6 +356,109 @@ Switches toggle additional effects and alternative measurement, informational an
 **ALPHA**   | Toggle variable bar transparency - when active, the higher the bar amplitude the more opaque it is | **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*
 **LEDS**    | Toggle LED effect for the analyzer bars *(bands modes only, no effect with RADIAL)*   | **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings *(bands modes only)*
 **RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.** | **ROUND**   | Toggle rounded corners at the top of analyzer bars *(bands modes only)*
+
+### Reflex
+
+<div class="settings-panel highlight-reflex"></div>
+
+Selects a vertical reflection effect. On [bands modes](#analyzer-mode), this setting has no effect when the [LUMI](#switches) switch is active.
+
+| Reflex: On | Reflex: Mirrored |
+|:-----------:|:-------------:|
+| ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
+
+## Advanced Panel
+
+### Channel Layout
+
+<div class="advanced-panel highlight-channel-layout"></div>
+
+Selects single or dual channel display, with different layout options:
+
+| Channel Layout | Description |
+|----------------|-------------|
+| **SINGL** | Single channel analyzer, representing the combined output of both left and right channels.
+| **COMB**  | Dual channel analyzer, both channels overlaid. Works best with [**Line Graph** mode](#analyzer-mode) or [**OUTLINE**](#switches) switch on.
+| **HORIZ** | Dual channel, side by side - see [Mirror](#mirror) for additional layout options.
+| **VERT**  | Dual channel, left channel at the top half of the canvas and right channel at the bottom.
+
+The channel layout setting does NOT affect stereo audio output.
+
+### Mirror
+
+<div class="advanced-panel highlight-mirror"></div>
+
+Selects a horizontal mirroring effect to the left (low frequencies at the center) or to the right (high frequencies at the center).
+
+| Mirror: Left | Mirror: Right |
+|:-----------:|:-------------:|
+| ![mirror-left](img/mirror-left.png) | ![mirror-right](img/mirror-right.png)
+
+### Bar spacing
+
+<div class="settings-panel highlight-bar-spacing"></div>
+
+This setting is effective only when an [octave bands mode](#analyzer-mode) is selected. Avaliable options are:
+
+| Bar Spacing | Description |
+|-------------|-------------|
+**MIN** | ~1px spacing between analyzer bars
+**10**  | 10% spacing, 90% bar width (default)
+**25**  | 25% spacing, 75% bar width
+**50**  | 50% spacing, 50% bar width
+**75**  | 75% spacing, 25% bar width
+
+### Line Width and Fill Opacity
+
+<div class="settings-panel highlight-line-width-fill-opacity"></div>
+
+These settings are effective only for [Line graph mode](#analyzer-mode) or when [OUTLINE](#switches) switch is on.
+
+**Line Width** controls the thickness of the graph line or outline stroke.
+
+**Fill Opacity** adjusts the transparency of the graph area or bar fill. The [ALPHA](#switches) switch, when active, has precedence over the Fill Opacity (for octave bands modes only).
+
+!> On **Firefox**, Fill Opacity may not work properly with [Radial](#switches) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
+
+### Radial Spin
+
+<div class="advanced-panel highlight-radial-spin"></div>
+
+Configure the radial analyzer spinning speed, when [RADIAL](#switches) switch is on.
+
+### Frequency Range
+
+<div class="advanced-panel highlight-frequency-range"></div>
+
+The lowest and highest frequencies represented in the spectrum analyzer. You can use this feature to "zoom in" a specific frequency range.
+
+### Frequency Scale
+
+<div class="advanced-panel highlight-frequency-scale"></div>
+
+| Scale    | Description | Frequency distribution preview (10Hz - 24kHz range)
+|----------|-------------|-----------------------------------
+| **BARK** | Bark scale | ![scale-bark](img/scale-bark.png)
+| **LIN**  | Linear scale | ![scale-linear](img/scale-linear.png)
+| **LOG**  | Logarithmic scale | ![scale-log-ansi](img/scale-log-ansi.png)
+| **MEL**  | Mel scale | ![scale-mel](img/scale-mel.png)
+
+Logarithmic scale allows the visualization of proper **octave bands** (see [Analyzer Mode](#analyzer-mode)) and it's also recommended when using the [**NOTES**](#switches) switch.
+
+[*Bark*](https://en.wikipedia.org/wiki/Bark_scale) and [*Mel*](https://en.wikipedia.org/wiki/Mel_scale) are perceptual pitch scales, which may provide better visualization of mid-range frequencies, when compared to log or linear scales.
+
+### Weighting
+
+<div class="advanced-panel highlight-weighting"></div>
+
+[Weighting filter](https://en.wikipedia.org/wiki/Weighting_filter) applied to frequency data for spectrum visualization.
+
+Each filter applies a different curve of gain/attenuation to specific frequency ranges, but the general idea is to adjust the
+visualization of frequencies to which the human ear is more or less sensitive.
+
+![weighting-filters-curves](img/weighting-filters-curves.png)
+
+?> Weighting filters **do NOT** affect audio output. Some filters may impact performance, due to increased real-time data processing.
 
 
 ## Configuration
