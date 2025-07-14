@@ -69,9 +69,13 @@ Click the <img src="img/front-panel-collapse.png" style="vertical-align: middle"
 
 ## Media Panel
 
-![media-panel](img/media-panel.png)
+Click **Media** in the panel selection buttons to open the Media Panel.
+
+![ui-buttons-advanced](img/UI_main_buttons_media.png)
 
 The Media Panel is comprised of the **File Explorer** on the left side, the action buttons at the center, and the **Play Queue** on the right.
+
+![media-panel](img/media-panel.png)
 
 ### Supported file formats
 
@@ -89,7 +93,7 @@ The **File Explorer** allows you to navigate through your media folders and file
 
 !> Access to your device is provided to the app by the [File System Access API](https://caniuse.com/native-filesystem-api),
 which is currently **only implemented on Chromium-based browsers** (e.g., Chrome, Opera and Edge).
-On **Brave browser** it needs to be enabled in `chrome://flags/#file-system-access-api`.
+On **Brave browser** it needs to be enabled in `chrome://flags/#file-system-access-api` (copy and paste it in the address bar).
 
 **Double-click** a file to quickly add it to the play queue. It will also start playing if the player is currently stopped.
 
@@ -182,41 +186,47 @@ Media files with detected subtitles will show a **[SUBS]** badge next to their n
 
 ![file-explorer-subs](img/file-explorer-subs.png)
 
-Configure the subtitles appearance in **[Config - Subtitles configuration](#subtitles-configuration).** Toggle the display of subtitles with the [**SUBTITLES** switch](#switches).
+Configure the subtitles appearance in **[Config - Subtitles configuration](#subtitles-configuration).** Toggle the display of subtitles with the [**SUBTITLES** switch](#display).
 
 ?> Download synced lyrics for your songs with [LRCGET](https://github.com/tranxuanthang/lrcget) and use [Subtitle Edit](https://github.com/SubtitleEdit/subtitleedit)
 to convert them (and other popular subtitle formats) to .vtt.
 
 ## Settings Panel
 
-Click **Settings** in the top panel buttons to open the Settings Panel.
+Click **Settings** in the panel selection buttons to open the Settings Panel.
 
 ![ui-buttons-settings](img/UI_main_buttons_settings.png)
 
-### Load and Save Presets
+### Presets
 
 <div class="settings-panel highlight-preset"></div>
 
-Click the **Load** button to load a preset.
+**audioMotion comes with 6 built-in presets and provides 9 slots for user-defined presets.**
 
-**audioMotion comes with 6 built-in presets that showcase different features of the analyzer, plus 9 slots for user-defined presets.**
+The **Demo** preset picks random settings and sets [**Randomize**](#randomize) to 15 seconds, so it's a great way to quickly overview all of audioMotion's features!
 
-The **Demo** preset will choose random visualization settings when loaded and will set [**Randomize**](#randomize) to 15 seconds, so it's a great way to quickly overview all of audioMotion's features!
+Description of buttons functions:
 
-You can also quickly pick random settings anytime, by pressing **0** in the keyboard.
+Button            | Action
+------------------|-----------
+**Load**          | Load the selected preset
+**Session start** | Restore settings as they were when you last launched (or reloaded) the app
+**Defaults**      | Resets all settings to their initial values, as in the first time you run audioMotion
+**Save / Manage** | Save, update, rename or delete user presets
 
-Your last configuration will be automatically restored the next time you open audioMotion.
-You can manually load the **Last session** preset to undo any changes made during the current session.
+Keyboard shortcuts available:
 
-The **Restore defaults** preset resets all analyzer settings to their initial values, as in the first time you run audioMotion.
+Key               | Action
+------------------|-----------
+**0** (zero)      | Choose random values for all settings enabled in [Configuration > Randomize settings](#randomize-settings)
+**1 - 9**         | Load the user preset of corresponding slot number
+**Shift + 1 - 9** | Save the current settings to the corresponding user preset slot number
 
-Click the **Save / Edit** button to save, update or delete a favorite configuration in one of the **user preset slots.**
+Your last used settings will be automatically restored the next time you open audioMotion.
 
-The current settings can also be saved to a user slot by holding **Shift** and pressing the numbers **1** to **9** in the keyboard.
+?> NOTE: presets save/restore the settings from both the **Settings** and **Advanced** panels!
 
-Quickly load a user preset by pressing the corresponding slot number in the keyboard (**1** to **9**).
-
-!> User presets are saved to the browser's storage and will only be accessible in the same browser they were saved.
+!> User presets are saved to the browser's storage and will only be accessible in the same browser they were saved. Backup your presets using the Export feature! <<<<<<<<<
 
 ### Randomize
 
@@ -224,45 +234,48 @@ Quickly load a user preset by pressing the corresponding slot number in the keyb
 
 Selects random visualization settings on track change or time interval.
 
-You can choose which settings may be changed by Randomize in [Config - Randomize configuration](#randomize-configuration).
+You can choose which settings may be changed by Randomize in [Configuration > Randomize settings](#randomize-settings).
 
 ### Analyzer Mode
 
 <div class="settings-panel highlight-mode"></div>
 
-Selects the visualization mode.
+Selects the visualization mode. Keyboard shortcut: **M** / **Shift + M**.
 
-| Mode | Description |
+| Analyzer&nbsp;Mode | Description |
 |------|-------------|
 | **Bars** | When [Frequency Scale](#frequency-scale) is set to **LOG**, each bar represents the *n*th part of an octave, otherwise the frequency spectrum is divided in the number of bands selected by [Band Count](#band-count).
 | **FFT** | Displays individual discrete frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation.
 | **Graph** | Uses the FFT data points to create an area or line graph - the [line width](#line-width) and [fill opacity](#fill-opacity) can be customized in the Advanced panel.
 
-You can also select the visualization mode using the **M** and **Shift + M** keyboard shortcuts.
-
 ### Band Count
 
 <div class="settings-panel highlight-band-count"></div>
 
-How many bands should be displayed in Bars mode, or which fraction of an octave should be used for each bar.
+How many frequency bands should be displayed in **Bars** [analyzer mode](#analyzer-mode), or what octave fraction should be used for each band.
+
+When [Frequency Scale](#frequency-scale) is set to **Log**, this setting defines how much of an octave is covered by each bar.
+Otherwise, the frequency spectrum is divided in a fixed amount of bars, with the bandwidth of each bar varying according to the selected frequency scale.
+
+See also [X-Axis Labels](#x-axis-labels).
 
 ### Bar Color Mode
 
 <div class="settings-panel highlight-color-mode"></div>
 
-Selects the desired mode for coloring the analyzer bars. This property has no effect in **Area Graph** and **Line Graph** [modes](#analyzer-mode).
+Desired method for coloring the analyzer bars. This property has no effect in **Graph** [analyzer mode](#analyzer-mode).
 
-| Color Mode | Description | Preview ('prism' gradient)
-|------------|-------------|----------------------------
-| GRADIENT   | Analyzer bars are painted with the currently selected [Gradients](#gradients). | ![prism](img/gradient-prism.png)
-| INDEX      | Each analyzer bar is painted with a **single color** from the selected gradients, starting with the first color applied to the first bar, and so on, cycling through the available colors. | ![prism-bar-index](img/gradient-prism-bar-index.png)
-| LEVEL      | Colors from the selected gradient are used to paint each bar, according to its current level (amplitude). | ![prism-bar-level](img/gradient-prism-bar-level.png)
+| Color&nbsp;Mode | Description | Preview ('prism' gradient)
+|-----------------|-------------|----------------------------
+| **Gradient**    | Analyzer bars are painted with the currently selected [Gradients](#gradients). | ![prism](img/gradient-prism.png)
+| **Index**       | Each analyzer bar is painted with a **single color** from the selected gradients, starting with the first color applied to the first bar, and so on, cycling through the available colors. | ![prism-bar-index](img/gradient-prism-bar-index.png)
+| **Level**       | Colors from the selected gradient are used to paint each bar, according to its current level (amplitude). | ![prism-bar-level](img/gradient-prism-bar-level.png)
 
 ### Sensitivity
 
 <div class="settings-panel highlight-sensitivity"></div>
 
-Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. You can also use the **N** and **Shift + N** keyboard shortcuts.
+Adjusts the analyzer sensitivity to improve the visualization of songs too quiet or too loud. Keyboard shortcut: **N** / **Shift + N**.
 
 Presets for low, medium and high sensitivity can be customized in **[Configuration > Sensitivity presets](#sensitivity-presets).**
 
@@ -270,16 +283,13 @@ Presets for low, medium and high sensitivity can be customized in **[Configurati
 
 <div class="settings-panel highlight-gradients"></div>
 
-Select the color gradients used for the analyzer graphs. You can also change gradients using the **G** and **Shift + G** keyboard shortcuts.
+Select color gradients for analyzer channels. Keyboard shortcut: **G** / **Shift + G**.
 
-You can disable specific gradients and **create your own gradients** in [Config - Add Gradient](#enabled-gradients).
-
-The **LINK** and **SPLIT** switches control some specific features when using a dual [Channel Layout](#channel-layout):
-
-| Switch    | Description |
-|:----------|:------------|
-| **LINK**  | Uses the same gradient for both analyzer channels.
-| **SPLIT** | Splits the gradient between both channels (**VERT** [channel layout](#channel-layout) only), so each channel will use different colors.
+Button / switch | Description
+----------------|------------
+**LINK**        | When active and using a dual [Channel Layout](#channel-layout), uses the same gradient for both channels.
+**SPLIT**       | When active, splits gradient colors between both channels (**Vertical** [channel layout](#channel-layout) only).
+**Manage Gradients** | Click to create, edit, import and export gradients - see [Configuration > Gradient management](#gradient-management).
 
 ### Background
 
@@ -289,7 +299,7 @@ Selects the analyzer background.
 
 | Background | Description |
 |------------|-------------|
-| **Gradient default** | Uses the background color defined by the currently selected gradient - when the [LED switch](#switches) is on, this shows the "unlit" LEDs instead |
+| **Gradient default** | Uses the background color defined by the currently selected gradient - when the [LED switch](#effects) is on, this shows the "unlit" LEDs instead |
 | **Black** | Uses a black background |
 | **Album cover** | Displays the album cover for the current song<sup> (1)</sup> |
 | **Random image** | Selects a random image from the backgrounds folder<sup> (2)</sup> |
@@ -311,7 +321,9 @@ You can cycle through the available options using the **B** keyboard shortcut.
 
 <div class="settings-panel highlight-bgimagefit"></div>
 
-When [Background](#background) is set to **Album cover** or an image, this option selects the size and positioning of the background image.
+Selects the size and positioning of the background image. Keyboard shortcut: **Shift + B**.
+
+Effective only when [Background](#background) is set to an image or **Album cover**.
 
 | Background Image Fit | Effect |
 |----------------------|--------|
@@ -325,9 +337,7 @@ When [Background](#background) is set to **Album cover** or an image, this optio
 **Zoom In** | Image is initially centered on the canvas and slowly zooms in as the song plays
 **Zoom Out** | Image is initially enlarged at 200% and slowly zooms out as the song plays
 
-You can cycle through the available options using the **Shift + B** keyboard shortcut.
-
-Effects can be selectively disabled in [Config - Background Image Fit options](#configuration).
+Effects can be selectively disabled in [Configuration > Background Image Fit](#background-image-fit-options).
 
 !> The **Warp Drive** and **Wormhole** effects may degrade performance on some graphics cards.
 
@@ -337,37 +347,85 @@ Effects can be selectively disabled in [Config - Background Image Fit options](#
 
 Adjusts the brightness of images and videos shown in the background of the spectrum analyzer.
 
-**By default, Background Dim is disabled when playing a video track or displaying subtitles.** This behavior can be configured in [Config - General settings](#general-settings).
+**By default, Background Dim is disabled when playing a video track or displaying subtitles.** This behavior can be configured in [Configuration > Subtitles & Video](#subtitles-video).
 
 ### Effects
 
-<div class="settings-panel highlight-switches"></div>
+<div class="settings-panel highlight-effects"></div>
 
-Switches toggle additional effects and alternative measurement, informational and performance features.
+Other visualization effects and modifiers.
 
-| Switch    | Description | Switch    | Description |
-|:----------|:------------|:----------|:------------|
-**INFO**    | Toggle on-screen display of song information on every track change | **SUBTITLES** | Toggle display of [subtitles](#subtitles)
-**PEAKS**   | Toggle display of amplitude peaks                                  | **FADE**    | Switch peaks behavior between fading out and falling down
-**SCALE&nbsp;X** | Toggle display of scale on the horizontal axis (frequency)    | **NOTES**   | Switch between musical notes and frequency values for the labels displayed in the horizontal axis scale
-**SCALE&nbsp;Y** | Toggle display of scale on the vertical axis (level/volume)   | **LINEAR**  | Switch between linear scale and decibels (logarithmic) to represent bar amplitudes
-**ANSI**    | Switch between [ANSI/IEC preferred frequencies](https://archive.org/details/gov.law.ansi.s1.11.2004) and [equal-tempered scale](http://hyperphysics.phy-astr.gsu.edu/hbase/Music/et.html) to generate octave bands | **FPS**     | Toggle display of current frame rate at the top right corner
-**FLAT**    | Switch between outlined (on) or shadowed (off) text for messages displayed on canvas  | **LO-RES**  | Toggle low resolution mode *(may improve performance, especially on 4K+ displays)*
-**ALPHA**   | Toggle variable bar transparency - when active, the higher the bar amplitude the more opaque it is | **LUMI**    | Toggle luminance bars effect - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*
-**LEDS**    | Toggle LED effect for the analyzer bars *(bands modes only, no effect with RADIAL)*   | **OUTLINE** | Toggle bar outline mode - see [Line width and Fill opacity](#line-width-and-fill-opacity) settings *(bands modes only)*
-**RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.** | **ROUND**   | Toggle rounded corners at the top of analyzer bars *(bands modes only)*
+Effect      | Description
+------------|--------------
+**ALPHA**   | Toggle variable bar transparency - when active, the higher the bar amplitude the more opaque it is
+**LUMI**    | Toggle luminance bars - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*
+**LEDS**    | Toggle LED effect for the analyzer bars *(Bars mode only, no effect with RADIAL)*
+**OUTLINE** | Toggle bar outline - see [Line Width](#line-width) and [Fill Opacity](#fill-opacity) settings *(Bars mode only)*
+**RADIAL**  | Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.**
+**ROUND**   | Toggle rounded corners at the top of analyzer bars *(Bars mode only)*
 
 ### Reflex
 
 <div class="settings-panel highlight-reflex"></div>
 
-Selects a vertical reflection effect. On [bands modes](#analyzer-mode), this setting has no effect when the [LUMI](#switches) switch is active.
+Selects a vertical reflection effect. On **Bars** [Analyzer Mode](#analyzer-mode), this setting has no effect when the [LUMI](#effects) switch is active.
 
-| Reflex: On | Reflex: Mirrored |
-|:-----------:|:-------------:|
-| ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
+Reflex: 40% | Reflex: Mirrored
+----------- |-----------------
+![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
+
+### Display
+
+<div class="settings-panel highlight-display"></div>
+
+Toggle display and performance options
+
+Display        | Description
+---------------|-------------
+**TRACK INFO** | Toggle on-screen display of song information on every track change
+**SUBTITLES**  | Toggle display of [subtitles](#subtitles)
+**FLAT**       | Switch between outlined (on) or shadowed (off) text for messages displayed on canvas
+**LO-RES**     | Toggle low resolution mode *(may improve performance, especially on 4K+ displays)*
+**FPS**        | Toggle display of current frame rate at the top right corner
+
+### Peaks
+
+<div class="settings-panel highlight-peaks"></div>
+
+Toggle display of amplitude peaks.
+
+Peaks | Description
+------|-------------
+Off   | Do not show amplitude peaks
+Drop  | Peaks fall down after a short time
+Fade  | Peaks fade out after a short time
+
+Drop and Fade behavior can be customized in [Configuration > Peaks behavior](#peaks-behavior).
+
+### X-Axis Labels
+
+<div class="settings-panel highlight-x-labels"></div>
+
+Toggle display of scale labels on the horizontal axis (frequency). Keyboard shortcut: **S** / **Shift + S**.
+
+X-Axis Labels | Description
+--------------|-------------
+Off           | Do not show labels
+Freqs         | Show frequency values
+Notes         | Show musical notes - works best with [Frequency Scale](#frequency-scale): **Log**, [Octave Bands](#octave-bands): **Tempered** and [Band Count](#band-count): **1/12th octave**.
+
+### Y-Axis Labels
+
+<div class="settings-panel highlight-y-labels"></div>
+
+Toggle display of scale labels on the vertical axis (level/volume). Keyboard shortcut: **S** / **Shift + S**.
+
 
 ## Advanced Panel
+
+Click **Advanced** in the panel selection buttons to open the Advanced Panel.
+
+![ui-buttons-advanced](img/UI_main_buttons_advanced.png)
 
 ### Channel Layout
 
@@ -377,12 +435,14 @@ Selects single or dual channel display, with different layout options:
 
 | Channel Layout | Description |
 |----------------|-------------|
-| **SINGL** | Single channel analyzer, representing the combined output of both left and right channels.
-| **COMB**  | Dual channel analyzer, both channels overlaid. Works best with [**Line Graph** mode](#analyzer-mode) or [**OUTLINE**](#switches) switch on.
-| **HORIZ** | Dual channel, side by side - see [Mirror](#mirror) for additional layout options.
-| **VERT**  | Dual channel, left channel at the top half of the canvas and right channel at the bottom.
+| **Single**     | Single channel analyzer, representing the combined output of all channels (stereo or surround).
+| **Comb**       | Dual channel analyzer, both channels overlaid. Works best with [**Line Graph** mode](#analyzer-mode) or [**OUTLINE**](#effects) switch on.
+| **Horiz**      | Dual channel, side by side - see [Mirror](#mirror) for additional layout options.
+| **Vert**       | Dual channel, left channel at the top half of the canvas and right channel at the bottom.
 
 The channel layout setting does NOT affect stereo audio output.
+
+?> Surround audio output is currently only supported with **Single** channel layout, and must be enabled in [Configuration > General settings](#general-settings).
 
 ### Mirror
 
@@ -393,6 +453,12 @@ Selects a horizontal mirroring effect to the left (low frequencies at the center
 | Mirror: Left | Mirror: Right |
 |:-----------:|:-------------:|
 | ![mirror-left](img/mirror-left.png) | ![mirror-right](img/mirror-right.png)
+
+### Import / Export Settings
+
+<div class="advanced-panel highlight-import-export"></div>
+
+
 
 ### Bar spacing
 
@@ -408,23 +474,35 @@ This setting is effective only when an [octave bands mode](#analyzer-mode) is se
 **50**  | 50% spacing, 50% bar width
 **75**  | 75% spacing, 25% bar width
 
-### Line Width and Fill Opacity
+### Fill Opacity
 
-<div class="settings-panel highlight-line-width-fill-opacity"></div>
+<div class="settings-panel highlight-fill-opacity"></div>
 
-These settings are effective only for [Line graph mode](#analyzer-mode) or when [OUTLINE](#switches) switch is on.
+Transparency of the graph area or bar fill. The [ALPHA](#effects) switch, when active, has precedence over the Fill Opacity (for Bars mode only).
 
-**Line Width** controls the thickness of the graph line or outline stroke.
+Effective only for **Graph** [analyzer mode](#analyzer-mode) or when [OUTLINE](#effects) switch is on.
 
-**Fill Opacity** adjusts the transparency of the graph area or bar fill. The [ALPHA](#switches) switch, when active, has precedence over the Fill Opacity (for octave bands modes only).
+!> On **Firefox**, Fill Opacity may not work properly with [Radial](#effects) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
 
-!> On **Firefox**, Fill Opacity may not work properly with [Radial](#switches) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
+### Line Width
+
+<div class="settings-panel highlight-line-width"></div>
+
+Thickness of the graph line or outline stroke.
+
+Effective only for **Graph** [analyzer mode](#analyzer-mode) or when [OUTLINE](#effects) switch is on.
+
+### Radial Size
+
+<div class="advanced-panel highlight-radial-size"></div>
+
+Configure the radius of the radial analyzer, when [RADIAL](#effects) switch is on.
 
 ### Radial Spin
 
 <div class="advanced-panel highlight-radial-spin"></div>
 
-Configure the radial analyzer spinning speed, when [RADIAL](#switches) switch is on.
+Configure the radial analyzer spinning speed, when [RADIAL](#effects) switch is on.
 
 ### Frequency Range
 
@@ -443,11 +521,41 @@ The lowest and highest frequencies represented in the spectrum analyzer. You can
 | **LOG**  | Logarithmic scale | ![scale-log-ansi](img/scale-log-ansi.png)
 | **MEL**  | Mel scale | ![scale-mel](img/scale-mel.png)
 
-Logarithmic scale allows the visualization of proper **octave bands** (see [Analyzer Mode](#analyzer-mode)) and it's also recommended when using the [**NOTES**](#switches) switch.
+Logarithmic scale allows the visualization of proper **octave bands** (see [Analyzer Mode](#analyzer-mode)) and it's also recommended when using the [**NOTES**](#x-axis-label) switch.
 
 [*Bark*](https://en.wikipedia.org/wiki/Bark_scale) and [*Mel*](https://en.wikipedia.org/wiki/Mel_scale) are perceptual pitch scales, which may provide better visualization of mid-range frequencies, when compared to log or linear scales.
 
-### Weighting
+### Level Scale
+
+<div class="advanced-panel highlight-level-scale"></div>
+
+**LINEAR**  | Switch between linear scale and decibels (logarithmic) to represent bar amplitudes
+
+### Octave Bands
+
+<div class="advanced-panel highlight-octave-bands"></div>
+
+**ANSI**    | Switch between [ANSI/IEC preferred frequencies](https://archive.org/details/gov.law.ansi.s1.11.2004) and [equal-tempered scale](http://hyperphysics.phy-astr.gsu.edu/hbase/Music/et.html) to generate octave bands
+
+### FFT Size
+
+<div class="advanced-panel highlight-fft-size"></div>
+
+Number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
+
+Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
+The default value of **8192** usually provides the best cost/benefit ratio for both domains.
+
+### FFT Smoothing
+
+<div class="advanced-panel highlight-fft-smoothing"></div>
+
+Averaging factor used to smooth FFT data between analysis frames.
+
+Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
+Increase it if the analyzer animation looks too "jumpy".
+
+### Weighting Filter
 
 <div class="advanced-panel highlight-weighting"></div>
 
@@ -495,20 +603,6 @@ Requires browser support for the [*File System Access API*](known-issues.md).
 Choose the maximum number of media files that can be directly selected in the [Background](#background) setting.
 
 If your backgrounds folder contains more files, the remaining ones will only be selectable via the *Random image* or *Random video* options.
-
-#### FFT size
-
-Number of samples used for the [Fast Fourier Transform](https://en.wikipedia.org/wiki/Fast_Fourier_transform) performed by the analyzer.
-
-Higher values provide greater detail in the frequency domain (especially for low frequencies), but less detail in the time domain (slower response to changes).
-The default value of **8192** usually provides the best cost/benefit ratio for both domains.
-
-#### FFT smoothing over time
-
-Averaging factor used to smooth FFT data between analysis frames.
-
-Lower values make the analyzer react faster to changes, and may look better with faster tempo songs and/or larger FFT sizes.
-Increase it if the analyzer animation looks too "jumpy".
 
 #### Fullscreen height (%)
 
@@ -591,7 +685,7 @@ Acceleration for peaks falling down (in thousands of pixels per second squared).
 
 #### Peak fade time
 
-Time in milliseconds for peaks to completely fade out, when [**FADE** switch](#switches) is active.
+Time in milliseconds for peaks to completely fade out, when [**FADE** switch](#peaks) is active.
 
 #### Peak hold time
 
@@ -614,7 +708,7 @@ Customize low, normal and high [Sensitivity](#sensitivity) presets.
 
 **Min dB** and **Max dB** represent the lowest and highest volume levels to be registered by the analyzer, in decibels.
 
-The **Linear boost** value is used to perform an *n*th-root operation to amplify low energy values, when using the linear amplitude scale (see [LINEAR](#switches) switch).
+The **Linear boost** value is used to perform an *n*th-root operation to amplify low energy values, when using the linear [level scale](#level-scale).
 
 ?> Please note that **0** dB represents the loudest volume possible.
 
@@ -644,7 +738,7 @@ The following keyboard shortcuts can be used to control the player and change so
 
 | key | action |
 |:----|:-------|
-**0** | pick random values for all [settings affected by Randomize](#randomize-configuration)
+**0** | pick random values for all [settings affected by Randomize](#randomize-settings)
 **1** - **9** | load a User Preset
 **Shift** + **1** - **9** | save current settings to a User Preset slot
 **Up** / **Down** arrows | volume up / down<br>**+ Shift:** increase / decrease analyzer height on fullscreen

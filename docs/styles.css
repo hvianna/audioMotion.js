@@ -195,13 +195,11 @@ p ~ .table-wrapper table {
 	--left: var(--col-2);
 	--top: var(--row-5);
 }
-
 .active.highlight-gradients {
 	--height: 28%;
 	--left: var(--col-3);
 	--top: var(--row-1);
 }
-
 .active.highlight-background {
 	--left: var(--col-3);
 	--top: var(--row-3);
@@ -214,14 +212,31 @@ p ~ .table-wrapper table {
 	--left: var(--col-3);
 	--top: var(--row-5);
 }
+.active.highlight-effects {
+	--height: 28%;
+	--left: var(--col-4);
+	--top: var(--row-1);
+}
 .active.highlight-reflex {
 	--left: var(--col-4);
 	--top: var(--row-5);
 }
-.active.highlight-switches {
+.active.highlight-effects {
 	--height: 28%;
-	--left: var(--col-4);
+	--left: var(--col-5);
 	--top: var(--row-1);
+}
+.active.highlight-peaks {
+	--left: var(--col-5);
+	--top: var(--row-3);
+}
+.active.highlight-x-labels {
+	--left: var(--col-5);
+	--top: var(--row-4);
+}
+.active.highlight-y-labels {
+	--left: var(--col-5);
+	--top: var(--row-5);
 }
 
 /* Advanced panel */
@@ -233,6 +248,10 @@ p ~ .table-wrapper table {
 .active.highlight-mirror {
 	--left: var(--col-1);
 	--top: var(--row-2);
+}
+.active.highlight-import-export {
+	--left: var(--col-1);
+	--top: var(--row-5);
 }
 .active.highlight-bar-spacing {
 	--left: var(--col-2);
@@ -262,8 +281,22 @@ p ~ .table-wrapper table {
 	--left: var(--col-4);
 	--top: var(--row-2);
 }
-
-
+.active.highlight-level-scale {
+	--left: var(--col-4);
+	--top: var(--row-3);
+}
+.active.highlight-octave-bands {
+	--left: var(--col-4);
+	--top: var(--row-5);
+}
+.active.highlight-fft-size {
+	--left: var(--col-5);
+	--top: var(--row-1);
+}
+.active.highlight-fft-smoothing {
+	--left: var(--col-5);
+	--top: var(--row-2);
+}
 .active.highlight-weighting {
 	--left: var(--col-5);
 	--top: var(--row-5);
