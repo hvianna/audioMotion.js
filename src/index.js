@@ -1672,6 +1672,19 @@ function doConfigPanel() {
 }
 
 /**
+ * Converts a given object to JSON and forces download
+ *
+ * @param {object}
+ * @param {string} filename (.json extension is added)
+ */
+function downloadObject( obj, filename ) {
+	const anchor = document.createElement('a');
+	anchor.setAttribute( 'href', encodeJSONDataURI( obj ) );
+	anchor.setAttribute( 'download', `${ filename }.json` );
+	anchor.click();
+}
+
+/**
  * Erase a user preset
  *
  * @param {number} slot index (0-8)
@@ -4368,16 +4381,17 @@ function setUIEventListeners() {
 	$('#btn_manage_presets').addEventListener( 'click', () => {
 		const choices = [];
 		getUserPresets().forEach( ( text, index ) => {
-			const options = userPresets[ index ].options;
+			const { name, options } = userPresets[ index ];
 			choices.push(
 				{ type: 1, text, handler: () => saveUserPreset( index, getCurrentSettings() ) },
-				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Edit name">&#xf11f;</button>', handler: () => saveUserPreset( index, options, '', true ) },
-				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Delete preset">&#xf120;</button>', handler: () => eraseUserPreset( index ) }
+				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Rename">edit</button>', handler: () => saveUserPreset( index, options, '', true ) },
+				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Download">file_save</button>', handler: () => downloadObject( options, name ) },
+				{ type: 2, text: isEmpty( options ) ? '' : '<button title="Delete">delete</button>', handler: () => eraseUserPreset( index ) }
 			);
 		});
 
 		notie.select({
-			text: '<strong>Click slot to SAVE - Use buttons to Rename or Delete</strong>',
+			text: '<strong>Click slot to SAVE - Use buttons to Rename, Download or Delete</strong>',
 			choices
 		});
 	});
@@ -4535,12 +4549,7 @@ function setUIEventListeners() {
 			submitCallback: () => deleteGradient()
 		});
 	});
-
-	const btnExportGradient = $('#btn-export-gradient');
-	btnExportGradient.addEventListener( 'click', () => {
-		btnExportGradient.setAttribute( 'href', encodeJSONDataURI( currentGradient ) );
-		btnExportGradient.setAttribute( 'download', `audioMotion-gradient-${ currentGradient.key }.json` );
-	});
+	$('#btn-export-gradient').addEventListener( 'click', () => downloadObject( currentGradient, `audioMotion-gradient-${ currentGradient.key }` ) );
 
 	const btnImportGradient = $('#import_gradient');
 	btnImportGradient.addEventListener( 'input', () => {
@@ -4591,11 +4600,7 @@ function setUIEventListeners() {
 
 	// Export / import settings
 
-	const btnExportSettings = $('#export_settings');
-	btnExportSettings.addEventListener( 'click', () => {
-		btnExportSettings.setAttribute( 'href', encodeJSONDataURI( getCurrentSettings() ) );
-		btnExportSettings.setAttribute( 'download', 'audioMotion-settings.json' );
-	});
+	$('#export_settings').addEventListener( 'click', () => downloadObject( getCurrentSettings(), 'audioMotion-settings' ) );
 
 	const btnImportSettings = $('#import_settings');
 	btnImportSettings.addEventListener( 'input', () => {
