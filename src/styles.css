@@ -977,9 +977,9 @@ kbd.wide {
 }
 
 .breadcrumb {
-	align-self: end;
+	align-self: center;
 	line-height: 1.2;
-	margin-bottom: 4px;
+	margin-top: 4px;
 	padding: 0 10px;
 }
 .breadcrumb:not(:empty)::before {

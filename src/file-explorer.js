@@ -9,7 +9,8 @@
 const defaultRoot           = '/music',
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
 	  openFolderMsg         = 'Click to open a new root folder',
-	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
+	  noFileServerMsg       = 'No music found on server and no browser support for File System API',
+	  MAX_BREADCRUMBS_HEIGHT= 40;
 
 // CSS classes
 const CLASS_BREADCRUMB = 'breadcrumb',
@@ -62,6 +63,11 @@ function updateUI( content, scrollTop ) {
 	// breadcrumbs
 	currentPath.forEach( ( { dir }, index ) => {
 		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ dir == '/' ? '' : '/' } `;
+		let i = 0;
+		while ( ui_path.getBoundingClientRect().height > MAX_BREADCRUMBS_HEIGHT && i < ui_path.children.length - 1 ) {
+			ui_path.children[ i ].innerText = '..';
+			i++;
+		}
 	});
 
 	// mounting points
