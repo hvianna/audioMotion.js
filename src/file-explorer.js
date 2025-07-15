@@ -336,14 +336,15 @@ export function parseWebIndex( content ) {
 	let listing = [];
 
 	for ( const entry of entries ) {
-		const link  = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i )[1],
+		const [, link, name ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i ),
 			  isDir = link.slice(-1) == '/',
 			  // we can only rely on the last directory name being present, because of webserver differences (absolute or relative links)
 			  url   = link.slice( link.lastIndexOf( '/', isDir ? link.length - 2 : undefined ) + 1 ),
-			  // extract dir/file names from the url to avoid encoded html-entities like `&#x26;` (also removes final slash from dir name)
+			  // extract dir/file names from the url to avoid encoded html-entities like `&#x26;`
 			  file  = decodeURIComponent( url.slice( 0, isDir ? -1 : undefined ) );
 
-		listing.push( { url, file } );
+		if ( ! isDir || ! name.match( /^(parent directory|\.\.)/i ) ) // do not include entries to parent directory
+			listing.push( { url, file } );
 	}
 
 	return listing;
@@ -398,11 +399,8 @@ export function parseDirectory( content, path ) {
 		// Web server HTML content
 		for ( const { url, file } of parseWebIndex( content ) ) {
 			const fileObj = { name: file };
-			if ( url.slice( -1 ) == '/' ) {
-				if ( ! file.match( /(parent directory|\.\.)/i ) ) {
-					dirs.push( fileObj );
-				}
-			}
+			if ( url.slice( -1 ) == '/' )
+				dirs.push( fileObj );
 			else {
 				if ( file.match( coverExtensions ) )
 					imgs.push( fileObj );
