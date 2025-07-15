@@ -1,5 +1,39 @@
 # Changelog
 
+## version NEXT
+
+### Added: <!-- {docsify-ignore} -->
+
++ New **Advanced** panel to declutter the **Settings** panel of less-used options;
++ New **Band Count** setting;
++ New **Radial Size** setting;
++ More intermediate values for *Background Image Dim*, *Bar Spacing*, *FFT Smoothing*, *Fill Opacity*, *Radial Spin* and *Reflex*;
++ Support for 5.1 surround audio output (experimental - works only with single-channel layout for now);
++ Import and export Settings - backup your analyzer configuration and and share your suggestions in [Discussions > Resources > Settings](https://github.com/hvianna/audioMotion.js/discussions/categories/settings);
++ Import and export Gradients - backup and share your creations in [Discussions > Resources > Gradients](https://github.com/hvianna/audioMotion.js/discussions/categories/gradients);
++ Option to enable/disable letterboxing for video;
++ Option to invert scroll direction for Volume control;
++ Button to copy messages to clipboard on Console;
++ Debug mode with extra messages/events logged to Console;
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ User interface overhaul with increased font sizes and more consistent look among panels, buttons and other controls;
++ The **Analyzer Mode** selection has been simplified into three options: Bars (formerly band modes), FFT (formerly *Discrete Frequencies*) and Graph (consolidates *Area* and *Line* graphs);
++ Added a button to expand/collapse the front panel (the panel no longer auto-expands when moving the mouse near the bottom of the screen);
++ Improved hover detection and increased the delay for auto-collapsing the front panel on analyzer hover; this feature is now **disabled by default**;
++ Improved detection and loading of subtitle files;
++ Increased the default maximum number of background image files from 20 to 100;
++ Gradients and saved playlists are now listed in alphabetical order in their selection boxes;
++ Balance control has been removed.
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Loading of folder cover images, broken in v24.6;
++ OSD font size not being saved;
++ pixelRatio not correctly reported on console when toggling low-resolution mode.
+
+
 ## version 24.6
 
 ### Added: <!-- {docsify-ignore} -->
