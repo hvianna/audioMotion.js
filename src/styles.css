@@ -994,8 +994,7 @@ kbd.wide {
 .breadcrumb li:last-child:hover {
 	text-decoration: none;
 }
-.local .breadcrumb::after,
-.server .breadcrumb::after {
+.breadcrumb::after {
 	font-family: 'Material Symbols Rounded';
 	font-size: 24px;
 	font-weight: 300;
@@ -1004,7 +1003,8 @@ kbd.wide {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.local .breadcrumb::after {
+.local .breadcrumb::after,
+.locked .server .breadcrumb::after {
 	content: 'hard_drive';
 }
 .server .breadcrumb::after {
@@ -1089,7 +1089,7 @@ kbd.wide {
 .filelist [data-type="mount"]::before {
 	content: '\f115';
 }
-.server .filelist [data-type="mount"]:before {
+#files_panel:not(.locked) .server .filelist [data-type="mount"]:before {
 	content: 'cloud';
 	font-family: 'Material Symbols Rounded';
 	font-size: 20px;
