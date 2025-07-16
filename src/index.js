@@ -4428,20 +4428,20 @@ function setUIEventListeners() {
 	// clicks on canvas toggle info display on/off
 	elOSD.addEventListener( 'click', () => toggleInfo() );
 
-	// use server/local music button
+	// toggle server/local media source
 	const btnToggleFS = $('#btn_toggle_filesystem'),
-		  setToggleButtonText = () => btnToggleFS.innerText = `Switch to ${ useFileSystemAPI ? 'Server' : 'Device' }`;
+		  setToggleButtonIcon = () => btnToggleFS.innerText = `${ useFileSystemAPI ? 'cloud' : 'hard_drive' }`;
 
 	if ( ! serverHasMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
 		toggleDisplay( btnToggleFS, false );
 	else {
-		setToggleButtonText();
+		setToggleButtonIcon();
 		btnToggleFS.addEventListener( 'click', async () => {
 			useFileSystemAPI = ! useFileSystemAPI;
 			const lastDir = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR );
 			if ( ! useFileSystemAPI || ! lastDir || await lastDir[0].handle.requestPermission() == 'granted' ) {
 				fileExplorer.switchMode( lastDir );
-				setToggleButtonText();
+				setToggleButtonIcon();
 				saveToStorage( KEY_FORCE_FS_API, useFileSystemAPI );
 			}
 			else // revert on permission deny

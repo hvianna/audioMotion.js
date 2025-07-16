@@ -11,6 +11,7 @@
 	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
 	--compact-height: max( 50px, 10% );
+	--icon-font: 'Material Symbols Rounded';
 	--mono-font: 'JetBrains Mono', monospace;
 }
 
@@ -340,6 +341,7 @@ a.button:visited {
 }
 
 #playlists {
+	font-size: .85rem;
 	margin-top: 6px;
 	width: 100%;
 }
@@ -369,7 +371,7 @@ a.button:visited {
 }
 .panel-selection input:checked + label::before {
 	content: '\e313';
-	font-family: 'Material Symbols Rounded';
+	font-family: var(--icon-font);
 	font-size: 1.25em;
 	line-height: .9;
 	margin-left: -1em;
@@ -569,39 +571,28 @@ a.button:visited {
 	cursor: help;
 }
 
-.playlist-bar {
-	padding: 0 10px 6px;
-}
-.playqueue-bar {
-	padding: 6px 10px 0;
-}
-.playqueue-bar button {
-	min-width: 90px;
-}
-.playlist-bar button {
-	margin-left: 5px;
-}
-.playqueue-bar strong {
-	align-self: center;
-	font-size: 1.2em;
-	font-weight: 600;
-}
-
 .file-panel {
-	grid-template-columns: 1fr 150px 1fr;
+	grid-template-columns: 1fr 50px 1fr;
 }
 
 .button-column {
+	align-items: center;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 }
 .button-column button,
 .button-column .button {
-	border-radius: 20px;
+	border-radius: 50%;
+	display: inline-block;
+	font-family: var(--icon-font);
+	font-size: 24px;
 	margin: 10px 0;
-	padding: 10px;
-	width: 100%;
+	padding: 9px 11px;
+}
+.mb-40 {
+	margin-bottom: 40px !important;
+	margin-top: 0 !important;
 }
 
 .center {
@@ -963,24 +954,24 @@ kbd.wide {
 	grid-template-rows: 45px 1fr;
 }
 
-#playlist_panel {
-	grid-template-rows: auto auto 1fr;
-}
-#playlist_panel button {
-	font-size: .92em;
-}
-
 #file_explorer .filelist {
 	background-position: top right;
 	background-repeat: no-repeat;
 	background-size: auto 100%;
+}
+#file_explorer .tooltip {
+	left: 45px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 150px;
 }
 
 .breadcrumb {
 	align-self: center;
 	line-height: 1.2;
 	margin-top: 4px;
-	padding: 0 10px;
+	padding: 0 40px 0 10px;
+	position: relative;
 }
 .breadcrumb:not(:empty)::before {
 	content: '\f117';
@@ -1003,6 +994,30 @@ kbd.wide {
 .breadcrumb li:last-child:hover {
 	text-decoration: none;
 }
+.local .breadcrumb::after,
+.server .breadcrumb::after {
+	font-family: 'Material Symbols Rounded';
+	font-size: 24px;
+	font-weight: 300;
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+.local .breadcrumb::after {
+	content: 'hard_drive';
+}
+.server .breadcrumb::after {
+	content: 'cloud';
+}
+.loading .breadcrumb::after {
+	animation: blink .3s infinite;
+}
+@keyframes blink {
+	0%   { color: var(--light-color); }
+	50%  { color: inherit; }
+	100% { color: var(--light-color); }
+}
 
 .filelist {
 	background: #fff;
@@ -1015,10 +1030,10 @@ kbd.wide {
 	position: relative;
 	vertical-align: top;
 }
-.filelist.loading {
+.loading .filelist{
 	overflow: hidden;
 }
-.filelist.loading::before {
+.loading .filelist::before {
 	align-items: center;
 	background: #fffd;
 	content: 'Loading...';
@@ -1074,6 +1089,17 @@ kbd.wide {
 .filelist [data-type="mount"]::before {
 	content: '\f115';
 }
+.server .filelist [data-type="mount"]:before {
+	content: 'cloud';
+	font-family: 'Material Symbols Rounded';
+	font-size: 20px;
+	font-variation-settings: 'FILL' 1;
+	font-weight: 300;
+	margin-right: 7px;
+	margin-left: -2px;
+	line-height: 1;
+	vertical-align: text-bottom;
+}
 .filelist [data-type="file"]::before {
 	content: '\f118';
 }
@@ -1125,6 +1151,27 @@ kbd.wide {
 .locked .locked-panel {
 	opacity: 1;
 	pointer-events: all;
+}
+
+#playlist_panel {
+	grid-template-rows: auto auto 1fr;
+}
+#playlist_panel button {
+	font-size: .85rem;
+	margin-left: 5px;
+	min-width: 80px;
+	padding: 6px 0 4px;
+}
+.playlist-bar {
+	padding: 0 10px 6px;
+}
+.playqueue-bar {
+	padding: 6px 10px 0;
+}
+.playqueue-bar strong {
+	align-self: center;
+	font-size: 1.2em;
+	font-weight: 600;
 }
 
 #playlist li {
@@ -1753,9 +1800,6 @@ button.grad-add-stop:hover {
 	}
 	.controls-right {
 		margin-right: 5px;
-	}
-	.file-panel {
-		grid-template-columns: 1fr 110px 1fr;
 	}
 	.panel-internal {
 		margin: 0;

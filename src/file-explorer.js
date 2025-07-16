@@ -15,7 +15,9 @@ const defaultRoot           = '/music',
 // CSS classes
 const CLASS_BREADCRUMB = 'breadcrumb',
 	  CLASS_FILELIST   = 'filelist',
-	  CLASS_LOADING    = 'loading';
+	  CLASS_LOADING    = 'loading',
+	  CLASS_LOCAL      = 'local',
+	  CLASS_SERVER     = 'server';
 
 let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>, handle: <FileSystemHandle> }
 	currentDirHandle,          // for File System API accesses
@@ -113,6 +115,8 @@ async function enterDir( target, scrollTop ) {
 		savedPath   = [ ...currentPath ],
 		previousDir;
 
+	const container = ui_path.parentElement;
+
 	if ( handle )
 		target = handle.name;
 
@@ -127,14 +131,16 @@ async function enterDir( target, scrollTop ) {
 			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle } );
 	}
 
-	ui_files.classList.add( CLASS_LOADING );
+	container.classList.add( CLASS_LOADING );
+	container.classList.toggle( CLASS_LOCAL, useFileSystemAPI );
+	container.classList.toggle( CLASS_SERVER, webServer && ! useFileSystemAPI );
 
 	if ( currentDirHandle && handle )
 		currentDirHandle = handle;
 
 	const content = await getDirectoryContents( makePath(), currentDirHandle );
 
-	ui_files.classList.remove( CLASS_LOADING );
+	container.classList.remove( CLASS_LOADING );
 
 	if ( content !== false ) {
 		updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
@@ -515,6 +521,7 @@ export function create( container, options = {} ) {
 	container.append( ui_files );
 
 	startUpTimer = setTimeout( () => {
+		// if it's taking too long, add a message to let the user know we're still waiting
 		ui_path.innerHTML = 'Waiting for server...';
 	}, 5000 );
 

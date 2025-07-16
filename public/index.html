@@ -222,7 +222,7 @@
 				<div class="column rowspan-2">
 					<span class="config-label help"><u>G</u>radients
 						<span class="tooltip">
-							Gradients for left and right channels. Manage gradients in Configuration.
+							Gradients for left and right channels. Set channel layout in Advanced.
 						</span>
 					</span>
 
@@ -529,35 +529,32 @@
 			<div id="file_explorer" class="panel-internal grid"></div>
 
 			<div class="button-column">
-				<div class="help"><button id="btn_toggle_filesystem"></button>
-					<span class="tooltip">Switch between reading music from the server and your local device</span>
+				<div class="help"><button id="btn_toggle_filesystem" class="mb-40"></button>
+					<span class="tooltip">Toggle between local and server media</span>
 				</div>
 
-				<div class="help"><button id="btn_add_selected">Add selected</button>
-					<span class="tooltip">Add selected files in the current folder to the queue</span>
+				<div class="help"><label class="button mb-40" for="local_file">file_open</label>
+					<span class="tooltip">Load a media file from your device</span>
+					<input id="local_file" type="file" accept="audio/*,video/*">
 				</div>
 
-				<div class="help"><button id="btn_add_folder">Add all files</button>
-					<span class="tooltip">Add all files in the current folder to the queue</span>
+				<div class="help"><button id="btn_add_selected">keyboard_arrow_right</button>
+					<span class="tooltip">Queue selected files</span>
 				</div>
 
-				<div class="help"><button id="btn_load_url">Add from URL</button>
-					<span class="tooltip">Add a remote audio file or stream to the queue</span>
+				<div class="help"><button id="btn_add_folder">keyboard_double_arrow_right</button>
+					<span class="tooltip">Queue ALL FILES in current folder</span>
 				</div>
 
-				<div class="help">
-					<label class="button">
-						Open file
-						<input id="local_file" type="file" accept="audio/*,video/*">
-					</label>
-					<span class="tooltip">Open a media file from your computer and play it</span>
+				<div class="help"><button id="btn_load_url">add_link</button>
+					<span class="tooltip">Add a remote audio file or stream</span>
 				</div>
 			</div>
 
 			<div id="playlist_panel" class="panel-internal grid">
 				<div class="playqueue-bar flex align-center">
 					<strong><i class="icons8-track-list"></i> Play queue</strong>
-					<div>
+					<div class="flex">
 						<button id="btn_clear">Clear</button>
 						<span class="help"><button id="save_playlist">Save</button>
 							<span class="tooltip">Overwrite the selected playlist with the current play queue</span>
