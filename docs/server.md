@@ -1,4 +1,4 @@
-# Self-hosting audioMotion
+# Self-hosting the app
 
 If you'd like to host audioMotion in your own web server:
 
@@ -6,6 +6,8 @@ If you'd like to host audioMotion in your own web server:
 + Copy the `public` folder to the document root of your web server - you can rename it to anything you want;
 + Add your music files to the `music` folder (or create an **alias** to map the `/music` URL to another folder - see [configuration examples](#server-configuration-examples) below);
 + Add image and video files to the `backgrounds` folder, to be used as [Background](users-manual.md#background) options.
+
+You can also run the app locally with Node.js - see the [Building audioMotion](building.md) section.
 
 ?> Directory listing must be enabled for the file explorer to work - the included `.htaccess` file should be enough if you're using an Apache-compatible web server.
 
@@ -36,14 +38,13 @@ The following URL parameters can also be used when accessing audioMotion:
 
 | parameter | possible values | description |
 |-----------|-----------------|-------------|
+| **debug** | *none* | If present in the URL, app starts in [debug mode](users-manual.md#debug), which may help identify issues during the initialization stage
 | **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
 | **frontPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the server configuration
 
 Use an **&** character to separate multiple parameters. Example usage:
 
-[https://audiomotion.app?mode=server](https://audiomotion.app?mode=server)
-
-[https://audiomotion.app?mode=local&frontPanel=close](https://audiomotion.app?mode=local&frontPanel=close)
+[https://audiomotion.app?debug&mode=server&frontPanel=close](https://audiomotion.app?debug&mode=server&frontPanel=close)
 
 ## Server configuration examples
 

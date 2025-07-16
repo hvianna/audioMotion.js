@@ -7,31 +7,41 @@
 + New **Advanced** panel to declutter the **Settings** panel of less-used options;
 + New **Band Count** setting;
 + New **Radial Size** setting;
-+ More intermediate values for *Background Image Dim*, *Bar Spacing*, *FFT Smoothing*, *Fill Opacity*, *Radial Spin* and *Reflex*;
-+ Support for 5.1 surround audio output (experimental - works only with single-channel layout for now);
-+ Import and export Settings - backup your analyzer configuration and and share your suggestions in [Discussions > Resources > Settings](https://github.com/hvianna/audioMotion.js/discussions/categories/settings);
++ New compact analyzer layout for watching videos - customize in *Configuration > Subtitles & Video*;
++ Support for 5.1 surround audio output (experimental - currently works only with single-channel layout);
++ Import and export Settings - backup and share your presets in [Discussions > Resources > Presets](https://github.com/hvianna/audioMotion.js/discussions/categories/presets);
 + Import and export Gradients - backup and share your creations in [Discussions > Resources > Gradients](https://github.com/hvianna/audioMotion.js/discussions/categories/gradients);
 + Option to enable/disable letterboxing for video;
-+ Option to invert scroll direction for Volume control;
-+ Button to copy messages to clipboard on Console;
++ Option to invert scroll direction for Volume control - suggested by **@JesusGod-Pope666-Info**;
 + Debug mode with extra messages/events logged to Console;
++ Button to copy messages to clipboard on Console;
++ More intermediate values for *Background Image Dim*, *Bar Spacing*, *FFT Smoothing*, *Fill Opacity*, *Radial Spin* and *Reflex*.
 
 ### Changed & improved: <!-- {docsify-ignore} -->
 
 + User interface overhaul with increased font sizes and more consistent look among panels, buttons and other controls;
-+ The **Analyzer Mode** selection has been simplified into three options: Bars (formerly band modes), FFT (formerly *Discrete Frequencies*) and Graph (consolidates *Area* and *Line* graphs);
++ The **Analyzer Mode** selection has been simplified into three options: Bars (formerly band modes), FFT (formerly *Discrete Frequencies*) and Graph (consolidates former *Area* and *Line* modes);
 + Added a button to expand/collapse the front panel (the panel no longer auto-expands when moving the mouse near the bottom of the screen);
 + Improved hover detection and increased the delay for auto-collapsing the front panel on analyzer hover; this feature is now **disabled by default**;
 + Improved detection and loading of subtitle files;
++ Files that fail loading/playing are now flagged in red color in the play queue;
 + Increased the default maximum number of background image files from 20 to 100;
-+ Gradients and saved playlists are now listed in alphabetical order in their selection boxes;
-+ Balance control has been removed.
++ Gradients and saved playlists are now listed in alphabetical order in their selection boxes.
 
 ### Fixed: <!-- {docsify-ignore} -->
 
-+ Loading of folder cover images, broken in v24.6;
++ Loading of folder cover images, broken in v24.6 ([reported](https://github.com/hvianna/audioMotion.js/discussions/68) by **@JesusGod-Pope666-Info**);
 + OSD font size not being saved;
-+ pixelRatio not correctly reported on console when toggling low-resolution mode.
++ pixelRatio not correctly reported on console when toggling low-resolution mode;
++ Spurious folder entries in the file explorer when accessing web server media ([reported](https://github.com/hvianna/audioMotion.js/discussions/86) by **@JesusGod-Pope666-Info**).
+
+### Removed: <!-- {docsify-ignore} -->
+
++ Balance control;
++ `mediaPanel` URL parameter and config.json attribute has been deprecated - [use `frontPanel` instead](server.md#configjson-file);
++ Custom file server module (just use `npm start`);
++ Code from the unfinished Electron version;
++ Support for legacy `playlists.cfg` file.
 
 
 ## version 24.6
