@@ -841,7 +841,6 @@ let audioElement = [],
 	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.yaml)
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
-	waitingMetadata = 0,
 	wasMuted,					// mute status before switching to microphone input
 	webServer;					// web server available? (boolean)
 
@@ -1140,14 +1139,22 @@ const toggleDisplay = ( el, status ) => {
 	el.style.display = status ? '' : 'none';
 }
 
-// promise-compatible `onloadeddata` event handler for media elements
-const waitForLoadedData = async audioEl => new Promise( ( resolve, reject ) => {
+/**
+ * Wait for a media element to load data
+ * @param {HTMLMediaElement} audioEl
+ * @returns {Promise<void>}
+ */
+const waitForLoadedData = audioEl => new Promise((resolve, reject) => {
+	const cleanup = () => {
+		audioEl.onloadeddata = null;
+		audioEl.onerror = null;
+	};
 	audioEl.onerror = () => {
-		audioEl.onerror = audioEl.onloadeddata = null;
-		reject();
-	}
+		cleanup();
+		reject(new Error("Failed to load media element"));
+	};
 	audioEl.onloadeddata = () => {
-		audioEl.onerror = audioEl.onloadeddata = null;
+		cleanup();
 		debugLog( 'onLoadedData', { mediaEl: audioEl.id.slice(-1) } );
 		resolve();
 	};
@@ -1219,52 +1226,49 @@ function addMetadata( metadata, target ) {
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( fileObject, content ) {
+async function addSongToPlayQueue( fileObject, content ) {
 
-	return new Promise( resolve => {
-		if ( queueLength() >= MAX_QUEUED_SONGS ) {
-			resolve(0);
-			return;
-		}
+	if ( queueLength() >= MAX_QUEUED_SONGS ) {
+		return 0;
+	}
 
-		const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
-			  uri       = normalizeSlashes( fileObject.file ),
-			  newEl     = document.createElement('li'), // create new list element
-			  trackData = newEl.dataset;
+	const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
+		  uri       = normalizeSlashes( fileObject.file ),
+		  newEl     = document.createElement('li'), // create new list element
+		  trackData = newEl.dataset;
 
-		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
-		if ( ! content )
-			content = parseTrackName( baseName );
+	if ( ! content )
+		content = parseTrackName( baseName );
 
-		trackData.album    = content.album || '';
-		trackData.artist   = content.artist || '';
-		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
-		trackData.duration = content.duration || '';
-		trackData.codec    = content.codec || extension.toUpperCase();
+	trackData.album    = content.album || '';
+	trackData.artist   = content.artist || '';
+	trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.duration = content.duration || '';
+	trackData.codec    = content.codec || extension.toUpperCase();
 //		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
 
-		trackData.file     = uri; 				// for web server access
-		newEl.handle       = fileObject.handle; // for File System API access
-		newEl.dirHandle    = fileObject.dirHandle;
-		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
+	trackData.file     = uri; 				// for web server access
+	newEl.handle       = fileObject.handle; // for File System API access
+	newEl.dirHandle    = fileObject.dirHandle;
+	newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
-		playlist.appendChild( newEl );
+	playlist.appendChild( newEl );
 
-		if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
-			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
-			trackData.retrieve = 1; // flag this item as needing metadata
-			retrieveMetadata();
-		}
+	if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
+		// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
+		trackData.retrieve = 1; // flag this item as needing metadata
+		await retrieveMetadata();
+	}
 
-		if ( queueLength() == 1 && ! isPlaying() )
-			loadSong(0).then( () => resolve(1) );
-		else {
-			if ( playlistPos > queueLength() - 3 )
-				loadSong( NEXT_TRACK );
-			resolve(1);
-		}
-	});
+	if ( queueLength() === 1 && ! isPlaying() ) {
+		await loadSong( 0 );
+	} else {
+		if ( playlistPos > queueLength() - 3 )
+			await loadSong( NEXT_TRACK );
+	}
+	return 1;
 }
 
 /**
@@ -2017,7 +2021,7 @@ function keyboardControls( event ) {
 }
 
 /**
- * Sets (or removes) the `src` attribute of a audio element and
+ * Sets (or removes) the `src` attribute of an audio element and
  * releases any data blob (File System API) previously in use by it
  *
  * @param {object} audio element
@@ -2040,22 +2044,28 @@ function loadAudioSource( audioEl, newSource ) {
 /**
  * Load a file blob into an audio element
  *
- * @param {object}    audio element
- * @param {object}    file blob
- * @param {boolean}   `true` to start playing
- * @returns {Promise} resolves to a string containing the URL created for the blob
+ * @param {Blob}              fileBlob The audio file blob
+ * @param {HTMLAudioElement}  audioEl The audio element
+ * @param {boolean}           playIt When `true` will start playing
+ * @returns {Promise<string>} Resolves to blob URL
  */
-async function loadFileBlob( fileBlob, audioEl, playIt ) {
-	const url = URL.createObjectURL( fileBlob );
-	loadAudioSource( audioEl, url );
-	try {
-		await waitForLoadedData( audioEl );
-		if ( playIt )
-			audioEl.play();
-	}
-	catch ( e ) {}
+async function loadFileBlob(fileBlob, audioEl, playIt) {
+	const url = URL.createObjectURL(fileBlob);
+	loadAudioSource(audioEl, url);
 
-	return url;
+	try {
+		await waitForLoadedData(audioEl);
+		if (playIt) {
+			try {
+				await audioEl.play();
+			} catch (err) {
+				consoleLog("Playback failed:", err);
+			}
+		}
+		return url;
+	} catch (err) {
+		throw new Error("Failed to load audio from Blob");
+	}
 }
 
 /**
@@ -3295,60 +3305,54 @@ async function retrieveBackgrounds() {
 }
 
 /**
- * Retrieve metadata for files in the play queue
+ * Retrieve metadata for the first MAX_METADATA_REQUESTS files in the play queue,
+ * which have no metadata assigned yet
  */
 async function retrieveMetadata() {
-	// leave when we already have enough concurrent requests pending
-	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
-		return;
 
-	// find the first play queue item for which we haven't retrieved the metadata yet
-	const queueItem = Array.from( playlist.children ).find( el => el.dataset.retrieve );
+	// find the first MAX_METADATA_REQUESTS items for which we haven't retrieved the metadata yet
+	const retrievalQueue = Array.from(playlist.children).filter(el => el.dataset.retrieve).slice(0, MAX_METADATA_REQUESTS);
 
-	if ( queueItem ) {
-
+	// Execute in parallel
+	return Promise.all(retrievalQueue.map(async queueItem => {
 		let uri    = queueItem.dataset.file,
 			revoke = false;
 
-		waitingMetadata++;
 		delete queueItem.dataset.retrieve;
 
-		queryMetadata: {
-			if ( queueItem.handle ) {
-				try {
-					if ( await queueItem.handle.requestPermission() != 'granted' )
-						break queryMetadata;
 
-					uri = URL.createObjectURL( await queueItem.handle.getFile() );
-					revoke = true;
-				}
-				catch( e ) {
-					break queryMetadata;
-				}
-			}
-
+		if ( queueItem.handle ) {
 			try {
-				const metadata = await mm.fetchFromUrl( uri, { skipPostHeaders: true } );
-				if ( metadata ) {
-					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					syncMetadataToAudioElements( queueItem );
-					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( queueItem ).then( cover => {
-							queueItem.dataset.cover = cover;
-							syncMetadataToAudioElements( queueItem );
-						});
-					}
-				}
-			}
-			catch( e ) {}
+				if ( await queueItem.handle.requestPermission() !== 'granted' )
+					return;
 
-			if ( revoke )
-				URL.revokeObjectURL( uri );
+				uri = URL.createObjectURL( await queueItem.handle.getFile() );
+				revoke = true;
+			}
+			catch( e ) {
+				consoleLog(`Error converting queued file="${queueItem.handle.file}" to URI`, e);
+				return;
+			}
 		}
 
-		waitingMetadata--;
-		retrieveMetadata(); // call again to continue processing the queue
-	}
+		try {
+			const metadata = await mm.fetchFromUrl( uri, { skipPostHeaders: true } );
+			addMetadata( metadata, queueItem ); // add metadata to play queue item
+			syncMetadataToAudioElements( queueItem );
+			if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+				getFolderCover( queueItem ).then( cover => {
+					queueItem.dataset.cover = cover;
+					syncMetadataToAudioElements( queueItem );
+				});
+			}
+		}
+		catch( e ) {
+			consoleLog(`Failed to fetch or add metadata for queued file="${queueItem.handle.file}"`, e);
+		}
+
+		if ( revoke )
+			URL.revokeObjectURL( uri );
+	}));
 }
 
 /**
