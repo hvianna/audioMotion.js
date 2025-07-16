@@ -1,6 +1,6 @@
 # Self-hosting audioMotion
 
-If you'd like to host the audioMotion app in your own web server:
+If you'd like to host audioMotion in your own web server:
 
 + Clone the [project from GitHub](https://github.com/hvianna/audioMotion.js) or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/).
 + Copy the `public` folder to the document root of your web server - you can rename it to anything you want;
@@ -20,7 +20,7 @@ A **config.json** file in the same directory as audioMotion's _index.html_ allow
 {
   "defaultAccessMode": "local",
   "enableLocalAccess": true,
-  "mediaPanel": "open"
+  "frontPanel": "open"
 }
 ```
 
@@ -28,7 +28,7 @@ A **config.json** file in the same directory as audioMotion's _index.html_ allow
 |--------|--------------------------|-------------|
 | **defaultAccessMode** | **`"local"`** \| `"server"` | Initial (first run) file access mode - user's device or /music directory on server
 | **enableLocalAccess** | **`true`** \| `false` | Whether or not to enable access to local device (*true* allows user to switch between local or server)
-| **mediaPanel**        | **`"open"`** \| `"close"` | Initial state of the [Media Panel](users-manual.md#media-panel) (*"close"* expands the analyzer area)
+| **frontPanel**        | **`"open"`** \| `"close"` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](users-manual.md#collapseexpand-front-panel)
 
 ## URL parameters
 
@@ -37,13 +37,13 @@ The following URL parameters can also be used when accessing audioMotion:
 | parameter | possible values | description |
 |-----------|-----------------|-------------|
 | **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
-| **mediaPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the server configuration
+| **frontPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the server configuration
 
 Use an **&** character to separate multiple parameters. Example usage:
 
 [https://audiomotion.app?mode=server](https://audiomotion.app?mode=server)
 
-[https://audiomotion.app?mode=local&mediaPanel=close](https://audiomotion.app?mode=local&mediaPanel=close)
+[https://audiomotion.app?mode=local&frontPanel=close](https://audiomotion.app?mode=local&frontPanel=close)
 
 ## Server configuration examples
 

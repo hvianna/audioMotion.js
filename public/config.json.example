@@ -1,5 +1,5 @@
 {
   "defaultAccessMode": "local",
   "enableLocalAccess": true,
-  "mediaPanel": "open"
+  "frontPanel": "open"
 }

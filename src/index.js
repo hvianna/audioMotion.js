@@ -156,7 +156,7 @@ const OSD_SIZE_S = '0',
 	  OSD_SIZE_M = '1',
 	  OSD_SIZE_L = '2';
 
-// Valid values for the `mediaPanel` URL parameter and config.json option
+// Valid values for the `frontPanel` URL parameter and config.json option
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
 
@@ -212,7 +212,7 @@ const SERVERCFG_FILE     = 'config.json',
 	  SERVERCFG_DEFAULTS = {
 	  	defaultAccessMode: FILEMODE_LOCAL,
 		enableLocalAccess: true,
-		mediaPanel       : PANEL_OPEN
+		frontPanel       : PANEL_OPEN
 	  };
 
 // Subtitles settings options
@@ -3729,7 +3729,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elAutoHide:
-				toggleMediaPanel( true );
+				toggleFrontPanel( true );
 				break;
 
 			case elBackground:
@@ -4244,14 +4244,14 @@ function setUIEventListeners() {
 	let autoHideTimeout;
 	elContainer.addEventListener( 'mouseenter', () => {
 		if ( elAutoHide.checked && ! audioMotion.isFullscreen )
-			autoHideTimeout = setTimeout( () => toggleMediaPanel( false ), AUTOHIDE_DELAY );
+			autoHideTimeout = setTimeout( () => toggleFrontPanel( false ), AUTOHIDE_DELAY );
 	});
 	elContainer.addEventListener( 'mouseleave', () => clearTimeout( autoHideTimeout ) );
 
 	// toggle front panel button (expand/collapse)
-	elTogglePanel.addEventListener( 'click', () => toggleMediaPanel() );
+	elTogglePanel.addEventListener( 'click', () => toggleFrontPanel() );
 
-	// wait for the transition on the analyzer container to end (triggered by the height change from toggleMediaPanel())
+	// wait for the transition on the analyzer container to end (triggered by the height change from toggleFrontPanel())
 	elContainer.addEventListener( 'transitionend', () => {
 		if ( elContainer.style.height ) {
 			for ( const panel of mainPanels )
@@ -4267,7 +4267,7 @@ function setUIEventListeners() {
 	panelButtons.forEach( btn => {
 		btn.addEventListener( 'click', evt => {
 			panelButtons.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
-			toggleMediaPanel( true ); // make sure the main panel is expanded
+			toggleFrontPanel( true ); // make sure the main panel is expanded
 			if ( btn.value == 'console' ) {
 				elToggleConsole.classList.remove( CSS_CLASS_WARNING );
 				consoleLog(); // update scroll only
@@ -4739,7 +4739,7 @@ function syncMetadataToAudioElements( source ) {
  *
  * @param {boolean} `true` to expand or `false` to collapse the front panel; if undefined, toggles the current state
  */
-function toggleMediaPanel( show ) {
+function toggleFrontPanel( show ) {
 	if ( show === undefined )
 		show = !! elContainer.style.height;
 
@@ -5131,7 +5131,7 @@ function updateRangeValue( el ) {
 	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
 		  urlParams      = new URL( window.location ).searchParams,
 		  userMode       = urlParams.get('mode'),
-		  userMediaPanel = urlParams.get('mediaPanel'),
+		  userFrontPanel = urlParams.get('frontPanel') || urlParams.get('mediaPanel'), // `mediaPanel` is deprecated
 		  enableDebug    = urlParams.get('debug') != null;
 
 	if ( enableDebug ) {
@@ -5177,7 +5177,7 @@ function updateRangeValue( el ) {
 	}
 	catch( e ) {}
 
-	let serverConfig = response && response.ok ? await response.text() : null;
+	let serverConfig = response && response.ok ? await response.text() : '{}';
 	try {
 		serverConfig = JSON.parse( serverConfig );
 	}
@@ -5186,7 +5186,7 @@ function updateRangeValue( el ) {
 		serverConfig = {};
 	}
 
-	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
+	serverConfig = { ...SERVERCFG_DEFAULTS, frontPanel: serverConfig.mediaPanel, ...serverConfig }; // note: `mediaPanel` is deprecated
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
@@ -5197,8 +5197,8 @@ function updateRangeValue( el ) {
 	if ( forceFileSystemAPI === null )
 		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
 
-	if ( userMediaPanel == PANEL_CLOSE || ( serverConfig.mediaPanel == PANEL_CLOSE && userMediaPanel != PANEL_OPEN ) )
-		toggleMediaPanel( false );
+	if ( userFrontPanel == PANEL_CLOSE || ( serverConfig.frontPanel == PANEL_CLOSE && userFrontPanel != PANEL_OPEN ) )
+		toggleFrontPanel( false );
 
 	// Create audioMotion analyzer
 
