@@ -48,7 +48,7 @@ const URL_ORIGIN = location.origin + location.pathname,
 	  VERSION    = packageJson.version;
 
 const AUTOHIDE_DELAY        = 500,				// delay for triggering front panel auto-collapse (in milliseconds)
-	  BG_DIRECTORY          = 'backgrounds', 	// server folder name for built-in backgrounds
+	  BG_DIRECTORY          = 'backgrounds/', 	// server folder name for built-in backgrounds (must end with a slash!)
 	  MAX_METADATA_REQUESTS = 4,				// max concurrent metadata requests
 	  MAX_QUEUED_SONGS      = 2000,
 	  NEXT_TRACK            = -1;				// for loadSong()
@@ -3250,9 +3250,9 @@ async function retrieveBackgrounds() {
 			for ( const { url, file } of fileExplorer.parseWebIndex( content ) ) {
 				const name = parsePath( file ).baseName;
 				if ( imageExtensions.test( file ) )
-					bgImages.push( { name, url: BG_DIRECTORY + '/' + url } );
+					bgImages.push( { name, url: BG_DIRECTORY + url } );
 				else if ( videoExtensions.test( file ) )
-					bgVideos.push( { name, url: BG_DIRECTORY + '/' + url } );
+					bgVideos.push( { name, url: BG_DIRECTORY + url } );
 			}
 		}
 		catch( e ) {} // fail silently (possibly directory not found on server)
