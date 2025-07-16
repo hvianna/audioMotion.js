@@ -1147,6 +1147,7 @@ const waitForLoadedData = async audioEl => new Promise( ( resolve, reject ) => {
 	}
 	audioEl.onloadeddata = () => {
 		audioEl.onerror = audioEl.onloadeddata = null;
+		debugLog( 'onLoadedData', { mediaEl: audioEl.id.slice(-1) } );
 		resolve();
 	};
 });
@@ -1465,6 +1466,8 @@ function cycleScale( prev ) {
  * @param [{object}] additional object
  */
 function debugLog( msg, obj ) {
+	if ( ! elDebug.checked )
+		return;
 	if ( typeof msg == 'object' ) {
 		obj = msg;
 		msg = '';
@@ -2571,8 +2574,11 @@ async function loadSavedPlaylists( keyName ) {
 async function loadSong( n, playIt ) {
 	const isCurrent = n !== NEXT_TRACK,
 		  index     = isCurrent ? n : ( ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0 ),
-		  audioEl   = audioElement[ isCurrent ? currAudio : nextAudio ],
+		  mediaEl   = isCurrent ? currAudio : nextAudio,
+		  audioEl   = audioElement[ mediaEl ],
 		  song      = playlist.children[ index ];
+
+	debugLog( 'loadSong start', { mediaEl, n, index } );
 
 	if ( ! isCurrent )
 		setSubtitlesDisplay(); // avoid stuck subtitles on track change
@@ -2625,6 +2631,8 @@ async function loadSong( n, playIt ) {
 
 	if ( ! isCurrent )
 		skipping = false; // finished skipping track
+
+	debugLog( 'loadSong end', { mediaEl, success } );
 
 	return success;
 }
@@ -2735,7 +2743,7 @@ function openGradientEditorNew( makeCopy ) {
  * Play next song on queue
  */
 function playNextSong( play ) {
-	elDebug.checked && debugLog( 'playNextSong', { play, playlistPos, skipping } );
+	debugLog( 'playNextSong', { play, playlistPos, skipping } );
 
 	if ( skipping || elSource.checked || playlistPos > queueLength() - 1 )
 		return true;
@@ -2761,7 +2769,7 @@ function playNextSong( play ) {
 		audioElement[ currAudio ].play()
 		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
-			elDebug.checked && debugLog( { err } );
+			debugLog( { err } );
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
@@ -4793,7 +4801,7 @@ function toggleMultiChannel() {
 	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
 	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
 
-	elDebug.checked && debugLog( 'connected nodes', audioMotion.connectedSources );
+	debugLog( 'connected nodes', audioMotion.connectedSources );
 }
 
 /**
@@ -4935,14 +4943,14 @@ function updateRangeValue( el ) {
 			  endTimeout = +elEndTimeout.value,
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
-			  interval   = latency + 1 / instance.fps,
+			  interval   = latency + 1 / instance.fps, // audio context latency + refresh rate interval
 			  noShadow   = isSwitchOn( elNoShadow ),
 			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
-		// if song is less than 100ms from the end, skip to the next track for improved gapless playback
+		// if remaining time in the current track is less than our refresh interval, skip to the next track for improved gapless playback
 		if ( remaining < interval && isPlaying() ) {
-			elDebug.checked && debugLog( 'gapless track skip', { interval } );
+			debugLog( 'gapless track skip', { remaining, interval } );
 			playNextSong();
 		}
 
@@ -5078,9 +5086,9 @@ function updateRangeValue( el ) {
 
 	// event handlers for audio elements
 
-	const audioOnEnded = _ => {
+	const audioOnEnded = e => {
 		const isNextSong = playNextSong( true );
-		elDebug.checked && debugLog( 'audioOnEnded', { isNextSong } );
+		debugLog( 'audioOnEnded', { mediaEl: e.target.id.slice(-1), isNextSong } );
 		if ( ! isNextSong ) {
 			stop();
 			setCanvasMsg( 'Queue ended', 10 );
@@ -5094,7 +5102,9 @@ function updateRangeValue( el ) {
 			consoleLog( 'Error loading ' + e.target.src, true );
 	}
 
-	const audioOnPlay = _ => {
+	const audioOnPlay = e => {
+		debugLog( 'audioOnPlay', { mediaEl: e.target.id.slice(-1) } );
+
 		if ( ! audioElement[ currAudio ].attributes.src ) {
 			playSong( playlistPos );
 			return;
@@ -5258,7 +5268,13 @@ function updateRangeValue( el ) {
 	for ( const i of [0,1] ) {
 		audioElement[ i ] = $( `#player${i}` );
 		clearAudioElement( i );
+		audioElement[ i ].addEventListener( 'abort', () => debugLog( `mediaEl ${i} load aborted` ) );
+		audioElement[ i ].addEventListener( 'canplay', () => debugLog( `mediaEl ${i} can play` ) );
+		audioElement[ i ].addEventListener( 'canplaythrough', () => debugLog( `mediaEl ${i} can play through` ) );
+		audioElement[ i ].addEventListener( 'pause', () => debugLog( `mediaEl ${i} is paused` ) );
 		audioElement[ i ].addEventListener( 'play', audioOnPlay );
+		audioElement[ i ].addEventListener( 'playing', () => debugLog( `mediaEl ${i} is playing` ) );
+		audioElement[ i ].addEventListener( 'emptied', () => debugLog( `mediaEl ${i} emptied` ) );
 		audioElement[ i ].addEventListener( 'ended', audioOnEnded );
 		audioElement[ i ].addEventListener( 'error', audioOnError );
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
