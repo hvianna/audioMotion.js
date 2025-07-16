@@ -32,7 +32,7 @@
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
-import * as mm from 'music-metadata-browser';
+import {parseBlob, parseWebStream} from 'music-metadata';
 import './scrollIntoViewIfNeeded-polyfill.js';
 import { get, set, del } from 'idb-keyval';
 import * as yaml from 'js-yaml';
@@ -790,7 +790,6 @@ let audioElement = [],
 	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.yaml)
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
-	waitingMetadata = 0,
 	wasMuted,					// mute status before switching to microphone input
 	webServer;					// web server available? (boolean)
 
@@ -1173,55 +1172,51 @@ function addMetadata( metadata, target ) {
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( fileObject, content ) {
+async function addSongToPlayQueue( fileObject, content ) {
 
-	return new Promise( resolve => {
-		if ( queueLength() >= MAX_QUEUED_SONGS ) {
-			resolve(0);
-			return;
-		}
+	if ( queueLength() >= MAX_QUEUED_SONGS ) {
+		return 0;
+	}
 
-		const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
-			  uri       = normalizeSlashes( fileObject.file ),
-			  newEl     = document.createElement('li'), // create new list element
-			  trackData = newEl.dataset;
+	const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
+		  uri       = normalizeSlashes( fileObject.file ),
+		  newEl     = document.createElement('li'), // create new list element
+		  trackData = newEl.dataset;
 
-		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+	Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
 
-		if ( ! content )
-			content = parseTrackName( baseName );
+	if ( ! content )
+		content = parseTrackName( baseName );
 
-		trackData.album    = content.album || '';
-		trackData.artist   = content.artist || '';
-		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
-		trackData.duration = content.duration || '';
-		trackData.codec    = content.codec || extension.toUpperCase();
+	trackData.album    = content.album || '';
+	trackData.artist   = content.artist || '';
+	trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.duration = content.duration || '';
+	trackData.codec    = content.codec || extension.toUpperCase();
 //		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
-		trackData.filename = fileName;
-		trackData.file     = uri; 				// full path for web server access
-		newEl.handle       = fileObject.handle; // for File System API access
-		newEl.dirHandle    = fileObject.dirHandle;
-		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
+	trackData.filename = fileName;
+	trackData.file     = uri; 				// full path for web server access
+	newEl.handle       = fileObject.handle; // for File System API access
+	newEl.dirHandle    = fileObject.dirHandle;
+	newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
-		elPlayqueue.appendChild( newEl );
+	elPlayqueue.appendChild( newEl );
 
-		if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
-			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
-			trackData.retrieve = 1; // flag this item as needing metadata
-			retrieveMetadata();
-		}
+	if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
+		// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
+		trackData.retrieve = 1; // flag this item as needing metadata
+		await retrieveMetadata();
+	}
 
-		if ( queueLength() == 1 && ! isPlaying() ) {
-			// if the added song is the only one in the queue and no audio is currently playing, load it into the primary media element
-			loadSong(0).then( () => resolve(1) );
-		}
-		else {
-			// if the queue pointer was at the last song, load the newly added song into the secondary media element
-			if ( queueIndex == queueLength() - 2 )
-				loadSong( NEXT_TRACK );
-			resolve(1);
-		}
-	});
+	if ( queueLength() === 1 && ! isPlaying() ) {
+		await loadSong(0);
+	}
+	else {
+		// if the queue pointer was at the last song, load the newly added song into the secondary media element
+		if ( queueIndex === queueLength() - 2 )
+			await loadSong( NEXT_TRACK );
+	}
+	return 1;
 }
 
 /**
@@ -1973,7 +1968,7 @@ function keyboardControls( event ) {
 }
 
 /**
- * Sets (or removes) the `src` attribute of a audio element and
+ * Sets (or removes) the `src` attribute of an audio element and
  * releases any data blob (File System API) previously in use by it
  *
  * @param {object} audio element
@@ -2077,7 +2072,8 @@ function loadGradientIntoCurrentGradient(gradientKey) {
 /**
  * Load a music file from the user's computer
  */
-function loadLocalFile( obj ) {
+async function loadLocalFile( obj ) {
+
 	const fileBlob = obj.files[0];
 
 	if ( fileBlob ) {
@@ -2086,128 +2082,121 @@ function loadLocalFile( obj ) {
 		audioEl.dataset.file = fileBlob.name;
 		audioEl.dataset.title = parsePath( fileBlob.name ).baseName;
 
-		// load and play
-		loadFileBlob( fileBlob, audioEl, true )
-			.then( url => mm.fetchFromUrl( url ) )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
+		try {
+			const loadTask = await loadFileBlob(fileBlob, audioEl, true);
+			const metadata = await parseBlob( fileBlob );
+			await addMetadata(metadata, audioEl);
+		} catch( error ) {
+			consoleLog("Failed to load local file", error);
+		}
 	}
 }
 
 /**
  * Load a playlist file into the play queue
  */
-function loadPlaylist( fileObject ) {
+async function loadPlaylist( fileObject ) {
 
 	let path = normalizeSlashes( fileObject.file );
 
-	return new Promise( async ( resolve ) => {
-		let	promises = [];
+	let	trackCounts = 0;
 
-		const resolveAddedSongs = saveQueue => {
-			Promise.all( promises ).then( added => {
-				const total = added.reduce( ( sum, val ) => sum + val, 0 );
-				resolve( total );
-				if ( saveQueue )
-					storePlayQueue( true );
-			});
-		}
+	const parsePlaylistContent = async content => {
+		path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
 
-		const parsePlaylistContent = async content => {
-			path = parsePath( path ).path; // extracts the path (no filename); also decodes/normalize slashes
+		let album, songInfo;
 
-			let album, songInfo;
+		for ( let line of content.split(/[\r\n]+/) ) {
+			if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
+				line = normalizeSlashes( line );
+				if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
+					songInfo = parsePath( line ).baseName;
 
-			for ( let line of content.split(/[\r\n]+/) ) {
-				if ( line.charAt(0) != '#' && line.trim() != '' ) { // not a comment or blank line?
-					line = normalizeSlashes( line );
-					if ( ! songInfo ) // if no #EXTINF tag found on previous line, use the filename
-						songInfo = parsePath( line ).baseName;
+				let handle, dirHandle;
 
-					let handle, dirHandle;
+				// external URLs do not require any processing
+				if ( ! isExternalURL( line ) ) {
 
-					// external URLs do not require any processing
-					if ( ! isExternalURL( line ) ) {
-
-						// finds the filesystem handle for this file and its directory
-						if ( useFileSystemAPI ) {
-							( { handle, dirHandle } = await fileExplorer.getHandles( line ) );
-							if ( ! handle ) {
-								consoleLog( `Cannot resolve file handle for ${ line }`, true );
-								songInfo = '';
-								continue; // skip this entry
-							}
+					// finds the filesystem handle for this file and its directory
+					if ( useFileSystemAPI ) {
+						( { handle, dirHandle } = await fileExplorer.getHandles( line ) );
+						if ( ! handle ) {
+							consoleLog( `Cannot resolve file handle for ${ line }`, true );
+							songInfo = '';
+							continue; // skip this entry
 						}
-
-						// encode special characters into URL-safe codes
-						line = fileExplorer.encodeChars( line );
-
-						// if it's not an absolute path, prepend the current path to it
-						if ( line[1] != ':' && line[0] != '/' )
-							line = path + line;
 					}
 
-					promises.push( addSongToPlayQueue( { file: line, handle, dirHandle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } ) );
-					songInfo = '';
+					// encode special characters into URL-safe codes
+					line = fileExplorer.encodeChars( line );
+
+					// if it's not an absolute path, prepend the current path to it
+					if ( line[1] !== ':' && line[0] !== '/' )
+						line = path + line;
 				}
-				else if ( line.startsWith('#EXTINF') )
-					songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
-				else if ( line.startsWith('#EXTALB') )
-					album = line.slice(8);
-			}
-			resolveAddedSongs();
-		}
 
-		// --- main fuction ---
-
-		if ( ! path ) {
-			resolve( -1 );
-		}
-		else if ( typeof path == 'string' && FILE_EXT_PLIST.includes( parsePath( path ).extension ) ) {
-			if ( fileObject.handle ) {
-				fileObject.handle.getFile()
-					.then( fileBlob => fileBlob.text() )
-					.then( parsePlaylistContent )
-					.catch( e => {
-						consoleLog( e, true );
-						resolve( 0 );
-					});
+				trackCounts += await addSongToPlayQueue( { file: line, handle, dirHandle }, { ...parseTrackName( songInfo ), ...( album ? { album } : {} ) } );
+				songInfo = '';
 			}
-			else {
-				fetch( path )
-					.then( response => {
-						if ( response.ok )
-							return response.text();
-						else {
-							consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
-							return '';
-						}
-					})
-					.then( parsePlaylistContent )
-					.catch( e => {
-						consoleLog( e, true );
-						resolve( 0 );
-					});
-			}
+			else if ( line.startsWith('#EXTINF') )
+				songInfo = line.slice(8); // save #EXTINF metadata for the next iteration
+			else if ( line.startsWith('#EXTALB') )
+				album = line.slice(8);
 		}
-		else { // try to load playlist or last play queue from indexedDB
-			const list = await get( path === true ? KEY_PLAYQUEUE : PLAYLIST_PREFIX + path );
+		resolveAddedSongs();
+	}
 
-			if ( Array.isArray( list ) ) {
-				list.forEach( entry => {
-					const { file, handle, dirHandle, subs, content } = entry;
-					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
-					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
+	// --- main fuction ---
+
+	if ( ! path ) {
+		resolve( -1 );
+	}
+	else if ( typeof path == 'string' && FILE_EXT_PLIST.includes( parsePath( path ).extension ) ) {
+		if ( fileObject.handle ) {
+			fileObject.handle.getFile()
+				.then( fileBlob => fileBlob.text() )
+				.then( parsePlaylistContent )
+				.catch( e => {
+					consoleLog( e, true );
+					resolve( 0 );
 				});
-				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
+		}
+		else {
+			fetch( path )
+				.then( response => {
+					if ( response.ok )
+						return response.text();
+					else {
+						consoleLog( `Fetch returned error code ${response.status} for URI ${path}`, true );
+						return '';
+					}
+				})
+				.then( parsePlaylistContent )
+				.catch( e => {
+					consoleLog( e, true );
+					resolve( 0 );
+				});
+		}
+	}
+	else { // try to load playlist or last play queue from indexedDB
+		const list = await get( path === true ? KEY_PLAYQUEUE : PLAYLIST_PREFIX + path );
+
+		if ( Array.isArray( list ) ) {
+			for(const entry of list) {
+				const { file, handle, dirHandle, subs, content } = entry;
+				trackCounts += await addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content );
+				// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 			}
-			else {
-				if ( path !== true ) // avoid error message if no play queue found on storage
-					consoleLog( `Unrecognized playlist file: ${path}`, true );
-				resolve( 0 );
+			if(list !== KEY_PLAYQUEUE ) {
+				storePlayQueue( true );
 			}
 		}
-	});
+		else {
+			if ( path !== true ) // avoid error message if no play queue found on storage
+				consoleLog( `Unrecognized playlist file: ${path}`, true );
+			resolve( 0 );
+		}
+	}
 }
 
 /**
@@ -3248,59 +3237,69 @@ async function retrieveBackgrounds() {
 }
 
 /**
- * Retrieve metadata for files in the play queue
+ * Retrieve metadata for the first MAX_METADATA_REQUESTS files in the play queue,
+ * which have no metadata assigned yet
  */
 async function retrieveMetadata() {
-	// leave when we already have enough concurrent requests pending
-	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
-		return;
 
-	// find the first play queue item for which we haven't retrieved the metadata yet
-	const queueItem = Array.from( elPlayqueue.children ).find( el => el.dataset.retrieve );
+	// Process in sequential order
+	for(const queueItem of elPlayqueue.children) {
 
-	if ( queueItem ) {
-
-		let uri    = queueItem.dataset.file,
-			revoke = false;
-
-		waitingMetadata++;
+		if (!queueItem.dataset.retrieve) continue;
 		delete queueItem.dataset.retrieve;
 
-		queryMetadata: {
+		let metadata;
+		let file;
+
+		try {
 			if ( queueItem.handle ) {
-				try {
-					if ( await queueItem.handle.requestPermission() != 'granted' )
-						break queryMetadata;
 
-					uri = URL.createObjectURL( await queueItem.handle.getFile() );
-					revoke = true;
-				}
-				catch( e ) {
-					break queryMetadata;
-				}
+				// Fetch metadata from File object
+				if (await queueItem.handle.requestPermission() !== 'granted')
+					return;
+
+				file = await queueItem.handle.getFile();
+				metadata = await parseBlob(file);
 			}
-
-			try {
-				const metadata = await mm.fetchFromUrl( uri, { skipPostHeaders: true } );
-				if ( metadata ) {
-					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					syncMetadataToAudioElements( queueItem );
-					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( queueItem ).then( cover => {
-							queueItem.dataset.cover = cover;
-							syncMetadataToAudioElements( queueItem );
-						});
+			else
+			{
+				// Fetch metadata from URI
+				const response = await fetch(queueItem.dataset.file);
+				if (response.ok) {
+					if (response.body?.getReader) {
+						const contentType = response.headers.get("Content-Type");
+						const contentSize = response.headers.get("Content-Length");
+						try {
+							metadata = await parseWebStream(response.body, {
+								mimeType: contentType,
+								size: contentSize ? Number.parseInt(contentSize, 10) : undefined
+							}, {skipPostHeaders: true});
+						} finally {
+							await response.body.cancel();
+						}
+					} else {
+						// Fallback to Blob, in case the HTTP Result cannot be streamed
+						metadata = await parseBlob(await response.blob());
 					}
+				} else {
+					consoleLog(`Failed to fetch metadata http-response=${response.status} for url=${queueItem.dataset.file}`, true);
 				}
 			}
-			catch( e ) {}
-
-			if ( revoke )
-				URL.revokeObjectURL( uri );
+		}
+		catch( e ) {
+			consoleLog(`Error converting queued file="${queueItem.dataset.file ?? '?'}" to URI`, e);
+			return;
 		}
 
-		waitingMetadata--;
-		retrieveMetadata(); // call again to continue processing the queue
+		console.log(`Fetched metadata successful for url=${queueItem.dataset.file}`);
+		addMetadata( metadata, queueItem ); // add metadata to play queue item
+
+		// If no embedded picture, try folder cover
+		if ( ! ( metadata.common.picture && metadata.common.picture.length > 0) ) {
+			queueItem.dataset.cover = await getFolderCover( queueItem );
+		}
+
+		syncMetadataToAudioElements( queueItem );
 	}
 }
 
@@ -3353,9 +3352,9 @@ function saveGradient( isImported ) {
 /**
  * Save/update an existing playlist
  */
-function savePlaylist( index ) {
+async function savePlaylist( index ) {
 	if ( ! index )
-		storePlayQueue();
+		await storePlayQueue();
 	else {
 		notie.confirm({ text: `Overwrite "${elPlaylists[ index ].innerText}" with the current play queue?`,
 			submitText: 'Overwrite',
