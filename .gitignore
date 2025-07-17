@@ -1,5 +1,11 @@
 **/node_modules
 package-lock.json
 
+# Build files
+public/audioMotion.js
+public/audioMotion.js.LICENSE.txt
+public/vendors.js
+public/vendors.js.LICENSE.txt
+
 # User configuration
 public/config.yaml
