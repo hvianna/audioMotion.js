@@ -1178,7 +1178,7 @@ kbd.wide {
 	position: relative;
 }
 #playlist li::before {
-	content: attr(data-title);
+	content: attr(data-full-track-name);
 	display: inline-block;
 	overflow: hidden;
 	vertical-align: text-bottom;
@@ -1193,7 +1193,7 @@ kbd.wide {
 	padding-left: .25em;
 }
 #playlist li.current::before {
-	content: "\25b8"" " attr(data-title);
+	content: "\25b8"" " attr(data-full-track-name);
 }
 
 #console .error {
