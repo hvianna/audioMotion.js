@@ -5142,7 +5142,7 @@ function updateRangeValue( el ) {
 	const isSelfHosted   = window.location.hostname != 'audiomotion.app',
 		  urlParams      = new URL( window.location ).searchParams,
 		  userMode       = urlParams.get('mode'),
-		  userFrontPanel = urlParams.get('frontPanel') || urlParams.get('mediaPanel'), // `mediaPanel` is deprecated
+		  userFrontPanel = urlParams.get('frontPanel') || urlParams.get('mediaPanel'), // fallback to `mediaPanel` (deprecated)
 		  enableDebug    = urlParams.get('debug') != null;
 
 	if ( enableDebug ) {
@@ -5198,7 +5198,7 @@ function updateRangeValue( el ) {
 		serverConfig = {};
 	}
 
-	serverConfig = { ...SERVERCFG_DEFAULTS, frontPanel: serverConfig.mediaPanel, ...serverConfig }; // note: `mediaPanel` is deprecated
+	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
