@@ -38,7 +38,8 @@
 ### Removed: <!-- {docsify-ignore} -->
 
 + Balance control;
-+ `mediaPanel` URL parameter and config.json attribute has been deprecated - [use `frontPanel` instead](server.md#configjson-file);
++ `config.json` configuration file converted to YAML - see [Self-hosting > config.yaml file](server.md#configyaml-file) (props to [**@Borewit**](https://github.com/hvianna/audioMotion.js/pull/94)).
++ `mediaPanel` URL parameter has been deprecated - use [`frontPanel`](server.md#url-parameters) instead;
 + Custom file server module (just use `npm start`);
 + Code from the unfinished Electron version;
 + Support for legacy `playlists.cfg` file.

@@ -1,4 +1,4 @@
-# Initial (first run) file access mode - user’s device or /music directory on serve
+# Initial (first run) file access mode - user’s device or /music directory on server
 # local | server
 defaultAccessMode: local
 

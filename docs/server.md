@@ -19,18 +19,16 @@ The storage is also tied to the server **address and port**, so if any of those 
 A **config.yaml** file in the same directory as audioMotion's _index.html_ allows you to configure some server options.
 
 ```yaml
-{
-  defaultAccessMode: local
-  enableLocalAccess: true
-  frontPanel: open
-}
+defaultAccessMode: local
+enableLocalAccess: true
+frontPanel: open
 ```
 
 | option | values (default in bold) | description |
 |--------|--------------------------|-------------|
-| **defaultAccessMode** | **`"local"`** \| `"server"` | Initial (first run) file access mode - user's device or /music directory on server
+| **defaultAccessMode** | **`local`** \| `server` | Initial (first run) file access mode - user's device or /music directory on server
 | **enableLocalAccess** | **`true`** \| `false` | Whether or not to enable access to local device (*true* allows user to switch between local or server)
-| **frontPanel**        | **`"open"`** \| `"close"` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](users-manual.md#collapseexpand-front-panel)
+| **frontPanel**        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](users-manual.md#collapseexpand-front-panel)
 
 ## URL parameters
 
