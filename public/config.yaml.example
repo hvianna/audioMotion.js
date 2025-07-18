@@ -1,0 +1,11 @@
+# Initial (first run) file access mode - user’s device or /music directory on serve
+# local | server
+defaultAccessMode: local
+
+# Whether to enable access to local device (true allows user to switch between local or server)
+# true | false
+enableLocalAccess: true
+
+# Initial state of the Media Panel (“close” expands the analyzer area)
+# open | close
+frontPanel: open

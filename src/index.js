@@ -35,6 +35,7 @@ import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
 import './scrollIntoViewIfNeeded-polyfill.js';
 import { get, set, del } from 'idb-keyval';
+import * as yaml from 'js-yaml';
 
 import Sortable, { MultiDrag } from 'sortablejs';
 Sortable.mount( new MultiDrag() );
@@ -156,7 +157,7 @@ const OSD_SIZE_S = '0',
 	  OSD_SIZE_M = '1',
 	  OSD_SIZE_L = '2';
 
-// Valid values for the `frontPanel` URL parameter and config.json option
+// Valid values for the `frontPanel` URL parameter and config.yaml option
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
 
@@ -208,7 +209,7 @@ const SCALEXY_OFF  = 0,
 	  SCALEX_NOTES = 2;
 
 // Server configuration filename and default values
-const SERVERCFG_FILE     = 'config.json',
+const SERVERCFG_FILE     = 'config.yaml',
 	  SERVERCFG_DEFAULTS = {
 	  	defaultAccessMode: FILEMODE_LOCAL,
 		enableLocalAccess: true,
@@ -837,7 +838,7 @@ let audioElement = [],
 	randomModeTimer,
 	serverHasMedia,				// music directory found on web server
 	skipping = false,
-	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.json)
+	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.yaml)
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
@@ -5179,7 +5180,7 @@ function updateRangeValue( el ) {
 		}
 	}
 
-	// Load server configuration options from config.json
+	// Load server configuration options from config.yaml
 	let response;
 
 	try {
@@ -5187,9 +5188,10 @@ function updateRangeValue( el ) {
 	}
 	catch( e ) {}
 
-	let serverConfig = response && response.ok ? await response.text() : '{}';
+	let serverConfig = response && response.ok ? await response.text() : '';
+
 	try {
-		serverConfig = JSON.parse( serverConfig );
+		serverConfig = yaml.load(serverConfig);
 	}
 	catch( err ) {
 		consoleLog( `Error parsing ${ SERVERCFG_FILE } - ${ err }`, true );

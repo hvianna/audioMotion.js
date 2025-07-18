@@ -14,15 +14,15 @@ You can also run the app locally with Node.js - see the [Building audioMotion](b
 !> **Playlists, Presets and Custom gradients** are saved to the browser's storage and will only be accessible in the same browser they were saved.
 The storage is also tied to the server **address and port**, so if any of those change, data saved on a different address/port won't be accessible.
 
-## config.json file
+## config.yaml file
 
-A **config.json** file in the same directory as audioMotion's _index.html_ allows you to configure some server options.
+A **config.yaml** file in the same directory as audioMotion's _index.html_ allows you to configure some server options.
 
-```config.json
+```yaml
 {
-  "defaultAccessMode": "local",
-  "enableLocalAccess": true,
-  "frontPanel": "open"
+  defaultAccessMode: local
+  enableLocalAccess: true
+  frontPanel: open
 }
 ```
 
@@ -40,7 +40,7 @@ The following URL parameters can also be used when accessing audioMotion:
 |-----------|-----------------|-------------|
 | **debug** | *none* | If present in the URL, app starts in [debug mode](users-manual.md#debug), which may help identify issues during the initialization stage
 | **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
-| **frontPanel** | `open` \| `close` | Same as the corresponding `config.json` option, but overrides the server configuration
+| **frontPanel** | `open` \| `close` | Same as the corresponding `config.yaml` option, but overrides the server configuration
 
 Use an **&** character to separate multiple parameters. Example usage:
 
