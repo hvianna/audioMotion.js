@@ -13,6 +13,11 @@ module.exports = {
 		port: 9000,
 		hot: true,
 		open: true,
+		proxy: [{
+			context: ['/music/**'],
+			target: 'http://localhost:8080',
+			changeOrigin: true,
+		}],
 	},
 	module: {
 		rules: [
