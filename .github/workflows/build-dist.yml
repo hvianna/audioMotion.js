@@ -1,0 +1,40 @@
+name: Build Distribution
+
+on:
+  push:  # Run on every commit to any branch
+    branches: ['**']
+  workflow_dispatch:  # Also allow manual trigg
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Create dist folder
+        run: |
+          mkdir dist
+          cp README.md dist/
+          cp -r docs dist/docs
+          cp -r public dist/public
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: audioMotion.js
+          path: dist
+
+      - name: Add artifact link to summary
+        run: echo "[⬇️ Download audioMotion.js distribution](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
