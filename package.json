@@ -5,17 +5,20 @@
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
   "description": "Media player and real-time audio spectrum analyzer",
+  "type": "module",
   "scripts": {
     "build": "webpack",
-    "start": "http-server",
+    "server": "node server/server.js",
+    "start": "node run server",
     "dev": "webpack serve --config webpack.dev.js"
   },
   "devDependencies": {
+    "@fastify/static": "^8.2.0",
     "audiomotion-analyzer": "^4.5.1",
     "buffer": "^6.0.3",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.0",
-    "http-server": "^14.1.1",
+    "fastify": "^5.4.0",
     "idb-keyval": "^6.2.1",
     "js-yaml": "^4.1.0",
     "mini-css-extract-plugin": "^2.9.0",

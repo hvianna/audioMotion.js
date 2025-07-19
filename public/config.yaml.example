@@ -9,3 +9,6 @@ enableLocalAccess: true
 # Initial state of the Media Panel (“close” expands the analyzer area)
 # open | close
 frontPanel: open
+
+# Location to shared media folder
+mediaFolder: public\music
