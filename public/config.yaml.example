@@ -9,3 +9,7 @@ enableLocalAccess: true
 # Initial state of the Media Panel (“close” expands the analyzer area)
 # open | close
 frontPanel: open
+
+# Whether to preserve filenames as is in the play queue
+# true | false
+preserveFilenames: false

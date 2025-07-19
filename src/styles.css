@@ -1195,6 +1195,12 @@ kbd.wide {
 #playlist li.current::before {
 	content: "\25b8"" " attr(data-title);
 }
+#playlist.preserve-filenames li::before {
+	content: attr(data-filename);
+}
+#playlist.preserve-filenames li.current::before {
+	content: "\25b8"" " attr(data-filename);
+}
 
 #console .error {
 	color: #f33;

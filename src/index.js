@@ -77,7 +77,7 @@ const BGFIT_ADJUST   = '0',
 	  BGFIT_WARP_ANI = '7',
 	  BGFIT_WARP_ROT = '8';
 
-// Dataset template for playqueue items and audio elements
+// Dataset template for play queue items and audio elements
 const DATASET_TEMPLATE = {
 	album: '',
 	artist: '',
@@ -85,6 +85,7 @@ const DATASET_TEMPLATE = {
 	cover: '',
 	duration: '',
 	file: '',
+	filename: '',
 	quality: '',
 	title: ''
 };
@@ -92,6 +93,7 @@ const DATASET_TEMPLATE = {
 // CSS classes
 const CSS_CLASS_COMPACT   = 'compact',
 	  CSS_CLASS_FIT_VIDEO = 'fit-video',
+	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
 	  CSS_CLASS_WARNING   = 'warning';
 
 // Channel Layouts
@@ -213,7 +215,8 @@ const SERVERCFG_FILE     = 'config.yaml',
 	  SERVERCFG_DEFAULTS = {
 	  	defaultAccessMode: FILEMODE_LOCAL,
 		enableLocalAccess: true,
-		frontPanel       : PANEL_OPEN
+		frontPanel       : PANEL_OPEN,
+		preserveFilenames: false
 	  };
 
 // Subtitles settings options
@@ -300,6 +303,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
+	  elPlayqueue     = $('#playlist'),
+	  elPreserveFilenames = $('#preserve_filenames'),
 	  elPresets       = $('#presets'),
 	  elRadial        = $('#radial'),
 	  elRadius        = $('#radius'),
@@ -754,7 +759,7 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elInvertVolume, elMaxFPS, elPIPRatio, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elInvertVolume, elMaxFPS, elPIPRatio, elPreserveFilenames, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -764,6 +769,7 @@ const generalOptionsDefaults = {
 	invertVol  : false,
 	maxFPS     : 60,
 	pipRatio   : 2.35,
+	preserveFilenames: false,
 	saveDir    : true,
 	saveQueue  : true,
 	surround   : false
@@ -833,8 +839,7 @@ let audioElement = [],
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
 	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
-	playlist, 					// play queue
-	playlistPos, 				// index to the current song in the queue
+	queueIndex, 				// index to the current song in the play queue
 	randomModeTimer,
 	serverHasMedia,				// music directory found on web server
 	skipping = false,
@@ -1054,7 +1059,7 @@ const parseTrackName = name => {
 }
 
 // returns the count of queued songs
-const queueLength = _ => playlist.children.length;
+const queueLength = _ => elPlayqueue.children.length;
 
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
@@ -1243,13 +1248,13 @@ function addSongToPlayQueue( fileObject, content ) {
 		trackData.duration = content.duration || '';
 		trackData.codec    = content.codec || extension.toUpperCase();
 //		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
-
-		trackData.file     = uri; 				// for web server access
+		trackData.filename = fileName;
+		trackData.file     = uri; 				// full path for web server access
 		newEl.handle       = fileObject.handle; // for File System API access
 		newEl.dirHandle    = fileObject.dirHandle;
 		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
-		playlist.appendChild( newEl );
+		elPlayqueue.appendChild( newEl );
 
 		if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
 			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
@@ -1260,7 +1265,7 @@ function addSongToPlayQueue( fileObject, content ) {
 		if ( queueLength() == 1 && ! isPlaying() )
 			loadSong(0).then( () => resolve(1) );
 		else {
-			if ( playlistPos > queueLength() - 3 )
+			if ( queueIndex > queueLength() - 3 )
 				loadSong( NEXT_TRACK );
 			resolve(1);
 		}
@@ -1340,15 +1345,15 @@ function clearAudioElement( n = currAudio ) {
  */
 function clearPlayQueue() {
 
-	while ( playlist.hasChildNodes() )
-		revokeBlobURL( playlist.removeChild( playlist.firstChild ) );
+	while ( elPlayqueue.hasChildNodes() )
+		revokeBlobURL( elPlayqueue.removeChild( elPlayqueue.firstChild ) );
 
 	if ( ! isPlaying() ) {
-		playlistPos = 0;
+		queueIndex = 0;
 		clearAudioElement( currAudio );
 	}
 	else
-		playlistPos = -1;
+		queueIndex = -1;
 
 	clearAudioElement( nextAudio );
 	updatePlaylistUI();
@@ -1889,17 +1894,17 @@ function keyboardControls( event ) {
 			switch ( event.code ) {
 				case 'Delete': 		// delete selected songs from the playlist
 				case 'Backspace':	// for Mac
-					playlist.querySelectorAll('.selected').forEach( e => {
+					elPlayqueue.querySelectorAll('.selected').forEach( e => {
 						revokeBlobURL( e );
 						e.remove();
 					});
-					const current = getIndex( playlist.querySelector('.current') );
+					const current = getIndex( elPlayqueue.querySelector('.current') );
 					if ( current !== undefined )
-						playlistPos = current;	// update playlistPos if current song hasn't been deleted
-					else if ( playlistPos > queueLength() - 1 )
-						playlistPos = queueLength() - 1;
+						queueIndex = current;	// update queueIndex if current song hasn't been deleted
+					else if ( queueIndex > queueLength() - 1 )
+						queueIndex = queueLength() - 1;
 					else
-						playlistPos--;
+						queueIndex--;
 					if ( queueLength() )
 						loadSong( NEXT_TRACK );
 					else {
@@ -1985,7 +1990,7 @@ function keyboardControls( event ) {
 					cycleElement( elShowPeaks, isShiftKey );
 					setCanvasMsg( 'Peaks ' + getText( elShowPeaks ) );
 					break;
-				case 'KeyR': 		// toggle playlist repeat
+				case 'KeyR': 		// toggle play queue repeat
 					elRepeat.click();
 					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
 					break;
@@ -2257,7 +2262,7 @@ function loadPlaylist( fileObject ) {
 /**
  * Load preferences from localStorage
  */
-function loadPreferences() {
+function loadPreferences( serverConfig ) {
 	// helper function
 	const parseDisabled = ( data, optionList ) => {
 		if ( Array.isArray( data ) ) {
@@ -2346,7 +2351,8 @@ function loadPreferences() {
 
 	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
 
-	setGeneralOptions( { ...generalOptionsDefaults, ...storedGeneralOptions } );
+	const { preserveFilenames } = serverConfig;
+	setGeneralOptions( { ...generalOptionsDefaults, preserveFilenames, ...storedGeneralOptions } );
 
 	// On-screen display options
 
@@ -2574,10 +2580,10 @@ async function loadSavedPlaylists( keyName ) {
  */
 async function loadSong( n, playIt ) {
 	const isCurrent = n !== NEXT_TRACK,
-		  index     = isCurrent ? n : ( ( playlistPos < queueLength() - 1 ) ? playlistPos + 1 : 0 ),
+		  index     = isCurrent ? n : ( ( queueIndex < queueLength() - 1 ) ? queueIndex + 1 : 0 ),
 		  mediaEl   = isCurrent ? currAudio : nextAudio,
 		  audioEl   = audioElement[ mediaEl ],
-		  song      = playlist.children[ index ];
+		  song      = elPlayqueue.children[ index ];
 
 	debugLog( 'loadSong start', { mediaEl, n, index } );
 
@@ -2588,7 +2594,7 @@ async function loadSong( n, playIt ) {
 
 	if ( song ) {
 		if ( isCurrent )
-			playlistPos = index;
+			queueIndex = index;
 
 		addMetadata( song, audioEl );
 		loadSubs( audioEl, song );
@@ -2744,17 +2750,17 @@ function openGradientEditorNew( makeCopy ) {
  * Play next song on queue
  */
 function playNextSong( play ) {
-	debugLog( 'playNextSong', { play, playlistPos, skipping } );
+	debugLog( 'playNextSong', { play, queueIndex, skipping } );
 
-	if ( skipping || elSource.checked || playlistPos > queueLength() - 1 )
+	if ( skipping || elSource.checked || queueIndex > queueLength() - 1 )
 		return true;
 
 	skipping = true;
 
-	if ( playlistPos < queueLength() - 1 )
-		playlistPos++;
+	if ( queueIndex < queueLength() - 1 )
+		queueIndex++;
 	else if ( isSwitchOn( elRepeat ) )
-		playlistPos = 0;
+		queueIndex = 0;
 	else {
 		skipping = false;
 		return false;
@@ -2816,13 +2822,13 @@ function playPreviousSong() {
 	if ( isPlaying() ) {
 		if ( audioElement[ currAudio ].currentTime > 2 )
 			audioElement[ currAudio ].currentTime = 0;
-		else if ( playlistPos > 0 )
-			playSong( playlistPos - 1 );
+		else if ( queueIndex > 0 )
+			playSong( queueIndex - 1 );
 		else
 			ret = false;
 	}
 	else
-		ret = loadSong( playlistPos - 1 );
+		ret = loadSong( queueIndex - 1 );
 
 	return ret;
 }
@@ -3303,7 +3309,7 @@ async function retrieveMetadata() {
 		return;
 
 	// find the first play queue item for which we haven't retrieved the metadata yet
-	const queueItem = Array.from( playlist.children ).find( el => el.dataset.retrieve );
+	const queueItem = Array.from( elPlayqueue.children ).find( el => el.dataset.retrieve );
 
 	if ( queueItem ) {
 
@@ -3475,6 +3481,7 @@ function savePreferences( key ) {
 			invertVol  : elInvertVolume.checked,
 			maxFPS     : elMaxFPS.value,
 			pipRatio   : elPIPRatio.value,
+			preserveFilenames: elPreserveFilenames.checked,
 			saveDir    : elSaveDir.checked,
 			saveQueue  : elSaveQueue.checked,
 			surround   : elSurround.checked
@@ -3656,6 +3663,7 @@ function setGeneralOptions( options ) {
 	elInvertVolume.checked = options.invertVol;
 	elMaxFPS.value      = options.maxFPS;
 	elPIPRatio.value    = options.pipRatio;
+	elPreserveFilenames.checked = options.preserveFilenames;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
 	elSurround.checked  = options.surround;
@@ -3935,6 +3943,10 @@ function setProperty( elems, save = true ) {
 			case elPIPRatio:
 				if ( isPIP() )
 					audioMotion.width = audioMotion.height * elPIPRatio.value;
+				break;
+
+			case elPreserveFilenames:
+				elPlayqueue.classList.toggle( CSS_CLASS_PRESERVE_FILENAMES, elPreserveFilenames.checked );
 				break;
 
 			case elRadial:
@@ -4633,14 +4645,14 @@ function setUIEventListeners() {
 }
 
 /**
- * Shuffle the playlist
+ * Shuffle the play queue
  */
 function shufflePlayQueue() {
 
 	for ( let i = queueLength() - 1; i > 0; i-- ) {
 		const randIndex = Math.random() * ( i + 1 ) | 0,
-			  oldChild  = playlist.replaceChild( playlist.children[ randIndex ], playlist.children[ i ] );
-		playlist.insertBefore( oldChild, playlist.children[ randIndex ] );
+			  oldChild  = elPlayqueue.replaceChild( elPlayqueue.children[ randIndex ], elPlayqueue.children[ i ] );
+		elPlayqueue.insertBefore( oldChild, elPlayqueue.children[ randIndex ] );
 	}
 
 	playSong(0);
@@ -4706,7 +4718,7 @@ async function storePlayQueue( name, update = true ) {
 
 		let songs = [];
 
-		for ( const item of playlist.childNodes ) {
+		for ( const item of elPlayqueue.childNodes ) {
 			const { album, artist, codec, duration, file, title } = item.dataset,
 				  { handle, dirHandle } = item;
 			songs.push( { file, handle, dirHandle, content: { album, artist, codec, duration, title } } );
@@ -4806,12 +4818,12 @@ function toggleMultiChannel() {
 }
 
 /**
- * Update the playlist shown to the user
+ * Update the play queue
  */
 function updatePlaylistUI() {
 
-	const current = playlist.querySelector('.current'),
-		  newCurr = playlist.children[ playlistPos ];
+	const current = elPlayqueue.querySelector('.current'),
+		  newCurr = elPlayqueue.children[ queueIndex ];
 
 	if ( current )
 		current.classList.remove('current');
@@ -5051,7 +5063,7 @@ function updateRangeValue( el ) {
 				// song/queue count
 				const totalSongs = queueLength();
 				if ( totalSongs && elShowCount.checked )
-					drawText( `Track ${ playlistPos + 1 } of ${ totalSongs }`, rightPos, bottomLine1 - baseSize );
+					drawText( `Track ${ queueIndex + 1 } of ${ totalSongs }`, rightPos, bottomLine1 - baseSize );
 
 				// artist name
 				canvasCtx.textAlign = 'left';
@@ -5070,8 +5082,8 @@ function updateRangeValue( el ) {
 					if ( ! trackData.duration ) {
 						trackData.duration = secondsToTime( audioEl.duration );
 
-						if ( playlist.children[ playlistPos ] )
-							playlist.children[ playlistPos ].dataset.duration = trackData.duration;
+						if ( elPlayqueue.children[ queueIndex ] )
+							elPlayqueue.children[ queueIndex ].dataset.duration = trackData.duration;
 					}
 					canvasCtx.textAlign = 'right';
 
@@ -5107,7 +5119,7 @@ function updateRangeValue( el ) {
 		debugLog( 'audioOnPlay', { mediaEl: e.target.id.slice(-1) } );
 
 		if ( ! audioElement[ currAudio ].attributes.src ) {
-			playSong( playlistPos );
+			playSong( queueIndex );
 			return;
 		}
 
@@ -5226,20 +5238,19 @@ function updateRangeValue( el ) {
 	const audioCtx = audioMotion.audioCtx;
 
 	// Load preferences from localStorage
-	const isLastSession = loadPreferences();
+	const isLastSession = loadPreferences( serverConfig );
 
 	// Initialize play queue and set event listeners
-	playlist = $('#playlist');
-	playlist.addEventListener( 'dblclick', e => {
+	elPlayqueue.addEventListener( 'dblclick', e => {
 		if ( e.target && e.target.dataset.file ) {
 			playSong( getIndex( e.target ) );
 			e.target.classList.remove( 'selected', 'sortable-chosen' );
 		}
 	});
-	playlistPos = 0;
+	queueIndex = 0;
 
 	// Add drag-n-drop functionality to the play queue
-	Sortable.create( playlist, {
+	Sortable.create( elPlayqueue, {
 		animation: 150,
 		group: {
 			name: 'filelist',
@@ -5250,7 +5261,7 @@ function updateRangeValue( el ) {
 		multiDragKey: 'ctrl',
 		selectedClass: 'selected',
 		onEnd: evt => {
-			playlistPos = getIndex( playlist.querySelector('.current') );
+			queueIndex = getIndex( elPlayqueue.querySelector('.current') );
 			if ( evt.newIndex == 0 && ! isPlaying() )
 				loadSong(0);
 			else
@@ -5549,7 +5560,7 @@ function updateRangeValue( el ) {
 			enterLastDir();
 
 		// Initialize necessary global configuration settings (not in the preset)
-		setProperty( [ elFsHeight, elSurround, elVideoFill, ...subsOptionsElements ], false );
+		setProperty( [ elFsHeight, elPreserveFilenames, elSurround, elVideoFill, ...subsOptionsElements ], false );
 
 		latency = ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency;
 
