@@ -268,7 +268,7 @@ export async function getDirectoryContents( path, dirHandle ) {
 		else {
 			// Web server
 			const response = await fetch( path );
-			content = response.ok ? await response.text() : false;
+			content = response.ok ? await response.json() : false;
 		}
 	}
 	catch( e ) {
@@ -365,58 +365,7 @@ export function parseWebIndex( content ) {
  */
 export function parseDirectory( content, path ) {
 
-	// NOTE: `path` is currently used only to generate the correct `src` for subs files when
-	//       reading an arbitrary directory. For all other files, only the filename is included.
-	//
-	// TO-DO: add an extra `path` or `src` property to *all* entries in the returned object,
-	//        so we don't have to deal with this everywhere else!
-
-	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
-		  subsExtensions  = /\.vtt$/i;
-
-	let dirs  = [],
-		files = [],
-		imgs  = [],
-		subs  = [];
-
-	// helper function
-	const findImg = ( arr, pattern ) => {
-		const regexp = new RegExp( `${pattern}.*${coverExtensions.source}`, 'i' );
-		return arr.find( el => ( el.name || el ).match( regexp ) );
-	}
-
-	if ( Array.isArray( content ) && supportsFileSystemAPI ) {
-		// File System entries
-		for ( const fileObj of content ) {
-			const { name, handle, dirHandle } = fileObj;
-			if ( handle instanceof FileSystemDirectoryHandle )
-				dirs.push( fileObj );
-			else if ( handle instanceof FileSystemFileHandle ) {
-				if ( name.match( coverExtensions ) )
-					imgs.push( fileObj );
-				else if ( name.match( subsExtensions ) )
-					subs.push( fileObj );
-				if ( name.match( fileExtensions ) )
-					files.push( fileObj );
-			}
-		}
-	}
-	else {
-		// Web server HTML content
-		for ( const { url, file } of parseWebIndex( content ) ) {
-			const fileObj = { name: file };
-			if ( url.slice( -1 ) == '/' )
-				dirs.push( fileObj );
-			else {
-				if ( file.match( coverExtensions ) )
-					imgs.push( fileObj );
-				else if ( file.match( subsExtensions ) )
-					subs.push( fileObj );
-				if ( file.match( fileExtensions ) )
-					files.push( fileObj );
-			}
-		}
-	}
+    let {dirs, files, imgs, subs} = content;
 
 	// attach subtitle entries to their respective media files
 	for ( const sub of subs ) {
@@ -427,6 +376,12 @@ export function parseDirectory( content, path ) {
 		if ( fileEntry )
 			fileEntry.subs = { src: path ? path + name : makePath( name ), lang, handle };
 	}
+
+	// helper function
+	const findImg = (arr, pattern) => {
+		const regexp = new RegExp(pattern, 'i');
+		return arr.find(el => (el.name || el).match(regexp));
+	};
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 

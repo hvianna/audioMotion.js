@@ -1,7 +1,12 @@
-const path = require('path');
-const webpack = require('webpack');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import webpack from 'webpack';
 
-module.exports = {
+// ESM __dirname workaround
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default {
 	mode: 'development',
 	entry: './src/index.js',
 	devtool: 'inline-source-map',
@@ -24,7 +29,7 @@ module.exports = {
 			{
 				test: /\.css$/,
 				use: [
-					'style-loader', // Use style-loader instead of MiniCssExtractPlugin in dev
+					'style-loader',
 					{
 						loader: 'css-loader',
 						options: { url: false },
