@@ -36,6 +36,7 @@ import {parseBlob, parseWebStream} from 'music-metadata';
 import './scrollIntoViewIfNeeded-polyfill.js';
 import { get, set, del } from 'idb-keyval';
 import * as yaml from 'js-yaml';
+import PQueue  from 'p-queue';
 
 import Sortable, { MultiDrag } from 'sortablejs';
 Sortable.mount( new MultiDrag() );
@@ -909,6 +910,9 @@ const getCurrentSettings = _ => ({
 	weighting    : getControlValue( elWeighting )
 });
 
+// Limit the number of parallel metadata requests
+const metadataRetrievalQueue = new PQueue({ concurrency: MAX_METADATA_REQUESTS });
+
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
 const getPresetIndex = key => {
 	const index = ( +key == key ) ? key : presets.findIndex( item => item.key == key );
@@ -1205,7 +1209,7 @@ async function addSongToPlayQueue( fileObject, content ) {
 	if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
 		// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
 		trackData.retrieve = 1; // flag this item as needing metadata
-		await retrieveMetadata();
+		retrieveMetadataForQueueItem( newEl ); // ToDo improve handling promise
 	}
 
 	if ( queueLength() === 1 && ! isPlaying() ) {
@@ -1221,22 +1225,18 @@ async function addSongToPlayQueue( fileObject, content ) {
 /**
  * Add a song or playlist to the play queue
  */
-function addToPlayQueue( fileObject, autoplay = false ) {
+async function addToPlayQueue( fileObject, autoplay = false ) {
 
-	let ret;
-
+	let n;
 	if ( FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
-		ret = loadPlaylist( fileObject );
+		n = await loadPlaylist( fileObject );
 	else
-		ret = addSongToPlayQueue( fileObject );
+		n =await addSongToPlayQueue( fileObject );
 
 	// when promise resolved, if autoplay requested start playing the first added song
-	ret.then( n => {
-		if ( autoplay && ! isPlaying() && n > 0 )
-			playSong( queueLength() - n );
-	});
 
-	return ret;
+	if ( autoplay && ! isPlaying() && n > 0 )
+		playSong( queueLength() - n );
 }
 
 /**
@@ -1245,7 +1245,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 function changeFsHeight( incr ) {
 	const val = +elFsHeight.value;
 
-	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
+	if ( incr === 1 && val < +elFsHeight.max || incr === -1 && val > +elFsHeight.min ) {
 		elFsHeight.value = val + elFsHeight.step * incr;
 		setProperty( elFsHeight );
 	}
@@ -3225,28 +3225,22 @@ async function retrieveBackgrounds() {
 		catch( e ) {} // needs permission to access local device
 	}
 
-	if ( bgLocation != BGFOLDER_NONE ) {
+	if ( bgLocation !== BGFOLDER_NONE ) {
 		const imageCount = bgImages.length,
 			  videoCount = bgVideos.length;
 
-		consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
+		consoleLog( 'Found ' + ( imageCount + videoCount === 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
 	}
 
 	populateBackgrounds();
 }
 
 /**
- * Retrieve metadata for the first MAX_METADATA_REQUESTS files in the play queue,
- * which have no metadata assigned yet
+ * Retrieve metadata for element queueItem
  */
-async function retrieveMetadata() {
+function retrieveMetadataForQueueItem(queueItem) {
 
-	// Process in sequential order
-	for(const queueItem of elPlayqueue.children) {
-
-		if (!queueItem.dataset.retrieve) continue;
-		delete queueItem.dataset.retrieve;
-
+	return metadataRetrievalQueue.add(async () => {
 		let metadata;
 		let file;
 
@@ -3299,7 +3293,7 @@ async function retrieveMetadata() {
 		}
 
 		syncMetadataToAudioElements( queueItem );
-	}
+	});
 }
 
 /**
