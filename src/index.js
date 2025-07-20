@@ -36,6 +36,7 @@ import {parseBlob, parseWebStream} from 'music-metadata';
 import './scrollIntoViewIfNeeded-polyfill.js';
 import { get, set, del } from 'idb-keyval';
 import * as yaml from 'js-yaml';
+import pLimit from 'p-limit';
 
 import Sortable, { MultiDrag } from 'sortablejs';
 Sortable.mount( new MultiDrag() );
@@ -909,6 +910,9 @@ const getCurrentSettings = _ => ({
 	weighting    : getControlValue( elWeighting )
 });
 
+// Limit the number of parallel metadata requests
+const metadataRequestLimit = pLimit(MAX_METADATA_REQUESTS);
+
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
 const getPresetIndex = key => {
 	const index = ( +key == key ) ? key : presets.findIndex( item => item.key == key );
@@ -1205,7 +1209,7 @@ async function addSongToPlayQueue( fileObject, content ) {
 	if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
 		// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
 		trackData.retrieve = 1; // flag this item as needing metadata
-		await retrieveMetadata();
+		retrieveMetadata(); // ToDo improve handling promise
 	}
 
 	if ( queueLength() === 1 && ! isPlaying() ) {
@@ -1222,22 +1226,18 @@ async function addSongToPlayQueue( fileObject, content ) {
 /**
  * Add a song or playlist to the play queue
  */
-function addToPlayQueue( fileObject, autoplay = false ) {
+async function addToPlayQueue( fileObject, autoplay = false ) {
 
-	let ret;
-
+	let n;
 	if ( FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
-		ret = loadPlaylist( fileObject );
+		n = await loadPlaylist( fileObject );
 	else
-		ret = addSongToPlayQueue( fileObject );
+		n =await addSongToPlayQueue( fileObject );
 
 	// when promise resolved, if autoplay requested start playing the first added song
-	ret.then( n => {
-		if ( autoplay && ! isPlaying() && n > 0 )
-			playSong( queueLength() - n );
-	});
 
-	return ret;
+	if ( autoplay && ! isPlaying() && n > 0 )
+		playSong( queueLength() - n );
 }
 
 /**
@@ -1246,7 +1246,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 function changeFsHeight( incr ) {
 	const val = +elFsHeight.value;
 
-	if ( incr == 1 && val < +elFsHeight.max || incr == -1 && val > +elFsHeight.min ) {
+	if ( incr === 1 && val < +elFsHeight.max || incr === -1 && val > +elFsHeight.min ) {
 		elFsHeight.value = val + elFsHeight.step * incr;
 		setProperty( elFsHeight );
 	}
@@ -3226,81 +3226,99 @@ async function retrieveBackgrounds() {
 		catch( e ) {} // needs permission to access local device
 	}
 
-	if ( bgLocation != BGFOLDER_NONE ) {
+	if ( bgLocation !== BGFOLDER_NONE ) {
 		const imageCount = bgImages.length,
 			  videoCount = bgVideos.length;
 
-		consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
+		consoleLog( 'Found ' + ( imageCount + videoCount === 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
 	}
 
 	populateBackgrounds();
 }
 
 /**
- * Retrieve metadata for the first MAX_METADATA_REQUESTS files in the play queue,
+ * Retrieve metadata for queueItem
+ * which have no metadata assigned yet
+ */
+async function retrieveMetadataForQueueItem(queueItem) {
+
+	let metadata;
+	let file;
+
+	try {
+		if ( queueItem.handle ) {
+
+			// Fetch metadata from File object
+			if (await queueItem.handle.requestPermission() !== 'granted')
+				return;
+
+			file = await queueItem.handle.getFile();
+			metadata = await parseBlob(file);
+		}
+		else
+		{
+			// Fetch metadata from URI
+			const response = await fetch(queueItem.dataset.file);
+			if (response.ok) {
+				if (response.body?.getReader) {
+					const contentType = response.headers.get("Content-Type");
+					const contentSize = response.headers.get("Content-Length");
+					try {
+						metadata = await parseWebStream(response.body, {
+							mimeType: contentType,
+							size: contentSize ? Number.parseInt(contentSize, 10) : undefined
+						}, {skipPostHeaders: true});
+					} finally {
+						await response.body.cancel();
+					}
+				} else {
+					// Fallback to Blob, in case the HTTP Result cannot be streamed
+					metadata = await parseBlob(await response.blob());
+				}
+			} else {
+				consoleLog(`Failed to fetch metadata http-response=${response.status} for url=${queueItem.dataset.file}`, true);
+				return;
+			}
+		}
+	}
+	catch( e ) {
+		consoleLog(`Error converting queued file="${queueItem.dataset.file ?? '?'}" to URI`, e);
+		return;
+	}
+
+	addMetadata( metadata, queueItem ); // add metadata to play queue item
+
+	// If no embedded picture, try folder cover
+	if ( ! ( metadata.common.picture && metadata.common.picture.length > 0) ) {
+		queueItem.dataset.cover = await getFolderCover( queueItem );
+	}
+
+	syncMetadataToAudioElements( queueItem );
+
+}
+
+/**
+ * Retrieve metadata for each entry of the queue which has not metadata assigned yet
  * which have no metadata assigned yet
  */
 async function retrieveMetadata() {
 
+
+	const promises = [];
+
 	// Process in sequential order
 	for(const queueItem of elPlayqueue.children) {
 
-		if (!queueItem.dataset.retrieve) continue;
-		delete queueItem.dataset.retrieve;
-
-		let metadata;
-		let file;
-
-		try {
-			if ( queueItem.handle ) {
-
-				// Fetch metadata from File object
-				if (await queueItem.handle.requestPermission() !== 'granted')
-					return;
-
-				file = await queueItem.handle.getFile();
-				metadata = await parseBlob(file);
-			}
-			else
-			{
-				// Fetch metadata from URI
-				const response = await fetch(queueItem.dataset.file);
-				if (response.ok) {
-					if (response.body?.getReader) {
-						const contentType = response.headers.get("Content-Type");
-						const contentSize = response.headers.get("Content-Length");
-						try {
-							metadata = await parseWebStream(response.body, {
-								mimeType: contentType,
-								size: contentSize ? Number.parseInt(contentSize, 10) : undefined
-							}, {skipPostHeaders: true});
-						} finally {
-							await response.body.cancel();
-						}
-					} else {
-						// Fallback to Blob, in case the HTTP Result cannot be streamed
-						metadata = await parseBlob(await response.blob());
-					}
-				} else {
-					consoleLog(`Failed to fetch metadata http-response=${response.status} for url=${queueItem.dataset.file}`, true);
-				}
-			}
+		// Only process items with metadata
+		if (queueItem.dataset.retrieve) {
+			// Clear metadata retrieval flag
+			delete queueItem.dataset.retrieve;
+			// Sets a global limit, as the function is call for each entry added
+			promises.push(metadataRequestLimit(() => retrieveMetadataForQueueItem(queueItem)));
 		}
-		catch( e ) {
-			consoleLog(`Error converting queued file="${queueItem.dataset.file ?? '?'}" to URI`, e);
-			return;
-		}
-
-		console.log(`Fetched metadata successful for url=${queueItem.dataset.file}`);
-		addMetadata( metadata, queueItem ); // add metadata to play queue item
-
-		// If no embedded picture, try folder cover
-		if ( ! ( metadata.common.picture && metadata.common.picture.length > 0) ) {
-			queueItem.dataset.cover = await getFolderCover( queueItem );
-		}
-
-		syncMetadataToAudioElements( queueItem );
 	}
+
+	return Promise.all(promises);
 }
 
 /**
