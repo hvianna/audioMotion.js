@@ -1261,6 +1261,7 @@ kbd.wide {
 #console-content div {
 	margin-left: 8.75em;
 	text-indent: -9em;
+	word-break: break-all;
 }
 
 .credits {

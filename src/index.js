@@ -1262,10 +1262,13 @@ function addSongToPlayQueue( fileObject, content ) {
 			retrieveMetadata();
 		}
 
-		if ( queueLength() == 1 && ! isPlaying() )
+		if ( queueLength() == 1 && ! isPlaying() ) {
+			// if the added song is the only one in the queue and no audio is currently playing, load it into the primary media element
 			loadSong(0).then( () => resolve(1) );
+		}
 		else {
-			if ( queueIndex > queueLength() - 3 )
+			// if the queue pointer was at the last song, load the newly added song into the secondary media element
+			if ( queueIndex == queueLength() - 2 )
 				loadSong( NEXT_TRACK );
 			resolve(1);
 		}
@@ -1349,14 +1352,13 @@ function clearPlayQueue() {
 		revokeBlobURL( elPlayqueue.removeChild( elPlayqueue.firstChild ) );
 
 	if ( ! isPlaying() ) {
-		queueIndex = 0;
+		setQueueIndex(0);
 		clearAudioElement( currAudio );
 	}
 	else
-		queueIndex = -1;
+		setQueueIndex(-1);
 
 	clearAudioElement( nextAudio );
-	updatePlaylistUI();
 }
 
 /**
@@ -1900,11 +1902,11 @@ function keyboardControls( event ) {
 					});
 					const current = getIndex( elPlayqueue.querySelector('.current') );
 					if ( current !== undefined )
-						queueIndex = current;	// update queueIndex if current song hasn't been deleted
+						setQueueIndex( current ); // keep the pointer at the current track, if it hasn't been deleted
 					else if ( queueIndex > queueLength() - 1 )
-						queueIndex = queueLength() - 1;
+						setQueueIndex( queueLength() - 1 );
 					else
-						queueIndex--;
+						setQueueIndex( queueIndex - 1 );
 					if ( queueLength() )
 						loadSong( NEXT_TRACK );
 					else {
@@ -2572,20 +2574,20 @@ async function loadSavedPlaylists( keyName ) {
 }
 
 /**
- * Load a song from the queue into the currently active audio element
+ * Load a song from the queue into one of the media elements
  *
- * @param {number}    index to the desired play queue element
+ * @param {number}    index to the desired queue element to load; -1 to load the track after the current queueIndex
  * @param {boolean}   `true` to start playing
- * @returns {Promise} resolves to a boolean indicating success or failure (invalid queue index)
+ * @returns {Promise} resolves to a boolean indicating success or failure
  */
 async function loadSong( n, playIt ) {
-	const isCurrent = n !== NEXT_TRACK,
-		  index     = isCurrent ? n : ( ( queueIndex < queueLength() - 1 ) ? queueIndex + 1 : 0 ),
-		  mediaEl   = isCurrent ? currAudio : nextAudio,
+	const isCurrent = n !== NEXT_TRACK || playIt, // if requested to play, always use the primary media element
+		  index     = n !== NEXT_TRACK ? n : ( ( queueIndex < queueLength() - 1 ) ? queueIndex + 1 : 0 ),
+		  mediaEl   = isCurrent ? currAudio : nextAudio, // next track is (usually) loaded in the secondary element
 		  audioEl   = audioElement[ mediaEl ],
 		  song      = elPlayqueue.children[ index ];
 
-	debugLog( 'loadSong start', { mediaEl, n, index } );
+	debugLog( 'loadSong start', { n, index, mediaEl } );
 
 	if ( ! isCurrent )
 		setSubtitlesDisplay(); // avoid stuck subtitles on track change
@@ -2594,7 +2596,7 @@ async function loadSong( n, playIt ) {
 
 	if ( song ) {
 		if ( isCurrent )
-			queueIndex = index;
+			setQueueIndex( index );
 
 		addMetadata( song, audioEl );
 		loadSubs( audioEl, song );
@@ -2617,21 +2619,19 @@ async function loadSong( n, playIt ) {
 			loadAudioSource( audioEl, song.dataset.file );
 			try {
 				await waitForLoadedData( audioEl );
-				if ( isCurrent && playIt )
+				if ( playIt )
 					audioEl.play();
 				success = true;
 			}
 			catch( e ) {} // error will be handled (logged) by `audioOnError()`
 		}
 
-		if ( success ) {
-			if ( isCurrent ) {
-				updatePlaylistUI();
-				loadSong( NEXT_TRACK );
-			}
-			else
-				audioEl.load();
-		}
+		if ( ! success && playIt )	// in case of error and play was requested, try the next track
+			loadSong( NEXT_TRACK, playIt );
+		else if ( isCurrent )		// load the next track in the secondary element
+			loadSong( NEXT_TRACK );
+//		else
+//			audioEl.load(); // intended to improve gapless playback, but its effectiveness was inconclusive (generates additional abort/emptied events)
 
 		song.classList.toggle( 'error', ! success );
 	}
@@ -2639,7 +2639,7 @@ async function loadSong( n, playIt ) {
 	if ( ! isCurrent )
 		skipping = false; // finished skipping track
 
-	debugLog( 'loadSong end', { mediaEl, success } );
+	debugLog( 'loadSong end', { n, index, mediaEl, success } );
 
 	return success;
 }
@@ -2747,7 +2747,7 @@ function openGradientEditorNew( makeCopy ) {
 }
 
 /**
- * Play next song on queue
+ * Plays the track loaded into the secondary media element (and make it the current one)
  */
 function playNextSong( play ) {
 	debugLog( 'playNextSong', { play, queueIndex, skipping } );
@@ -2758,9 +2758,9 @@ function playNextSong( play ) {
 	skipping = true;
 
 	if ( queueIndex < queueLength() - 1 )
-		queueIndex++;
+		setQueueIndex( queueIndex + 1 );
 	else if ( isSwitchOn( elRepeat ) )
-		queueIndex = 0;
+		setQueueIndex(0);
 	else {
 		skipping = false;
 		return false;
@@ -2772,23 +2772,21 @@ function playNextSong( play ) {
 	setOverlay();
 	setCurrentCover();
 
-	if ( play && audioElement[ currAudio ].src ) { // note: play() on empty element never resolves!
-		audioElement[ currAudio ].play()
+	const audioEl = audioElement[ currAudio ];
+	if ( play && audioEl.src ) { // note: play() on empty element never resolves!
+		audioEl.play()
 		.then( () => loadSong( NEXT_TRACK ) )
 		.catch( err => {
-			debugLog( { err } );
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
 			if ( err.code != ERR_ABORT ) {
 				consoleLog( err, true );
-				loadSong( NEXT_TRACK );
-				playNextSong( true );
+				loadSong( NEXT_TRACK, play );
 			}
 		});
 	}
 	else
 		loadSong( NEXT_TRACK );
 
-	updatePlaylistUI();
 	return true;
 }
 
@@ -4818,9 +4816,10 @@ function toggleMultiChannel() {
 }
 
 /**
- * Update the play queue
+ * Set the `queueIndex` global and update the play queue display
  */
-function updatePlaylistUI() {
+function setQueueIndex( newValue ) {
+	queueIndex = newValue;
 
 	const current = elPlayqueue.querySelector('.current'),
 		  newCurr = elPlayqueue.children[ queueIndex ];
@@ -5247,7 +5246,7 @@ function updateRangeValue( el ) {
 			e.target.classList.remove( 'selected', 'sortable-chosen' );
 		}
 	});
-	queueIndex = 0;
+	setQueueIndex(0);
 
 	// Add drag-n-drop functionality to the play queue
 	Sortable.create( elPlayqueue, {
@@ -5261,7 +5260,7 @@ function updateRangeValue( el ) {
 		multiDragKey: 'ctrl',
 		selectedClass: 'selected',
 		onEnd: evt => {
-			queueIndex = getIndex( elPlayqueue.querySelector('.current') );
+			setQueueIndex( getIndex( elPlayqueue.querySelector('.current') ) );
 			if ( evt.newIndex == 0 && ! isPlaying() )
 				loadSong(0);
 			else
