@@ -8,7 +8,8 @@
   "scripts": {
     "build": "webpack",
     "start": "http-server",
-    "dev": "webpack serve --config webpack.dev.js"
+    "dev": "webpack serve --config webpack.dev.js",
+    "docs": "http-server -p 8081 docs/"
   },
   "devDependencies": {
     "audiomotion-analyzer": "^4.5.1",
