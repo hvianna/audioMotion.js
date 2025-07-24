@@ -2921,7 +2921,7 @@ function populateEnabledGradients() {
 		elEnabledGradients.innerHTML +=
 			`<label>
 				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link">Edit</a>
+				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link" title="edit"></a>
 			</label>`;
 	});
 

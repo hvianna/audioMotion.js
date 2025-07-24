@@ -1665,18 +1665,24 @@ button.grad-add-stop:hover {
 	display: block;
 }
 .grad-edit-link {
-	background: var(--accent-color);
+	background: #aaa;
 	border-radius: 4px;
 	color: #fff;
 	display: none;
-	font-size: .9em;
-	padding: .7em 1.4em;
+	font-family: var(--icon-font);
+	font-size: 24px;
+	padding: .2em .6em;
 	position: absolute;
 	right: 0;
 	text-decoration: none;
-	text-transform: uppercase;
 	top: 50%;
 	transform: translateY(-50%);
+}
+.grad-edit-link:before {
+	content: 'edit';
+}
+.grad-edit-link:hover {
+	background: var(--accent-color);
 }
 
 /**
