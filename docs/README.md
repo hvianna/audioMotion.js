@@ -49,7 +49,7 @@ When uninstalling you'll have the option to also **delete app data -- this will 
 
 On Windows, you can also uninstall via Control Panel.
 
-?> See the [User's Manual](users-manual.md) for the complete documentation of audioMotion's features and settings.
+?> See the [User's Manual](user-interface.md) for the complete documentation of audioMotion's features and settings.
 
 ## Credits
 

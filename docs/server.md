@@ -5,7 +5,7 @@ If you'd like to host audioMotion in your own web server:
 + Clone the [project from GitHub](https://github.com/hvianna/audioMotion.js) or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/).
 + Copy the `public` folder to the document root of your web server - you can rename it to anything you want;
 + Add your music files to the `music` folder (or create an **alias** to map the `/music` URL to another folder - see [configuration examples](#server-configuration-examples) below);
-+ Add image and video files to the `backgrounds` folder, to be used as [Background](users-manual.md#background) options.
++ Add image and video files to the `backgrounds` folder, to be used as [Background](settings.md#background) options.
 
 You can also run the app locally with Node.js - see the [Building audioMotion](building.md) section.
 
@@ -22,8 +22,8 @@ A **config.yaml** file in the same directory as audioMotion's _index.html_ allow
 |--------|--------------------------|-------------|
 | **defaultAccessMode** | **`local`** \| `server` | Initial (first run) file access mode - user's device or /music directory on server
 | **enableLocalAccess** | **`true`** \| `false` | Whether to enable access to local device (*true* allows user to switch between local or server)
-| **frontPanel**        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](users-manual.md#collapseexpand-front-panel)
-| **preserveFilenames** | `true` \| **`false`** | Whether to preserve filenames as is in the play queue (can also be toggled via [General Settings](users-manual.md#general-settings))
+| **frontPanel**        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](user-interface.md#main-selection-buttons)
+| **preserveFilenames** | `true` \| **`false`** | Whether to preserve filenames as is in the play queue (can also be toggled via [General Settings](configuration.md#general-settings))
 
 The `config.yaml.example` file included in the `public/` folder can be used as a template.
 
@@ -33,7 +33,7 @@ The following URL parameters can also be used when accessing audioMotion:
 
 | parameter | possible values | description |
 |-----------|-----------------|-------------|
-| **debug** | *none* | If present in the URL, app starts in [debug mode](users-manual.md#debug), which may help identify issues during the initialization stage
+| **debug** | *none* | If present in the URL, app starts in [debug mode](console.md#debug), which may help identify issues during the initialization stage
 | **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
 | **frontPanel** | `open` \| `close` | Same as the corresponding `config.yaml` option, but overrides the server configuration
 
