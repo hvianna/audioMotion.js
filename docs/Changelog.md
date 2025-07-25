@@ -26,7 +26,8 @@
 + Improved detection and loading of subtitle files;
 + Files that fail loading/playing are now flagged in red color in the play queue;
 + Increased the default maximum number of background image files from 20 to 100;
-+ Gradients and saved playlists are now listed in alphabetical order in their selection boxes.
++ Gradients and saved playlists are now listed in alphabetical order in their selection boxes;
++ New default settings: [Background:](settings.md#background) **album cover**; [Bar Spacing:](advanced.md#bar-spacing) **20%**; [Background Dim:](settings.md#background-dim) **0.3**; [Level Scale:](advanced.md#level-scale) **Linear**; [Line Width:](advanced.md#level-scale) **1**; [Radial Size:](advanced.md#radial-size) **0.5**; [Weighting Filter:]((advanced.md#weighting-filter) **D**.
 
 ### Fixed: <!-- {docsify-ignore} -->
 
