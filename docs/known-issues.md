@@ -1,5 +1,9 @@
 # Known issues
 
+### Browser requirements
+
+**audioMotion** requires at least Chrome/Chromium 80, Firefox 74 or Safari 13.1.
+
 ### File System Access API
 
 Playing music and loading backgrounds from your local device relies on the [File System Access API](https://caniuse.com/native-filesystem-api), which

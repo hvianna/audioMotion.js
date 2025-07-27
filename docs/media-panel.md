@@ -55,17 +55,17 @@ Click the **Clear** button to clear the play queue.
 
 The play queue is automatically restored the next time you open audioMotion. You can disable this feature in [Configuration > General settings](#general-settings).
 
+<img src="img/internal-playlists.png" class="img-right">
+
 **You can save the play queue to internal playlists for quick access.**
 
-Saved playlists appear in the playlist selection box, as shown below:
-
-![internal-playlists](img/internal-playlists.png)
+Saved playlists appear in the playlist selection box (shown right).
 
 Create and manage your playlists using the following buttons:
 
 | Button | Action |
 |:-------|:-------|
-**Save as...** | Saves the current queue contents to a new playlist
+**Save&nbsp;as...** | Saves the current queue contents to a new playlist
 **Save**       | **Update the selected playlist** with the current queue contents
 **Load**       | Load the selected playlist, **adding** its contents to the end of the current queue
 **Delete**     | Permanently delete the selected playlist

@@ -4,18 +4,18 @@
 
 ### Added: <!-- {docsify-ignore} -->
 
-+ New **Advanced** panel to declutter the **Settings** panel of less-used options;
-+ New **Band Count** setting;
-+ New **Radial Size** setting;
-+ New compact analyzer layout for watching videos - customize in *Configuration > Subtitles & Video*;
-+ Support for 5.1 surround audio output (experimental - currently works only with single-channel layout);
++ New [**Advanced** panel](advanced.md) to declutter the Settings panel of less-used options;
++ New [**Band Count**](settings.md#band-cound) setting;
++ New [**Radial Size**](advanced.md#radial-size) setting;
++ New compact analyzer layout for watching videos - customize in [*Configuration > Subtitles & Video*](configuration.md#subtitles-amp-video);
++ Support for 5.1 surround audio output - enable it in [*Configuration > General settings*](configuration.md#general-settings) (experimental - currently works only with single-channel layout);
 + Import and export Settings - backup and share your presets in [Discussions > Resources > Presets](https://github.com/hvianna/audioMotion.js/discussions/categories/presets);
 + Import and export Gradients - backup and share your creations in [Discussions > Resources > Gradients](https://github.com/hvianna/audioMotion.js/discussions/categories/gradients);
-+ Option to enable/disable letterboxing for video;
-+ Option to invert scroll direction for Volume control - suggested by **@JesusGod-Pope666-Info**;
++ Option to enable/disable letterboxing for video, in [*Configuration > Subtitles & Video*](configuration.md#subtitles-amp-video);
++ Option to invert scroll direction for Volume control, in [*Configuration > General settings*](configuration.md#general-settings) - suggested by **@JesusGod-Pope666-Info**;
 + Debug mode with extra messages/events logged to Console;
 + Button to copy messages to clipboard on Console;
-+ More intermediate values for *Background Image Dim*, *Bar Spacing*, *FFT Smoothing*, *Fill Opacity*, *Radial Spin* and *Reflex*.
++ More intermediate values for [*Background Dim*](settings.md#background-dim), [*Bar Spacing*](advanced.md#bar-spacing), [*FFT Smoothing*](advanced.md#fft-smoothing), [*Fill Opacity*](advanced.md#fill-opacity), [*Radial Spin*](advanced.md#radial-spin) and [*Reflex*](settings.md#reflex).
 
 ### Changed & improved: <!-- {docsify-ignore} -->
 
@@ -27,7 +27,8 @@
 + Files that fail loading/playing are now flagged in red color in the play queue;
 + Increased the default maximum number of background image files from 20 to 100;
 + Gradients and saved playlists are now listed in alphabetical order in their selection boxes;
-+ New default settings: [Background:](settings.md#background) **album cover**; [Bar Spacing:](advanced.md#bar-spacing) **20%**; [Background Dim:](settings.md#background-dim) **0.3**; [Level Scale:](advanced.md#level-scale) **Linear**; [Line Width:](advanced.md#level-scale) **1**; [Radial Size:](advanced.md#radial-size) **0.5**; [Weighting Filter:]((advanced.md#weighting-filter) **D**.
++ New defaults: [Background:](settings.md#background) **album cover**; [Bar Spacing:](advanced.md#bar-spacing) **20%**; [Background Dim:](settings.md#background-dim) **0.3**; [Level Scale:](advanced.md#level-scale) **Linear**; [Line Width:](advanced.md#level-scale) **1**; [Radial Size:](advanced.md#radial-size) **0.5**; [Weighting Filter:]((advanced.md#weighting-filter) **D**;
++ Server configuration file (`config.json`) converted to YAML format (`config.yaml`) - see [Self-hosting > config.yaml file](server.md#configyaml-file) (props to [**@Borewit**](https://github.com/hvianna/audioMotion.js/pull/94)).
 
 ### Fixed: <!-- {docsify-ignore} -->
 
@@ -39,7 +40,6 @@
 ### Removed: <!-- {docsify-ignore} -->
 
 + Balance control;
-+ `config.json` configuration file converted to YAML - see [Self-hosting > config.yaml file](server.md#configyaml-file) (props to [**@Borewit**](https://github.com/hvianna/audioMotion.js/pull/94)).
 + `mediaPanel` URL parameter has been deprecated - use [`frontPanel`](server.md#url-parameters) instead;
 + Custom file server module (just use `npm start`);
 + Code from the unfinished Electron version;
