@@ -4273,6 +4273,13 @@ function setUIEventListeners() {
 		}
 		else { // 'input' event is triggered for select and input elements
 			el.addEventListener( 'input', () => {
+				if ( ( el == elFillAlpha || el == elLineWidth ) && elFillAlpha.value == 0 && elLineWidth.value == 0 ) {
+					// prevent fillAlpha and lineWidth being both set to 0
+					const newEl = el == elFillAlpha ? elLineWidth : elFillAlpha;
+					newEl.value = newEl.step * 2;
+					setProperty( newEl );
+					updateRangeValue( newEl );
+				}
 				setProperty( el );
 				updateRangeValue( el );
 			});
