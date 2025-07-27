@@ -835,15 +835,17 @@ const getIndex = node => {
 	return i;
 }
 
-// returns the text of the selected option in a `select` or custom radio element
+// returns the text/label of a settings control
 const getText = el => {
-	let text = '';
+	let text = el.value ?? '';
 	if ( isCustomRadio( el ) ) {
 		const option = el.querySelector(':checked ~ label');
 		if ( option )
 			text = option.textContent;
 	}
-	else
+	else if ( el.type == 'range' )
+		text = translateRangeValue( el );
+	else if ( el.tagName == 'SELECT' )
 		text = el[ el.selectedIndex ].text;
 	return text;
 }
@@ -1064,7 +1066,7 @@ const setControlValue = ( el, val ) => {
 		if ( el.selectedIndex == -1 ) // fix invalid values in select elements
 			el.selectedIndex = 0;
 	}
-	updateRangeValue( el );
+	updateRangeValue( el == elFreqScale ? elBandCount : el );
 }
 
 // update configuration options from an existing preset
@@ -1088,6 +1090,9 @@ const toggleDisplay = ( el, status ) => {
 		status = !! el.style.display;
 	el.style.display = status ? '' : 'none';
 }
+
+// capitalize first letter of a string
+const ucFirst = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 // promise-compatible `onloadeddata` event handler for media elements
 const waitForLoadedData = async audioEl => new Promise( ( resolve, reject ) => {
@@ -3796,6 +3801,7 @@ function setProperty( elems, save = true ) {
 
 			case elFreqScale:
 				audioMotion.frequencyScale = getControlValue( elFreqScale );
+				updateRangeValue( elBandCount );
 				break;
 
 			case elFsHeight:
@@ -4805,6 +4811,30 @@ function toggleMute( mute ) {
 }
 
 /**
+ * Convert value of a range control to a friendly text label
+ */
+function translateRangeValue( el ) {
+	const val = el.value,
+		  { abs, sign } = Math;
+
+	if ( el == elBandCount ) {
+		const isOctaves = getControlValue( elFreqScale ) == SCALE_LOG,
+			  bands = isOctaves
+					  ? [ '', '', 'half-', '1/3rd-', '1/4th-', '1/6th-', '1/8th-', '1/12th-', '1/24th-' ]
+					  : [ '', '10', '20', '30', '40', '60', '80', '120', '240' ];
+
+		return ucFirst( bands[ +val || 0 ] + ( isOctaves ? 'octave' : '' ) + ' bands' );
+	}
+	else if ( el == elBarSpace )
+		return val == 0 ? 'None' : ( val == 1 ? 'Legacy' : `${ val * 100 | 0 }%` );
+	else if ( el == elFillAlpha )
+		return val == 0 ? 0 : `${ val * 100 | 0 }%`;
+	else if ( el == elSpin )
+		return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
+	return val;
+}
+
+/**
  * Update last used configuration
  */
 function updateLastConfig() {
@@ -4824,31 +4854,7 @@ function updateRangeValue( el ) {
 	if ( ! elVal || elVal.className != 'value' )
 		return;
 
-	const translation = val => {
-		const { abs, sign } = Math;
-		if ( el == elBandCount ) {
-			return [
-				'',
-				'10 bands (octaves)',
-				'20 bands (half octaves)',
-				'30 bands (1/3rd oct.)',
-				'40 bands (1/4th oct.)',
-				'60 bands (1/6th oct.)',
-				'80 bands (1/8th oct.)',
-				'120 bands (1/12th oct.)',
-				'240 bands (1/24th oct.)'
-			][ +val || 0 ];
-		}
-		else if ( el == elBarSpace )
-			return val == 0 ? 'None' : ( val == 1 ? 'Legacy' : `${ val * 100 | 0 }%` );
-		else if ( el == elFillAlpha )
-			return val == 0 ? 0 : `${ val * 100 | 0 }%`;
-		else if ( el == elSpin )
-			return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
-		return val;
-	}
-
-	elVal.innerText = translation( el.value );
+	elVal.innerText = translateRangeValue( el );
 }
 
 
@@ -4996,7 +5002,7 @@ function updateRangeValue( el ) {
 				drawText( getSelectedGradients(), centerPos, topLine1, maxWidthTop );
 
 				canvasCtx.textAlign = 'left';
-				drawText( getText( elMode ), baseSize, topLine1, maxWidthTop );
+				drawText( getText( getControlValue( elMode ) == MODE_BARS ? elBandCount : elMode ), baseSize, topLine1, maxWidthTop );
 				drawText( `Randomize: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
 
 				canvasCtx.textAlign = 'right';
