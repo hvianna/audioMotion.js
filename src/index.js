@@ -1719,7 +1719,7 @@ async function fullscreen() {
 	if ( isPIP() )
 		await document.exitPictureInPicture();
 	audioMotion.toggleFullscreen();
-	document.activeElement.blur(); // move keyboard focus to the document body
+	document.activeElement.blur(); // move focus to the document body, so keyboard shortcuts are properly detected
 }
 
 /**
@@ -4212,7 +4212,10 @@ function setUIEventListeners() {
 	elContainer.addEventListener( 'mouseleave', () => clearTimeout( autoHideTimeout ) );
 
 	// toggle front panel button (expand/collapse)
-	elTogglePanel.addEventListener( 'click', () => toggleFrontPanel() );
+	elTogglePanel.addEventListener( 'click', () => {
+		toggleFrontPanel();
+		elTogglePanel.blur(); // remove focus from element, so it doesn't interfere with keyboard shortcuts
+	});
 
 	// wait for the transition on the analyzer container to end (triggered by the height change from toggleFrontPanel())
 	elContainer.addEventListener( 'transitionend', () => {
@@ -4282,6 +4285,7 @@ function setUIEventListeners() {
 				}
 				setProperty( el );
 				updateRangeValue( el );
+				el.blur(); // remove focus from element, so it doesn't interfere with keyboard shortcuts
 			});
 		}
 	});
@@ -4332,6 +4336,7 @@ function setUIEventListeners() {
 			return;
 		}
 		audioEl.currentTime = duration * elSongProgress.value;
+		elSongProgress.blur(); // remove focus from element, so it doesn't interfere with keyboard shortcuts
 	});
 
 	// load / save presets
