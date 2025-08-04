@@ -8,17 +8,24 @@ Click **Configuration** in the main function buttons to open the Configuration p
 
 ![config-enabled-bgfit](img/config-enabled-bgfit.png)
 
-Uncheck options to remove them from the [Background Image Fit](settings.md#background-image-fit) selection box.
+Uncheck options to remove them from the [Background Image Fit](settings.md#background-image-fit) selection box in the Settings panel.
 
 ## General settings
 
 <img src="img/config-general-settings.png" class="img-right">
 
-### Analyzer height on fullscreen (%)
+### Analyzer height on fullscreen
 
-Height of the analyzer when in fullscreen. This can be used to provide a wider look to the fullscreen analyzer.
+Height of the fullscreen analyzer (% of screen height). This can be used to provide a wider look to the fullscreen analyzer.
 
-You can also use the **Shift** + **Up** and **Down** arrows to adjust the analyzer height during fullscreen visualization.
+Optionally, use the **Shift** + **Up** and **Down** arrows to adjust the analyzer height during fullscreen visualization.
+
+### Auto-collapse front panel on analyzer hover
+
+Automatically collapses the front panel when you move the mouse cursor over the analyzer area,
+keeping only the main controls visible and expanding the analyzer to use most of the screen.
+
+To expand the front panel again, click the <img src="img/button-expand.png" style="vertical-align: middle"> button or one of the [panel selection buttons](user-interface.md#panel-selection).
 
 ### Background media source
 
@@ -33,6 +40,22 @@ Choose the maximum number of media files that can be directly selected in the [B
 
 If your backgrounds folder contains more files, the remaining ones will only be selectable via the *Random image* or *Random video* options.
 
+### Enable 5.1 surround audio output (experimental)
+
+Checking this option will enable 5.1 surround audio output, if your system supports it. When disabled, all audio will output in stereo (2 channels).
+
+At the moment, this feature only works properly with **Single** [Channel Layout](advanced.md#channel-layout). Any dual-channel layout selection will force audio to be downmixed to stereo.
+
+You can find the information of how many audio channels the app detects in your device, and how many are in use, in the [Console](console.md) messages.
+
+![surround-info](img/surround-info.png)
+
+I have limited hardware to test this on, so I'd appreciate any feedback you can share in the [project's Discussions](https://github.com/hvianna/audioMotion.js/discussions) on whether it works for you.
+
+### Invert scroll direction for Volume control
+
+Check this box to invert the scroll direction when using the mouse wheel to control the [Volume](user-interface.md#speakers-and-volume).
+
 ### Maximum frame rate (FPS)
 
 Maximum desired animation frame rate, in frames per second.
@@ -41,24 +64,13 @@ Maximum desired animation frame rate, in frames per second.
 
 ### PIP aspect ratio
 
-Choose the aspect ratio of the Picture-In-Picture window.
+Choose the aspect ratio of the [Picture-In-Picture](user-interface.md#picture-in-picture-pip) window.
 
 After entering PIP, the window can be resized and the selected aspect ratio will be preserved.
 
-### Auto-collapse front panel on analyzer hover
+### Preserve filenames as is in the play queue
 
-Automatically collapses the front panel when you move the mouse cursor over the analyzer area,
-keeping only the main controls visible and expanding the analyzer to use most of the screen.
-
-To expand the front panel again, click the <img src="img/button-expand.png" style="vertical-align: middle"> button or one of the [panel selection buttons](user-interface.md#panel-selection).
-
-### Disable Background Dim when playing video
-
-Ignore the [Background Dim](settings.md#background-dim) setting when playing a video track.
-
-### Disable Background Dim when showing subtitles
-
-Ignore the [Background Dim](settings.md#background-dim) setting when showing subtitles for the current track.
+Checking this box will make all entries in the play queue show the full filename, instead of only the song title.
 
 ### Remember last music folder
 
@@ -73,7 +85,7 @@ Automatically restores the contents of the play queue the next time you open aud
 
 ![config-gradients](img/config-gradients.png)
 
-Uncheck gradients to remove them from the [Gradients](settings.md#gradients) selection box.
+Uncheck gradients to remove them from the [Gradients](settings.md#gradients) selection box in the Settings panel.
 
 Move the mouse over a gradient name and click the <img src="img/button-edit-gradient.png" style="vertical-align: middle"> button to clone, edit, delete, or export it (see [**Gradient Editor**](#gradient-editor) below).
 
@@ -98,11 +110,9 @@ The **offset** must be a number between 0 and 1 - use it to adjust the position 
 
 ![config-osd-options](img/config-osd-options.png)
 
-### On-screen display font size
+Select the base font size for information displayed on the analyzer area.
 
-Base font size used for information displayed on canvas.
-
-Customize how long information is displayed on screen when user clicks the analyzer or uses the **D** keyboard shortcut,
+Customize how long information is displayed on screen when user clicks the analyzer, or presses the **D** key,
 and also on song beginning and end.
 
 You can also toggle the display of album covers and number of tracks.
@@ -129,14 +139,13 @@ Time in milliseconds for peaks to hold their values before they start falling do
 
 Select which configuration settings may be changed by [Randomize](settings.md#randomize).
 
-When **User Presets** is checked, Randomize will first load one of your [saved custom presets](settings.md#save-manage-presets) and then choose random values for any other settings checked.
-So if you want to randomize only among your custom presets, uncheck everything else!
+When **User Presets** is checked, Randomize will first load one of your [saved custom presets](settings.md#save-manage-presets) and then choose random values for any additional settings checked.
 
 ## Sensitivity presets
 
 ![config-sensitivity-presets](img/config-sensitivity-presets.png)
 
-Customize low, normal and high [Sensitivity](settings.md#sensitivity) presets.
+Customize low, medium and high [Sensitivity](settings.md#sensitivity) presets.
 
 **Min dB** and **Max dB** represent the lowest and highest volume levels to be registered by the analyzer, in decibels.
 
@@ -146,8 +155,21 @@ The **Linear boost** value is used to perform an *n*th-root operation to amplify
 
 ## Subtitles & Video
 
-![config-subtitles](img/config-subtitles.png)
+<img src="img/config-subtitles.png" class="img-right">
 
-Choose the background, text color and vertical position of subtitles.
+Choose the background, text color and vertical position of the subtitles. Positions can be configured independently for audio and video tracks.
 
+### Disable background dim
+
+Enable these options to make the player ignore the [Background Dim](settings.md#background-dim) setting when playing a video or showing subtitles for a track — whether it's audio or video.
+
+### Resize videos to fill fullscreen
+
+When enabled, videos playing in fullscreen will be scaled to fill the entire screen. This helps eliminate black bars when the video's aspect ratio differs from the screen's, but part of the image may be cropped.
+
+### Use compact analyzer
+
+The compact analyzer is a reduced-height version of the analyzer positioned below the subtitles/video area, so as not to interfere with the content, as shown below.
+
+![screenshot4](img/screenshot4.jpg)
 

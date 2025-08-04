@@ -4,19 +4,9 @@ Click **Media** in the panel selection buttons to open the Media Panel.
 
 ![ui-buttons-advanced](img/UI_main_buttons_media.png)
 
-The Media Panel is comprised of the **File Explorer** on the left side, the action buttons at the center, and the **Play Queue** on the right.
+The Media Panel is comprised of the [**File Explorer**](#file-explorer) on the left, the action buttons at the center, and the [**Play Queue**](#play-queue-and-saved-playlists) on the right.
 
 ![media-panel](img/media-panel.png)
-
-## Supported file formats
-
-+ Audio: **flac**, **m4a**, **mp3**, **ogg** and **wav**;
-+ Video *(for playback and [Background](#background))*: **mkv**, **mpg**, **webm**, **mp4**, **avi** and **mov**;
-+ Images *(for folder covers and [Background](#background))*: **jpg**, **jpeg**, **webp**, **avif**, **png**, **gif** and **bmp**;
-+ Playlists *(see [Playlist files](#playlist-files))*: **m3u** and **m3u8**;
-+ Subtitles *(see [Subtitles](#subtitles))*: **vtt**.
-
-*Actual codec support may vary, depending on browser and operating system.*
 
 ## File Explorer
 
@@ -26,7 +16,7 @@ The **File Explorer** allows you to navigate through your media folders and file
 which is currently **implemented only on Chromium-based browsers** (e.g., Chrome, Opera and Edge).
 On **Brave browser** it needs to be enabled in `chrome://flags/#file-system-access-api` (copy and paste it in the address bar).
 
-**Double-click** a file to quickly add it to the play queue. It will also start playing if the player is currently stopped.
+**Double-click** a file to quickly add it to the [play queue](#play-queue-and-saved-playlists). It will also start playing if the player is currently stopped.
 
 Hold **Ctrl** and click to select multiple files, or **Shift** + click to select a range of contiguous files.
 
@@ -42,35 +32,6 @@ You can then **drag and drop** the selected files into the play queue, or use th
 
 ?> The first image found in the current folder will be shown in the background of the file explorer, with precedence given to filenames containing the words *cover*,
 *folder* or *front* (in this order).
-
-## Play queue and saved playlists
-
-**Double-click** a queued song to play it.
-
-Click a queue entry to select it (use Ctrl/Shift to select multiple files). Drag-and-drop selected entries to reorder them inside the queue.
-
-Press **Delete** (*Backspace* on Mac) to remove selected entries from the queue.
-
-Click the **Clear** button to clear the play queue.
-
-The play queue is automatically restored the next time you open audioMotion. You can disable this feature in [Configuration > General settings](#general-settings).
-
-<img src="img/internal-playlists.png" class="img-right">
-
-**You can save the play queue to internal playlists for quick access.**
-
-Saved playlists appear in the playlist selection box (shown right).
-
-Create and manage your playlists using the following buttons:
-
-| Button | Action |
-|:-------|:-------|
-**Save&nbsp;as...** | Saves the current queue contents to a new playlist
-**Save**       | **Update the selected playlist** with the current queue contents
-**Load**       | Load the selected playlist, **adding** its contents to the end of the current queue
-**Delete**     | Permanently delete the selected playlist
-
-!> Saved playlists are stored in the browser's internal storage and will only be accessible in the same browser they were saved.
 
 ## Playlist files
 
@@ -106,6 +67,35 @@ track04.mp3
 track05.mp3
 ```
 
+## Play queue and saved playlists
+
+**Double-click** a queued song to play it.
+
+Click a queue entry to select it (use Ctrl/Shift to select multiple files). Drag-and-drop selected entries to reorder them inside the queue.
+
+Press **Delete** (*Backspace* on Mac) to remove selected entries from the queue.
+
+Click the **Clear** button to clear the play queue.
+
+The play queue is automatically restored the next time you open audioMotion. You can disable this feature in [Configuration > General settings](#general-settings).
+
+<img src="img/internal-playlists.png" class="img-right">
+
+**You can save the play queue to internal playlists for quick access.**
+
+Saved playlists appear in the playlist selection box (shown right).
+
+Create and manage your playlists using the following buttons:
+
+| Button | Action |
+|:-------|:-------|
+**Save&nbsp;as...** | Saves the current queue contents to a new playlist
+**Save**       | **Update the selected playlist** with the current queue contents
+**Load**       | Load the selected playlist, **adding** its contents to the end of the current queue
+**Delete**     | Permanently delete the selected playlist
+
+!> Saved playlists are stored in the browser's internal storage and will only be accessible in the same browser they were saved.
+
 ## Subtitles
 
 **audioMotion** can display subtitles in WebVTT format (.vtt), for video and audio files.
@@ -118,8 +108,18 @@ Media files with detected subtitles will show a **[SUBS]** badge next to their n
 
 ![file-explorer-subs](img/file-explorer-subs.png)
 
-Configure the subtitles appearance in **[Configuration > Subtitles & Video](#subtitles-video).** Toggle the display of subtitles with the [**SUBTITLES** switch](#display).
+Configure the subtitles appearance in **[Configuration > Subtitles & Video](configuration.md#subtitles-amp-video).** Toggle the display of subtitles with the [**SUBTITLES** switch](settings.md#display).
 
 ?> Download synced lyrics for your songs with [LRCGET](https://github.com/tranxuanthang/lrcget) and use [Subtitle Edit](https://github.com/SubtitleEdit/subtitleedit)
 to convert them (and other popular subtitle formats) to .vtt.
 
+
+## Supported file formats
+
++ Audio: **flac**, **m4a**, **mp3**, **ogg** and **wav**;
++ Video *(for playback and [Background](#background))*: **mkv**, **mpg**, **webm**, **mp4**, **avi** and **mov**;
++ Images *(for folder covers and [Background](#background))*: **jpg**, **jpeg**, **webp**, **avif**, **png**, **gif** and **bmp**;
++ Playlists *(see [Playlist files](#playlist-files))*: **m3u** and **m3u8**;
++ Subtitles *(see [Subtitles](#subtitles))*: **vtt**.
+
+*Actual codec support may vary, depending on browser and operating system.*

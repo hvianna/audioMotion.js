@@ -19,12 +19,12 @@ These are your standard media control buttons.
 
 | button | action |
 |:------:|:-------|
-| ![ui-player-play-pause](img/UI_player_play_pause.png "play / pause") | Play / pause |
-| ![ui-player-previous](img/UI_player_previous.png "previous") | Previous track - Hold to rewind |
-| ![ui-player-stop](img/UI_player_stop.png "stop") | Stop playback and reset the queue pointer to the first song |
-| ![ui-player-next](img/UI_player_next.png "next") | Next track - Hold to fast forward |
-| ![ui-player-shuffle](img/UI_player_shuffle.png "shuffle") | Shuffle queue and start playback |
-| ![ui-player-repeat](img/UI_player_repeat.png "repeat") | Toggle queue repeat |
+![ui-player-play-pause](img/UI_player_play_pause.png "play / pause") | Play / pause
+![ui-player-previous](img/UI_player_previous.png "previous") | Previous track - Hold to rewind
+![ui-player-stop](img/UI_player_stop.png "stop") | Stop playback and reset the queue pointer to the first song
+![ui-player-next](img/UI_player_next.png "next") | Next track - Hold to fast forward
+![ui-player-shuffle](img/UI_player_shuffle.png "shuffle") | Shuffle queue and start playback
+![ui-player-repeat](img/UI_player_repeat.png "repeat") | When active, queue will play on repeat
 
 ## Speakers and Volume
 
@@ -32,7 +32,7 @@ These are your standard media control buttons.
 
 The **Speakers** switch enables or disables audio output to your speakers or headphones. Setting it to OFF prevents feedback loops from the microphone, for example (see [Source selection](#source-selection)).
 
-Hover the mouse over the **Volume** knob and use the **mouse wheel** to turn the volume up or down (if the scroll direction doesn't feel natural to you, invert its behavior in Configuration > General settings).
+Hover the mouse over the **Volume** knob and use the **mouse wheel** to turn the volume up or down (if the scroll direction doesn't feel natural to you, invert its behavior in [Configuration > General settings](configuration.md#invert-scroll-direction-for-volume-control)).
 
 Volume can also be adjusted with the **Up** and **Down** arrow keys.
 
@@ -50,15 +50,22 @@ You can drag the progress bar cursor to fast forward or rewind, or click anywher
 
 ### Panel selection
 
-Buttons on the left select the panel to be open at the bottow: the [**Media Panel**](media-panel.md), the [**Settings panel**](settings.md),
-the [**Advanced panel**](advanced.md) or the [**Console**](console.md).
+Buttons on the left open the [**Media Panel**](media-panel.md), the [**Settings panel**](settings.md), the [**Advanced panel**](advanced.md) or the [**Console**](console.md).
 
 At the center, the <img src="img/button-collapse.png" style="vertical-align: middle"> button collapses or expands the front panel.
 When collapsed, the analyzer area is increased to use most of the screen.
 
-Buttons on the right provide access to the [**Configuration Panel**](configuration.md) and the [**Help Panel**](help.md), as well as the following functionalities:
+Buttons on the right enable the PIP and Fullscreen functionalities (detailed below) and provide access to the [**Configuration Panel**](configuration.md) and the [**Help Panel**](help.md).
 
 ### Picture-In-Picture (PIP)
 
+Click the **PIP** button to open the analyzer display in a floating window that remains on top of other windows. The aspect ratio of the PIP window can be configured in [**Configuration > General settings**](configuration.md#pip-aspect-ratio).
+
+Please note that only the spectrum analyzer graphics are displayed in the PIP window, but no other images or videos.
 
 ### Fullscreen
+
+Click the **Fullscreen** button to display audioMotion in fullscreen.
+While in fullscreen, you won't be able to access to the app's front panel, but several settings and functionalities are available via [keyboard shortcuts](help.md).
+
+Press **ESC** or **F** while in fullscreen to return to windowed mode.

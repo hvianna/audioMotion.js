@@ -363,7 +363,7 @@
 				</div>
 
 				<div>
-					<span class="config-label">Horizontal Mirroring</span>
+					<span class="config-label">Mirror</span>
 					<form id="mirror" class="custom-radio-buttons" data-prop="mirror"></form>
 				</div>
 
@@ -762,15 +762,14 @@
 					<p>Subtitles Position (for video):</p>
 					<select id="subs_position"></select>
 
-					<p class="colspan-2"><br>When media has subtitles:</p>
+					<p class="colspan-2"><br><strong>When media has subtitles:</strong></p>
 					<label><input type="checkbox" id="no_dim_subs"> Disable background dim</label>
 					<label><input type="checkbox" id="reduce_subs"> Use compact analyzer</label>
 
-					<p class="colspan-2"><br>When playing videos:</p>
+					<p class="colspan-2"><br><strong>When playing videos:</strong></p>
 					<label><input type="checkbox" id="no_dim_video"> Disable background dim</label>
 					<label><input type="checkbox" id="reduce_video"> Use compact analyzer</label>
-
-					<p class="colspan-2"><br><label><input type="checkbox" id="video_fill"> Video fills screen height in fullscreen (no letterboxing)</label></p>
+					<p class="colspan-2"><label><input type="checkbox" id="video_fill"> Resize to fill fullscreen (no black bars, may crop video)</label></p>
 
 					<p><br><button id="reset_subs">Reset to defaults</button></p>
 				</div>
@@ -840,35 +839,35 @@
 			</div>
 			<h2>Keyboard shortcuts</h2>
 			<table class="kbd-table">
-				<tr><td><kbd>0</kbd></td><td>randomize analyzer settings (once)</td></tr>
-				<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>load a User Preset</td></tr>
-				<tr><td><kbd>Shift</kbd> <kbd>1</kbd> - <kbd>9</kbd></td><td>save current settings to a User Preset slot</td></tr>
-				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>volume up / down</td></tr>
-				<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>previous / next song (hold for rewind / fast forward)</td></tr>
-				<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>increase / reduce fullscreen analyzer height</td></tr>
-				<tr><td><kbd class="wide">Space</kbd></td><td>play / pause</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>A</kbd> / <kbd>A</kbd></td><td>change Randomize interval</td></tr>
-				<tr><td><kbd>B</kbd></td><td>change Background</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>B</kbd></td><td>change Background Image Fit</td></tr>
-				<tr><td><kbd>C</kbd></td><td>toggle Radial analyzer</td></tr>
-				<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>display song information<br>(press/click again for more info and again to hide)</td></tr>
-				<tr><td><kbd>E</kbd></td><td>shuffle queue</td></tr>
-				<tr><td><kbd>F</kbd></td><td>toggle fullscreen</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>G</kbd> / <kbd>G</kbd></td><td>previous / next Gradient</td></tr>
-				<tr><td><kbd>H</kbd></td><td>toggle FPS display</td></tr>
-				<tr><td><kbd>I</kbd></td><td>toggle information display at song start/end</td></tr>
-				<tr><td><kbd>L</kbd></td><td>toggle LEDs effect</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>M</kbd> / <kbd>M</kbd></td><td>previous / next Visualization Mode</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>N</kbd> / <kbd>N</kbd></td><td>reduce / increase Sensitivity</td></tr>
-				<tr><td><kbd>O</kbd></td><td>toggle low-resolution</td></tr>
-				<tr><td><kbd>P</kbd></td><td>toggle Peaks display</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>P</kbd></td><td>toggle FADE peaks</td></tr>
-				<tr><td><kbd>R</kbd></td><td>toggle queue Repeat</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>S</kbd> / <kbd>S</kbd></td><td>cycle through X- and Y- axes labels options</td></tr>
-				<tr><td><kbd>T</kbd></td><td>toggle flat / shadowed text</td></tr>
-				<tr><td><kbd>U</kbd></td><td>toggle Lumi bars effect</td></tr>
-				<tr><td><kbd>Shift</kbd><kbd>X</kbd> / <kbd>X</kbd></td><td>change Reflex style</td></tr>
+				<tr><td><kbd>0</kbd></td><td>Randomize settings</td></tr>
+				<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>Load a User Preset</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd>1</kbd> - <kbd>9</kbd></td><td>Save current settings to User Preset slot</td></tr>
+				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Volume up / down</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Fullscreen analyzer height</td></tr>
+				<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>Previous / next track<br>(<strong>Hold</strong> for rewind / fast forward)</td></tr>
+				<tr><td><kbd class="wide">Space</kbd></td><td>Play / Pause</td></tr>
+				<tr><td><kbd>A</kbd></td><td>Randomize (cycle through options)</td></tr>
+				<tr><td><kbd>B</kbd></td><td>Background (cycle through options)</td></tr>
+				<tr><td><kbd>Shift</kbd> + <kbd>B</kbd></td><td>Background Image Fit (cycle through options)</td></tr>
+				<tr><td><kbd>C</kbd></td><td>RADIAL (toggle)</td></tr>
+				<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>Display track information<br>(press again for more info, and again to hide)</td></tr>
+				<tr><td><kbd>E</kbd></td><td>Shuffle</td></tr>
+				<tr><td><kbd>F</kbd></td><td>Fullscreen (toggle)</td></tr>
+				<tr><td><kbd>G</kbd></td><td>Gradients (cycle through options)</td></tr>
+				<tr><td><kbd>H</kbd></td><td>FPS (toggle)</td></tr>
+				<tr><td><kbd>I</kbd></td><td>TRACK INFO (toggle)</td></tr>
+				<tr><td><kbd>L</kbd></td><td>LEDS (toggle)</td></tr>
+				<tr><td><kbd>M</kbd></td><td>Analyzer Mode (cycle through options)</td></tr>
+				<tr><td><kbd>N</kbd></td><td>Sensitivity (cycle through options)</td></tr>
+				<tr><td><kbd>O</kbd></td><td>LO-RES (toggle)</td></tr>
+				<tr><td><kbd>P</kbd></td><td>Peaks (cycle through options)</td></tr>
+				<tr><td><kbd>R</kbd></td><td>Repeat queue (toggle)</td></tr>
+				<tr><td><kbd>S</kbd></td><td>Scale Labels (both axes - cycle through options)</td></tr>
+				<tr><td><kbd>T</kbd></td><td>FLAT (toggle outlined/shadowed text)</td></tr>
+				<tr><td><kbd>U</kbd></td><td>LUMI (toggle)</td></tr>
+				<tr><td><kbd>X</kbd></td><td>Reflex (cycle through options)</td></tr>
 			</table>
+			<p class="align-left">For most shortcuts, holding <kbd>Shift</kbd> lets you cycle backward through options.</p>
 		</div>
 	</div> <!-- #shortcuts -->
 

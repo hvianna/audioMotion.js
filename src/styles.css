@@ -122,6 +122,10 @@ table {
 	text-align: center;
 }
 
+.align-left {
+	text-align: left;
+}
+
 /* remove link styling from links that should look like buttons */
 a.button {
 	text-decoration: none;
@@ -922,8 +926,13 @@ a.button:visited {
 }
 .kbd-table td {
 	border: 1px solid #ddd;
+	line-height: 1.3;
     padding: 4px;
 }
+.kbd-table tr td:last-child {
+	text-align: left;
+}
+
 kbd {
 	background-color: #eee;
 	border-radius: 3px;

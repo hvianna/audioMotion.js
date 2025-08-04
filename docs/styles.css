@@ -15,16 +15,16 @@
 	--sidebar-name-font-family: Orbitron, var(--base-font-family);
 	--sidebar-name-font-weight: 900;
 
-	--col-1: 2.3%;
-	--col-2: 21.5%;
+	--col-1: 0.7%;
+	--col-2: 20.7%;
 	--col-3: 40.8%;
-	--col-4: 60%;
-	--col-5: 79%;
-	--row-1: 15%;
-	--row-2: 30%;
-	--row-3: 45%;
-	--row-4: 61%;
-	--row-5: 76.5%;
+	--col-4: 60.6%;
+	--col-5: 80.8%;
+	--row-1: 2%;
+	--row-2: 21%;
+	--row-3: 41%;
+	--row-4: 60%;
+	--row-5: 80.5%;
 }
 
 @media (min-width: 1200px) {
@@ -109,7 +109,7 @@ p ~ .table-wrapper table {
 
 .advanced-panel,
 .settings-panel {
-	aspect-ratio: 1280/440;
+	aspect-ratio: 1228/348;
 	background-size: contain;
 	line-height: 0;
 	margin: 0 auto;
@@ -167,7 +167,7 @@ p ~ .table-wrapper table {
 }
 
 .active.highlight-preset {
-	--height: 28%;
+	--height: 33%;
 	--left: var(--col-1);
 	--top: var(--row-1);
 }
@@ -196,7 +196,7 @@ p ~ .table-wrapper table {
 	--top: var(--row-5);
 }
 .active.highlight-gradients {
-	--height: 28%;
+	--height: 33%;
 	--left: var(--col-3);
 	--top: var(--row-1);
 }
@@ -213,7 +213,7 @@ p ~ .table-wrapper table {
 	--top: var(--row-5);
 }
 .active.highlight-effects {
-	--height: 28%;
+	--height: 33%;
 	--left: var(--col-4);
 	--top: var(--row-1);
 }
@@ -222,7 +222,7 @@ p ~ .table-wrapper table {
 	--top: var(--row-5);
 }
 .active.highlight-display {
-	--height: 28%;
+	--height: 33%;
 	--left: var(--col-5);
 	--top: var(--row-1);
 }

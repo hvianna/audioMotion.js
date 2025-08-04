@@ -13,7 +13,7 @@ This feature should work by default on Chrome, Opera and Edge; on **Brave**, you
 
 ### Firefox users
 
-On **Firefox**, [Fill Opacity](advanced.md#fill-opacity) may not work properly with [Radial](settings.md#effects) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
+On **Firefox**, [Fill Opacity](advanced.md#fill-opacity) may not work properly with [Radial](settings.md#effects-switches) analyzer, due to [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1164912).
 
 ### Safari users
 
