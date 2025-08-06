@@ -82,7 +82,57 @@
 			<div id="bg_dim" class="bg-dim"></div>
 			<div id="analyzer" class="analyzer"></div>
 			<canvas id="osd" class="osd"></canvas>
-		</div>
+
+			<div id="help" class="modal-window">
+				<a href="#!" class="modal-close"></a>
+				<div class="shortcuts center">
+					<a href="#!" class="modal-close-internal"></a>
+					<div class="credits">
+						<h1>audioMotion</h1>
+						<div><a href="https://audiomotion.app/docs/changelog" title="click for changelog" target="_blank">version <span id="version"></span></a></div>
+						<p>Copyright &copy; 2018-2025 Henrique Avila Vianna</p>
+						<ul>
+							<li><a href="https://audiomotion.app/docs" target="_blank">Website</a></li>
+							<li><a href="https://audiomotion.app/docs/users-manual" target="_blank">User's Manual</a></li>
+							<li><a href="https://github.com/hvianna/audioMotion.js/" target="_blank">GitHub</a></li>
+						</ul>
+					</div>
+					<h2>Keyboard shortcuts</h2>
+					<table class="kbd-table">
+						<tr><td><kbd>0</kbd></td><td>Randomize settings</td></tr>
+						<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>Load a User Preset</td></tr>
+						<tr><td><kbd>Shift</kbd> + <kbd>1</kbd> - <kbd>9</kbd></td><td>Save current settings to User Preset slot</td></tr>
+						<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Volume up / down</td></tr>
+						<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Fullscreen analyzer height</td></tr>
+						<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>Previous / next track<br>(<strong>Hold</strong> for rewind / fast forward)</td></tr>
+						<tr><td><kbd class="wide">Space</kbd></td><td>Play / Pause</td></tr>
+						<tr><td><kbd>A</kbd></td><td>Randomize</td></tr>
+						<tr><td><kbd>B</kbd></td><td>Background</td></tr>
+						<tr><td><kbd>Shift</kbd> + <kbd>B</kbd></td><td>Background Image Fit</td></tr>
+						<tr><td><kbd>C</kbd></td><td>RADIAL</td></tr>
+						<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>Display track information<br>(press again for more info, and again to hide)</td></tr>
+						<tr><td><kbd>E</kbd></td><td>Shuffle</td></tr>
+						<tr><td><kbd>F</kbd></td><td>Fullscreen</td></tr>
+						<tr><td><kbd>G</kbd></td><td>Gradients</td></tr>
+						<tr><td><kbd>H</kbd></td><td>FPS</td></tr>
+						<tr><td><kbd>I</kbd></td><td>TRACK INFO</td></tr>
+						<tr><td><kbd>L</kbd></td><td>LEDS</td></tr>
+						<tr><td><kbd>M</kbd></td><td>Analyzer Mode</td></tr>
+						<tr><td><kbd>N</kbd></td><td>Sensitivity</td></tr>
+						<tr><td><kbd>O</kbd></td><td>LO-RES</td></tr>
+						<tr><td><kbd>P</kbd></td><td>Peaks</td></tr>
+						<tr><td><kbd>R</kbd></td><td>Repeat</td></tr>
+						<tr><td><kbd>S</kbd></td><td>Scale Labels (both axes)</td></tr>
+						<tr><td><kbd>T</kbd></td><td>FLAT</td></tr>
+						<tr><td><kbd>U</kbd></td><td>LUMI</td></tr>
+						<tr><td><kbd>X</kbd></td><td>Reflex</td></tr>
+						<tr><td><kbd>Esc</kbd></td><td>Exit fullscreen</td></tr>
+						<tr><td><kbd>F1</kbd></td><td>Help (this panel) - also works in fullscreen</td></tr>
+					</table>
+					<p class="align-left">For most shortcuts, holding <kbd>Shift</kbd> lets you cycle backward through options.</p>
+				</div>
+			</div> <!-- #help -->
+		</div> <!-- #bg_container -->
 
 		<div class="player-panel grid center">
 			<div class="controls-left">
@@ -822,54 +872,6 @@
 			</div>
 		</div>
 	</div> <!-- #gradient-editor -->
-
-	<div id="help" class="modal-window">
-		<a href="#!" class="modal-close"></a>
-		<div class="shortcuts center">
-			<a href="#!" class="modal-close-internal"></a>
-			<div class="credits">
-				<h1>audioMotion</h1>
-				<div><a href="https://audiomotion.app/docs/changelog" title="click for changelog" target="_blank">version <span id="version"></span></a></div>
-				<p>Copyright &copy; 2018-2025 Henrique Avila Vianna</p>
-				<ul>
-					<li><a href="https://audiomotion.app/docs" target="_blank">Website</a></li>
-					<li><a href="https://audiomotion.app/docs/users-manual" target="_blank">User's Manual</a></li>
-					<li><a href="https://github.com/hvianna/audioMotion.js/" target="_blank">GitHub</a></li>
-				</ul>
-			</div>
-			<h2>Keyboard shortcuts</h2>
-			<table class="kbd-table">
-				<tr><td><kbd>0</kbd></td><td>Randomize settings</td></tr>
-				<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>Load a User Preset</td></tr>
-				<tr><td><kbd>Shift</kbd> + <kbd>1</kbd> - <kbd>9</kbd></td><td>Save current settings to User Preset slot</td></tr>
-				<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Volume up / down</td></tr>
-				<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Fullscreen analyzer height</td></tr>
-				<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>Previous / next track<br>(<strong>Hold</strong> for rewind / fast forward)</td></tr>
-				<tr><td><kbd class="wide">Space</kbd></td><td>Play / Pause</td></tr>
-				<tr><td><kbd>A</kbd></td><td>Randomize (cycle through options)</td></tr>
-				<tr><td><kbd>B</kbd></td><td>Background (cycle through options)</td></tr>
-				<tr><td><kbd>Shift</kbd> + <kbd>B</kbd></td><td>Background Image Fit (cycle through options)</td></tr>
-				<tr><td><kbd>C</kbd></td><td>RADIAL (toggle)</td></tr>
-				<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>Display track information<br>(press again for more info, and again to hide)</td></tr>
-				<tr><td><kbd>E</kbd></td><td>Shuffle</td></tr>
-				<tr><td><kbd>F</kbd></td><td>Fullscreen (toggle)</td></tr>
-				<tr><td><kbd>G</kbd></td><td>Gradients (cycle through options)</td></tr>
-				<tr><td><kbd>H</kbd></td><td>FPS (toggle)</td></tr>
-				<tr><td><kbd>I</kbd></td><td>TRACK INFO (toggle)</td></tr>
-				<tr><td><kbd>L</kbd></td><td>LEDS (toggle)</td></tr>
-				<tr><td><kbd>M</kbd></td><td>Analyzer Mode (cycle through options)</td></tr>
-				<tr><td><kbd>N</kbd></td><td>Sensitivity (cycle through options)</td></tr>
-				<tr><td><kbd>O</kbd></td><td>LO-RES (toggle)</td></tr>
-				<tr><td><kbd>P</kbd></td><td>Peaks (cycle through options)</td></tr>
-				<tr><td><kbd>R</kbd></td><td>Repeat queue (toggle)</td></tr>
-				<tr><td><kbd>S</kbd></td><td>Scale Labels (both axes - cycle through options)</td></tr>
-				<tr><td><kbd>T</kbd></td><td>FLAT (toggle outlined/shadowed text)</td></tr>
-				<tr><td><kbd>U</kbd></td><td>LUMI (toggle)</td></tr>
-				<tr><td><kbd>X</kbd></td><td>Reflex (cycle through options)</td></tr>
-			</table>
-			<p class="align-left">For most shortcuts, holding <kbd>Shift</kbd> lets you cycle backward through options.</p>
-		</div>
-	</div> <!-- #shortcuts -->
 
 	<div id="update-banner" class="update-banner"><a href="https://audiomotion.app/docs/changelog" target="_blank">audioMotion has been updated to the latest version!</a></div>
 

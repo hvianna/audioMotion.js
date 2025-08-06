@@ -360,18 +360,16 @@ a.button:visited {
 .bottom-panel {
 	display: grid;
 	grid-template-columns: 1fr 100px 1fr;
-	padding: 0 25px;
+	padding: 20px 25px;
 }
 
 .function-buttons {
 	grid-template-columns: repeat( 4, 100px ) !important; /* `auto-fit` doesn't seem to work with justify ?? */
 	justify-self: end;
-	z-index: 2;
 }
 
 .panel-selection {
 	grid-template-columns: repeat( auto-fit, 100px ) !important;
-	z-index: 2; /* so active buttons glow can overflow the containing div */
 }
 .panel-selection input:checked + label::before {
 	content: '\e313';
@@ -400,7 +398,6 @@ a.button:visited {
 .panel-main {
 	margin: 0 auto;
 	max-width: 1400px;
-	padding-top: 20px;
 	position: absolute;
 	width: 100%;
 }
@@ -607,7 +604,7 @@ a.button:visited {
 	grid-template-columns: 1fr 370px 1fr;
 	margin: 0 auto;
 	max-width: 1400px;
-	padding: 30px 0 20px;
+	padding: 30px 0 0;
 	position: relative;
 }
 
@@ -898,7 +895,7 @@ a.button:visited {
 	top: 50px;
 	transform: translateX(-50%);
 }
-.playlist-bar .tooltip {
+#playlist_panel .tooltip {
 	margin-top: 10px;
 	right: 0;
 }
@@ -1132,12 +1129,12 @@ kbd.wide {
 	color: #ccc;
 	display: flex;
 	flex-direction: column;
-	height: 405px;
+	height: 100%;
 	justify-content: center;
 	opacity: 0;
 	pointer-events: none;
 	position: absolute;
-	top: -30px;
+	top: 0;
 	transition: .35s all;
 	width: 100%;
 	z-index: 9;
@@ -1812,7 +1809,8 @@ button.grad-add-stop:hover {
 		margin: 0 5px;
 	}
 	.bottom-panel {
-		padding: 0 5px;
+		padding-left: 5px;
+		padding-right: 5px;
 	}
 	.controls {
 		column-gap: 20px;
