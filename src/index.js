@@ -1125,13 +1125,25 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 	});
 }
 
+function extractFileNameFromPath(path) {
+	if (typeof path !== 'string') return '';
+
+	const lastSlashIndex = path.lastIndexOf('/');
+	const lastDotIndex = path.lastIndexOf('.');
+
+	const start = lastSlashIndex >= 0 ? lastSlashIndex + 1 : 0;
+	const end = lastDotIndex > start ? lastDotIndex : path.length;
+
+	return path.substring(start, end);
+}
+
 /**
  * Add audio metadata to a playlist item or audio element
  */
 function addMetadata( metadata, target ) {
 	const trackData  = target.dataset,
 		  sourceData = metadata.dataset,
-		  { album, artist, picture, title, year } = metadata.common || {},
+		  { album, artist, picture, title, year, track } = metadata.common || {},
 		  { bitrate, bitsPerSample, codec, codecProfile, container,
 		    duration, lossless, numberOfChannels, sampleRate } = metadata.format || {};
 
@@ -1143,6 +1155,10 @@ function addMetadata( metadata, target ) {
 		trackData.title  = title || trackData.title;
 		trackData.album  = album ? album + ( year ? ' (' + year + ')' : '' ) : trackData.album;
 		trackData.codec  = codec || container ? ( codec || container ) + ' (' + numberOfChannels + 'ch)' : trackData.codec;
+		trackData.trackNumber = track.no || trackData.trackNumber;
+		trackData.fullTrackName = trackData._title && trackData.title.length > 0 ?
+			`${trackData.trackNumber ? (trackData.trackNumber + ': ') : ''} ${trackData.title} ${trackData.title} - ${trackData.artist}` :
+			extractFileNameFromPath(trackData.file);
 
 		const khz = sampleRate ? Math.round( sampleRate / 1000 ) + 'kHz' : '';
 
