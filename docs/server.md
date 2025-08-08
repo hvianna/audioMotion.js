@@ -22,7 +22,7 @@ A **config.yaml** file in the same directory as audioMotion's _index.html_ allow
 |--------|--------------------------|-------------|
 | **defaultAccessMode** | **`local`** \| `server` | Initial (first run) file access mode - user's device or /music directory on server
 | **enableLocalAccess** | **`true`** \| `false` | Whether to enable access to local device (*true* allows user to switch between local or server)
-| **frontPanel**        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](user-interface.md#main-selection-buttons)
+| **frontPanel**        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](user-interface.md#main-function-buttons)
 | **preserveFilenames** | `true` \| **`false`** | Whether to preserve filenames as is in the play queue (can also be toggled via [General Settings](configuration.md#general-settings))
 
 The `config.yaml.example` file included in the `public/` folder can be used as a template.
@@ -33,7 +33,7 @@ The following URL parameters can also be used when accessing audioMotion:
 
 | parameter | possible values | description |
 |-----------|-----------------|-------------|
-| **debug** | *none* | If present in the URL, app starts in [debug mode](console.md#debug), which may help identify issues during the initialization stage
+| **debug** | *none* | If present in the URL, starts the console in [debug mode](console.md#debug), which may help identify issues during the initialization stage
 | **mode**  | `local` \| `server` | Starts audioMotion in the desired access mode (local access must be enabled on the server)
 | **frontPanel** | `open` \| `close` | Same as the corresponding `config.yaml` option, but overrides the server configuration
 

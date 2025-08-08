@@ -40,5 +40,5 @@ Most shortcuts support holding the **Shift** key to cycle backward through optio
 **T** | toggle [FLAT](settings.md#display-switches)
 **U** | toggle [LUMI](settings.md#effects-switches)
 **X** | cycle through [Reflex](settings.md#reflex) options
-**Esc** | Leave fullscreen
-**F1** | open Help Panel
+**Esc** | Exit fullscreen
+**F1** | open the Help panel (also works in fullscreen)
