@@ -382,9 +382,8 @@ a.button:visited {
 
 #toggle_panel {
 	cursor: pointer;
-	font-size: 24px;
 	font-weight: 500;
-	padding: 0 .5em;
+	padding: 1px 0;
 }
 #toggle_panel::before {
 	content: '\e5d6';
@@ -398,6 +397,7 @@ a.button:visited {
 .panel-main {
 	margin: 0 auto;
 	max-width: 1400px;
+	padding-bottom: 10px;
 	position: absolute;
 	width: 100%;
 }
@@ -577,8 +577,8 @@ a.button:visited {
 }
 
 .button-column {
-	align-items: center;
-	display: flex;
+	align-content: space-evenly;
+	display: grid;
 	flex-direction: column;
 	justify-content: center;
 }
@@ -588,12 +588,7 @@ a.button:visited {
 	display: inline-block;
 	font-family: var(--icon-font);
 	font-size: 24px;
-	margin: 10px 0;
 	padding: 9px 11px;
-}
-.mb-40 {
-	margin-bottom: 40px !important;
-	margin-top: 0 !important;
 }
 
 .center {

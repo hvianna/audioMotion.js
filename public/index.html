@@ -180,9 +180,9 @@
 			</div>
 
 			<div class="progress-bar flex">
-				<div id="current_time" class="small-display"></div>
+				<div id="current_time" class="small-display">:</div>
 				<input id="progress" class="custom-slider song-progress" type="range">
-				<div id="song_duration" class="small-display"></div>
+				<div id="song_duration" class="small-display">:</div>
 			</div>
 		</div>
 
@@ -569,7 +569,7 @@
 			</div> <!-- .controls -->
 		</div> <!-- #advanced -->
 
-		<div id="files_panel" class="panel-main file-panel grid">
+		<div id="files_panel" class="panel-main active file-panel grid">
 			<div class="locked-panel">
 				<span class="material-symbols-rounded">power_settings_new</span>
 				<h1>Click to allow access to your device</h1>
@@ -579,14 +579,16 @@
 			<div id="file_explorer" class="panel-internal grid"></div>
 
 			<div class="button-column">
-				<div class="help"><button id="btn_toggle_filesystem" class="mb-40"></button>
+				<div class="help"><button id="btn_toggle_filesystem"></button>
 					<span class="tooltip">Toggle between local and server media</span>
 				</div>
 
-				<div class="help"><label class="button mb-40" for="local_file">file_open</label>
+				<div class="help"><label class="button" for="local_file">file_open</label>
 					<span class="tooltip">Load a media file from your device</span>
 					<input id="local_file" type="file" accept="audio/*,video/*">
 				</div>
+
+				<div><!-- spacer --></div>
 
 				<div class="help"><button id="btn_add_selected">keyboard_arrow_right</button>
 					<span class="tooltip">Queue selected files</span>

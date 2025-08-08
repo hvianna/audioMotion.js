@@ -245,10 +245,6 @@ const WEIGHT_NONE = '',
 	  WEIGHT_D    = 'D',
 	  WEIGHT_468  = '468';
 
-// Minimum window height to fit the entire player without a scrollbar
-// 270px (canvas min-height) + 144px (.player-panel) + 28px (.panel-area) + 370px (.panel-main)
-const WINDOW_MIN_HEIGHT = 812;
-
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
@@ -345,6 +341,10 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elVolume        = $('#volume'),
 	  elWarp          = $('#warp'),				// "warp" effect layer
 	  elWeighting     = $('#weighting');
+
+// Compute minimum window height to fit the app interface with no scroll - used by toggleFrontPanel()
+const PANEL_MIN_HEIGHT  = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight,
+	  WINDOW_MIN_HEIGHT = parseInt( getComputedStyle( elContainer ).minHeight ) + PANEL_MIN_HEIGHT + elMediaPanel.clientHeight;
 
 // Configuration presets
 const presets = [
@@ -4414,7 +4414,7 @@ function setUIEventListeners() {
 		  setToggleButtonIcon = () => btnToggleFS.innerText = `${ useFileSystemAPI ? 'cloud' : 'hard_drive' }`;
 
 	if ( ! serverHasMedia && ! useFileSystemAPI || ! supportsFileSystemAPI )
-		toggleDisplay( btnToggleFS, false );
+		toggleDisplay( btnToggleFS.parentElement, false );
 	else {
 		setToggleButtonIcon();
 		btnToggleFS.addEventListener( 'click', async () => {
@@ -4735,8 +4735,7 @@ function toggleFrontPanel( show ) {
 			toggleDisplay( $(`#${ panel.value }`), true );
 	}
 
-	const minPanelHeight = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight + 10;
-	elContainer.style.height = show ? '' : `calc( 100vh - ${ minPanelHeight }px )`;
+	elContainer.style.height = show ? '' : `calc( 100vh - ${ PANEL_MIN_HEIGHT }px )`;
 	elTogglePanel.classList.toggle( 'closed', ! show );
 }
 
