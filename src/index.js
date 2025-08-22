@@ -5525,6 +5525,7 @@ function updateRangeValue( el ) {
 		latency = ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency;
 
 		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ latency * 1e3 | 0 }ms` );
+		debugLog( { PANEL_MIN_HEIGHT, WINDOW_MIN_HEIGHT } );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
 	});
