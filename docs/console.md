@@ -13,5 +13,7 @@ The console logs information such as audio and video capabilities, settings in e
 Button | Action
 -------|--------
 Clear  | Erase all console messages
-Copy   | Copy console contents to the clipboard
-Debug  | When active, log additional debug messages to the console
+Copy   | Copy console messages to the clipboard
+Debug  | When active, log additional events and messages to the console, to help debugging issues
+
+Debug mode can also be enabled at startup, by adding the `debug` [URL parameter](server.md#url-parameters).

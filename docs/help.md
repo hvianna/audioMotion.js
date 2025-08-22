@@ -4,7 +4,7 @@ Click **Help** in the main function buttons or press **F1** to open the Help pan
 
 ![ui-buttons-config](img/UI_main_buttons_help.png)
 
-In the Help panel, you'll find the current app version, links to documentation and GitHub repository, and a list of keyboard shortcuts (also shown below).
+In the Help panel, you'll find the current app version, links to the documentation and GitHub repository, and a list of keyboard shortcuts (also shown below).
 
 ## Keyboard shortcuts
 

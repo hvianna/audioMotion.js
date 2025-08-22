@@ -103,7 +103,7 @@ Desired method for coloring the analyzer bars. This setting has no effect in [**
 
 ### TRACK INFO
 
-Toggle on-screen display of song information on every track change.
+Toggle display of on-screen information on track start and end, as configured in [Configuration > On-screen information display](configuration.md#on-screen-information-display).
 
 ### SUBTITLES
 
@@ -111,7 +111,7 @@ Toggle display of [subtitles](media-panel.md#subtitles).
 
 ### FLAT
 
-Switch between outlined (on) or shadowed (off) text for messages displayed on canvas.
+Switch between outlined (on) or shadowed (off) text for messages displayed on screen.
 
 ### LO-RES
 
@@ -128,11 +128,11 @@ Toggle display of current frame rate at the top right corner.
 
 ### ALPHA
 
-Toggle variable bar transparency - when active, the higher the bar amplitude the more opaque it is.
+Toggle dynamic bar transparency - when active, bars become more opaque as their amplitude increases.
 
 ### LUMI
 
-Toggle luminance bars - similar to ALPHA, but all analyzer bars are displayed at full-height *(no effect with RADIAL)*.
+Toggle luminance bars - similar to ALPHA, bars' opacity vary according to their level, but all bars are displayed at full height *(no effect with RADIAL)*.
 
 ### LEDS
 
@@ -155,7 +155,7 @@ Toggle rounded corners at the top of analyzer bars *(Bars mode only)*.
 
 <div class="settings-panel highlight-gradients"></div>
 
-Select color gradients for analyzer channels. Keyboard shortcut: **G** / **Shift + G**.
+Select color gradients for left and right analyzer channels. Keyboard shortcut: **G** / **Shift + G**.
 
 Button / switch | Description
 ----------------|------------
@@ -204,7 +204,7 @@ Key               | Action
 
 Your last used settings will be automatically restored the next time you open audioMotion.
 
-?> NOTE: presets affect the settings from both the **Settings** and **Advanced** panels!
+?> NOTE: presets store all settings from both the **Settings** and **Advanced** panels!
 
 ### Save / Manage presets
 
@@ -217,10 +217,12 @@ Click any empty slot to save the current settings to a new user preset, or click
 Button | Action
 -------|--------
 <img src="img/button-rename-preset.png" style="vertical-align: middle"> | Rename the corresponding preset
-<img src="img/button-download-preset.png" style="vertical-align: middle"> | Download the corresponding preset. Import downloaded presets via [**Advanced Panel > Import Settings**](advanced.md#import-export-settings).
+<img src="img/button-download-preset.png" style="vertical-align: middle"> | Download the corresponding preset
 <img src="img/button-delete-preset.png" style="vertical-align: middle"> | Delete the corresponding preset
 
-!> User presets are saved to the browser's internal storage and will only be accessible in the same browser they were saved. **Use the Download button to save backup copies of your presets!**
+!> **Download your presets and keep backup copies of them!**<br>User presets are saved to the browser's internal storage and may be lost if you uninstall the browser or clear its data.
+
+External presets can be imported via [**Advanced Panel > Import Settings**](advanced.md#import-export-settings).
 
 ## Randomize
 
@@ -236,7 +238,7 @@ You can choose which settings may be changed by Randomize in [Configuration > Ra
 
 Selects a vertical reflection effect. On **Bars** [Analyzer Mode](#analyzer-mode), this setting has no effect when the [LUMI effect](#lumi) is active.
 
-Reflex: 40% | Reflex: Mirrored
+Reflex: 40% | Reflex: Mirror
 ----------- |-----------------
 ![reflex-on](img/reflex-on.png) | ![reflex-mirrored](img/reflex-mirrored.png)
 
@@ -258,7 +260,9 @@ X-Axis Labels | Description
 --------------|-------------
 Off           | Do not show labels
 Freqs         | Show the center frequencies of each octave (in Hz)
-Notes         | Show musical notes - works best with [**Frequency Scale**](advanced.md#frequency-scale): *Log*, [**Octave Bands**](advanced.md#octave-bands): *Tempered* and [**Band Count**](#band-count): *1/12th octave*.
+Notes         | Show musical notation labels
+
+?> For perfect alignment of analyzer bars with Notes labels, use [**Frequency Scale**](advanced.md#frequency-scale): *Log*, [**Octave Bands**](advanced.md#octave-bands): *Tempered* and [**Band Count**](#band-count): *1/12th octave*.
 
 ## Y-Axis Labels
 

@@ -16,7 +16,7 @@ Uncheck options to remove them from the [Background Image Fit](settings.md#backg
 
 ### Analyzer height on fullscreen
 
-Height of the fullscreen analyzer (% of screen height). This can be used to provide a wider look to the fullscreen analyzer.
+Height of the fullscreen analyzer (% of screen height). This can be used to provide a wider look to the analyzer, while on fullscreen.
 
 Optionally, use the **Shift** + **Up** and **Down** arrows to adjust the analyzer height during fullscreen visualization.
 
@@ -42,15 +42,15 @@ If your backgrounds folder contains more files, the remaining ones will only be 
 
 ### Enable 5.1 surround audio output (experimental)
 
-Checking this option will enable 5.1 surround audio output, if your system supports it. When disabled, all audio will output in stereo (2 channels).
+Checking this option will enable 5.1 surround audio output, if your system supports it.
 
-At the moment, this feature only works properly with **Single** [Channel Layout](advanced.md#channel-layout). Any dual-channel layout selection will force audio to be downmixed to stereo.
+When disabled, all audio will output in stereo (2 channels).
 
 You can find the information of how many audio channels the app detects in your device, and how many are in use, in the [Console](console.md) messages.
 
 ![surround-info](img/surround-info.png)
 
-I have limited hardware to test this on, so I'd appreciate any feedback you can share in the [project's Discussions](https://github.com/hvianna/audioMotion.js/discussions) on whether it works for you.
+!> At the moment, this feature works only with **Single** [Channel Layout](advanced.md#channel-layout). Any dual-channel layout selection will force audio to be downmixed to stereo.
 
 ### Invert scroll direction for Volume control
 
@@ -104,7 +104,7 @@ Built-in gradients can't be changed or deleted, but you can clone a built-in gra
 At least two colors are required to create a gradient, but you can add as many colors as you like.
 The **offset** must be a number between 0 and 1 - use it to adjust the position of each color inside the gradient.
 
-!> Custom gradients are saved to the browser's internal storage and will only be accessible in the same browser they were saved. **It is recommended that you save backup copies of your custom gradients, by using the Export function.**
+!> **Use the Export function to save backup copies of your custom gradients!**<br>Custom gradients are saved to the browser's internal storage and may be lost if you uninstall the browser or clear its data.
 
 ## On-screen information display
 
@@ -155,21 +155,20 @@ The **Linear boost** value is used to perform an *n*th-root operation to amplify
 
 ## Subtitles & Video
 
-<img src="img/config-subtitles.png" class="img-right">
-
 Choose the background, text color and vertical position of the subtitles. Positions can be configured independently for audio and video tracks.
+
+![config-subtitles](img/config-subtitles.png)
 
 ### Disable background dim
 
-Enable these options to make the player ignore the [Background Dim](settings.md#background-dim) setting when playing a video or showing subtitles for a track — whether it's audio or video.
+Enable these options to ignore the [Background Dim](settings.md#background-dim) setting when playing a video or showing subtitles for a track - whether it's audio or video.
+
+### Use compact analyzer
+
+Uses a reduced-height version of the analyzer positioned below the subtitles/video area, so as not to interfere with the content, as shown below.
+
+![screenshot4](img/screenshot4.jpg)
 
 ### Resize videos to fill fullscreen
 
 When enabled, videos playing in fullscreen will be scaled to fill the entire screen. This helps eliminate black bars when the video's aspect ratio differs from the screen's, but part of the image may be cropped.
-
-### Use compact analyzer
-
-The compact analyzer is a reduced-height version of the analyzer positioned below the subtitles/video area, so as not to interfere with the content, as shown below.
-
-![screenshot4](img/screenshot4.jpg)
-

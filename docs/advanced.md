@@ -25,7 +25,7 @@ Selects single or dual channel display, with different layout options:
 | **Horiz**      | Dual channel, side by side - see [Mirror](settings.md#mirror) for additional layout options.
 | **Vert**       | Dual channel, left channel at the top half of the canvas and right channel at the bottom.
 
-The channel layout setting does NOT affect stereo audio output.
+The channel layout does NOT affect stereo audio output.
 
 ?> Surround audio output is currently only supported with **Single** channel layout, and must be enabled in [Configuration > General settings](configuration.md#enable-51-surround-audio-output-experimental).
 
@@ -74,15 +74,15 @@ The lowest and highest frequencies represented in the spectrum analyzer. You can
 | **Log**    | ![scale-log-ansi](img/scale-log-ansi.png)
 | **Mel**    | ![scale-mel](img/scale-mel.png)
 
-The logarithmic scale allows proper visualization of **octave bands** (see [Band Count](settings.md#band-count)) and provides the best results when using the [**Notes**](settings.md#x-axis-label) labels on the X-axis.
+The logarithmic scale allows proper visualization of **octave bands** (see [Band Count](settings.md#band-count)).
 
-[*Bark*](https://en.wikipedia.org/wiki/Bark_scale) and [*Mel*](https://en.wikipedia.org/wiki/Mel_scale) are perceptual pitch scales, which may provide better visualization of mid-range frequencies, when compared to log or linear scales.
+[*Bark*](https://en.wikipedia.org/wiki/Bark_scale) and [*Mel*](https://en.wikipedia.org/wiki/Mel_scale) are perceptual pitch scales, which provide better visualization of mid-range and high frequencies, when compared to log or linear scales.
 
 ## Import / Export Settings
 
 <div class="advanced-panel highlight-import-export"></div>
 
-Click **Export** to download all current settings in the **Settings** and **Advanced** panels as a JSON file. Use it to [share](https://github.com/hvianna/audioMotion.js/discussions/categories/presets) and store backup copies of your favorite settings.
+Click **Export** to download all current settings in the **Settings** and **Advanced** panels as a JSON file. Use it to [share](https://github.com/hvianna/audioMotion.js/discussions/categories/presets) and store backup copies of your settings.
 
 Click **Import** to load settings from an external JSON file. Please note that this will overwrite all current settings in both the **Settings** and **Advanced** panels.
 
@@ -92,15 +92,13 @@ You can also import [downloaded presets](settings.md#save-manage-presets) this w
 
 <div class="advanced-panel highlight-level-scale"></div>
 
-Switch between Decibels and Linear scale to represent sound levels in the frequency spectrum.
+Switch between Decibels and Linear scale to represent audio levels in the frequency spectrum.
 
 ## Line Width
 
 <div class="advanced-panel highlight-line-width"></div>
 
-Thickness of the graph line or outline stroke.
-
-Effective only for **Graph** [analyzer mode](settings.md#analyzer-mode) or when [OUTLINE](settings.md#effects-switches) switch is on.
+Thickness of the [Graph](settings.md#analyzer-mode) line or [OUTLINE](settings.md#effects-switches) stroke.
 
 ## Mirror
 
@@ -137,7 +135,7 @@ Configure the radius of the radial analyzer, when [RADIAL](settings.md#effects-s
 
 <div class="advanced-panel highlight-radial-spin"></div>
 
-Configure the radial analyzer spinning speed, when [RADIAL](settings.md#effects-switches) switch is on.
+Configure the radial analyzer spinning speed and direction, when [RADIAL](settings.md#effects-switches) switch is on.
 
 ## Weighting Filter
 
@@ -145,11 +143,10 @@ Configure the radial analyzer spinning speed, when [RADIAL](settings.md#effects-
 
 [Weighting filter](https://en.wikipedia.org/wiki/Weighting_filter) applied to frequency data for spectrum visualization.
 
-Each filter applies a different curve of gain/attenuation to specific frequency ranges, but the general idea is to adjust the
-visualization of frequencies to which the human ear is more or less sensitive.
+Each filter applies a unique gain/attenuation curve to specific frequency ranges, as shown in the graph below, helping to highlight sounds the human ear is more or less sensitive to.
+
+Enabling filters may impact analyzer performance, due to increased real-time data processing.
 
 ![weighting-filters-curves](img/weighting-filters-curves.png)
 
-?> Weighting filters **do NOT** affect audio output. Some filters may impact performance, due to increased real-time data processing.
-
-
+?> Weighting filters affect only the visualization data, **NOT** the audio output.
