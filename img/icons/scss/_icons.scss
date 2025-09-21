@@ -1,0 +1,80 @@
+// Icons
+// -------------------------
+
+
+[data-icons8]:before,
+.icons8-back-arrow:before,
+.icons8-console:before,
+.icons8-favorite:before,
+.icons8-favorite-2:before,
+.icons8-gear-outline:before,
+.icons8-hard-drive:before,
+.icons8-mic:before,
+.icons8-mic-2:before,
+.icons8-mic-3:before,
+.icons8-music-album:before,
+.icons8-music-album-2:before,
+.icons8-music-note-outline:before,
+.icons8-opened-folder:before,
+.icons8-opened-folder-2:before,
+.icons8-pause-button:before,
+.icons8-play-button:before,
+.icons8-playlist:before,
+.icons8-previous-track:before,
+.icons8-previous-track-2:before,
+.icons8-repeat:before,
+.icons8-repeat-2:before,
+.icons8-save:before,
+.icons8-save-as:before,
+.icons8-shuffle:before,
+.icons8-shuffle-2:before,
+.icons8-simple-arrow:before,
+.icons8-skip-this-track:before,
+.icons8-skip-this-track-2:before,
+.icons8-stage-mic:before,
+.icons8-stop-symbol:before,
+.icons8-track-list:before,
+.icons8-trash:before,
+.icons8-vertical-settings-mixer:before,
+.icons8-warn:before,
+.icons8-warn-2:before,
+{ @include icons8-font; }
+
+[data-icons8]:before { content: attr(data-icons8); }
+
+.icons8-back-arrow:before { content: $icons8-var-back-arrow; }
+.icons8-console:before { content: $icons8-var-console; }
+.icons8-favorite:before { content: $icons8-var-favorite; }
+.icons8-favorite-2:before { content: $icons8-var-favorite-2; }
+.icons8-gear-outline:before { content: $icons8-var-gear-outline; }
+.icons8-hard-drive:before { content: $icons8-var-hard-drive; }
+.icons8-mic:before { content: $icons8-var-mic; }
+.icons8-mic-2:before { content: $icons8-var-mic-2; }
+.icons8-mic-3:before { content: $icons8-var-mic-3; }
+.icons8-music-album:before { content: $icons8-var-music-album; }
+.icons8-music-album-2:before { content: $icons8-var-music-album-2; }
+.icons8-music-note-outline:before { content: $icons8-var-music-note-outline; }
+.icons8-opened-folder:before { content: $icons8-var-opened-folder; }
+.icons8-opened-folder-2:before { content: $icons8-var-opened-folder-2; }
+.icons8-pause-button:before { content: $icons8-var-pause-button; }
+.icons8-play-button:before { content: $icons8-var-play-button; }
+.icons8-playlist:before { content: $icons8-var-playlist; }
+.icons8-previous-track:before { content: $icons8-var-previous-track; }
+.icons8-previous-track-2:before { content: $icons8-var-previous-track-2; }
+.icons8-repeat:before { content: $icons8-var-repeat; }
+.icons8-repeat-2:before { content: $icons8-var-repeat-2; }
+.icons8-save:before { content: $icons8-var-save; }
+.icons8-save-as:before { content: $icons8-var-save-as; }
+.icons8-shuffle:before { content: $icons8-var-shuffle; }
+.icons8-shuffle-2:before { content: $icons8-var-shuffle-2; }
+.icons8-simple-arrow:before { content: $icons8-var-simple-arrow; }
+.icons8-skip-this-track:before { content: $icons8-var-skip-this-track; }
+.icons8-skip-this-track-2:before { content: $icons8-var-skip-this-track-2; }
+.icons8-stage-mic:before { content: $icons8-var-stage-mic; }
+.icons8-stop-symbol:before { content: $icons8-var-stop-symbol; }
+.icons8-track-list:before { content: $icons8-var-track-list; }
+.icons8-trash:before { content: $icons8-var-trash; }
+.icons8-vertical-settings-mixer:before { content: $icons8-var-vertical-settings-mixer; }
+.icons8-warn:before { content: $icons8-var-warn; }
+.icons8-warn-2:before { content: $icons8-var-warn-2; }
+

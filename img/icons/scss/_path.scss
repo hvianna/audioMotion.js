@@ -1,0 +1,21 @@
+// Font paths
+// -------------------------
+
+@font-face {
+  font-family: "audioMotion";
+  src: url("../fonts/audioMotion.eot");
+  src: url("../fonts/audioMotion.eot?#iefix") format("embedded-opentype"),
+       url("../fonts/audioMotion.woff2") format("woff2"),
+       url("../fonts/audioMotion.woff") format("woff"),
+       url("../fonts/audioMotion.ttf") format("truetype"),
+       url("../fonts/audioMotion.svg#audioMotion") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: "audioMotion";
+    src: url("../fonts/audioMotion.svg#audioMotion") format("svg");
+  }
+}
