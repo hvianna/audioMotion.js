@@ -1,0 +1,303 @@
+:root {
+	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
+	--cover-background-color: transparent;
+	--cover-background-image: none;
+	--cover-background-mask-color: #000;
+	--cover-background-mask-opacity: .25;
+	--cover-blockquote-color: #f0f0f0;
+	--cover-blockquote-font-size: 2rem;
+	--cover-button-background: #023c;
+	--cover-color: #ccc;
+	--cover-button-color: hsl( var(--theme-hue), var(--theme-saturation), 80% );
+	--cover-button-border: 1px solid var(--cover-button-color);
+	--cover-heading-font-size-min: 42;
+	--cover-heading-font-size-max: 100;
+	--sidebar-name-font-family: Orbitron, var(--base-font-family);
+	--sidebar-name-font-weight: 900;
+
+	--col-1: 0.7%;
+	--col-2: 20.7%;
+	--col-3: 40.8%;
+	--col-4: 60.6%;
+	--col-5: 80.8%;
+	--row-1: 2%;
+	--row-2: 21%;
+	--row-3: 41%;
+	--row-4: 60%;
+	--row-5: 80.5%;
+}
+
+@media (min-width: 1200px) {
+	:root {
+		--cover-max-width: 1200px;
+		--content-max-width: 1200px;
+	}
+}
+
+big {
+	font-size: 125%;
+	line-height: 1;
+}
+
+h2 .emoji {
+	height: 1em;
+}
+
+h3 code {
+	font-size: inherit !important;
+}
+
+img {
+	max-width: 100%;
+}
+
+strong code {
+	font-weight: bold !important;
+}
+
+.cover h1 span {
+	background: var(--audioMotion-gradient);
+	background-clip: text;
+	filter: drop-shadow(.05em .05em 0 #0004);
+	font-family: Orbitron, var(--base-font-family);
+	font-weight: 900;
+	position: relative;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.cover ul {
+	margin: 2em 0;
+}
+
+.cover blockquote p {
+	font-style: italic;
+	margin-top: 0;
+}
+
+.cover blockquote strong {
+	color: inherit;
+	font-weight: 700;
+}
+
+.img-center {
+	display: block;
+	margin: 0 auto;
+}
+.img-right {
+	float: right;
+	margin: 1em 0 1em 1em;
+}
+
+.sidebar > h1 .app-name-link {
+	background: var(--audioMotion-gradient);
+	background-clip: text;
+	font-size: 140%;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+p ~ .table-wrapper table {
+	margin-top: 0;
+}
+
+.sidebar-nav ul ul li {
+	font-size: 85%;
+}
+
+/* Settings and Advanced panels image highlight areas */
+
+.advanced-panel,
+.settings-panel {
+	aspect-ratio: 1228/348;
+	background-size: contain;
+	line-height: 0;
+	margin: 0 auto;
+	position: relative;
+	width: 100%;
+}
+.advanced-panel {
+	background-image: url(img/advanced-panel.png);
+}
+.settings-panel {
+	background-image: url(img/settings-panel.png);
+}
+
+[class*="highlight-"] {
+	--top: -1px;
+	--left: -1px;
+	--height: 101%;
+	--width: 101%;
+}
+.active[class*="highlight-"] {
+	--height: 16.5%;
+	--width: 18.5%;
+}
+[class*="highlight-"]::before {
+	--top-left: var(--left) var(--top);
+	--top-right: calc( var(--left) + var(--width) ) var(--top);
+	--bot-right: calc( var(--left) + var(--width) ) calc( var(--top) + var(--height) );
+	--bot-left: var(--left) calc( var(--top) + var(--height) );
+
+	clip-path: polygon( 0 0, var(--top-left), var(--top-right), var(--bot-right), var(--bot-left), var(--top-left), 0 0, 0 100%, 100% 100%, 100% 0 );
+	content: '';
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	transition: all .3s;
+	width: 100%;
+}
+.active[class*="highlight-"]::before {
+	background: #fffa;
+}
+
+[class*="highlight-"]::after {
+	content: '';
+	height: var(--height);
+	left: var(--left);
+	outline: 2px solid transparent;
+	position: absolute;
+	top: var(--top);
+	transition: all .3s;
+	width: var(--width);
+}
+.active[class*="highlight-"]::after {
+	outline-color: #c00;
+}
+
+.active.highlight-preset {
+	--height: 33%;
+	--left: var(--col-1);
+	--top: var(--row-1);
+}
+.active.highlight-randomize {
+	--left: var(--col-1);
+	--top: var(--row-3);
+}
+.active.highlight-mode {
+	--left: var(--col-2);
+	--top: var(--row-1);
+}
+.active.highlight-band-count {
+	--left: var(--col-2);
+	--top: var(--row-2);
+}
+.active.highlight-color-mode {
+	--left: var(--col-2);
+	--top: var(--row-3);
+}
+.active.highlight-color-mode {
+	--left: var(--col-2);
+	--top: var(--row-3);
+}
+.active.highlight-sensitivity {
+	--left: var(--col-2);
+	--top: var(--row-5);
+}
+.active.highlight-gradients {
+	--height: 33%;
+	--left: var(--col-3);
+	--top: var(--row-1);
+}
+.active.highlight-background {
+	--left: var(--col-3);
+	--top: var(--row-3);
+}
+.active.highlight-bgimagefit {
+	--left: var(--col-3);
+	--top: var(--row-4);
+}
+.active.highlight-background-dim {
+	--left: var(--col-3);
+	--top: var(--row-5);
+}
+.active.highlight-effects {
+	--height: 33%;
+	--left: var(--col-4);
+	--top: var(--row-1);
+}
+.active.highlight-reflex {
+	--left: var(--col-4);
+	--top: var(--row-5);
+}
+.active.highlight-display {
+	--height: 33%;
+	--left: var(--col-5);
+	--top: var(--row-1);
+}
+.active.highlight-peaks {
+	--left: var(--col-5);
+	--top: var(--row-3);
+}
+.active.highlight-x-labels {
+	--left: var(--col-5);
+	--top: var(--row-4);
+}
+.active.highlight-y-labels {
+	--left: var(--col-5);
+	--top: var(--row-5);
+}
+
+/* Advanced panel */
+
+.active.highlight-channel-layout {
+	--left: var(--col-1);
+	--top: var(--row-1);
+}
+.active.highlight-mirror {
+	--left: var(--col-1);
+	--top: var(--row-2);
+}
+.active.highlight-import-export {
+	--left: var(--col-1);
+	--top: var(--row-5);
+}
+.active.highlight-bar-spacing {
+	--left: var(--col-2);
+	--top: var(--row-1);
+}
+.active.highlight-fill-opacity {
+	--left: var(--col-2);
+	--top: var(--row-2);
+}
+.active.highlight-line-width {
+	--left: var(--col-2);
+	--top: var(--row-3);
+}
+.active.highlight-radial-size {
+	--left: var(--col-2);
+	--top: var(--row-4);
+}
+.active.highlight-radial-spin {
+	--left: var(--col-2);
+	--top: var(--row-5);
+}
+.active.highlight-frequency-range {
+	--left: var(--col-4);
+	--top: var(--row-1);
+}
+.active.highlight-frequency-scale {
+	--left: var(--col-4);
+	--top: var(--row-2);
+}
+.active.highlight-level-scale {
+	--left: var(--col-4);
+	--top: var(--row-3);
+}
+.active.highlight-octave-bands {
+	--left: var(--col-4);
+	--top: var(--row-5);
+}
+.active.highlight-fft-size {
+	--left: var(--col-5);
+	--top: var(--row-1);
+}
+.active.highlight-fft-smoothing {
+	--left: var(--col-5);
+	--top: var(--row-2);
+}
+.active.highlight-weighting {
+	--left: var(--col-5);
+	--top: var(--row-5);
+}

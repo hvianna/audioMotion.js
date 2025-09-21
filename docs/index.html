@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>audioMotion</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta name="description" content="audioMotion | media player and real-time audio spectrum analyzer">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta property="og:url" content="https://audiomotion.app">
+	<meta property="og:title" content="audioMotion">
+	<meta property="og:image" content="https://audiomotion.app/docs/img/audioMotion-header.png">
+	<meta property="og:site_name" content="audioMotion">
+	<meta property="og:description" content="media player and real-time audio spectrum analyzer">
+	<meta property="og:type" content="website">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:site" content="@HenriqueVianna">
+	<!-- docsify-themeable -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+	<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+	<link href="styles.css" rel="stylesheet">
+</head>
+<body>
+	<div id="app"></div>
+	<script>
+		window.$docsify = {
+			name: 'audioMotion',
+			repo: 'hvianna/audioMotion.js',
+			auto2top: true,
+			coverpage: 'coverpage.md',
+			loadSidebar: 'sidebar.md',
+			subMaxLevel: 3,
+			plugins: [
+				function( hook ) {
+					const footer = [
+						'<hr>',
+						'<footer>',
+						'<p>audioMotion.js copyright (c) 2018-2025 <a href="https://henriquevianna.com" target="_blank" rel="noopener">Henrique Avila Vianna</a>, licensed under the <a href="https://www.gnu.org/licenses/agpl.html" target="_blank" rel="noopener">GNU AGPL 3.0 or later</a>.<br>',
+						'This website is powered by <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a>, <a href="https://docsify.js.org/" target="_blank" rel="noopener">docsify</a> and <a href="https://jhildenbiddle.github.io/docsify-themeable" target="_blank" rel="noopener">docsify-themeable</a>.</p>',
+						'</footer>'
+					].join('');
+
+					hook.afterEach( html => html + ( html.match(/License/) ? '' : footer ) );
+				}
+			]
+		}
+
+		// thanks https://www.dev-tips-and-tricks.com/animate-elements-scrolled-view-vanilla-js
+		function checkHighlights() {
+			const windowCenter = window.innerHeight / 2;
+			for ( const el of document.querySelectorAll('[class*="highlight-"]:not(.active)') ) {
+				const positionFromTop = el.getBoundingClientRect().top;
+
+				if ( positionFromTop <= windowCenter )
+					el.classList.add('active');
+			}
+		}
+		window.addEventListener( 'scroll', checkHighlights );
+	</script>
+	<script src="//unpkg.com/docsify@4/lib/docsify.min.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+	<!-- docsify-themeable -->
+	<script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0"></script>
+</body>
+</html>

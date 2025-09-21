@@ -1,0 +1,5 @@
+This is a Brave Creators publisher verification file.
+
+Domain: audiomotion.app
+Token: ddbc4cddcf21685fd67a05d53d95d4f420f67190cb38ec7b6250e3fb8cb7d6cf
+
