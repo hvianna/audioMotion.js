@@ -84,13 +84,13 @@
   width: calc( 100% - 20px );
 }
 
-/* types 'success' and 'warning' are used to create the 3-column layout of the save/edit preset dialog */
+/* types 'success' and 'warning' are used to create the columned layout of the save/edit preset dialog */
 
 .notie-background-success:not(.notie-element-half) {
   border-bottom: 1px solid #ccc;
   display: inline-block;
   text-align: left;
-  width: calc(100% - 100px);
+  width: calc(100% - 125px);
 }
 
 .notie-background-success:not(.notie-element-half):hover {
@@ -100,20 +100,21 @@
 
 .notie-background-warning:not(.notie-element-half) {
   display: inline-block;
-  font-family: 'audioMotion';
-  padding: 0 10px 0 0;
+  font-family: 'Material Symbols Rounded';
+  padding: 0;
   text-align: right;
-  width: 50px;
+  width: 38px;
 }
 
 .notie-button .empty {
   opacity: .5;
 }
 
-/* edit and delete buttons */
+/* edit, export and delete buttons */
 .notie-container button {
   border-radius: 10px;
-  padding: 8px 10px;
+  font-size: 1.25em;
+  padding: 5px;
   vertical-align: middle;
 }
 

@@ -1,39 +1,32 @@
 {
   "name": "audioMotion",
-  "version": "24.6",
+  "version": "25.9",
   "private": true,
   "author": "Henrique Vianna <hvianna@gmail.com> (https://henriquevianna.com)",
   "license": "AGPL-3.0",
   "description": "Media player and real-time audio spectrum analyzer",
   "scripts": {
     "build": "webpack",
-    "server": "node src/web-server.js",
-    "pkg": "pkg . --out-path ./bin/",
-    "start": "npx http-server"
-  },
-  "bin": "src/web-server.js",
-  "pkg": {
-    "assets": "public/**/*"
+    "start": "http-server",
+    "dev": "webpack serve --config webpack.dev.js",
+    "docs": "http-server -p 8081 docs/"
   },
   "devDependencies": {
-    "audiomotion-analyzer": "^4.5.0",
+    "audiomotion-analyzer": "^4.5.1",
     "buffer": "^6.0.3",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.0",
+    "http-server": "^14.1.1",
     "idb-keyval": "^6.2.1",
+    "js-yaml": "^4.1.0",
     "mini-css-extract-plugin": "^2.9.0",
     "music-metadata-browser": "^2.5.10",
     "notie": "^4.3.1",
-    "open": "~7.4.2",
     "process": "^0.11.10",
-    "readline-sync": "^1.4.10",
-    "semver": "^7.6.2",
     "sortablejs": "^1.15.2",
+    "style-loader": "^4.0.0",
     "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4"
-  },
-  "dependencies": {
-    "express": "^4.19.2",
-    "serve-index": "^1.9.1"
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.2"
   }
 }

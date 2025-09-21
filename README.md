@@ -36,7 +36,7 @@ It is completely free, open-source software, created out of my passion for the g
 
 Install audioMotion on your PC by clicking the install icon located in the browser's address bar:
 
-![browser-install](img/browser-install.png)
+![browser-install](docs/img/browser-install.png)
 
 ## Documentation
 
@@ -55,5 +55,5 @@ If you'd like to submit a Pull Request, please branch it off the project's `dev`
 
 ## License
 
-audioMotion.js copyright (c) 2018-2024 [Henrique Avila Vianna](https://henriquevianna.com)<br>
+audioMotion.js copyright (c) 2018-2025 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).

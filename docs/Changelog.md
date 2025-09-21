@@ -1,5 +1,63 @@
 # Changelog
 
+## version 25.9
+
+### Added: <!-- {docsify-ignore} -->
+
++ New [**Advanced** panel](advanced.md) to move less-used options out of the main Settings panel;
++ New [**Band Count**](settings.md#band-cound) setting;
++ New [**Radial Size**](advanced.md#radial-size) setting;
++ New [compact analyzer layout](configuration.md#use-compact-analyzer) for watching videos and/or subtitles;
++ [Support for 5.1 surround audio output](configuration.md#enable-51-surround-audio-output-experimental) can now be enabled if your system supports it &ndash;
+  *I have limited hardware to test this feature on, so I'd appreciate any feedback you can share in the [project's Discussions](https://github.com/hvianna/audioMotion.js/discussions) on whether it works for you;*
++ [Import and export Settings](advanced.md#import-export-settings);
++ [Import and export Gradients](configuration.md#gradients-management);
++ Option to resize videos to fill fullscreen (removes black bars), in [*Configuration > Subtitles & Video*](configuration.md#subtitles-amp-video);
++ Option to invert scroll direction for Volume control, in [*Configuration > General settings*](configuration.md#general-settings) - suggested by **@JesusGod-Pope666-Info**;
++ Additional values for [*Background Dim*](settings.md#background-dim), [*Bar Spacing*](advanced.md#bar-spacing), [*FFT Smoothing*](advanced.md#fft-smoothing), [*Fill Opacity*](advanced.md#fill-opacity), [*Radial Spin*](advanced.md#radial-spin) and [*Reflex*](settings.md#reflex);
++ On [Console](console.md), added buttons to Copy messages to the clipboard and to enable Debug mode.
+
+### Changed & improved: <!-- {docsify-ignore} -->
+
++ User interface overhaul with increased font sizes and more consistent look among panels, buttons and other controls;
++ The **Analyzer Mode** selection has been streamlined into three options: Bars (formerly band modes), FFT (formerly *Discrete Frequencies*) and Graph (consolidates former *Area* and *Line* modes);
++ **PEAKS** and **FADE** switches have been combined into the new [**Peaks**](settings.md#peaks) setting;
++ **SCALEX** and **NOTES** switches have been combined into the new [**X-Axis Labels**](settings.md#x-axis-labels) setting;
++ **SCALEY** switch is now [**Y-Axis Labels**](settings.md#y-axis-labels);
++ **LINEAR** and **ANSI** switches have been moved to the Advanced panel, as [**Level Scale**](advanced.md#level-scale) and [**Octave Bands**](advanced.md#octave-bands) settings, respectively;
++ Added a button to expand/collapse the front panel (the panel no longer auto-expands when moving the mouse near the bottom of the screen);
++ Improved hover detection and increased the delay for auto-collapsing the front panel on analyzer hover; this feature is now **disabled by default**;
++ Improved detection and loading of subtitle files;
++ Files that fail loading/playing are now flagged in red color in the play queue;
++ Increased the default [maximum number of media files listed in the Background setting](configuration.md#background-media-max-items) from 20 to 100;
++ [FFT Size](advanced.md#fft-size) and [FFT Smoothing](advanced.md#fft-smoothing) have been moved from the general settings configuration to [Advanced Panel](advanced.md) settings;
++ Gradients and saved playlists are now listed in alphabetical order in their selection boxes;
++ New default settings:
+  + [Background:](settings.md#background) **album cover**;
+  + [Bar Spacing:](advanced.md#bar-spacing) **20%**;
+  + [Background Dim:](settings.md#background-dim) **0.3**;
+  + [Level Scale:](advanced.md#level-scale) **Linear**;
+  + [Line Width:](advanced.md#level-scale) **1**;
+  + [Radial Size:](advanced.md#radial-size) **0.5**;
+  + [Weighting Filter:]((advanced.md#weighting-filter) **D**;
++ Server configuration file (`config.json`) converted to YAML format (`config.yaml`) - see [Self-hosting > config.yaml file](server.md#configyaml-file) (props to [**@Borewit**](https://github.com/hvianna/audioMotion.js/pull/94)).
+
+### Fixed: <!-- {docsify-ignore} -->
+
++ Loading of folder cover images, broken in v24.6 ([reported](https://github.com/hvianna/audioMotion.js/discussions/68) by **@JesusGod-Pope666-Info**);
++ OSD font size not being saved;
++ pixelRatio not correctly reported on console when toggling low-resolution mode;
++ Spurious folder entries in the file explorer when accessing web server media ([reported](https://github.com/hvianna/audioMotion.js/discussions/86) by **@JesusGod-Pope666-Info**).
+
+### Removed: <!-- {docsify-ignore} -->
+
++ Balance control;
++ `mediaPanel` URL parameter has been deprecated - use [`frontPanel`](server.md#url-parameters) instead;
++ Custom file server module (just use `npm start`);
++ Code from the unfinished Electron version;
++ Support for legacy `playlists.cfg` file.
+
+
 ## version 24.6
 
 ### Added: <!-- {docsify-ignore} -->

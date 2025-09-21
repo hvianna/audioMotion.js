@@ -1,7 +1,0 @@
-web:
-  image: httpd:alpine
-  ports:
-    - "8000:80"
-  volumes:
-    - ./public:/usr/local/apache2/htdocs/
-    - ~/music:/usr/local/apache2/htdocs/music/

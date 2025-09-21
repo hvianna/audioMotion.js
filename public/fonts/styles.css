@@ -69,3 +69,27 @@
 	font-display: swap;
 	src: url(SofiaSansSemiCondensed/SofiaSansSemiCondensed-Bold.woff2) format('woff2');
 }
+
+/* https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add_link,cloud,delete,edit,file_open,file_save,hard_drive,keyboard_arrow_down,keyboard_arrow_right,keyboard_double_arrow_right,power_settings_new,unfold_less,unfold_more */
+@font-face {
+	font-family: 'Material Symbols Rounded';
+	font-style: normal;
+	font-weight: 100 700;
+	src: url(MaterialSymbolsRounded.woff2) format('woff2');
+}
+
+.material-symbols-rounded {
+	font-family: 'Material Symbols Rounded';
+	font-weight: normal;
+	font-style: normal;
+	font-size: 24px;
+	line-height: 1;
+	letter-spacing: normal;
+	text-transform: none;
+	display: inline-block;
+	white-space: nowrap;
+	word-wrap: normal;
+	direction: ltr;
+	-webkit-font-feature-settings: 'liga';
+	-webkit-font-smoothing: antialiased;
+}

@@ -33,7 +33,7 @@ Open the web app:
 
 **Use a Chromium-based browser to be able to play media files from your hard drive.** Works on Chrome, Opera and Edge by default.
 
-**On Brave browser,** access `chrome://flags/#file-system-access-api` to enable this feature.
+**On Brave browser,** access `chrome://flags/#file-system-access-api` (copy and paste it in the address bar) to enable this feature.
 
 ### Installing and uninstalling
 
@@ -49,7 +49,7 @@ When uninstalling you'll have the option to also **delete app data -- this will 
 
 On Windows, you can also uninstall via Control Panel.
 
-?> See the [User's Manual](users-manual.md) for the complete documentation of audioMotion's features and settings.
+?> See the [User's Manual](user-interface.md) for the complete documentation of audioMotion's features and settings.
 
 ## Credits
 
@@ -66,16 +66,12 @@ And all the developers and artists, for the following resources:
 ### JavaScript libraries <!-- {docsify-ignore} -->
 
 * [buffer](https://www.npmjs.com/package/buffer) - Node.js Buffer API, for the browser
-* [express](https://www.npmjs.com/package/express) - fast, unopinionated, minimalist web framework for node
+* [http-server](https://www.npmjs.com/package/http-server) - a simple zero-configuration command-line http server
 * [idb-keyval](https://www.npmjs.com/package/idb-keyval) - super-simple promise-based keyval store implemented with IndexedDB
 * [music-metadata-browser](https://www.npmjs.com/package/music-metadata-browser) - stream and file based music metadata parser for the browser
 * [notie](https://www.npmjs.com/package/notie) - clean and simple notification, input, and selection suite for javascript, with no dependencies
-* [open](https://www.npmjs.com/package/open) - open stuff like URLs, files, executables
-* [pkg](https://www.npmjs.com/package/pkg) - single-command Node.js binary compiler
 * [process](https://www.npmjs.com/package/process) - process information for node.js and browsers
-* [readline-sync](https://www.npmjs.com/package/readline-sync) - synchronous Readline for interactively requesting user input via console
 * [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101) - polyfill for non-standard scrollIntoViewIfNeeded() method
-* [serve-index](https://www.npmjs.com/package/serve-index) - serve directory listings
 * [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser
   * [css-loader](https://www.npmjs.com/package/css-loader) - CSS loader module for webpack
@@ -87,7 +83,7 @@ And all the developers and artists, for the following resources:
 * Fonts [Orbitron](https://github.com/theleagueof/orbitron), [Jet Brains Mono](https://github.com/JetBrains/JetBrainsMono) (_from [Google Fonts](https://fonts.google.com/specimen/JetBrains+Mono)_) and
 [Sofia-Sans Semi-Condensed](https://github.com/lettersoup/Sofia-Sans) licensed under the [SIL Open Font License](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=ofl)
 * Icons provided by [icons8](https://icons8.com) licensed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/)
-* Additional icons provided by [@fontawesome](https://fontawesome.com) licensed under [Font Awesome Free License](https://fontawesome.com/license/free)
+* Additional icons provided by [Googles' Material Symbols](https://fonts.google.com/icons) licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html)
 * [Mouse scroll icon](https://thenounproject.com/term/mouse-scroll/628146/) by Viktor Ostrovsky, licensed under [Creative Commons CCBY](https://creativecommons.org/licenses/by/3.0/us/legalcode)
 * Gradients *Prism* and *Rainbow* use the [12-bit rainbow palette](https://iamkate.com/data/12-bit-rainbow/) by Kate Morley
 * Gradients [*Candy*](https://gradienthunt.com/gradient/172), [*Miami*](https://gradienthunt.com/gradient/950), [*Outrun*](https://gradienthunt.com/gradient/317) and [*Tie Dye*](https://gradienthunt.com/gradient/969) from [Gradient Hunt](https://gradienthunt.com)
@@ -133,7 +129,7 @@ These online references were invaluable for the development and improvement of a
 
 ## License
 
-audioMotion.js copyright (c) 2018-2024 [Henrique Avila Vianna](https://henriquevianna.com)<br>
+audioMotion.js copyright (c) 2018-2025 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
 
 ---

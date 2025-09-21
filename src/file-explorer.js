@@ -3,24 +3,21 @@
  * File explorer module
  *
  * https://github.com/hvianna/audioMotion.js
- * Copyright (C) 2019-2024 Henrique Vianna <hvianna@gmail.com>
+ * Copyright (C) 2019-2025 Henrique Vianna <hvianna@gmail.com>
  */
 
 const defaultRoot           = '/music',
-	  isElectron            = 'electron' in window,
-	  isWindows             = isElectron && /Windows/.test( navigator.userAgent ),
 	  supportsFileSystemAPI = !! window.showDirectoryPicker, // does browser support File System API?
 	  openFolderMsg         = 'Click to open a new root folder',
-	  noFileServerMsg       = 'No music found on server and no browser support for File System API';
+	  noFileServerMsg       = 'No music found on server and no browser support for File System API',
+	  MAX_BREADCRUMBS_HEIGHT= 40;
 
 // CSS classes
 const CLASS_BREADCRUMB = 'breadcrumb',
 	  CLASS_FILELIST   = 'filelist',
-	  CLASS_LOADING    = 'loading';
-
-const MODE_NODE = 1,  // Electron app or custom node.js file server
-	  MODE_WEB  = 0,  // standard web server
-	  MODE_FILE = -1; // local access via file://
+	  CLASS_LOADING    = 'loading',
+	  CLASS_LOCAL      = 'local',
+	  CLASS_SERVER     = 'server';
 
 let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>, handle: <FileSystemHandle> }
 	currentDirHandle,          // for File System API accesses
@@ -28,17 +25,16 @@ let currentPath       = [],    // array of { dir: <string>, scrollTop: <number>,
 	enterDirCallback,
 	fileExtensions    = /.*/,
 	mounts            = [],
-	nodeServer        = false, // using our custom server? (node server or Electron app)
+	serverHasMedia    = false, // music directory found on server
 	ui_path,
 	ui_files,
-	serverMode,
-	hasServerMedia    = false, // music directory found on server
-	useFileSystemAPI  = false; // use FileSystem API (default on file:// mode or no media found on server)
+	useFileSystemAPI  = false, // use FileSystem API (default on file:// mode or no media found on server)
+	webServer         = false; // is web server available?
 
 /**
  * Updates the file explorer user interface
  *
- * @param {object} directory content returned by the node server or parseDirectory()
+ * @param {object} directory content returned by parseDirectory()
  * @param {number} scrollTop scroll position for the filelist container
  */
 function updateUI( content, scrollTop ) {
@@ -55,7 +51,8 @@ function updateUI( content, scrollTop ) {
 		li.dataset.path = fileName;
 		li.dataset.subs = + !! item.subs; // used to show the 'subs' badge in the file list
 		li.innerText    = fileName;
-		li.handle       = item.handle; // for File System API accesses
+		li.handle       = item.handle;    // for File System API accesses
+		li.dirHandle    = item.dirHandle;
 		li.subs         = item.subs;
 
 		ui_files.append( li );
@@ -67,7 +64,12 @@ function updateUI( content, scrollTop ) {
 
 	// breadcrumbs
 	currentPath.forEach( ( { dir }, index ) => {
-		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ isWindows ? '\\' : dir == '/' ? '' : '/' } `;
+		ui_path.innerHTML += `<li data-depth="${ currentPath.length - index - 1 }">${dir}</li> ${ dir == '/' ? '' : '/' } `;
+		let i = 0;
+		while ( ui_path.getBoundingClientRect().height > MAX_BREADCRUMBS_HEIGHT && i < ui_path.children.length - 1 ) {
+			ui_path.children[ i ].innerText = '..';
+			i++;
+		}
 	});
 
 	// mounting points
@@ -92,7 +94,7 @@ function updateUI( content, scrollTop ) {
 		if ( cover && cover.handle )
 			cover.handle.getFile().then( fileBlob => setBgImage( URL.createObjectURL( fileBlob ) ) );
 		else
-			setBgImage( cover ? makePath( cover ) : '' );
+			setBgImage( cover ? makePath( cover.name ) : '' );
 	}
 
 	// restore scroll position when provided (returning from subdirectory)
@@ -106,12 +108,14 @@ function updateUI( content, scrollTop ) {
  * @param {number} [scrollTop] scrollTop attribute for the filelist container
  * @returns {Promise<boolean>} A promise that resolves to true if the directory change was successful, or false otherwise
  */
-function enterDir( target, scrollTop ) {
+async function enterDir( target, scrollTop ) {
 
 	let handle      = ! target || typeof target == 'string' ? null : target,
 		savedHandle = currentDirHandle,
 		savedPath   = [ ...currentPath ],
 		previousDir;
+
+	const container = ui_path.parentElement;
 
 	if ( handle )
 		target = handle.name;
@@ -127,58 +131,29 @@ function enterDir( target, scrollTop ) {
 			currentPath.push( { dir: target, scrollTop: ui_files.scrollTop, handle } );
 	}
 
-	ui_files.classList.add( CLASS_LOADING );
+	container.classList.add( CLASS_LOADING );
+	container.classList.toggle( CLASS_LOCAL, useFileSystemAPI );
+	container.classList.toggle( CLASS_SERVER, webServer && ! useFileSystemAPI );
 
-	return new Promise( async resolve => {
+	if ( currentDirHandle && handle )
+		currentDirHandle = handle;
 
-		const parseContent = content => {
-			ui_files.classList.remove( CLASS_LOADING );
-			if ( content !== false ) {
-				if ( ! nodeServer || useFileSystemAPI )
-					content = parseDirectory( content );
-				updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
-				if ( enterDirCallback )
-					enterDirCallback( currentPath );
-				resolve( true );
-			}
-			else {
-				currentPath = savedPath;
-				currentDirHandle = savedHandle;
-				resolve( false );
-				// in case of error we don't `updateUI()`, to keep the current directory contents in the explorer
-			}
-		}
+	const content = await getDirectoryContents( makePath(), currentDirHandle );
 
-		if ( currentDirHandle ) { // File System API
-			if ( handle )
-				currentDirHandle = handle;
+	container.classList.remove( CLASS_LOADING );
 
-			let content = [];
-			try {
-				for await ( const p of currentDirHandle.entries() )
-					content.push( p );
-			}
-			catch( e ) {
-				content = false;
-			}
-			parseContent( content );
-		}
-		else {
-			const url = makePath();
-			fetch( url )
-				.then( response => {
-					if ( response.status == 200 ) {
-						if ( nodeServer )
-							return response.json();
-						else
-							return response.text();
-					}
-					return false;
-				})
-				.then( content => parseContent( content ) )
-				.catch( () => parseContent( false ) );
-		}
-	});
+	if ( content !== false ) {
+		updateUI( content, scrollTop || ( previousDir && previousDir.scrollTop ) );
+		if ( enterDirCallback )
+			enterDirCallback( currentPath );
+		return true;
+	}
+	else {
+		currentPath = savedPath;
+		currentDirHandle = savedHandle;
+		return false;
+		// in case of error we don't `updateUI()`, to keep the current directory contents in the explorer
+	}
 }
 
 /**
@@ -230,10 +205,9 @@ export function decodeChars( uri ) {
  * Generates full path for a file or directory
  *
  * @param {string} fileName
- * @param {boolean} if `true` does not prefix path with server route
  * @returns {string} full path to filename
  */
-export function makePath( fileName, noPrefix ) {
+export function makePath( fileName ) {
 
 	let fullPath = '';
 
@@ -247,12 +221,7 @@ export function makePath( fileName, noPrefix ) {
  	// convert special characters into their URL-safe codes
 	fullPath = encodeChars( fullPath );
 
-	if ( isElectron ) {
-		fullPath = fullPath.replace( /\//g, '%2f' );
-		if ( ! noPrefix )
-			fullPath = ( fileName ? '/getFile/' : '/getDir/' ) + fullPath;
-	}
-	else if ( serverMode == MODE_WEB && fullPath[0] == '/' )
+	if ( webServer && fullPath[0] == '/' )
 		fullPath = fullPath.slice(1); // make path relative to page origin
 
 	return fullPath;
@@ -264,24 +233,56 @@ export function makePath( fileName, noPrefix ) {
  * @param {string} [selector='li']  optional CSS selector
  * @returns {array} list of music files and playlists only
  */
-export function getFolderContents( selector = 'li' ) {
+export function getCurrentFolderContents( selector = 'li' ) {
 
 	let contents = [];
 
 	ui_files.querySelectorAll( selector ).forEach( entry => {
-		const { handle, subs } = entry,
-			  { path, type }   = entry.dataset;
+		const { path, type } = entry.dataset,
+			  { handle, dirHandle, subs } = entry;
+
 		if ( ['file', 'list'].includes( type ) )
-			contents.push( { file: makePath( path ), handle, subs, type } );
+			contents.push( { file: makePath( path ), handle, dirHandle, subs, type } );
 	});
 	return contents;
 }
 
 /**
- * Resolve a pathname and return the handles for the media file and corresponding subtitles file (if any)
+ * Returns the contents of a given directory
+ *
+ * @param {string} URL of the directory to read in webserver mode
+ * @param {FileSystemDirectoryHandle} handle of the directory to read in filesystem mode (takes precedence, if defined)
+ * @returns {array|false} Directory entries; `false` in case of access error
+ */
+export async function getDirectoryContents( path, dirHandle ) {
+
+	let content;
+
+	try {
+		if ( supportsFileSystemAPI && dirHandle instanceof FileSystemDirectoryHandle ) {
+			// File System Access API
+			content = [];
+			for await ( const [ name, handle ] of dirHandle.entries() ) // entries() iterator returns an array
+				content.push( { name, handle, dirHandle } ); // we convert it to our own fileObj
+		}
+		else {
+			// Web server
+			const response = await fetch( path );
+			content = response.ok ? await response.text() : false;
+		}
+	}
+	catch( e ) {
+		content = false;
+	}
+
+	return content === false ? false : parseDirectory( content, path );
+}
+
+/**
+ * Resolve a pathname and return the filesystem handles for the file and its directory
  *
  * @param {string} path to filename (must be relative to currentPath)
- * @returns {object} { handle, subs }
+ * @returns {object} { handle, dirHandle }
  */
 export async function getHandles( pathname ) {
 	const workPath   = [ ...currentPath ],
@@ -306,16 +307,8 @@ export async function getHandles( pathname ) {
 		}
 	}
 
-	let filename = targetPath.shift(),
-		basename = filename.slice( 0, filename.lastIndexOf('.') ),
-		subs;
-
-	try {
-		subs = { handle: await handle.getFileHandle( basename + '.vtt' ) };
-	}
-	catch( e ) {
-		// subs not found for this file
-	}
+	const filename  = targetPath.shift(),
+		  dirHandle = handle;
 
 	try {
 		handle = await handle.getFileHandle( filename );
@@ -324,24 +317,7 @@ export async function getHandles( pathname ) {
 		handle = undefined; // requested file not found
 	}
 
-	return { handle, subs }
-}
-
-/**
- * Returns user's home path (for Electron only)
- *
- * @returns {array} array of { dir: <string>, scrollTop: <number> }
- */
-export async function getHomePath() {
-
-	const response = await fetch( '/getHomeDir' ),
-		  homeDir  = await response.text();
-
-	let homePath = [];
-	for ( const dir of homeDir.split( isWindows ? '\\' : '/' ) )
-		homePath.push( { dir, scrollTop: 0 } );
-
-	return homePath;
+	return { handle, dirHandle }
 }
 
 /**
@@ -366,14 +342,15 @@ export function parseWebIndex( content ) {
 	let listing = [];
 
 	for ( const entry of entries ) {
-		const link  = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i )[1],
+		const [, link, name ] = entry.match( /href="([^"]*)"[^>]*>\s*([^<]*)<\/a>/i ),
 			  isDir = link.slice(-1) == '/',
 			  // we can only rely on the last directory name being present, because of webserver differences (absolute or relative links)
 			  url   = link.slice( link.lastIndexOf( '/', isDir ? link.length - 2 : undefined ) + 1 ),
-			  // extract dir/file names from the url to avoid encoded html-entities like `&#x26;` (also removes final slash from dir name)
+			  // extract dir/file names from the url to avoid encoded html-entities like `&#x26;`
 			  file  = decodeURIComponent( url.slice( 0, isDir ? -1 : undefined ) );
 
-		listing.push( { url, file } );
+		if ( ! isDir || ! name.match( /^(parent directory|\.\.)/i ) ) // do not include entries to parent directory
+			listing.push( { url, file } );
 	}
 
 	return listing;
@@ -382,10 +359,17 @@ export function parseWebIndex( content ) {
 /**
  * Parses filenames from standard web server or File System API directory listing
  *
- * @param {string}   content HTML body of a web server directory listing
+ * @param {string|array} HTML body of a web directory listing OR array of file system entries
+ * @param [{string}] directory path (if undefined, considers the current directory)
  * @returns {object} folder/cover image, list of directories, list of files
  */
-export function parseDirectory( content ) {
+export function parseDirectory( content, path ) {
+
+	// NOTE: `path` is currently used only to generate the correct `src` for subs files when
+	//       reading an arbitrary directory. For all other files, only the filename is included.
+	//
+	// TO-DO: add an extra `path` or `src` property to *all* entries in the returned object,
+	//        so we don't have to deal with this everywhere else!
 
 	const coverExtensions = /\.(jpg|jpeg|webp|avif|png|gif|bmp)$/i,
 		  subsExtensions  = /\.vtt$/i;
@@ -401,9 +385,10 @@ export function parseDirectory( content ) {
 		return arr.find( el => ( el.name || el ).match( regexp ) );
 	}
 
-	if ( useFileSystemAPI ) {
-		for ( const [ name, handle ] of content ) {
-			const fileObj = { name, handle };
+	if ( Array.isArray( content ) && supportsFileSystemAPI ) {
+		// File System entries
+		for ( const fileObj of content ) {
+			const { name, handle, dirHandle } = fileObj;
 			if ( handle instanceof FileSystemDirectoryHandle )
 				dirs.push( fileObj );
 			else if ( handle instanceof FileSystemFileHandle ) {
@@ -417,13 +402,11 @@ export function parseDirectory( content ) {
 		}
 	}
 	else {
+		// Web server HTML content
 		for ( const { url, file } of parseWebIndex( content ) ) {
 			const fileObj = { name: file };
-			if ( url.slice( -1 ) == '/' ) {
-				if ( ! file.match( /(parent directory|\.\.)/i ) ) {
-					dirs.push( fileObj );
-				}
-			}
+			if ( url.slice( -1 ) == '/' )
+				dirs.push( fileObj );
 			else {
 				if ( file.match( coverExtensions ) )
 					imgs.push( fileObj );
@@ -442,15 +425,14 @@ export function parseDirectory( content ) {
 			  fileEntry = files.find( el => el.name.startsWith( basename ) );
 
 		if ( fileEntry )
-			fileEntry.subs = { src: makePath( name ), lang, handle };
+			fileEntry.subs = { src: path ? path + name : makePath( name ), lang, handle };
 	}
 
 	const cover = findImg( imgs, 'cover' ) || findImg( imgs, 'folder' ) || findImg( imgs, 'front' ) || imgs[0];
 
-	const customSort = ( a, b ) => {
-		const collator = new Intl.Collator(); // for case-insensitive sorting - https://stackoverflow.com/a/40390844/2370385
-		return collator.compare( a.name, b.name );
-	}
+	// case-insensitive sorting with international charset support - thanks https://stackoverflow.com/a/40390844/2370385
+	const collator = new Intl.Collator(),
+		  customSort = ( a, b ) => collator.compare( a.name, b.name );
 
 	return { cover, dirs: dirs.sort( customSort ), files: files.sort( customSort ) }
 }
@@ -539,6 +521,7 @@ export function create( container, options = {} ) {
 	container.append( ui_files );
 
 	startUpTimer = setTimeout( () => {
+		// if it's taking too long, add a message to let the user know we're still waiting
 		ui_path.innerHTML = 'Waiting for server...';
 	}, 5000 );
 
@@ -578,7 +561,7 @@ export function create( container, options = {} ) {
 		const item = e.target;
 		if ( item && item.nodeName == 'LI' ) {
 			if ( dblClickCallback && ['file','list'].includes( item.dataset.type ) )
-				dblClickCallback( { file: makePath( item.dataset.path ), handle: item.handle, subs: item.subs }, e );
+				dblClickCallback( { file: makePath( item.dataset.path ), handle: item.handle, dirHandle: item.dirHandle, subs: item.subs }, e );
 		}
 	});
 
@@ -592,49 +575,29 @@ export function create( container, options = {} ) {
 		setFileExtensions( options.fileExtensions );
 
 	return new Promise( resolve => {
-		fetch( '/serverInfo' )
-			.then( response => {
-				return response.text();
-			})
-			.then( async content => {
+		fetch( '.', { method: 'HEAD' } ) // check for web server
+			.then( async response => {
 				clearTimeout( startUpTimer );
-				if ( content.startsWith('audioMotion') ) {
-					nodeServer = true;
-					serverMode = MODE_NODE;
-				}
-				else {
-					// no response for our custom query, so it's probably running on a standard web server
-					serverMode = MODE_WEB;
-				}
+				webServer = true;
+				mounts = [ options.rootPath || defaultRoot ];
+				serverHasMedia = await enterDir( mounts[0] );
 
-				if ( serverMode == MODE_NODE && isElectron ) {
-					const response = await fetch( '/getMounts' );
-					mounts = await response.json();
-					setPath( await getHomePath() ); // on Electron start at user's home by default
-				}
-				else {
-					// web or custom server
-					mounts = [ options.rootPath || defaultRoot ];
-					hasServerMedia = await enterDir( mounts[0] );
-
-					if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! hasServerMedia ) {
-						// local file system requested or no music directory on server - use File System API if supported
-						currentPath = [];
-						if ( supportsFileSystemAPI ) {
-							mounts = [ openFolderMsg ];
-							useFileSystemAPI = true;
-						}
-						else
-							mounts = [];
-						updateUI();
+				if ( options.forceFileSystemAPI && supportsFileSystemAPI || ! serverHasMedia ) {
+					// local file system requested or no music directory on server - use File System API if supported
+					currentPath = [];
+					if ( supportsFileSystemAPI ) {
+						mounts = [ openFolderMsg ];
+						useFileSystemAPI = true;
 					}
+					else
+						mounts = [];
+					updateUI();
 				}
-				resolve( { serverMode, useFileSystemAPI, hasServerMedia, filelist: ui_files, serverSignature: serverMode == MODE_WEB ? 'Standard web server' : content } );
+				resolve( { webServer, useFileSystemAPI, serverHasMedia, filelist: ui_files } );
 			})
 			.catch( err => {
-				// if the fetch fails, it's probably running in file:// mode
+				// if the fetch fails, it must be running in file:// mode
 				clearTimeout( startUpTimer );
-				serverMode = MODE_FILE;
 				if ( supportsFileSystemAPI ) {
 					mounts = [ openFolderMsg ];
 					useFileSystemAPI = true;
@@ -642,7 +605,7 @@ export function create( container, options = {} ) {
 				else
 					mounts = [];
 				updateUI();
-				resolve( { serverMode, useFileSystemAPI, filelist: ui_files } );
+				resolve( { webServer, useFileSystemAPI, filelist: ui_files } );
 			});
 	});
 
