@@ -35,10 +35,6 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.HotModuleReplacementPlugin(),
-		new webpack.ProvidePlugin({
-			Buffer: ['buffer', 'Buffer'],
-			process: 'process/browser.js',
-		}),
 	],
 	output: {
 		filename: 'audioMotion.js',

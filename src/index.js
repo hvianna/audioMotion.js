@@ -32,7 +32,7 @@
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
-import * as mm from 'music-metadata-browser';
+import {parseBlob, parseWebStream} from 'music-metadata';
 import './scrollIntoViewIfNeeded-polyfill.js';
 import { get, set, del } from 'idb-keyval';
 import * as yaml from 'js-yaml';
@@ -1973,7 +1973,7 @@ function keyboardControls( event ) {
 }
 
 /**
- * Sets (or removes) the `src` attribute of a audio element and
+ * Sets (or removes) the `src` attribute of an audio element and
  * releases any data blob (File System API) previously in use by it
  *
  * @param {object} audio element
@@ -2077,7 +2077,7 @@ function loadGradientIntoCurrentGradient(gradientKey) {
 /**
  * Load a music file from the user's computer
  */
-function loadLocalFile( obj ) {
+async function loadLocalFile( obj ) {
 	const fileBlob = obj.files[0];
 
 	if ( fileBlob ) {
@@ -2086,11 +2086,17 @@ function loadLocalFile( obj ) {
 		audioEl.dataset.file = fileBlob.name;
 		audioEl.dataset.title = parsePath( fileBlob.name ).baseName;
 
-		// load and play
-		loadFileBlob( fileBlob, audioEl, true )
-			.then( url => mm.fetchFromUrl( url ) )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
+		try {
+			// Start both tasks, but only await parseBlob immediately
+			const loadTask = loadFileBlob(fileBlob, audioEl, true);
+			const metadata = await parseBlob( fileBlob );
+			await addMetadata(metadata, audioEl);
+
+			// Wait for loadTask to complete
+			await loadTask;
+		} catch( error ) {
+			consoleLog("Failed to load local file", error);
+		}
 	}
 }
 
@@ -3279,21 +3285,35 @@ async function retrieveMetadata() {
 					break queryMetadata;
 				}
 			}
-
-			try {
-				const metadata = await mm.fetchFromUrl( uri, { skipPostHeaders: true } );
-				if ( metadata ) {
-					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					syncMetadataToAudioElements( queueItem );
-					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( queueItem ).then( cover => {
-							queueItem.dataset.cover = cover;
-							syncMetadataToAudioElements( queueItem );
-						});
+			else {
+				// Fetch metadata from URI
+				const response = await fetch(queueItem.dataset.file);
+				if (response.ok) {
+					try {
+						let metadata;
+						if (response.body?.getReader) {
+							const contentType = response.headers.get("Content-Type");
+							const contentSize = response.headers.get("Content-Length");
+							try {
+								metadata = await parseWebStream(response.body, {
+									mimeType: contentType,
+									size: contentSize ? Number.parseInt(contentSize, 10) : undefined
+								}, {skipPostHeaders: true});
+							} finally {
+								await response.body.cancel();
+							}
+						} else {
+							// Fallback to Blob, in case the HTTP Result cannot be streamed
+							metadata = await parseBlob(await response.blob());
+						}
+						addMetadata(metadata, queueItem); // add metadata to play queue item
+					} catch(e) {
+						consoleLog('Failed to retrieve metadata', e)
 					}
+				} else {
+					consoleLog(`Failed to fetch metadata http-response=${response.status} for url=${queueItem.dataset.file}`, true);
 				}
 			}
-			catch( e ) {}
 
 			if ( revoke )
 				URL.revokeObjectURL( uri );
