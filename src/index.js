@@ -107,6 +107,12 @@ const COLOR_GRADIENT = 'gradient',
 	  COLOR_INDEX    = 'bar-index',
 	  COLOR_LEVEL    = 'bar-level';
 
+// default theme modifiers
+const DEFAULT_MODIFIERS = {
+	horizontal: false,
+	reverse: false
+};
+
 // Error codes
 const ERR_ABORT = 20; // AbortError
 
@@ -140,19 +146,27 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
 	  PLAYLIST_PREFIX    = 'pl_';
 
-// Visualization modes
-const MODE_BARS        = '11',
- 	  MODE_DISCRETE    = '0',
-	  MODE_GRAPH       = '10',
-	  MODE_LINE        = '101', // deprecated
-	  MODE_OCTAVE_FULL = '8',
-	  MODE_OCTAVE_HALF = '7',
-	  MODE_OCTAVE_3RD  = '6',
-	  MODE_OCTAVE_4TH  = '5',
-	  MODE_OCTAVE_6TH  = '4',
-	  MODE_OCTAVE_8TH  = '3',
-	  MODE_OCTAVE_12TH = '2',
-	  MODE_OCTAVE_24TH = '1';
+// LED bars options
+const LEDS_OFF     = '0',
+	  LEDS_MODERN  = '1',
+	  LEDS_VINTAGE = '2';
+
+// Visualization modes and band resolutions
+const MODE_BARS            = 'bars',
+	  MODE_GRAPH           = 'graph',
+	  BAND_FFT             = '0',
+	  BAND_OCTAVE_FULL     = '1',
+	  BAND_OCTAVE_HALF     = '2',
+	  BAND_OCTAVE_3RD      = '3',
+	  BAND_OCTAVE_4TH      = '4',
+	  BAND_OCTAVE_6TH      = '5',
+	  BAND_OCTAVE_8TH      = '6',
+	  BAND_OCTAVE_12TH     = '7',
+	  BAND_OCTAVE_24TH     = '8',
+   	  LEGACY_MODE_BARS     = '11',
+ 	  LEGACY_MODE_DISCRETE = '0',
+	  LEGACY_MODE_GRAPH    = '10',
+	  LEGACY_MODE_LINE     = '101';
 
 // Options for OSD font size
 const OSD_SIZE_S = '0',
@@ -272,12 +286,13 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elFPS           = $('#fps'),
 	  elFreqScale     = $('#freq_scale'),
 	  elFsHeight      = $('#fs_height'),
-	  elGradient      = $('#gradient'),
-	  elGradientRight = $('#gradientRight'),
 	  elGravity       = $('#gravity'),
+	  elHorizontal0   = $('#horizontal_0'),
+	  elHorizontal1   = $('#horizontal_1'),
 	  elInfoTimeout   = $('#info_timeout'),
 	  elInvertVolume  = $('#invert_volume'),
 	  elLedDisplay    = $('#led_display'),
+	  elLedMask       = $('#led_mask'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
 	  elLinkGrads     = $('#link_grads'),
@@ -311,6 +326,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elReduceOnVideo = $('#reduce_video'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
+	  elReverse0      = $('#reverse_0'),
+	  elReverse1      = $('#reverse_1'),
 	  elRoundBars     = $('#round_bars'),
 	  elSaveDir       = $('#save_dir'),
 	  elSaveQueue     = $('#save_queue'),
@@ -334,6 +351,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsPosition  = $('#subs_position'),
 	  elSubsPosAudio  = $('#subs_position_audio'),
   	  elSurround      = $('#enable_surround'),
+	  elTheme0        = $('#theme_0'),
+	  elTheme1        = $('#theme_1'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
@@ -362,7 +381,7 @@ const presets = [
 		options: {
 			alphaBars    : 0,
 			background   : BG_DEFAULT,
-			bandCount    : MODE_OCTAVE_3RD,
+			bandCount    : BAND_OCTAVE_3RD,
 			barSpace     : .2,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
@@ -384,13 +403,14 @@ const presets = [
 		key: 'dual',
 		name: 'Dual-channel combined Graph',
 		options: {
+//			bandCount    : BAND_FFT,
 			channelLayout: CHANNEL_COMBINED,
 			fillAlpha    : .3,
 			gradient     : 'cool',
 			gradientRight: 'dusk',
 			lineWidth    : 1,
 			linkGrads    : 0,
-			mode         : MODE_LINE,
+			mode         : MODE_GRAPH,
 			radial       : 0,
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
@@ -405,7 +425,7 @@ const presets = [
 		options: {
 			alphaBars    : 0,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_12TH,
+			bandCount    : BAND_OCTAVE_12TH,
 			bgImageFit   : BGFIT_ADJUST,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_GRADIENT,
@@ -430,7 +450,7 @@ const presets = [
 		options: {
 			alphaBars    : 1,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_4TH,
+			bandCount    : BAND_OCTAVE_4TH,
 			bgImageFit   : BGFIT_PULSE,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_LEVEL,
@@ -453,7 +473,7 @@ const presets = [
 		options: {
 			alphaBars    : 0,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_8TH,
+			bandCount    : BAND_OCTAVE_8TH,
 			bgImageFit   : BGFIT_WARP_ANI,
 			channelLayout: CHANNEL_SINGLE,
 			colorMode    : COLOR_INDEX,
@@ -485,7 +505,7 @@ const presets = [
 			alphaBars    : 0,
 			ansiBands    : 0,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_3RD,
+			bandCount    : BAND_FFT,
 			barSpace     : .2,
 			bgImageDim   : .3,
 			bgImageFit   : BGFIT_CENTER,
@@ -496,8 +516,6 @@ const presets = [
 			freqMax      : 20000,
 			freqMin      : 20,
 			freqScale    : SCALE_LOG,
-			gradient     : 'prism',
-			gradientRight: 'prism',
 			ledDisplay   : 0,
 			linearAmpl   : 1,
 			lineWidth    : 1,
@@ -506,7 +524,7 @@ const presets = [
 			lumiBars     : 0,
 			micSource    : 0,
 			mirror       : 0,
-			mode         : MODE_DISCRETE,
+			mode         : MODE_BARS,
 			mute         : 0,
 			noShadow     : 1,
 			outlineBars  : 0,
@@ -518,6 +536,7 @@ const presets = [
 			roundBars    : 0,
 			sensitivity  : 1,
 			showFPS      : 0,
+			showLedMask  : 1,
 			showPeaks    : PEAKS_ON,
 			showScaleX   : SCALEXY_ON,
 			showScaleY   : SCALEXY_OFF,
@@ -526,14 +545,15 @@ const presets = [
 			smoothing    : .7,
 			spin         : 2,
 			splitGrad    : 0,
+			themes       : { name: 'rainbow', modifiers: { ...DEFAULT_MODIFIERS } },
 			volume       : 1,
 			weighting    : WEIGHT_D
 		}
 	}
 ];
 
-// Gradient definitions
-const gradients = {
+// Color theme definitions
+const THEMES = {
 	apple:    { name: 'Apple ][', colorStops: [
 				{ pos: .1667, color: '#61bb46' },
 				{ pos: .3333, color: '#fdb827' },
@@ -556,11 +576,7 @@ const gradients = {
 				{ pos: .5, color: '#d76d77' },
 				{ pos: 1, color: '#3a1c71' }
 			  ], disabled: false },
-	classic:  { name: 'Classic', colorStops: [
-				'#f00',
-				{ color: '#ff0', level: .85, pos: .6 },
-				{ color: '#0f0', level: .475 }
-			  ], disabled: false },
+	classic:  { name: 'Classic', disabled: false },
 	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
 				'hsl( 208, 0%, 100% )',
 				'hsl( 208, 100%, 35% )'
@@ -592,9 +608,7 @@ const gradients = {
 				{ pos: .1, color: '#34e89e' },
 				{ pos: 1, color: '#0f3443' }
 			  ], disabled: false },
-	prism:    { name: 'Prism', colorStops: [
-				'#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b'
-			  ], disabled: false },
+	prism:    { name: 'Prism', disabled: false },
 	prism_old: { name: 'Prism (legacy)', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -602,9 +616,7 @@ const gradients = {
 				'hsl( 180, 100%, 50% )',
 				'hsl( 240, 100%, 50% )'
 			  ], disabled: true },
-	rainbow:  { name: 'Rainbow', dir: 'h', colorStops: [
-				'#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639'
-			  ], disabled: false },
+	rainbow:  { name: 'Rainbow', disabled: false },
 	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -637,9 +649,8 @@ const gradients = {
 
 // Visualization modes
 const modeOptions = [
-	[ MODE_BARS,     'Bars'  ],
-	[ MODE_DISCRETE, 'FFT'   ],
-	[ MODE_GRAPH,    'Graph' ]
+	[ MODE_BARS,  'Bars'  ],
+	[ MODE_GRAPH, 'Graph' ]
 ];
 
 // Channel Layout options
@@ -855,7 +866,7 @@ const getText = el => {
 const getControlValue = el => {
 	let ret = el.value;  // basic select and input elements
 	if ( el == elBandCount )
-		ret = 9 - ret;
+		ret = ret == 9 ? 0 : ret; // FFT = 0
 	else if ( isCustomRadio( el ) )
 		ret = el.elements[ el.dataset.prop ].value;
 	else if ( el.className.includes('switch') )
@@ -879,8 +890,6 @@ const getCurrentSettings = _ => ({
 	freqMax		 : getControlValue( elRangeMax ),
 	freqMin		 : getControlValue( elRangeMin ),
 	freqScale    : getControlValue( elFreqScale ),
-	gradient	 : getControlValue( elGradient ),
-	gradientRight: getControlValue( elGradientRight ),
 	ledDisplay   : getControlValue( elLedDisplay ),
 	linearAmpl   : getControlValue( elLinearAmpl ),
 	lineWidth    : getControlValue( elLineWidth ),
@@ -899,6 +908,7 @@ const getCurrentSettings = _ => ({
 	roundBars    : getControlValue( elRoundBars ),
 	sensitivity  : getControlValue( elSensitivity ),
 	showFPS      : getControlValue( elFPS ),
+	showLedMask  : getControlValue( elLedMask ),
 	showPeaks 	 : getControlValue( elShowPeaks ),
 	showScaleX 	 : getControlValue( elScaleX ),
 	showScaleY 	 : getControlValue( elScaleY ),
@@ -907,8 +917,23 @@ const getCurrentSettings = _ => ({
 	smoothing    : getControlValue( elSmoothing ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
+	themes       : getCurrentThemes(),
 	weighting    : getControlValue( elWeighting )
 });
+
+const getCurrentThemes = () => {
+	let ret = [];
+	for ( const ch of [0,1] ) {
+		ret.push({
+			name: getControlValue( ch ? elTheme1 : elTheme0 ),
+			modifiers: {
+				horizontal: +getControlValue( ch ? elHorizontal1 : elHorizontal0 ),
+				reverse: +getControlValue( ch ? elReverse1 : elReverse0 ),
+			}
+		});
+	}
+	return ret;
+}
 
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
 const getPresetIndex = key => {
@@ -931,7 +956,7 @@ const getPresetName = key => {
 // return selected gradient(s) for canvas OSD message
 const getSelectedGradients = () => {
 	const isDual = getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
-	return `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
+	return `Theme${ isDual ? 's' : ''}: ${ THEMES[ elTheme0.value ].name + ( isDual ? ' / ' + THEMES[ elTheme1.value ].name : '' ) }`;
 }
 
 // return a list of user preset slots and descriptions
@@ -1051,8 +1076,8 @@ const setControlValue = ( el, val ) => {
 		setSource( val );
 	else if ( el == elVolume )
 		setVolume( val );
-	else if ( el == elBandCount ) // invert values when setting/getting, so the slider goes from lower to higher band count
-		el.value = 9 - val;
+	else if ( el == elBandCount )
+		el.value = val == 0 ? 9 : val; // convert 0 to 9, so the FFT (max resolution) appears at the end of the slider
 	else if ( isCustomRadio( el ) ) {
 		// note: el.elements[ prop ].value = val won't work for empty string value
 		const option = el.querySelector(`[value="${val}"]`);
@@ -1547,8 +1572,8 @@ function doConfigPanel() {
 
 	const elEnabledGradients = $('#enabled_gradients');
 
-	Object.keys( gradients ).forEach( key => {
-		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
+	Object.keys( THEMES ).forEach( key => {
+		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }> ${ THEMES[ key ].name }</label>`;
 	});
 
 	populateEnabledGradients();
@@ -1877,7 +1902,7 @@ function keyboardControls( event ) {
 					}
 					break;
 				case 'KeyG': 		// gradient
-					cycleElement( elGradient, isShiftKey );
+					cycleElement( elTheme0, isShiftKey );
 					setCanvasMsg( getSelectedGradients() );
 					break;
 				case 'ArrowRight': 	// next song
@@ -1921,8 +1946,8 @@ function keyboardControls( event ) {
 					setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
 					break;
 				case 'KeyL': 		// toggle LED display effect
-					elLedDisplay.click();
-					setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
+					cycleElement( elLedDisplay, isShiftKey );
+					setCanvasMsg( 'LED bars: ' + getText( elLedDisplay ) );
 					break;
 				case 'KeyM': 		// visualization mode
 				case 'KeyV':
@@ -2255,13 +2280,13 @@ function loadPreferences( serverConfig ) {
 	const customGradients = loadFromStorage( KEY_CUSTOM_GRADS );
 	if ( customGradients ) {
 		Object.keys( customGradients ).forEach( key => {
-			gradients[ key ] = customGradients[ key ];
-			gradients[ key ].key = key; // a `key` property indicates this is a custom gradient
+			THEMES[ key ] = customGradients[ key ];
+			THEMES[ key ].key = key; // a `key` property indicates this is a custom gradient
 		});
 	}
 
 	// Load disabled gradients preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_GRADS ), gradients );
+	parseDisabled( loadFromStorage( KEY_DISABLED_GRADS ), THEMES );
 
 	// Load disabled random properties preference
 	parseDisabled( loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
@@ -2389,21 +2414,56 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks )
 		thisPreset.showPeaks = PEAKS_FADE;
 
-	if ( thisPreset.mode == MODE_LINE )
-		thisPreset.mode = MODE_GRAPH;
-
-	if ( ! [ MODE_DISCRETE, MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
-		thisPreset.bandCount = thisPreset.mode;
-		thisPreset.mode = MODE_BARS;
+	if ( ! [ MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
+		thisPreset.bandCount = [ LEGACY_MODE_DISCRETE, LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? 0 : 9 - thisPreset.mode;
+		thisPreset.mode = [ LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? MODE_GRAPH : MODE_BARS;
 	}
 
 	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
 		thisPreset.showScaleX = SCALEX_NOTES;
 
+	// convert old `gradient` and `gradientRight` properties to new `themes` property
+	if ( thisPreset.gradient || thisPreset.gradientRight ) {
+		const convert = name => ({
+			name,
+			modifiers: { ...DEFAULT_MODIFIERS }
+		});
+
+		thisPreset.themes = [
+			convert( thisPreset.gradient || thisPreset.gradientRight ),
+			convert( thisPreset.gradientRight || thisPreset.gradient )
+		];
+	}
+
+	// set themes and modifiers UI controls
+	if ( thisPreset.themes || init ) {
+		let themes = thisPreset.themes || defaults.themes;
+
+		if ( ! Array.isArray( themes ) )
+			themes = [ themes ];
+
+		if ( themes.length < 2 )
+			themes.push( themes[0] );
+
+		for ( const ch of [0,1] ) {
+			const { name }  = themes[ ch ],
+				  modifiers = { ...DEFAULT_MODIFIERS, ...themes[ ch ].modifiers };
+
+			setControlValue( ch ? elTheme1 : elTheme0, name );
+			setControlValue( ch ? elHorizontal1 : elHorizontal0, modifiers.horizontal );
+			setControlValue( ch ? elReverse1 : elReverse0, modifiers.reverse );
+		}
+	}
+
 	// assign values read from the preset to the UI controls
 	$$('[data-prop]').forEach( el => {
-		const prop = el.dataset.prop,
-			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
+		const prop = el.dataset.prop;
+
+		// themes and modifiers already handled above (data-prop used only for adding event listeners)
+		if ( prop == 'themes' )
+			return;
+
+		const val = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
 		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) )
 			setControlValue( el, val );
@@ -2412,11 +2472,11 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	audioMotion.setOptions( {
 		alphaBars      : isSwitchOn( elAlphaBars ),
 		ansiBands      : +getControlValue( elAnsiBands ),
+		bandResolution : getControlValue( elBandCount ),
 		colorMode      : getControlValue( elColorMode ),
 		fftSize        : getControlValue( elFFTsize ),
 		fillAlpha      : getControlValue( elFillAlpha ),
 		frequencyScale : getControlValue( elFreqScale ),
-		ledBars        : isSwitchOn( elLedDisplay ),
 		linearAmplitude: +getControlValue( elLinearAmpl ),
 		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
@@ -2432,6 +2492,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
+		showLedMask    : isSwitchOn( elLedMask ),
 		showScaleY     : +getControlValue( elScaleY ),
 		smoothing      : getControlValue( elSmoothing ),
 		spinSpeed      : getControlValue( elSpin ),
@@ -2447,17 +2508,17 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elChnLayout,
 		elShowPeaks, // also sets fadePeaks
 		elGravity,
-		elLinkGrads, // note: this needs to be set before the gradients!
+		elLedDisplay,
 		elSensitivity,
 		elReflex,
-		elGradient,
-		elGradientRight,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elShowSubtitles,
 		elScaleX, // also sets noteLabels
 		elMode ]
 	);
+
+	audioMotion.setTheme( getCurrentThemes() );
 
 	if ( key == 'demo' )
 		randomizeSettings( true );
@@ -2857,11 +2918,11 @@ function populateCustomRadio( element, options, name ) {
 function populateEnabledGradients() {
 	// Enabled gradients
 	const elEnabledGradients = $('#enabled_gradients'),
-		  gradientKeys       = Object.keys( gradients ),
+		  gradientKeys       = Object.keys( THEMES ),
 		  collator           = new Intl.Collator();
 
 	// case-insensitive sorting with international characters support - https://stackoverflow.com/a/40390844/2370385
-	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
+	gradientKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
 
 	// reset
 	deleteChildren(elEnabledGradients);
@@ -2869,22 +2930,22 @@ function populateEnabledGradients() {
 	gradientKeys.forEach( key => {
 		elEnabledGradients.innerHTML +=
 			`<label>
-				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link" title="edit"></a>
+				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }>
+				${ THEMES[ key ].name }<a href="#" data-grad="${key}" class="grad-edit-link" title="edit"></a>
 			</label>`;
 	});
 
 	$$('.enabledGradient').forEach( el => {
 		el.addEventListener( 'click', event => {
 			if ( ! el.checked ) {
-				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				const count = Object.keys( THEMES ).reduce( ( acc, val ) => acc + ! THEMES[ val ].disabled, 0 );
 				if ( count < 2 ) {
 					notie.alert({ text: 'At least one Gradient must be enabled!' });
 					event.preventDefault();
 					return false;
 				}
 			}
-			gradients[ el.dataset.grad ].disabled = ! el.checked;
+			THEMES[ el.dataset.grad ].disabled = ! el.checked;
 			populateGradients();
 			savePreferences(KEY_DISABLED_GRADS);
 		});
@@ -2903,19 +2964,19 @@ function populateEnabledGradients() {
  * Populate UI gradient selection combo box
  */
 function populateGradients() {
-	const gradientKeys = Object.keys( gradients ),
+	const gradientKeys = Object.keys( THEMES ),
 		  collator     = new Intl.Collator();
 
-	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
+	gradientKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
 
-	for ( const el of [ elGradient, elGradientRight ] ) {
+	for ( const el of [ elTheme0, elTheme1 ] ) {
 		let grad = el.value;
 		deleteChildren( el );
 
 		// add the option to the html select element for the user interface
 		for ( const key of gradientKeys ) {
-			if ( ! gradients[ key ].disabled )
-				el.options[ el.options.length ] = new Option( gradients[ key ].name, key );
+			if ( ! THEMES[ key ].disabled )
+				el.options[ el.options.length ] = new Option( THEMES[ key ].name, key );
 		}
 
 		if ( grad !== '' ) {
@@ -3054,7 +3115,7 @@ function randomizeSettings( force = elSource.checked ) {
 
 	if ( isEnabled( RND_LUMI ) ) {
 		// no LUMI when LEDs are on and background is image or video
-		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) );
+		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || getControlValue( elLedDisplay ) == LEDS_OFF );
 	}
 
 	if ( isEnabled( RND_OUTLINE ) )
@@ -3062,7 +3123,7 @@ function randomizeSettings( force = elSource.checked ) {
 
 	if ( isEnabled( RND_REFLEX ) ) {
 		// no full reflex with LEDs
-		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) );
+		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || getControlValue( elLedDisplay ) == LEDS_OFF );
 	}
 
 	if ( isEnabled( RND_RADIAL ) )
@@ -3075,7 +3136,7 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elSplitGrad );
 
 	if ( isEnabled( RND_GRADIENT ) ) {
-		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
+		for ( const el of [ elTheme0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elTheme1 ] ) ] )
 			randomizeControl( el );
 	}
 }
@@ -3382,14 +3443,14 @@ function savePreferences( key ) {
 		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
 
 	if ( ! key || key == KEY_DISABLED_GRADS )
-		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).map( key => ( { value: key, disabled: gradients[ key ].disabled } ) ) );
+		saveToStorage( KEY_DISABLED_GRADS, Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ) );
 
 	if (! key || key == KEY_CUSTOM_GRADS) {
 		const customGradients = {};
-		Object.keys(gradients)
-			.filter( key => gradients[ key ].key ) // if it has a `key` property it's a custom gradient
-			.forEach( key => customGradients[key] = gradients[key]);
-		saveToStorage( KEY_CUSTOM_GRADS, customGradients);
+		Object.keys( THEMES )
+			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom gradient
+			.forEach( key => customGradients[ key ] = THEMES [ key ] );
+		saveToStorage( KEY_CUSTOM_GRADS, customGradients );
 	}
 
 	if ( ! key || key == KEY_DISABLED_PROPS )
@@ -3680,7 +3741,12 @@ function setProperty( elems, save = true ) {
 	if ( ! Array.isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleGradientRight = () => toggleDisplay( elGradientRight, getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ) );
+	const toggleRightChannelThemeOptions = () => {
+		const show = getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
+		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
+			toggleDisplay( el, show );
+		$('#themes_grid').classList.toggle( 'grid', show );
+	};
 
 	for ( const el of elems ) {
 		switch ( el ) {
@@ -3730,8 +3796,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBandCount:
-				setControlValue( elMode, getControlValue( elBandCount ) ); // note: elBandCount value must be translated by getControlValue()
-				setProperty( elMode, false );
+				audioMotion.bandResolution = getControlValue( elBandCount );
 				break;
 
 			case elBarSpace:
@@ -3779,7 +3844,7 @@ function setProperty( elems, save = true ) {
 
 			case elChnLayout:
 				audioMotion.channelLayout = getControlValue( elChnLayout );
-				toggleGradientRight();
+				toggleRightChannelThemeOptions();
 				break;
 
 			case elColorMode:
@@ -3808,18 +3873,34 @@ function setProperty( elems, save = true ) {
 				elAnalyzer.style.height = `${elFsHeight.value}%`;
 				break;
 
-			case elGradient:
-			case elGradientRight:
-				if ( el.value === '' ) // handle invalid setting
+			case elTheme0:
+			case elTheme1:
+				if ( getControlValue( el ) === '' ) // handle invalid setting (coming from preset)
 					el.selectedIndex = 0;
-				if ( isSwitchOn( elLinkGrads ) )
-					audioMotion.gradient = elGradient.value = elGradientRight.value = el.value;
-				else
-					audioMotion[ el == elGradient ? 'gradientLeft' : 'gradientRight' ] = el.value;
+				if ( isSwitchOn( elLinkGrads ) ) {
+					setControlValue( elTheme0, getControlValue( el ) );
+					setControlValue( elTheme1, getControlValue( el ) );
+				}
+				audioMotion.setTheme( getCurrentThemes() );
+				break;
+
+			case elHorizontal0:
+			case elHorizontal1:
+				if ( isSwitchOn( elLinkGrads ) ) {
+					setControlValue( elHorizontal0, getControlValue( el ) );
+					setControlValue( elHorizontal1, getControlValue( el ) );
+				}
+				audioMotion.setTheme( getCurrentThemes() );
 				break;
 
 			case elLedDisplay:
-				audioMotion.ledBars = isSwitchOn( elLedDisplay );
+				const val = getControlValue( elLedDisplay );
+				audioMotion.ledBars  = val != LEDS_OFF;
+				audioMotion.trueLeds = val == LEDS_VINTAGE;
+				break;
+
+			case elLedMask:
+				audioMotion.showLedMask = isSwitchOn( elLedMask );
 				break;
 
 			case elLinearAmpl:
@@ -3831,9 +3912,12 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLinkGrads:
-				toggleGradientRight();
-				if ( isSwitchOn( elLinkGrads ) )
-					setProperty( elGradient, false );
+				toggleRightChannelThemeOptions();
+				if ( isSwitchOn( elLinkGrads ) ) {
+					setProperty( elTheme0, false );
+					setProperty( elHorizontal0, false );
+					setProperty( elReverse0, false );
+				}
 				break;
 
 			case elLoRes:
@@ -3854,8 +3938,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elMode:
-				const mode = getControlValue( elMode );
-				audioMotion.mode = ( mode == MODE_BARS ) ? getControlValue( elBandCount ) : mode;
+				audioMotion.mode = getControlValue( elMode );
 				setProperty( elBarSpace, false );
 				break;
 
@@ -3949,6 +4032,15 @@ function setProperty( elems, save = true ) {
 					default:
 						audioMotion.reflexRatio = 0;
 				}
+				break;
+
+			case elReverse0:
+			case elReverse1:
+				if ( isSwitchOn( elLinkGrads ) ) {
+					setControlValue( elReverse0, getControlValue( el ) );
+					setControlValue( elReverse1, getControlValue( el ) );
+				}
+				audioMotion.setTheme( getCurrentThemes() );
 				break;
 
 			case elRoundBars:
@@ -4267,6 +4359,8 @@ function setUIEventListeners() {
 
 	// settings switches
 	$$('.switch').forEach( el => {
+		if ( ! el.dataset.prop ) // ignore switches that have no data-prop (e.g. Manage Themes)
+			return;
 		el.addEventListener( 'click', () => {
 			el.dataset.active = +!+el.dataset.active;
 			setProperty( el );
@@ -4817,6 +4911,9 @@ function translateRangeValue( el ) {
 		  { abs, sign } = Math;
 
 	if ( el == elBandCount ) {
+		if ( val == 9 )
+			return 'FFT frequencies';
+
 		const isOctaves = getControlValue( elFreqScale ) == SCALE_LOG,
 			  bands = isOctaves
 					  ? [ '', '', 'half-', '1/3rd-', '1/4th-', '1/6th-', '1/8th-', '1/12th-', '1/24th-' ]
@@ -5189,7 +5286,6 @@ function updateRangeValue( el ) {
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
 	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
-		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
 		fsElement: elContainer,
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
@@ -5299,6 +5395,12 @@ function updateRangeValue( el ) {
 		[ '120', 'every 5 minutes'  ]
 	]);
 
+	populateCustomRadio( elLedDisplay, [
+		[ LEDS_OFF,     'Off'     ],
+		[ LEDS_MODERN,  'Modern'  ],
+		[ LEDS_VINTAGE, 'Vintage' ]
+	]);
+
 	populateCustomRadio( elReflex, [
 		[ REFLEX_OFF,   'Off'    ],
 		[ REFLEX_SHORT, '25%'    ],
@@ -5370,7 +5472,7 @@ function updateRangeValue( el ) {
 	}
 	populateCustomRadio( elFFTsize, fftOptions );
 
-	setRangeAtts( elBandCount, 1, 8 );
+	setRangeAtts( elBandCount, 1, 9 );
 	setRangeAtts( elBarSpace, 0, 1, .05 );
 	setRangeAtts( elBgImageDim, 0.1, 1, .05 );
 	setRangeAtts( elFillAlpha, 0, 1, .05 );
@@ -5382,11 +5484,11 @@ function updateRangeValue( el ) {
 	// Clear canvas messages
 	setCanvasMsg();
 
-	// Register custom gradients
-	Object.keys( gradients ).forEach( key => {
-		const { bgColor, dir, colorStops } = gradients[ key ];
+	// Register custom color themes
+	Object.keys( THEMES ).forEach( key => {
+		const { bgColor, dir, colorStops } = THEMES[ key ];
 		if ( colorStops )
-			audioMotion.registerGradient( key, { bgColor, dir, colorStops } );
+			audioMotion.registerTheme( key, { bgColor, dir, colorStops } );
 	});
 	populateGradients();
 

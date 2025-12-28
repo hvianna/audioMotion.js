@@ -260,36 +260,46 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help">Se<u>n</u>sitivity
+					<span class="config-label help"><u>L</u>ED bars
 						<span class="tooltip">
-						Improve visualization of songs too quiet or too loud. Customize in Configuration.
+						Configure display of LED bars<br><em>(Bars mode only)</em>
 						</span>
 					</span>
-					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
+					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
 				</div>
 
 			<!-- COLUMN 3 -->
 				<div class="column rowspan-2">
-					<span class="config-label help"><u>G</u>radients
+					<span class="config-label help">Color Themes (<u>G</u>)
 						<span class="tooltip">
-							Gradients for left and right channels. Set channel layout in Advanced.
+							Color themes for left and right channels. Set channel layout in Advanced.
 						</span>
 					</span>
 
-					<div class="flex align-center">
-						<select id="gradient" data-prop="gradient"></select>
-						<select id="gradientRight" data-prop="gradientRight"></select>
+					<div id="themes_grid" class="grid grid-2-cols">
+						<select id="theme_0" data-prop="themes"></select>
+						<select id="theme_1" data-prop="themes"></select>
+
+						<ul class="switch-bar">
+							<li class="switch" id="horizontal_0" data-prop="themes">HOR
+								<span class="tooltip">Horizontal gradient</span>
+							<li class="switch" id="reverse_0" data-prop="themes">REV
+								<span class="tooltip">Reverse color order</span>
+						</ul>
+						<ul class="switch-bar">
+							<li class="switch" id="horizontal_1" data-prop="themes">HOR
+								<span class="tooltip">Horizontal gradient</span>
+							<li class="switch" id="reverse_1" data-prop="themes">REV
+								<span class="tooltip">Reverse color order</span>
+						</ul>
 					</div>
 
 					<ul class="switch-bar">
-						<li class="switch" id="link_grads" data-prop="linkGrads">LINK
-							<span class="tooltip">Use the same Gradient for both channels</span>
-						<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
-							<span class="tooltip">Split gradients in two different parts<br><em>(for Vertical dual-channel layout)</em></span>
+						<li class="switch" id="link_grads" data-prop="linkGrads">Link
+							<span class="tooltip">Use the same Theme for both channels</span>
+						<li class="switch" id="manage_gradients">Manage
+							<span class="tooltip">Create and edit Themes</span>
 					</ul>
-					<div class="button-bar">
-						<button id="manage_gradients">Manage Gradients</button>
-					</div>
 				</div>
 
 				<div>
@@ -327,20 +337,20 @@
 					<span class="config-label">Effects</span>
 
 					<ul class="switch-bar">
-						<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
+						<li class="switch" id="alpha_bars" data-prop="alphaBars">ALPHA
 							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in Graph mode)</em></span>
 						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
 							<span class="tooltip">Show full height bars with varying luminance <em>(Bars mode only)</em></span>
 
-						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
-							<span class="tooltip">Vintage LED bars effect <em>(Bars mode only)</em></span>
-						<li class="switch" id="outline" data-prop="outlineBars">Outline
+						<li class="switch" id="outline" data-prop="outlineBars">OUTLINE
 							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
-
 						<li class="switch" id="radial" data-prop="radial">RADIAL
 							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
 							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
+						<li class="switch" id="split_grad" data-prop="splitGrad">SPREAD
+							<span class="tooltip">Gradients spread over both channels<br><em>(no effect on Single or Combined channel layouts)</em></span>
 					</ul>
 				</div>
 
@@ -349,10 +359,6 @@
 				</div>
 
 				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div class="last-row">
 					<span class="config-label help">Refle<u>x</u>
 						<span class="tooltip">
 						Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
@@ -361,16 +367,27 @@
 					<form id="reflex" class="custom-radio-buttons" data-prop="reflex"></form>
 				</div>
 
+				<div class="last-row">
+					<span class="config-label help">Se<u>n</u>sitivity
+						<span class="tooltip">
+						Improve visualization of songs too quiet or too loud. Customize in Configuration.
+						</span>
+					</span>
+					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
+				</div>
+
 			<!-- COLUMN 5 -->
 				<div class="rowspan-2 last-column">
 					<span class="config-label">Display</span>
 					<ul class="switch-bar">
-						<li class="switch" id="show_song" data-prop="showSong">Track <u>I</u>nfo
+						<li class="switch" id="show_song" data-prop="showSong">TRACK <u>I</u>NFO
 							<span class="tooltip">Display song info at track start/end.<br>Customize in Configuration.</span>
-						<li class="switch" id="show_subs" data-prop="showSubtitles">Subtitles
+						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
 							<span class="tooltip">Toggle display of subtitles</span>
-						<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
+						<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u> TEXT
 							<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
+						<li class="switch" id="led_mask" data-prop="ledMask">LED MASK
+							<span class="tooltip">Toggle display of LED mask</span>
 						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 						<li class="switch" id="fps" data-prop="showFPS">FPS

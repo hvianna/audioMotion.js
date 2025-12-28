@@ -1,5 +1,14 @@
 # Changelog
 
+## version NEXT
+
++ Added **LED Mask** switch;
++ **LEDS** switch changed to **LED bars** selection, with additional **Vintage** option;
++ Added per channel theme/gradient modifiers: Horizontal and Reverse;
++ Removed **FFT** mode - moved to **Band Count** option;
++ **SPLIT** renamed to **SPREAD** - moved to **Display** switches;
+
+
 ## version 25.9
 
 ### Added: <!-- {docsify-ignore} -->

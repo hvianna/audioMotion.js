@@ -711,7 +711,6 @@ a.button:visited {
 	margin-top: 3px;
 	padding: 6px 0 4px;
 	text-align: center;
-	text-transform: uppercase;
 	width: 50%;
 }
 .switch-bar .switch:not([data-active="1"]):hover {
