@@ -29,7 +29,43 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import {
+	AudioMotionAnalyzer,
+	BANDS_FFT,
+	BANDS_OCTAVE_FULL,
+	BANDS_OCTAVE_HALF,
+	BANDS_OCTAVE_3RD,
+	BANDS_OCTAVE_4TH,
+	BANDS_OCTAVE_6TH,
+	BANDS_OCTAVE_8TH,
+	BANDS_OCTAVE_12TH,
+	BANDS_OCTAVE_24TH,
+	COLORMODE_GRADIENT,
+	COLORMODE_INDEX,
+	COLORMODE_LEVEL,
+	FILTER_NONE,
+	FILTER_A,
+	FILTER_B,
+	FILTER_C,
+	FILTER_D,
+	FILTER_468,
+	LAYOUT_COMBINED,
+	LAYOUT_HORIZONTAL,
+	LAYOUT_SINGLE,
+	LAYOUT_VERTICAL,
+	MODE_BARS,
+	MODE_GRAPH,
+	REASON_CREATE,
+	REASON_FULLSCREENCHANGE,
+	REASON_LORES,
+	REASON_RESIZE,
+	REASON_USER,
+	SCALE_BARK,
+	SCALE_LINEAR,
+	SCALE_LOG,
+	SCALE_MEL
+} from 'audiomotion-analyzer';
+
 import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
@@ -96,17 +132,6 @@ const CSS_CLASS_COMPACT   = 'compact',
 	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
 	  CSS_CLASS_WARNING   = 'warning';
 
-// Channel Layouts
-const CHANNEL_COMBINED   = 'dual-combined',
- 	  CHANNEL_HORIZONTAL = 'dual-horizontal',
-	  CHANNEL_SINGLE     = 'single',
-	  CHANNEL_VERTICAL   = 'dual-vertical';
-
-// Color modes
-const COLOR_GRADIENT = 'gradient',
-	  COLOR_INDEX    = 'bar-index',
-	  COLOR_LEVEL    = 'bar-level';
-
 // default theme modifiers
 const DEFAULT_MODIFIERS = {
 	horizontal: false,
@@ -151,19 +176,8 @@ const LEDS_OFF     = '0',
 	  LEDS_MODERN  = '1',
 	  LEDS_VINTAGE = '2';
 
-// Visualization modes and band resolutions
-const MODE_BARS            = 'bars',
-	  MODE_GRAPH           = 'graph',
-	  BAND_FFT             = '0',
-	  BAND_OCTAVE_FULL     = '1',
-	  BAND_OCTAVE_HALF     = '2',
-	  BAND_OCTAVE_3RD      = '3',
-	  BAND_OCTAVE_4TH      = '4',
-	  BAND_OCTAVE_6TH      = '5',
-	  BAND_OCTAVE_8TH      = '6',
-	  BAND_OCTAVE_12TH     = '7',
-	  BAND_OCTAVE_24TH     = '8',
-   	  LEGACY_MODE_BARS     = '11',
+// Legacy visualization modes
+const LEGACY_MODE_BARS     = '11',
  	  LEGACY_MODE_DISCRETE = '0',
 	  LEGACY_MODE_GRAPH    = '10',
 	  LEGACY_MODE_LINE     = '101';
@@ -213,12 +227,6 @@ const RND_ALPHA      = 'alpha',
 	  RND_ROUND      = 'round',
 	  RND_SPLIT      = 'split';
 
-// Frequency scales
-const SCALE_BARK   = 'bark',
-	  SCALE_LINEAR = 'linear',
-	  SCALE_LOG    = 'log',
-	  SCALE_MEL    = 'mel';
-
 // X- and Y- scale switches
 const SCALEXY_OFF  = 0,
 	  SCALEXY_ON   = 1,
@@ -250,14 +258,6 @@ const SUBS_BG_NONE      = 'none',
 // Update banner settings
 const UPDATE_BANNER_TIMEOUT = 10000,  // time visible (milliseconds)
 	  UPDATE_SHOW_CSS_CLASS = 'show'; // active CSS class
-
-// Weighting filters
-const WEIGHT_NONE = '',
-	  WEIGHT_A    = 'A',
-	  WEIGHT_B    = 'B',
-	  WEIGHT_C    = 'C',
-	  WEIGHT_D    = 'D',
-	  WEIGHT_468  = '468';
 
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
@@ -381,10 +381,10 @@ const presets = [
 		options: {
 			alphaBars    : 0,
 			background   : BG_DEFAULT,
-			bandCount    : BAND_OCTAVE_3RD,
+			bandCount    : BANDS_OCTAVE_3RD,
 			barSpace     : .2,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_GRADIENT,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'classic',
 			ledDisplay   : 1,
 			lumiBars     : 0,
@@ -403,8 +403,8 @@ const presets = [
 		key: 'dual',
 		name: 'Dual-channel combined Graph',
 		options: {
-//			bandCount    : BAND_FFT,
-			channelLayout: CHANNEL_COMBINED,
+//			bandCount    : BANDS_FFT,
+			channelLayout: LAYOUT_COMBINED,
 			fillAlpha    : .3,
 			gradient     : 'cool',
 			gradientRight: 'dusk',
@@ -425,10 +425,10 @@ const presets = [
 		options: {
 			alphaBars    : 0,
 			background   : BG_COVER,
-			bandCount    : BAND_OCTAVE_12TH,
+			bandCount    : BANDS_OCTAVE_12TH,
 			bgImageFit   : BGFIT_ADJUST,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_GRADIENT,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'rainbow',
 			ledDisplay   : 0,
 			lumiBars     : 0,
@@ -450,10 +450,10 @@ const presets = [
 		options: {
 			alphaBars    : 1,
 			background   : BG_COVER,
-			bandCount    : BAND_OCTAVE_4TH,
+			bandCount    : BANDS_OCTAVE_4TH,
 			bgImageFit   : BGFIT_PULSE,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_LEVEL,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_LEVEL,
 			gradient     : 'prism',
 			ledDisplay   : 0,
 			lumiBars     : 0,
@@ -473,10 +473,10 @@ const presets = [
 		options: {
 			alphaBars    : 0,
 			background   : BG_COVER,
-			bandCount    : BAND_OCTAVE_8TH,
+			bandCount    : BANDS_OCTAVE_8TH,
 			bgImageFit   : BGFIT_WARP_ANI,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_INDEX,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_INDEX,
 			gradient     : 'apple',
 			ledDisplay   : 0,
 			lumiBars     : 0,
@@ -505,12 +505,12 @@ const presets = [
 			alphaBars    : 0,
 			ansiBands    : 0,
 			background   : BG_COVER,
-			bandCount    : BAND_FFT,
+			bandCount    : BANDS_FFT,
 			barSpace     : .2,
 			bgImageDim   : .3,
 			bgImageFit   : BGFIT_CENTER,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_GRADIENT,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_GRADIENT,
 			fftSize      : 8192,
 			fillAlpha    : .3,
 			freqMax      : 20000,
@@ -547,7 +547,7 @@ const presets = [
 			splitGrad    : 0,
 			themes       : { name: 'rainbow', modifiers: { ...DEFAULT_MODIFIERS } },
 			volume       : 1,
-			weighting    : WEIGHT_D
+			weighting    : FILTER_D
 		}
 	}
 ];
@@ -655,10 +655,10 @@ const modeOptions = [
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ CHANNEL_SINGLE,     'Single' ],
-	[ CHANNEL_COMBINED,   'Comb'   ],
-	[ CHANNEL_HORIZONTAL, 'Horiz'  ],
-	[ CHANNEL_VERTICAL,   'Vert'   ]
+	[ LAYOUT_SINGLE,     'Single' ],
+	[ LAYOUT_COMBINED,   'Comb'   ],
+	[ LAYOUT_HORIZONTAL, 'Horiz'  ],
+	[ LAYOUT_VERTICAL,   'Vert'   ]
 ];
 
 // Randomize options
@@ -955,7 +955,7 @@ const getPresetName = key => {
 
 // return selected gradient(s) for canvas OSD message
 const getSelectedGradients = () => {
-	const isDual = getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
+	const isDual = getControlValue( elChnLayout ) != LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
 	return `Theme${ isDual ? 's' : ''}: ${ THEMES[ elTheme0.value ].name + ( isDual ? ' / ' + THEMES[ elTheme1.value ].name : '' ) }`;
 }
 
@@ -3742,7 +3742,7 @@ function setProperty( elems, save = true ) {
 		elems = [ elems ];
 
 	const toggleRightChannelThemeOptions = () => {
-		const show = getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
+		const show = getControlValue( elChnLayout ) != LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
 		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
 			toggleDisplay( el, show );
 		$('#themes_grid').classList.toggle( 'grid', show );
@@ -4969,17 +4969,17 @@ function updateRangeValue( el ) {
 
 		let msg;
 		switch ( reason ) {
-			case 'create':
+			case REASON_CREATE:
 				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
 				msg = 'Canvas created';
 				break;
-			case 'lores':
+			case REASON_LORES:
 				msg = `Lo-res ${ loRes ? 'ON' : 'OFF' } (pixelRatio = ${ pixelRatio })`;
 				break;
-			case 'fschange':
+			case REASON_FULLSCREENCHANGE:
 				msg = `${ isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
 				break;
-			case 'user' :
+			case REASON_USER:
 				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
 				break;
 			default:
@@ -5424,18 +5424,18 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elWeighting, [
-		[ WEIGHT_NONE, 'Off' ],
-		[ WEIGHT_A,    'A'   ],
-		[ WEIGHT_B,    'B'   ],
-		[ WEIGHT_C,    'C'   ],
-		[ WEIGHT_D,    'D'   ],
-		[ WEIGHT_468,  '468' ],
+		[ FILTER_NONE, 'Off' ],
+		[ FILTER_A,    'A'   ],
+		[ FILTER_B,    'B'   ],
+		[ FILTER_C,    'C'   ],
+		[ FILTER_D,    'D'   ],
+		[ FILTER_468,  '468' ],
 	]);
 
 	populateCustomRadio( elColorMode, [
-		[ COLOR_GRADIENT, 'Gradient'  ],
-		[ COLOR_INDEX,    'Index' ],
-		[ COLOR_LEVEL,    'Level' ]
+		[ COLORMODE_GRADIENT, 'Gradient'  ],
+		[ COLORMODE_INDEX,    'Index' ],
+		[ COLORMODE_LEVEL,    'Level' ]
 	]);
 
 	populateCustomRadio( elShowPeaks, [
