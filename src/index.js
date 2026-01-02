@@ -31,6 +31,9 @@
 
 import {
 	AudioMotionAnalyzer,
+	ALPHABARS_FULL,
+	ALPHABARS_OFF,
+	ALPHABARS_ON,
 	BANDS_FFT,
 	BANDS_OCTAVE_FULL,
 	BANDS_OCTAVE_HALF,
@@ -215,7 +218,6 @@ const RND_ALPHA      = 'alpha',
 	  RND_COLORMODE  = 'colormode',
 	  RND_GRADIENT   = 'gradient',
 	  RND_LEDS       = 'leds',
-	  RND_LUMI       = 'lumi',
 	  RND_MODE       = 'mode',
 	  RND_OUTLINE    = 'outline',
 	  RND_PEAKS      = 'peaks',
@@ -295,7 +297,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elLineWidth     = $('#line_width'),
 	  elLinkGrads     = $('#link_grads'),
 	  elLoRes         = $('#lo_res'),
-	  elLumiBars      = $('#lumi_bars'),
 	  elMaxFPS        = $('#max_fps'),
 	  elMediaPanel    = $('#files_panel'),
 	  elMirror        = $('#mirror'),
@@ -377,7 +378,7 @@ const presets = [
 		key: 'ledbars',
 		name: 'Classic LED bars',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			background   : BG_DEFAULT,
 			bandCount    : BANDS_OCTAVE_3RD,
 			barSpace     : .2,
@@ -385,7 +386,6 @@ const presets = [
 			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'classic',
 			ledDisplay   : LEDS_MODERN,
-			lumiBars     : 0,
 			outlineBars  : 0,
 			mode         : MODE_BARS,
 			radial       : 0,
@@ -421,7 +421,7 @@ const presets = [
 		key: 'bands',
 		name: 'Octave Bands + Reflex',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			background   : BG_COVER,
 			bandCount    : BANDS_OCTAVE_12TH,
 			bgImageFit   : BGFIT_ADJUST,
@@ -429,7 +429,6 @@ const presets = [
 			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'rainbow',
 			ledDisplay   : LEDS_OFF,
-			lumiBars     : 0,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
 			radial       : 0,
@@ -446,7 +445,7 @@ const presets = [
 		key: 'radial',
 		name: 'Radial, Color by Level',
 		options: {
-			alphaBars    : 1,
+			alphaBars    : ALPHABARS_ON,
 			background   : BG_COVER,
 			bandCount    : BANDS_OCTAVE_4TH,
 			bgImageFit   : BGFIT_PULSE,
@@ -454,7 +453,6 @@ const presets = [
 			colorMode    : COLORMODE_LEVEL,
 			gradient     : 'prism',
 			ledDisplay   : LEDS_OFF,
-			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
@@ -469,7 +467,7 @@ const presets = [
 		key: 'round',
 		name: 'Round Bars, Color by Index',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			background   : BG_COVER,
 			bandCount    : BANDS_OCTAVE_8TH,
 			bgImageFit   : BGFIT_WARP_ANI,
@@ -477,7 +475,6 @@ const presets = [
 			colorMode    : COLORMODE_INDEX,
 			gradient     : 'apple',
 			ledDisplay   : LEDS_OFF,
-			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
@@ -500,7 +497,7 @@ const presets = [
 		key: PRESET_KEY_DEFAULT,
 		name: 'Restore defaults',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			ansiBands    : 0,
 			background   : BG_COVER,
 			bandCount    : BANDS_FFT,
@@ -519,7 +516,6 @@ const presets = [
 			lineWidth    : 1,
 			linkGrads    : 0,
 			loRes        : 0,
-			lumiBars     : 0,
 			micSource    : 0,
 			mirror       : 0,
 			mode         : MODE_BARS,
@@ -662,21 +658,20 @@ const channelLayoutOptions = [
 // Randomize options
 const randomProperties = [
 	{ value: RND_PRESETS,     text: 'User Presets',  disabled: true  },
-	{ value: RND_ALPHA,       text: 'Alpha',         disabled: false },
+	{ value: RND_ALPHA,       text: 'Alpha Bars',    disabled: false },
 	{ value: RND_MODE,        text: 'Analyzer Mode', disabled: false },
 	{ value: RND_BACKGROUND,  text: 'Background',    disabled: false },
 	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
 	{ value: RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
 	{ value: RND_COLORMODE,   text: 'Color Mode',    disabled: false },
-	{ value: RND_GRADIENT,    text: 'Gradients',     disabled: false },
-	{ value: RND_LEDS,        text: 'LEDs',          disabled: false },
-	{ value: RND_LUMI,        text: 'Lumi',          disabled: false },
+	{ value: RND_GRADIENT,    text: 'Color Themes',  disabled: false },
+	{ value: RND_LEDS,        text: 'LED Bars',      disabled: false },
 	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
 	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
 	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
 	{ value: RND_REFLEX,      text: 'Reflex',        disabled: false },
 	{ value: RND_ROUND,       text: 'Round',         disabled: false },
-	{ value: RND_SPLIT,       text: 'Split',         disabled: false }
+	{ value: RND_SPLIT,       text: 'Spread',        disabled: false }
 ];
 
 // Sensitivity presets
@@ -896,7 +891,6 @@ const getCurrentSettings = _ => ({
 	lineWidth    : getControlValue( elLineWidth ),
 	linkGrads    : getControlValue( elLinkGrads ),
 	loRes        : getControlValue( elLoRes ),
-	lumiBars     : getControlValue( elLumiBars ),
 	mirror       : getControlValue( elMirror ),
 	mode         : getControlValue( elMode ),
 	noShadow     : getControlValue( elNoShadow ),
@@ -1983,10 +1977,6 @@ function keyboardControls( event ) {
 					elNoShadow.click();
 					setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
 					break;
-				case 'KeyU': 		// toggle lumi bars
-					elLumiBars.click();
-					setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
-					break;
 				case 'KeyX':
 					cycleElement( elReflex, isShiftKey );
 					setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
@@ -2426,6 +2416,12 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
 		thisPreset.showScaleX = SCALEX_NOTES;
 
+	if ( isNumeric( thisPreset.alphaBars ) )
+		thisPreset.alphaBars = thisPreset.alphaBars ? ALPHABARS_ON : ALPHABARS_OFF;
+
+	if ( thisPreset.lumiBars )
+		thisPreset.alphaBars = ALPHABARS_FULL;
+
 	if ( isNumeric( thisPreset.ledDisplay ) )
 		thisPreset.ledDisplay = thisPreset.ledDisplay ? LEDS_MODERN : LEDS_OFF;
 
@@ -2476,7 +2472,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	});
 
 	audioMotion.setOptions( {
-		alphaBars      : isSwitchOn( elAlphaBars ),
+		alphaBars      : getControlValue( elAlphaBars ),
 		ansiBands      : +getControlValue( elAnsiBands ),
 		bandResolution : getControlValue( elBandCount ),
 		colorMode      : getControlValue( elColorMode ),
@@ -2487,7 +2483,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		linearAmplitude: +getControlValue( elLinearAmpl ),
 		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
-		lumiBars       : isSwitchOn( elLumiBars ),
 		maxFPS         : getControlValue( elMaxFPS ),
 		maxFreq        : getControlValue( elRangeMax ),
 		minFreq        : getControlValue( elRangeMin ),
@@ -3098,8 +3093,10 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_MODE ) )
 		randomizeControl( elMode );
 
-	if ( isEnabled( RND_ALPHA ) )
-		randomizeControl( elAlphaBars );
+	if ( isEnabled( RND_ALPHA ) ) {
+		// no FULL alpha bars when LEDs are on and background is image or video
+		randomizeControl( elAlphaBars, newVal => newVal != ALPHABARS_FULL || ! audioMotion.overlay || getControlValue( elLedDisplay ) == LEDS_OFF );
+	}
 
 	if ( isEnabled( RND_BACKGROUND ) )
 		randomizeControl( elBackground );
@@ -3118,11 +3115,6 @@ function randomizeSettings( force = elSource.checked ) {
 
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
-
-	if ( isEnabled( RND_LUMI ) ) {
-		// no LUMI when LEDs are on and background is image or video
-		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || getControlValue( elLedDisplay ) == LEDS_OFF );
-	}
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
@@ -3757,7 +3749,8 @@ function setProperty( elems, save = true ) {
 	for ( const el of elems ) {
 		switch ( el ) {
 			case elAlphaBars:
-				audioMotion.alphaBars = isSwitchOn( elAlphaBars );
+				audioMotion.alphaBars = getControlValue( elAlphaBars );
+				setProperty( elBarSpace, false );
 				break;
 
 			case elAnsiBands:
@@ -3807,7 +3800,7 @@ function setProperty( elems, save = true ) {
 
 			case elBarSpace:
 				const value = getControlValue( elBarSpace );
-				audioMotion.barSpace = audioMotion.isLumiBars || value == 1 ? 1.5 : value;
+				audioMotion.barSpace = ( getControlValue( elAlphaBars ) == ALPHABARS_FULL && audioMotion.isAlphaBars ) || value == 1 ? 1.5 : value;
 				break;
 
 			case elBgImageFit:
@@ -3926,11 +3919,6 @@ function setProperty( elems, save = true ) {
 
 			case elLoRes:
 				audioMotion.loRes = isSwitchOn( elLoRes );
-				break;
-
-			case elLumiBars:
-				audioMotion.lumiBars = isSwitchOn( elLumiBars );
-				setProperty( elBarSpace, false );
 				break;
 
 			case elMaxFPS:
@@ -5397,6 +5385,12 @@ function updateRangeValue( el ) {
 		[ '24',  'every minute'     ],
 		[ '48',  'every 2 minutes'  ],
 		[ '120', 'every 5 minutes'  ]
+	]);
+
+	populateCustomRadio( elAlphaBars, [
+		[ ALPHABARS_OFF,  'Off'  ],
+		[ ALPHABARS_ON,   'On'   ],
+		[ ALPHABARS_FULL, 'Full' ],
 	]);
 
 	populateCustomRadio( elLedDisplay, [

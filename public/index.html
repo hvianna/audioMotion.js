@@ -235,9 +235,14 @@
 				</div>
 
 			<!-- COLUMN 2 -->
-				<div>
+				<div class="rowspan-2">
 					<span class="config-label">Analyzer <u>M</u>ode</span>
 					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
+
+					<ul class="switch-bar">
+						<li class="switch" id="radial" data-prop="radial">RADIAL
+							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+					</ul>
 				</div>
 
 				<div>
@@ -255,17 +260,13 @@
 					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
 				<div class="last-row">
-					<span class="config-label help"><u>L</u>ED bars
+					<span class="config-label help">Se<u>n</u>sitivity
 						<span class="tooltip">
-						Configure display of LED bars<br><em>(Bars mode only)</em>
+						Improve visualization of songs too quiet or too loud. Customize in Configuration.
 						</span>
 					</span>
-					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
+					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
 				</div>
 
 			<!-- COLUMN 3 -->
@@ -297,9 +298,13 @@
 					<ul class="switch-bar">
 						<li class="switch" id="link_grads" data-prop="linkGrads">Link
 							<span class="tooltip">Use the same Theme for both channels</span>
-						<li class="switch" id="manage_gradients">Manage
-							<span class="tooltip">Create and edit Themes</span>
+						<li class="switch" id="split_grad" data-prop="splitGrad">SPREAD
+							<span class="tooltip">Gradients spread over both channels<br><em>(no effect on Single or Combined channel layouts)</em></span>
 					</ul>
+
+					<div class="button-bar">
+						<button id="manage_gradients">Manage Themes</button>
+					</div>
 				</div>
 
 				<div>
@@ -333,24 +338,31 @@
 				</div>
 
 			<!-- COLUMN 4 -->
-				<div class="rowspan-2">
-					<span class="config-label">Effects</span>
+				<div>
+					<span class="config-label help">Alpha Bars
+						<span class="tooltip">
+						Configure display of variable opacity bars<br><em>(Bars mode only)</em>
+						</span>
+					</span>
+					<form id="alpha_bars" class="custom-radio-buttons" data-prop="alphaBars"></form>
+				</div>
 
+				<div>
+					<span class="config-label help"><u>L</u>ED Bars
+						<span class="tooltip">
+						Configure display of LED bars<br><em>(Bars mode only)</em>
+						</span>
+					</span>
+					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
+				</div>
+
+				<div>
+					<span class="config-label">More bar effects</span>
 					<ul class="switch-bar">
-						<li class="switch" id="alpha_bars" data-prop="alphaBars">ALPHA
-							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in Graph mode)</em></span>
-						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
-							<span class="tooltip">Show full height bars with varying luminance <em>(Bars mode only)</em></span>
-
 						<li class="switch" id="outline" data-prop="outlineBars">OUTLINE
 							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
-						<li class="switch" id="radial" data-prop="radial">RADIAL
-							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
-
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
 							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
-						<li class="switch" id="split_grad" data-prop="splitGrad">SPREAD
-							<span class="tooltip">Gradients spread over both channels<br><em>(no effect on Single or Combined channel layouts)</em></span>
 					</ul>
 				</div>
 
@@ -365,15 +377,6 @@
 						</span>
 					</span>
 					<form id="reflex" class="custom-radio-buttons" data-prop="reflex"></form>
-				</div>
-
-				<div class="last-row">
-					<span class="config-label help">Se<u>n</u>sitivity
-						<span class="tooltip">
-						Improve visualization of songs too quiet or too loud. Customize in Configuration.
-						</span>
-					</span>
-					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
 				</div>
 
 			<!-- COLUMN 5 -->
