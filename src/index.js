@@ -2498,7 +2498,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		showScaleY     : +getControlValue( elScaleY ),
 		smoothing      : getControlValue( elSmoothing ),
 		spinSpeed      : getControlValue( elSpin ),
-		splitGradient  : isSwitchOn( elSplitGrad ),
+		spreadGradient : isSwitchOn( elSplitGrad ),
 		weightingFilter: getControlValue( elWeighting )
 	} );
 
@@ -3739,11 +3739,19 @@ function setProperty( elems, save = true ) {
 	if ( ! isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleRightChannelThemeOptions = () => {
-		const show = getControlValue( elChnLayout ) != LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
+	const toggleDualChannelThemeOptions = () => {
+		const isDual    = getControlValue( elChnLayout ) != LAYOUT_SINGLE,
+		 	  showRight = isDual && ! isSwitchOn( elLinkGrads );
+
 		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
-			toggleDisplay( el, show );
-		$('#themes_grid').classList.toggle( 'grid', show );
+			toggleDisplay( el, showRight );
+		$('#themes_grid').classList.toggle( 'grid', showRight );
+
+		elHorizontal0.innerText = 'HORIZONTAL'.slice( 0, showRight ? 3 : undefined );
+		elReverse0.innerText = 'REVERSE'.slice( 0, showRight ? 3 : undefined );
+
+		toggleDisplay( $('#dual_theme_options'), isDual );
+		toggleDisplay( $('#manage_gradients'), ! isDual );
 	};
 
 	for ( const el of elems ) {
@@ -3843,7 +3851,7 @@ function setProperty( elems, save = true ) {
 
 			case elChnLayout:
 				audioMotion.channelLayout = getControlValue( elChnLayout );
-				toggleRightChannelThemeOptions();
+				toggleDualChannelThemeOptions();
 				break;
 
 			case elColorMode:
@@ -3909,7 +3917,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLinkGrads:
-				toggleRightChannelThemeOptions();
+				toggleDualChannelThemeOptions();
 				if ( isSwitchOn( elLinkGrads ) ) {
 					setProperty( elTheme0, false );
 					setProperty( elHorizontal0, false );
@@ -4107,7 +4115,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSplitGrad:
-				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
+				audioMotion.spreadGradient = isSwitchOn( elSplitGrad );
 				break;
 
 			case elSubsBackground:
@@ -5454,8 +5462,8 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elAnsiBands, [
-		[ 0, 'Tempered' ],
-		[ 1, 'ANSI/IEC' ]
+		[ 1, 'ANSI/IEC' ],
+		[ 0, 'Tempered' ]
 	]);
 
 	populateCustomRadio( elLinearAmpl, [
