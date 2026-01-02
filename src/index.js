@@ -53,6 +53,9 @@ import {
 	LAYOUT_HORIZONTAL,
 	LAYOUT_SINGLE,
 	LAYOUT_VERTICAL,
+	LEDS_MODERN,
+	LEDS_OFF,
+	LEDS_VINTAGE,
 	MODE_BARS,
 	MODE_GRAPH,
 	REASON_CREATE,
@@ -170,11 +173,6 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_SENSITIVITY    = 'sensitivity-presets',
 	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
 	  PLAYLIST_PREFIX    = 'pl_';
-
-// LED bars options
-const LEDS_OFF     = '0',
-	  LEDS_MODERN  = '1',
-	  LEDS_VINTAGE = '2';
 
 // Legacy visualization modes
 const LEGACY_MODE_BARS     = '11',
@@ -386,7 +384,7 @@ const presets = [
 			channelLayout: LAYOUT_SINGLE,
 			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'classic',
-			ledDisplay   : 1,
+			ledDisplay   : LEDS_MODERN,
 			lumiBars     : 0,
 			outlineBars  : 0,
 			mode         : MODE_BARS,
@@ -430,7 +428,7 @@ const presets = [
 			channelLayout: LAYOUT_SINGLE,
 			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'rainbow',
-			ledDisplay   : 0,
+			ledDisplay   : LEDS_OFF,
 			lumiBars     : 0,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
@@ -455,7 +453,7 @@ const presets = [
 			channelLayout: LAYOUT_SINGLE,
 			colorMode    : COLORMODE_LEVEL,
 			gradient     : 'prism',
-			ledDisplay   : 0,
+			ledDisplay   : LEDS_OFF,
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_BARS,
@@ -478,7 +476,7 @@ const presets = [
 			channelLayout: LAYOUT_SINGLE,
 			colorMode    : COLORMODE_INDEX,
 			gradient     : 'apple',
-			ledDisplay   : 0,
+			ledDisplay   : LEDS_OFF,
 			lumiBars     : 0,
 			mirror       : 0,
 			mode         : MODE_BARS,
@@ -516,7 +514,7 @@ const presets = [
 			freqMax      : 20000,
 			freqMin      : 20,
 			freqScale    : SCALE_LOG,
-			ledDisplay   : 0,
+			ledDisplay   : LEDS_OFF,
 			linearAmpl   : 1,
 			lineWidth    : 1,
 			linkGrads    : 0,
@@ -827,6 +825,9 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
+// shorthand for Array.isArray()
+const { isArray } = Array;
+
 // return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
 const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
 
@@ -937,7 +938,7 @@ const getCurrentThemes = () => {
 
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
 const getPresetIndex = key => {
-	const index = ( +key == key ) ? key : presets.findIndex( item => item.key == key );
+	const index = isNumeric( key ) ? key : presets.findIndex( item => item.key == key );
 	return ( index < 0 || index > presets.length - 1 ) ? -1 : index;
 }
 
@@ -973,6 +974,9 @@ const isExternalURL = path => path.startsWith('http') && ! path.startsWith( URL_
 
 // check if an object is empty
 const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).length;
+
+// check if given value is numeric
+const isNumeric = val => ! isArray( val ) && val == +val; // note: +[] == []
 
 // check if PIP is active
 const isPIP = _ => elContainer.classList.contains('pip');
@@ -2218,7 +2222,7 @@ function loadPlaylist( fileObject ) {
 		else { // try to load playlist or last play queue from indexedDB
 			const list = await get( path === true ? KEY_PLAYQUEUE : PLAYLIST_PREFIX + path );
 
-			if ( Array.isArray( list ) ) {
+			if ( isArray( list ) ) {
 				list.forEach( entry => {
 					const { file, handle, dirHandle, subs, content } = entry;
 					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
@@ -2241,19 +2245,19 @@ function loadPlaylist( fileObject ) {
 function loadPreferences( serverConfig ) {
 	// helper function
 	const parseDisabled = ( data, optionList ) => {
-		if ( Array.isArray( data ) ) {
+		if ( isArray( data ) ) {
 			data.forEach( option => {
 				// if `option` is not an object, `disabled` is inferred true - for compatibility with legacy versions
 				const { value, disabled } = typeof option == 'object' ? option : { value: option, disabled: true } ;
-				const opt = Array.isArray( optionList ) ? optionList.find( item => item.value == value ) : optionList[ value ];
+				const opt = isArray( optionList ) ? optionList.find( item => item.value == value ) : optionList[ value ];
 				if ( opt )
 					opt.disabled = disabled;
 			});
 		}
 	}
 
-	const lastConfig        = loadFromStorage( KEY_LAST_CONFIG ),
-	 	  isLastSession     = lastConfig !== null;
+	const lastConfig    = loadFromStorage( KEY_LAST_CONFIG ),
+	 	  isLastSession = lastConfig !== null;
 
 	// for compatibility with v24.6 (down to v21.11), when FFT size and smoothing were stored in the general settings
 	const storedGeneralOptions   = loadFromStorage( KEY_GENERAL_OPTS ) || {},
@@ -2264,7 +2268,7 @@ function loadPreferences( serverConfig ) {
 
 	// Load user presets
 	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
-	if ( ! Array.isArray( userPresets ) )
+	if ( ! isArray( userPresets ) )
 		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
 		if ( userPresets[ i ] === undefined )
@@ -2390,24 +2394,24 @@ function loadPreferences( serverConfig ) {
  */
 function loadPreset( key, alert = true, init, keepRandomize ) {
 
-	const isUserPreset = ( +key == key ),
-		  isObject     = typeof key == 'object',
-		  thisPreset   = isObject ? key : ( isUserPreset ? userPresets[ key ].options : getPreset( key ) ),
-		  defaults     = getPreset( PRESET_KEY_DEFAULT );
+	const isObject   = typeof key == 'object',
+		  thisPreset = isObject ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
+		  defaults   = getPreset( PRESET_KEY_DEFAULT );
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
 	if ( alert && ! isObject )
-		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+		consoleLog( `Loading ${ isNumeric( key ) ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
 
 	if ( key == PRESET_KEY_DEFAULT )
 		delete thisPreset.volume; // don't reset the volume when restoring to defaults!
 
-	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
+	// translate legacy options
+
+	if ( thisPreset.stereo !== undefined )
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
-	// convert options from version <= 24.6
 	if ( thisPreset.barSpace == 1.5 )
 		thisPreset.barSpace = 1;
 
@@ -2422,7 +2426,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
 		thisPreset.showScaleX = SCALEX_NOTES;
 
-	// convert old `gradient` and `gradientRight` properties to new `themes` property
+	if ( isNumeric( thisPreset.ledDisplay ) )
+		thisPreset.ledDisplay = thisPreset.ledDisplay ? LEDS_MODERN : LEDS_OFF;
+
 	if ( thisPreset.gradient || thisPreset.gradientRight ) {
 		const convert = name => ({
 			name,
@@ -2439,7 +2445,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( thisPreset.themes || init ) {
 		let themes = thisPreset.themes || defaults.themes;
 
-		if ( ! Array.isArray( themes ) )
+		if ( ! isArray( themes ) )
 			themes = [ themes ];
 
 		if ( themes.length < 2 )
@@ -2477,6 +2483,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		fftSize        : getControlValue( elFFTsize ),
 		fillAlpha      : getControlValue( elFillAlpha ),
 		frequencyScale : getControlValue( elFreqScale ),
+		ledBars        : getControlValue( elLedDisplay ),
 		linearAmplitude: +getControlValue( elLinearAmpl ),
 		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
@@ -2508,7 +2515,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elChnLayout,
 		elShowPeaks, // also sets fadePeaks
 		elGravity,
-		elLedDisplay,
 		elSensitivity,
 		elReflex,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
@@ -2891,7 +2897,7 @@ function populateCustomRadio( element, options, name ) {
 	if ( ! name )
 		name = element.dataset.prop;
 
-	const isObject = ! Array.isArray( options[0] );
+	const isObject = ! isArray( options[0] );
 
 	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
 		const text = item.text || item[1],
@@ -3020,7 +3026,7 @@ function populatePresets() {
 function populateSelect( element, options ) {
 	const oldValue = element.value;
 
-	if ( ! Array.isArray( options ) )
+	if ( ! isArray( options ) )
 		options = [ options ]; // ensure options is an array
 
 	deleteChildren( element );
@@ -3636,7 +3642,7 @@ function setCanvasMsg( msg, timer = 2, dir = -1 ) {
 	else {
 		const now = performance.now(),
 		 	  targetTime = now + timer * 1000;
-		if ( msg == +msg ) { // msg is a number
+		if ( isNumeric( msg ) ) {
 			canvasMsg.info = msg; // set info level 1 or 2
 			canvasMsg.startTime = now;
 			canvasMsg.endTime = Math.max( targetTime, canvasMsg.endTime || 0 ); // note: Infinity | 0 == 0
@@ -3738,7 +3744,7 @@ function setPeakOptions( options ) {
  * @param {boolean} `true` (default) to save current settings to last used preset
  */
 function setProperty( elems, save = true ) {
-	if ( ! Array.isArray( elems ) )
+	if ( ! isArray( elems ) )
 		elems = [ elems ];
 
 	const toggleRightChannelThemeOptions = () => {
@@ -3894,9 +3900,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLedDisplay:
-				const val = getControlValue( elLedDisplay );
-				audioMotion.ledBars  = val != LEDS_OFF;
-				audioMotion.trueLeds = val == LEDS_VINTAGE;
+				audioMotion.ledBars = getControlValue( elLedDisplay );
 				break;
 
 			case elLedMask:
@@ -5609,7 +5613,7 @@ function updateRangeValue( el ) {
 		const lastDir         = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ),
 			  bgDirHandle     = await get( KEY_BG_DIR_HANDLE ),
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
-			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
+			  isLastDirLocked = useFileSystemAPI && isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( PRESET_KEY_LAST_SESSION, false, true );
