@@ -1588,7 +1588,7 @@ input.slider:not(:checked) + .slider .slider-on {
 	color: yellow;
 }
 
-/* Color gradient editor */
+/* Color theme editor */
 .mt-1 {
 	margin-top: 1rem;
 }
@@ -1654,18 +1654,18 @@ button.grad-add-stop:hover {
 	display: none;
 }
 
-#enabled_gradients label {
+#enabled_themes label {
 	position: relative;
 }
-#enabled_gradients label:hover {
+#enabled_themes label:hover {
 	background: #f8f8f8;
 	border-bottom-left-radius: 6px;
 	border-top-left-radius: 6px;
 }
-#enabled_gradients label:hover > .grad-edit-link {
+#enabled_themes label:hover > .theme-edit-link {
 	display: block;
 }
-.grad-edit-link {
+.theme-edit-link {
 	background: #aaa;
 	border-radius: 4px;
 	color: #fff;
@@ -1679,10 +1679,10 @@ button.grad-add-stop:hover {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.grad-edit-link:before {
+.theme-edit-link:before {
 	content: 'edit';
 }
-.grad-edit-link:hover {
+.theme-edit-link:hover {
 	background: var(--accent-color);
 }
 

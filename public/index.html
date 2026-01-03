@@ -113,18 +113,16 @@
 						<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>Display track information<br>(press again for more info, and again to hide)</td></tr>
 						<tr><td><kbd>E</kbd></td><td>Shuffle</td></tr>
 						<tr><td><kbd>F</kbd></td><td>Fullscreen</td></tr>
-						<tr><td><kbd>G</kbd></td><td>Gradients</td></tr>
 						<tr><td><kbd>H</kbd></td><td>FPS</td></tr>
 						<tr><td><kbd>I</kbd></td><td>TRACK INFO</td></tr>
-						<tr><td><kbd>L</kbd></td><td>LEDS</td></tr>
+						<tr><td><kbd>L</kbd></td><td>LED Bars</td></tr>
 						<tr><td><kbd>M</kbd></td><td>Analyzer Mode</td></tr>
 						<tr><td><kbd>N</kbd></td><td>Sensitivity</td></tr>
 						<tr><td><kbd>O</kbd></td><td>LO-RES</td></tr>
 						<tr><td><kbd>P</kbd></td><td>Peaks</td></tr>
 						<tr><td><kbd>R</kbd></td><td>Repeat</td></tr>
 						<tr><td><kbd>S</kbd></td><td>Scale Labels (both axes)</td></tr>
-						<tr><td><kbd>T</kbd></td><td>FLAT</td></tr>
-						<tr><td><kbd>U</kbd></td><td>LUMI</td></tr>
+						<tr><td><kbd>T</kbd></td><td>Theme</td></tr>
 						<tr><td><kbd>X</kbd></td><td>Reflex</td></tr>
 						<tr><td><kbd>Esc</kbd></td><td>Exit fullscreen</td></tr>
 						<tr><td><kbd>F1</kbd></td><td>Help (this panel) - also works in fullscreen</td></tr>
@@ -271,7 +269,7 @@
 
 			<!-- COLUMN 3 -->
 				<div class="column rowspan-2">
-					<span class="config-label help">Color Themes (<u>G</u>)
+					<span class="config-label help">Color <u>T</u>heme
 						<span class="tooltip">
 							Color themes for left and right channels. Set channel layout in Advanced.
 						</span>
@@ -299,7 +297,7 @@
 					</ul>
 
 					<div class="button-bar">
-						<button id="manage_gradients">Manage Themes</button>
+						<button id="manage_themes">Manage Themes</button>
 					</div>
 				</div>
 
@@ -344,22 +342,22 @@
 				</div>
 
 				<div>
-					<span class="config-label help"><u>L</u>ED Bars
-						<span class="tooltip">
-						Configure display of LED bars<br><em>(Bars mode only)</em>
-						</span>
-					</span>
-					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
-				</div>
-
-				<div>
-					<span class="config-label">More bar effects</span>
+					<span class="config-label">Bar effects</span>
 					<ul class="switch-bar">
 						<li class="switch" id="outline" data-prop="outlineBars">OUTLINE
 							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
 							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
 					</ul>
+				</div>
+
+				<div>
+					<span class="config-label help"><u>L</u>ED Bars
+						<span class="tooltip">
+						Configure display of LED bars<br><em>(Bars mode only)</em>
+						</span>
+					</span>
+					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
 				</div>
 
 				<div>
@@ -383,7 +381,7 @@
 							<span class="tooltip">Display song info at track start/end.<br>Customize in Configuration.</span>
 						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
 							<span class="tooltip">Toggle display of subtitles</span>
-						<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u> TEXT
+						<li class="switch" id="no_shadow" data-prop="noShadow">FLAT TEXT
 							<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
 						<li class="switch" id="led_mask" data-prop="ledMask">LED MASK
 							<span class="tooltip">Toggle display of LED mask</span>
@@ -670,6 +668,21 @@
 				<div id="enabled_bgfit" class="grid grid-2-cols gap-sm"></div>
 			</details>
 
+			<details id="theme_management">
+				<summary>Color Themes management
+					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=theme-management" target="_blank"></a>
+				</summary>
+				<div>
+					<div id="enabled_themes" class="grid grid-2-cols gap-sm"></div>
+					<div class="flex align-center mt-1">
+						<button class="button mt-1" id="add_theme">Create Theme</button>
+						<label class="button mt-1">Import Theme
+							<input id="import_theme" type="file" accept=".json">
+						</label>
+					</div>
+				</div>
+			</details>
+
 			<details>
 				<summary class="colspan-2">General settings
 					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=general-settings" target="_blank"></a>
@@ -700,21 +713,6 @@
 					<p class="colspan-3"><label><input type="checkbox" id="save_queue"> Remember play queue contents</label></p>
 
 					<p class="colspan-3"><br><button id="reset_general">Reset to defaults</button></p>
-				</div>
-			</details>
-
-			<details id="gradients_management">
-				<summary>Gradients management
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=gradients-management" target="_blank"></a>
-				</summary>
-				<div>
-					<div id="enabled_gradients" class="grid grid-2-cols gap-sm"></div>
-					<div class="flex align-center mt-1">
-						<button class="button mt-1" id="add-gradient">Create Gradient</button>
-						<label class="button mt-1">Import Gradient
-							<input id="import_gradient" type="file" accept=".json">
-						</label>
-					</div>
 				</div>
 			</details>
 
@@ -845,28 +843,22 @@
 		</div> <!-- .config-panel -->
 	</div> <!-- #config -->
 
-	<div id="gradient-editor" class="modal-window">
+	<div id="theme-editor" class="modal-window">
 		<a href="#config" title="Close" class="modal-close"></a>
 		<div>
 			<a href="#config" title="Close" class="modal-close-internal"></a>
-			<div><span class="config-label"><label for="new-gradient-name">Name</label></span></div>
-			<div class="mt-5px"><input type="text" id="new-gradient-name"></div>
+			<div><span class="config-label"><label for="new-theme-name">Name</label></span></div>
+			<div class="mt-5px"><input type="text" id="new-theme-name"></div>
+
+			<div class="mt-1"><span class="config-label"><label for="new-theme-bkgd">Background Color</label></span></div>
+			<div class="mt-5px"><input type="color" id="new-theme-bkgd"></div>
+
 			<div class="mt-1">
-				<table id="grad-color-table">
-					<tr>
-						<td><span class="config-label">Colors</span></td>
-						<td></td>
-						<td><span class="config-label">Offset</span></td>
-					</tr>
-				</table>
-				<div class="mt-5px">
-					<input type="checkbox" id="new-gradient-horizontal">
-					<label for="new-gradient-horizontal">Horizontal</label>
-				</div>
+				<table id="grad-color-table"></table>
+
 				<table id="grad-color-table-template">
 					<tr id="grad-row-label-template">
-						<td><span class="config-label">Colors</span></td>
-						<td></td>
+						<td colspan="2"><span class="config-label">Gradient Colors</span></td>
 						<td><span class="config-label">Offset</span></td>
 					</tr>
 					<tr id="grad-row-template" class="grad-color-row">
@@ -878,18 +870,29 @@
 					</tr>
 				</table>
 			</div>
-			<div class="mt-1"><span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span></div>
-			<div class="mt-5px"><input type="color" id="new-gradient-bkgd"></div>
+
+			<div class="mt-1"><span class="config-label"><label>Modifiers</label></span></div>
+			<div class="mt-5px">
+				<label><input type="checkbox" id="new-theme-horizontal">Horizontal</label> &nbsp;
+				<label><input type="checkbox" id="new-theme-reverse">Reverse</label> &nbsp;
+			</div>
+
+			<div class="mt-1"><span class="config-label"><label for="new-theme-peakcolor">Peak Color</label></span></div>
+			<div class="mt-5px">
+				<input type="color" id="new-theme-peakcolor"> &nbsp;
+				<labeL><input type="checkbox" id="new-theme-peakcolor-disable">Disabled (use gradient colors)</labeL>
+			</div>
+
 			<div class="grid grid-2-cols gap-lg mt-2">
-				<button id="btn-delete-gradient">Delete</button>
-				<button id="btn-save-gradient">Save</button>
+				<button id="btn-delete-theme">Delete</button>
+				<button id="btn-save-theme">Save</button>
 			</div>
 			<div class="grid grid-2-cols gap-lg mt-1">
-				<button id="btn-export-gradient">Export</button>
-				<button id="btn-save-gradient-copy">Clone</button>
+				<button id="btn-export-theme">Export</button>
+				<button id="btn-save-theme-copy">Clone</button>
 			</div>
 		</div>
-	</div> <!-- #gradient-editor -->
+	</div> <!-- #theme-editor -->
 
 	<div id="update-banner" class="update-banner"><a href="https://audiomotion.app/docs/changelog" target="_blank">audioMotion has been updated to the latest version!</a></div>
 

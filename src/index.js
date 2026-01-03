@@ -101,7 +101,8 @@ const BG_DEFAULT = '0',
 	  BG_BLACK   = '1',
 	  BG_COVER   = '2',
 	  BG_IMAGE   = '3',
-	  BG_VIDEO   = '4';
+	  BG_VIDEO   = '4',
+	  DEFAULT_BG_COLOR = '#111111'; // for themes with no `bgColor` property; must be a full hex string for color picker compatibility
 
 // Backgrounds folder options
 const BGFOLDER_NONE   = '0',
@@ -280,6 +281,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDebug         = $('#debug'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
+	  elEnabledThemes = $('#enabled_themes'),
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
@@ -610,8 +612,8 @@ const THEMES = {
 				'hsl( 180, 100%, 50% )',
 				'hsl( 240, 100%, 50% )'
 			  ], disabled: true },
-	rainbow:  { name: 'Rainbow', disabled: false },
-	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
+	rainbow:  { name: 'Rainbow', horizontal: 1, disabled: false },
+	rainbow_old: { name: 'Rainbow (legacy)', horizontal: 1, colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
 				'hsl( 120, 100%, 50% )',
@@ -776,7 +778,7 @@ let audioElement = [],
 	bgVideos = [],
 	canvasMsg = {},
 	currAudio, 					// audio element currently in use
-	currentGradient = null,     // gradient that is currently loaded in gradient editor
+	currentTheme = null,        // theme that is currently loaded in theme editor
 	elToggleConsole,			// defined later because HTML element is generated dynamically in setUIEventListeners()
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
@@ -948,8 +950,8 @@ const getPresetName = key => {
 	return ( index == -1 ) ? false : presets[ index ].name;
 }
 
-// return selected gradient(s) for canvas OSD message
-const getSelectedGradients = () => {
+// return selected theme(s) for canvas OSD message
+const getSelectedThemes = () => {
 	const isDual = getControlValue( elChnLayout ) != LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
 	return `Theme${ isDual ? 's' : ''}: ${ THEMES[ elTheme0.value ].name + ( isDual ? ' / ' + THEMES[ elTheme1.value ].name : '' ) }`;
 }
@@ -1083,7 +1085,7 @@ const setControlValue = ( el, val ) => {
 			option.checked = true;
 	}
 	else if ( el.classList.contains('switch') )
-		el.dataset.active = +val;
+		el.dataset.active = +val || 0;
 	else {
 		el.value = val;
 		if ( el.selectedIndex == -1 ) // fix invalid values in select elements
@@ -1347,8 +1349,8 @@ function resizeOSD( instance = audioMotion ) {
 	coverSize   = baseSize * 3;				// cover image size
 	centerPos   = width / 2;
 	rightPos    = width - baseSize;
-	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
-	topLine2    = topLine1 * 1.8;			// auto gradient, Randomize & repeat status
+	topLine1    = baseSize * 1.4;			// theme, mode & sensitivity status + informative messages
+	topLine2    = topLine1 * 1.8;			// auto theme, Randomize & repeat status
 	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
 	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
 	bottomLine2 = height - baseSize * 2.8;	// song title
@@ -1473,30 +1475,31 @@ function deleteChildren( el ) {
 }
 
 /**
- * Removes gradient that has been loaded into the editor from the gradients object as well as the saved custom gradients
+ * Removes theme that has been loaded into the editor from the THEMES object as well as the saved custom gradients
  * preference.
- *
- * Note, this does not remove the gradient from the analyzer. Rather, the analyzer's gradient object will be
- * overwritten next time a gradient is created. This is because custom gradient keys are generated based on how many
- * custom gradients. See `openGradientEditorNew()`. Additionally, the deleted gradient is removed from the stored
- * preferences, so the analyzer will not have it on next load.
  */
-function deleteGradient() {
-	if (!currentGradient || !currentGradient.key) return;
+function deleteTheme() {
+	if ( ! currentTheme ||  ! currentTheme.key )
+		return;
 
-	delete gradients[currentGradient.key];
-
-	// if that was the only enabled gradient, set the first gradient as enabled
-	if (Object.keys(gradients).filter(key => !gradients[key].disabled).length === 0) {
-		gradients[Object.keys(gradients)[0]].disabled = false;
+	if ( ! audioMotion.unregisterTheme( currentTheme.key ) ) {
+		notie.alert({ text: `COULD NOT UNREGISTER THEME: ${ currentTheme.name }<br>Themes in use cannot be deleted!` });
+		return;
 	}
 
-	populateGradients();
-	populateEnabledGradients();
+	delete THEMES[ currentTheme.key ];
+
+	// if that was the only enabled theme, set the first theme as enabled
+	if ( Object.keys( THEMES ).filter( key => ! THEMES[ key ].disabled ).length === 0 ) {
+		THEMES[ Object.keys( THEMES )[0] ].disabled = false;
+	}
+
+	populateThemes();
+	populateEnabledThemes();
 	savePreferences(KEY_CUSTOM_GRADS);
 	savePreferences(KEY_DISABLED_GRADS); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
 
-	currentGradient = null;
+	currentTheme = null;
 	location.href = '#config';
 }
 
@@ -1566,15 +1569,12 @@ function doConfigPanel() {
 	// Enabled Background Image Fit options
 	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
 
-	// Enabled gradients
-
-	const elEnabledGradients = $('#enabled_gradients');
-
+	// Enabled themes
 	Object.keys( THEMES ).forEach( key => {
-		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }> ${ THEMES[ key ].name }</label>`;
+		elEnabledThemes.innerHTML += `<label><input type="checkbox" class="enabledTheme" data-theme="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }> ${ THEMES[ key ].name }</label>`;
 	});
 
-	populateEnabledGradients();
+	populateEnabledThemes();
 
 	// Randomize configuration
 
@@ -1899,10 +1899,6 @@ function keyboardControls( event ) {
 						skipTrack(true);
 					}
 					break;
-				case 'KeyG': 		// gradient
-					cycleElement( elTheme0, isShiftKey );
-					setCanvasMsg( getSelectedGradients() );
-					break;
 				case 'ArrowRight': 	// next song
 				case 'KeyK':
 					if ( ! finishFastSearch() && ! isShiftKey ) {
@@ -1973,9 +1969,9 @@ function keyboardControls( event ) {
 						  status = cycleScale( isShiftKey );
 					setCanvasMsg( 'Scale labels: ' + ( status < 5 ? info[ status ] : info[ status - 4 ] + ' + ' + info[ 4 ] ) );
 					break;
-				case 'KeyT': 		// toggle text shadow
-					elNoShadow.click();
-					setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
+				case 'KeyT': 		// theme
+					cycleElement( elTheme0, isShiftKey );
+					setCanvasMsg( getSelectedThemes() );
 					break;
 				case 'KeyX':
 					cycleElement( elReflex, isShiftKey );
@@ -2044,53 +2040,22 @@ function loadFromStorage( key ) {
 }
 
 /**
- * Clones the gradient of the given key into the currentGradient variable
+ * Clones the theme of the given key into the currentTheme variable
  */
-function loadGradientIntoCurrentGradient(gradientKey) {
-	if (!gradients[gradientKey]) throw new Error(`gradients[${gradientKey}] is null or undefined.`);
+function loadThemeIntoCurrentTheme( themeKey ) {
+	if ( ! THEMES[ themeKey ] ) throw new Error(`THEMES[${themeKey}] is null or undefined.`);
 
-	// convert hsl values to rgb hexadecimal string - thanks https://stackoverflow.com/a/64090995
-	const hsl2rgb = ( h, s, l ) => {
-		// h in [0,360] and s,l in [0,1]
-		const a = s * Math.min( l, 1 - l );
-		const f = ( n, k = ( n + h / 30 ) % 12 ) => l - a * Math.max( Math.min( k - 3, 9 - k, 1 ), -1 );
-		let rgb = '#';
-		for ( const i of [ 0, 8, 4 ] )
-			rgb += Math.round( f( i ) * 255 ).toString(16).padStart(2, '0');
-		return rgb;
+	currentTheme = {
+		...THEMES[ themeKey ],                  // make a copy of theme data (includes `key`, `name`, `bgColor`, `horizontal` and `reverse`)
+		...audioMotion.getThemeData( themeKey ) // gets normalized colorStops from registered theme
 	}
 
-	// split values from a hsl or rgb string (removes % sign from hsl values)
-	const splitValues = str => str.match( /\(\s+(.*),\s+(.*?)%?,\s+(.*?)%?\s+\)/ ).slice(1);
-
-	const src  = gradients[ gradientKey ],
-		  dest = { ...src }; // make a copy of the gradient object
-
-	dest.colorStops = [];
-
-	// NOTE: colorStops in our `gradients` objects are normalized (modified!) by the analyzer's registerGradient()
-	//       method, which ensures all colorStops elements are objects with `pos` and `color` attributes!
-
-	// clone the source colorStops and convert all colors to hexadecimal format, required by the HTML color picker
-	for ( const stop of src.colorStops ) {
-		if ( stop.color.startsWith('rgb') ) {
-			const { color } = stop;
-			stop.color = '#';
-			for ( const component of splitValues( color ) )
-				stop.color += ( +component ).toString(16).padStart(2, '0');
-		}
-		else if ( stop.color.startsWith('hsl') ) {
-			const [ h, s, l ] = splitValues( stop.color );
-			stop.color = hsl2rgb( h, s/100, l/100 );
-		}
-		else if ( stop.color.length == 4 ) { // short hexadecimal format
-			const [ _, r, g, b ] = stop.color;
-			stop.color = '#' + r + r + g + g + b + b;
-		}
-		dest.colorStops.push({...stop});
+	// use a canvas context to quickly convert any color format to hexadecimal string, as required by the HTML color picker
+	const ctx = document.createElement('canvas').getContext('2d');
+	for ( const colorStop of currentTheme.colorStops ) {
+		ctx.fillStyle = colorStop.color;
+		colorStop.color = ctx.fillStyle;
 	}
-
-	currentGradient = dest;
 }
 
 /**
@@ -2270,12 +2235,21 @@ function loadPreferences( serverConfig ) {
 	// Load disabled background image fit options
 	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
 
-	// Load custom gradients
-	const customGradients = loadFromStorage( KEY_CUSTOM_GRADS );
-	if ( customGradients ) {
-		Object.keys( customGradients ).forEach( key => {
-			THEMES[ key ] = customGradients[ key ];
-			THEMES[ key ].key = key; // a `key` property indicates this is a custom gradient
+	// Load custom themes
+	const customThemes = loadFromStorage( KEY_CUSTOM_GRADS );
+	if ( customThemes ) {
+		Object.keys( customThemes ).forEach( key => {
+			const theme = customThemes[ key ];
+
+			// convert legacy `dir` property
+			if ( theme.hasOwnProperty('dir') ) {
+				if ( theme.dir == 'h' )
+					theme.horizontal = 1;
+				delete theme.dir;
+			}
+
+			THEMES[ key ] = theme;
+			THEMES[ key ].key = key; // a `key` property indicates this is a custom theme
 		});
 	}
 
@@ -2710,51 +2684,51 @@ async function loadSubs( audioEl, song ) {
 }
 
 /**
- * Copy the gradient of given key into currentGradient, and render the gradient editor.
+ * Copy the theme of given key into currentTheme, and render the theme editor.
  */
-function openGradientEdit(key) {
-	loadGradientIntoCurrentGradient(key);
-	renderGradientEditor();
+function openThemeEdit( key ) {
+	loadThemeIntoCurrentTheme(key);
+	renderThemeEditor();
 
-	// save and delete buttons are enabled for custom gradients only
-	toggleDisplay( $('#btn-delete-gradient'), !! gradients[ key ].key );
-	toggleDisplay( $('#btn-save-gradient'), !! gradients[ key ].key );
-	toggleDisplay( $('#btn-export-gradient'), true );
-	toggleDisplay( $('#btn-save-gradient-copy'), true );
+	// save and delete buttons are enabled for custom themes only
+	toggleDisplay( $('#btn-delete-theme'), !! THEMES[ key ].key );
+	toggleDisplay( $('#btn-save-theme'), !! THEMES[ key ].key );
+	toggleDisplay( $('#btn-export-theme'), true );
+	toggleDisplay( $('#btn-save-theme-copy'), true );
 
-	location.href = '#gradient-editor';
+	location.href = '#theme-editor';
 }
 
 /**
- * Build a new gradient (or duplicate the current one), set it as the current gradient, then render the gradient editor.
+ * Build a new theme (or duplicate the current one), set it as the current theme, then render the theme editor.
  */
-function openGradientEditorNew( makeCopy ) {
+function openThemeEditorNew( makeCopy ) {
 	if ( makeCopy ) {
-		currentGradient.name += ' (copy)';
-		currentGradient.key = '';
+		currentTheme.name += ' (copy)';
+		currentTheme.key = '';
 	}
 	else {
-		currentGradient = {
-			name: 'New Gradient',
-			bgColor: '#111111',
+		currentTheme = {
+			name: 'New Theme',
+			bgColor: DEFAULT_BG_COLOR,
 			colorStops: [
 				{ pos: .1, color: '#222222' },
 				{ pos: 1, color: '#eeeeee' }
 			],
 			disabled: false,
-			key: '', // using this to keep track of the key of the gradient object in the gradient list - will be set by saveGradient()
+			key: '', // using this to keep track of the key of the theme object in the theme list - will be set by saveTheme()
 		};
 	}
 
-	renderGradientEditor();
+	renderThemeEditor();
 
-	// for new gradients only the save button is enabled
-	toggleDisplay( $('#btn-delete-gradient'), false );
-	toggleDisplay( $('#btn-save-gradient'), true );
-	toggleDisplay( $('#btn-export-gradient'), false );
-	toggleDisplay( $('#btn-save-gradient-copy'), false );
+	// for new themes only the save button is enabled
+	toggleDisplay( $('#btn-delete-theme'), false );
+	toggleDisplay( $('#btn-save-theme'), true );
+	toggleDisplay( $('#btn-export-theme'), false );
+	toggleDisplay( $('#btn-save-theme-copy'), false );
 
-	location.href = '#gradient-editor';
+	location.href = '#theme-editor';
 }
 
 /**
@@ -2856,9 +2830,9 @@ function playSong( n ) {
 function populateBackgrounds() {
 	// basic background options
 	let bgOptions = [
-		{ value: BG_COVER,   text: 'Album cover'      },
-		{ value: BG_BLACK,   text: 'Black'            },
-		{ value: BG_DEFAULT, text: 'Gradient default' }
+		{ value: BG_COVER,   text: "Album cover"              },
+		{ value: BG_BLACK,   text: "Black"                    },
+		{ value: BG_DEFAULT, text: "Theme's background color" }
 	];
 
 	const basicCount = bgOptions.length,
@@ -2914,68 +2888,66 @@ function populateCustomRadio( element, options, name ) {
 }
 
 /**
- * Build checkboxes in #config that enables gradients in the combo box of the settings panel
+ * Build checkboxes in #config that enables themes in the combo box of the settings panel
  */
-function populateEnabledGradients() {
-	// Enabled gradients
-	const elEnabledGradients = $('#enabled_gradients'),
-		  gradientKeys       = Object.keys( THEMES ),
-		  collator           = new Intl.Collator();
+function populateEnabledThemes() {
+	const themeKeys = Object.keys( THEMES ),
+		  collator  = new Intl.Collator();
 
 	// case-insensitive sorting with international characters support - https://stackoverflow.com/a/40390844/2370385
-	gradientKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
+	themeKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
 
 	// reset
-	deleteChildren(elEnabledGradients);
+	deleteChildren( elEnabledThemes );
 
-	gradientKeys.forEach( key => {
-		elEnabledGradients.innerHTML +=
+	themeKeys.forEach( key => {
+		elEnabledThemes.innerHTML +=
 			`<label>
-				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }>
-				${ THEMES[ key ].name }<a href="#" data-grad="${key}" class="grad-edit-link" title="edit"></a>
+				<input type="checkbox" class="enabledTheme" data-theme="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }>
+				${ THEMES[ key ].name }<a href="#" data-theme="${key}" class="theme-edit-link" title="edit"></a>
 			</label>`;
 	});
 
-	$$('.enabledGradient').forEach( el => {
+	$$('.enabledTheme').forEach( el => {
 		el.addEventListener( 'click', event => {
 			if ( ! el.checked ) {
 				const count = Object.keys( THEMES ).reduce( ( acc, val ) => acc + ! THEMES[ val ].disabled, 0 );
 				if ( count < 2 ) {
-					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					notie.alert({ text: 'At least one Theme must be enabled!' });
 					event.preventDefault();
 					return false;
 				}
 			}
-			THEMES[ el.dataset.grad ].disabled = ! el.checked;
-			populateGradients();
+			THEMES[ el.dataset.theme ].disabled = ! el.checked;
+			populateThemes();
 			savePreferences(KEY_DISABLED_GRADS);
 		});
 	});
 
-	$$('.grad-edit-link').forEach( el => {
+	$$('.theme-edit-link').forEach( el => {
 		el.addEventListener('click', event => {
 			event.preventDefault();
-			const key = event.target.getAttribute("data-grad");
-			openGradientEdit(key);
+			const key = event.target.getAttribute("data-theme");
+			openThemeEdit(key);
 		})
 	})
 }
 
 /**
- * Populate UI gradient selection combo box
+ * Populate UI theme selection combo box
  */
-function populateGradients() {
-	const gradientKeys = Object.keys( THEMES ),
+function populateThemes() {
+	const themeKeys = Object.keys( THEMES ),
 		  collator     = new Intl.Collator();
 
-	gradientKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
+	themeKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
 
 	for ( const el of [ elTheme0, elTheme1 ] ) {
 		let grad = el.value;
 		deleteChildren( el );
 
 		// add the option to the html select element for the user interface
-		for ( const key of gradientKeys ) {
+		for ( const key of themeKeys ) {
 			if ( ! THEMES[ key ].disabled )
 				el.options[ el.options.length ] = new Option( THEMES[ key ].name, key );
 		}
@@ -3149,31 +3121,32 @@ function removeFromStorage( key ) {
 }
 
 /**
- * Renders #grad-color-table based upon values of currentGradient.
+ * Renders #grad-color-table based upon values of currentTheme.
  */
-function renderGradientEditor() {
-	if (currentGradient == null) throw new Error("Current gradient must be set before editing gradient")
+function renderThemeEditor() {
+	if ( currentTheme == null ) throw new Error("Current theme must be set before editing theme")
 
 	// empty table
 	const table = $('#grad-color-table');
-	deleteChildren(table);
+	deleteChildren( table );
 
 	// set name
-	$('#new-gradient-name').value = currentGradient.name;
-
-	// set horizontal
-	$('#new-gradient-horizontal').checked = currentGradient.dir === 'h';
+	$('#new-theme-name').value = currentTheme.name;
 
 	const tableLabels = $('#grad-row-label-template').cloneNode(true);
 	tableLabels.removeAttribute("id");
 	table.appendChild(tableLabels);
 
 	// build row for each stop in the gradient
-	currentGradient.colorStops.forEach((stop, i) => {
-		renderColorRow(i, currentGradient.colorStops[i]);
+	currentTheme.colorStops.forEach((stop, i) => {
+		renderColorRow( i, currentTheme.colorStops[ i ] );
 	});
 
-	$('#new-gradient-bkgd').value = currentGradient.bgColor;
+	$('#new-theme-bkgd').value = currentTheme.bgColor ?? DEFAULT_BG_COLOR;
+	$('#new-theme-horizontal').checked = currentTheme.horizontal == 1;
+	$('#new-theme-reverse').checked = currentTheme.reverse == 1;
+	$('#new-theme-peakcolor').value = currentTheme.peakColor;
+	$('#new-theme-peakcolor-disable').checked = ! currentTheme.peakColor;
 }
 
 /**
@@ -3195,16 +3168,16 @@ function renderColorRow(index, stop) {
 
 	colorPicker.addEventListener('input', (e) => {
 		colorValue.value = e.target.value;
-		currentGradient.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[index].color = colorPicker.value;
 	});
 
 	colorValue.addEventListener('input', (e) => {
 		colorPicker.value = e.target.value;
-		currentGradient.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[index].color = colorPicker.value;
 	});
 
 	colorStop.addEventListener('input', (e) => {
-		currentGradient.colorStops[index].pos = parseFloat(e.target.value);
+		currentTheme.colorStops[index].pos = parseFloat(e.target.value);
 	});
 
 	addColorButton.addEventListener('click', () => {
@@ -3212,30 +3185,30 @@ function renderColorRow(index, stop) {
 			// if this is the last color stop, set the second to last stop's position as the midpoint between the last
 			// and the second to last, then return this stop's position
 			// if not, return the midpoint between this and the next stop
-			if (index === currentGradient.colorStops.length - 1) {
-				const lastPos = currentGradient.colorStops[currentGradient.colorStops.length - 1].pos
-				currentGradient.colorStops[currentGradient.colorStops.length - 1].pos =
-					(currentGradient.colorStops[currentGradient.colorStops.length - 2].pos + lastPos) / 2;
+			if (index === currentTheme.colorStops.length - 1) {
+				const lastPos = currentTheme.colorStops[currentTheme.colorStops.length - 1].pos
+				currentTheme.colorStops[currentTheme.colorStops.length - 1].pos =
+					(currentTheme.colorStops[currentTheme.colorStops.length - 2].pos + lastPos) / 2;
 				return lastPos;
 			} else {
-				return (currentGradient.colorStops[index].pos + currentGradient.colorStops[index + 1].pos) / 2;
+				return (currentTheme.colorStops[index].pos + currentTheme.colorStops[index + 1].pos) / 2;
 			}
 		}
 
-		currentGradient.colorStops.splice(index + 1, 0, {
+		currentTheme.colorStops.splice(index + 1, 0, {
 			pos: idealColorPos(),
 			color: '#111111',
 		});
-		renderGradientEditor();
+		renderThemeEditor();
 	});
 
 	// prevent from being able to delete stops if there are two stops
-	if (currentGradient.colorStops.length === 2) {
+	if (currentTheme.colorStops.length === 2) {
 		removeColorButton.setAttribute('disabled', 'true');
 	} else {
 		removeColorButton.addEventListener('click', () => {
-			currentGradient.colorStops.splice(index, 1);
-			renderGradientEditor();
+			currentTheme.colorStops.splice(index, 1);
+			renderThemeEditor();
 		});
 	}
 
@@ -3373,39 +3346,39 @@ function revokeBlobURL( item ) {
 }
 
 /**
- * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
+ * Assign the theme in the global THEMES object, register in the analyzer, populate themes in the config,
  * then close the panel.
  */
-function saveGradient( isImported ) {
-	if (currentGradient === null) return;
+function saveTheme( isImported ) {
+	if ( currentTheme === null ) return;
 
-	if ( ! currentGradient.key || isImported ) {
-		// use the given key when importing a gradient or generate a key for new (and copied) gradients
-		let safename = isImported && currentGradient.key || generateSafeKeyName( currentGradient.name );
-		currentGradient.key = safename;
+	if ( ! currentTheme.key || isImported ) {
+		// use the given key when importing a theme or generate a key for new (and copied) themes
+		let safename = isImported && currentTheme.key || generateSafeKeyName( currentTheme.name );
+		currentTheme.key = safename;
 
-		// find unique key for new gradient
+		// find unique key for new theme
 		let modifier = 1;
-		while ( Object.keys( gradients ).some( key => key === currentGradient.key ) && modifier < 1000 ) {
-			currentGradient.key = `${safename}-${modifier}`;
+		while ( Object.keys( THEMES ).some( key => key === currentTheme.key ) && modifier < 1000 ) {
+			currentTheme.key = `${safename}-${modifier}`;
 			modifier++;
 		}
 
 		// if the same name already exists, add a suffix to it
 		modifier = 1;
-		while ( Object.keys( gradients ).some( key => gradients[ key ].name === currentGradient.name ) && modifier < 1000 ) {
-			currentGradient.name += ` (${modifier})`;
+		while ( Object.keys( THEMES ).some( key => THEMES[ key ].name === currentTheme.name ) && modifier < 1000 ) {
+			currentTheme.name += ` (${modifier})`;
 			modifier++;
 		}
 	}
 
-	gradients[currentGradient.key] = currentGradient;
-	audioMotion.registerGradient(currentGradient.key, currentGradient);
-	populateGradients();
-	populateEnabledGradients();
+	THEMES[ currentTheme.key ] = currentTheme;
+	audioMotion.registerTheme( currentTheme.key, currentTheme );
+	populateThemes();
+	populateEnabledThemes();
 	savePreferences(KEY_CUSTOM_GRADS);
 
-	currentGradient = null;
+	currentTheme = null;
 	location.href = '#config';
 }
 
@@ -3444,11 +3417,11 @@ function savePreferences( key ) {
 		saveToStorage( KEY_DISABLED_GRADS, Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ) );
 
 	if (! key || key == KEY_CUSTOM_GRADS) {
-		const customGradients = {};
+		const customThemes = {};
 		Object.keys( THEMES )
-			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom gradient
-			.forEach( key => customGradients[ key ] = THEMES [ key ] );
-		saveToStorage( KEY_CUSTOM_GRADS, customGradients );
+			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom theme
+			.forEach( key => customThemes[ key ] = THEMES [ key ] );
+		saveToStorage( KEY_CUSTOM_GRADS, customThemes );
 	}
 
 	if ( ! key || key == KEY_DISABLED_PROPS )
@@ -3703,13 +3676,13 @@ function setOverlay() {
 	for ( const audioEl of audioElement )
 		toggleDisplay( audioEl, ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] );
 
-	audioMotion.overlay = isOverlay;
-	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
-
-	// enable/disable background image
+	// enable/disable background image and set background color
 	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
+	elAnalyzer.style.backgroundColor = isOverlay || bgOption == BG_BLACK ? '' : THEMES[ getControlValue( elTheme0 ) ].bgColor || DEFAULT_BG_COLOR;
+
 	// set visibility of background video layer
 	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
+
 	// enable/disable background dim layer
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
 
@@ -3739,9 +3712,12 @@ function setProperty( elems, save = true ) {
 	if ( ! isArray( elems ) )
 		elems = [ elems ];
 
+	const isLinkGrads = isSwitchOn( elLinkGrads );
+
+	// helper function
 	const toggleDualChannelThemeOptions = () => {
 		const isDual    = getControlValue( elChnLayout ) != LAYOUT_SINGLE,
-		 	  showRight = isDual && ! isSwitchOn( elLinkGrads );
+		 	  showRight = isDual && ! isLinkGrads;
 
 		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
 			toggleDisplay( el, showRight );
@@ -3751,7 +3727,7 @@ function setProperty( elems, save = true ) {
 		elReverse0.innerText = 'REVERSE'.slice( 0, showRight ? 3 : undefined );
 
 		toggleDisplay( $('#dual_theme_options'), isDual );
-		toggleDisplay( $('#manage_gradients'), ! isDual );
+		toggleDisplay( $('#manage_themes'), ! isDual );
 	};
 
 	for ( const el of elems ) {
@@ -3884,16 +3860,31 @@ function setProperty( elems, save = true ) {
 			case elTheme1:
 				if ( getControlValue( el ) === '' ) // handle invalid setting (coming from preset)
 					el.selectedIndex = 0;
-				if ( isSwitchOn( elLinkGrads ) ) {
-					setControlValue( elTheme0, getControlValue( el ) );
-					setControlValue( elTheme1, getControlValue( el ) );
+
+				const themeKey = getControlValue( el ),
+					  { horizontal, reverse } = THEMES[ themeKey ];
+
+				if ( isLinkGrads ) {
+					setControlValue( elTheme0, themeKey );
+					setControlValue( elTheme1, themeKey );
 				}
+				if ( el == elTheme0 ) {
+					setControlValue( elHorizontal0, horizontal );
+					setControlValue( elReverse0, reverse );
+				}
+				if ( el == elTheme1 || isLinkGrads ) {
+					setControlValue( elHorizontal1, horizontal );
+					setControlValue( elReverse1, reverse );
+				}
+
 				audioMotion.setTheme( getCurrentThemes() );
+				if ( getControlValue( elBackground ) == BG_DEFAULT )
+					setOverlay();
 				break;
 
 			case elHorizontal0:
 			case elHorizontal1:
-				if ( isSwitchOn( elLinkGrads ) ) {
+				if ( isLinkGrads ) {
 					setControlValue( elHorizontal0, getControlValue( el ) );
 					setControlValue( elHorizontal1, getControlValue( el ) );
 				}
@@ -3918,7 +3909,7 @@ function setProperty( elems, save = true ) {
 
 			case elLinkGrads:
 				toggleDualChannelThemeOptions();
-				if ( isSwitchOn( elLinkGrads ) ) {
+				if ( isLinkGrads ) {
 					setProperty( elTheme0, false );
 					setProperty( elHorizontal0, false );
 					setProperty( elReverse0, false );
@@ -4036,7 +4027,7 @@ function setProperty( elems, save = true ) {
 
 			case elReverse0:
 			case elReverse1:
-				if ( isSwitchOn( elLinkGrads ) ) {
+				if ( isLinkGrads ) {
 					setControlValue( elReverse0, getControlValue( el ) );
 					setControlValue( elReverse1, getControlValue( el ) );
 				}
@@ -4613,45 +4604,61 @@ function setUIEventListeners() {
 		mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
 	}
 
-	// setup gradient editor controls
-	$('#add-gradient').addEventListener('click', () => openGradientEditorNew() );
-	$('#btn-save-gradient').addEventListener( 'click', () => saveGradient() );
-	$('#btn-save-gradient-copy').addEventListener( 'click', () => openGradientEditorNew( true ) );
-	$('#btn-delete-gradient').addEventListener('click', () => {
+	// setup theme editor controls
+	$('#add_theme').addEventListener('click', () => openThemeEditorNew() );
+	$('#btn-save-theme').addEventListener( 'click', () => saveTheme() );
+	$('#btn-save-theme-copy').addEventListener( 'click', () => openThemeEditorNew( true ) );
+	$('#btn-delete-theme').addEventListener('click', () => {
 		notie.confirm({
-			text: `Do you really want to DELETE <strong>${ currentGradient.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
+			text: `Do you really want to DELETE <strong>${ currentTheme.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'DELETE',
-			submitCallback: () => deleteGradient()
+			submitCallback: () => deleteTheme()
 		});
 	});
-	$('#btn-export-gradient').addEventListener( 'click', () => downloadObject( currentGradient, `audioMotion-gradient-${ currentGradient.key }` ) );
+	$('#btn-export-theme').addEventListener( 'click', () => downloadObject( currentTheme, `audioMotion-theme-${ currentTheme.key }` ) );
 
-	const btnImportGradient = $('#import_gradient');
-	btnImportGradient.addEventListener( 'input', () => {
-		const fileBlob = btnImportGradient.files[0];
-		btnImportGradient.value = ''; // clear file (needed for the event to trigger if user loads the same file again)
+	const btnImportTheme = $('#import_theme');
+	btnImportTheme.addEventListener( 'input', () => {
+		const fileBlob = btnImportTheme.files[0];
+		btnImportTheme.value = ''; // clear file (needed for the event to trigger if user loads the same file again)
 		fileBlob.text().then( contents => {
 			try {
-				currentGradient = JSON.parse( contents );
+				currentTheme = JSON.parse( contents );
 			}
 			catch ( e ) {
 				consoleLog( e, true );
 				return;
 			}
-			saveGradient( true ); // indicate this is an imported gradient
+			saveTheme( true ); // indicate this is an imported theme
 		});
 	});
 
-	$('#new-gradient-bkgd').addEventListener('input', (e) => {
-		currentGradient.bgColor = e.target.value;
+	$('#new-theme-name').addEventListener('input', (e) => {
+		currentTheme.name = e.target.value;
 	});
 
-	$('#new-gradient-name').addEventListener('input', (e) => {
-		currentGradient.name = e.target.value;
+	$('#new-theme-bkgd').addEventListener('input', (e) => {
+		currentTheme.bgColor = e.target.value;
 	});
 
-	$('#new-gradient-horizontal').addEventListener('input', (e) => {
-		currentGradient.dir = e.target.checked ? 'h' : undefined;
+	$('#new-theme-horizontal').addEventListener('input', (e) => {
+		currentTheme.horizontal = +e.target.checked;
+	});
+
+	$('#new-theme-reverse').addEventListener('input', (e) => {
+		currentTheme.reverse = +e.target.checked;
+	});
+
+	$('#new-theme-peakcolor').addEventListener('input', (e) => {
+		$('#new-theme-peakcolor-disable').checked = false;
+		currentTheme.peakColor = e.target.value;
+	});
+
+	$('#new-theme-peakcolor-disable').addEventListener('input', (e) => {
+		if ( e.target.checked ) {
+			currentTheme.peakColor = undefined;
+			$('#new-theme-peakcolor').value = undefined;
+		}
 	});
 
 	// Configuration panel accordion
@@ -4666,11 +4673,11 @@ function setUIEventListeners() {
 		});
 	});
 
-	// "Manage Gradients" button on Settings panel
-	$('#manage_gradients').addEventListener( 'click', () => {
+	// "Manage Themes" button on Settings panel
+	$('#manage_themes').addEventListener( 'click', () => {
 		location.href = '#config';
 		closeAccordionItems();
-		$('#gradients_management').open = true;
+		$('#theme_management').open = true;
 	});
 
 	// Export / import settings
@@ -5095,7 +5102,7 @@ function updateRangeValue( el ) {
 
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
-				drawText( getSelectedGradients(), centerPos, topLine1, maxWidthTop );
+				drawText( getSelectedThemes(), centerPos, topLine1, maxWidthTop );
 
 				canvasCtx.textAlign = 'left';
 				drawText( getText( getControlValue( elMode ) == MODE_BARS ? elBandCount : elMode ), baseSize, topLine1, maxWidthTop );
@@ -5490,13 +5497,12 @@ function updateRangeValue( el ) {
 	// Clear canvas messages
 	setCanvasMsg();
 
-	// Register custom color themes
+	// Register color themes
 	Object.keys( THEMES ).forEach( key => {
-		const { bgColor, dir, colorStops } = THEMES[ key ];
-		if ( colorStops )
-			audioMotion.registerTheme( key, { bgColor, dir, colorStops } );
+		if ( THEMES[ key ].colorStops )
+			audioMotion.registerTheme( key, THEMES[ key ] );
 	});
-	populateGradients();
+	populateThemes();
 
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
