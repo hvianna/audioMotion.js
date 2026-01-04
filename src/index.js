@@ -61,6 +61,9 @@ import {
 	LEDS_VINTAGE,
 	MODE_BARS,
 	MODE_GRAPH,
+	RADIAL_INNER,
+	RADIAL_OFF,
+	RADIAL_OUTER,
 	REASON_CREATE,
 	REASON_FULLSCREENCHANGE,
 	REASON_LORES,
@@ -1917,8 +1920,8 @@ function keyboardControls( event ) {
 					setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
 					break;
 				case 'KeyC': 		// radial
-					elRadial.click();
-					setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+					cycleElement( elRadial, isShiftKey );
+					setCanvasMsg( 'Radial: ' + getText( elRadial ) );
 					break;
 				case 'KeyD': 		// display information
 					toggleInfo();
@@ -2464,7 +2467,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		outlineBars    : isSwitchOn( elOutline ),
 		peakFadeTime   : getControlValue( elPeakFade ),
 		peakHoldTime   : getControlValue( elPeakHold ),
-		radial         : isSwitchOn( elRadial ),
+		radial         : getControlValue( elRadial ),
 		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
@@ -3972,8 +3975,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elRadial:
-				audioMotion.radial = isSwitchOn( elRadial );
-				setProperty( elBarSpace, false );
+				audioMotion.radial = getControlValue( elRadial );
 				break;
 
 			case elRadius:
@@ -4350,8 +4352,6 @@ function setUIEventListeners() {
 
 	// settings switches
 	$$('.switch').forEach( el => {
-		if ( ! el.dataset.prop ) // ignore switches that have no data-prop (e.g. Manage Themes)
-			return;
 		el.addEventListener( 'click', () => {
 			el.dataset.active = +!+el.dataset.active;
 			setProperty( el );
@@ -5412,6 +5412,12 @@ function updateRangeValue( el ) {
 		[ LEDS_OFF,     'Off'     ],
 		[ LEDS_MODERN,  'Modern'  ],
 		[ LEDS_VINTAGE, 'Vintage' ]
+	]);
+
+	populateCustomRadio( elRadial, [
+		[ RADIAL_OFF,   'Off'   ],
+		[ RADIAL_INNER, 'Inner' ],
+		[ RADIAL_OUTER, 'Outer' ]
 	]);
 
 	populateCustomRadio( elReflex, [

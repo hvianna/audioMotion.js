@@ -233,14 +233,9 @@
 				</div>
 
 			<!-- COLUMN 2 -->
-				<div class="rowspan-2">
+				<div>
 					<span class="config-label">Analyzer <u>M</u>ode</span>
 					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
-
-					<ul class="switch-bar">
-						<li class="switch" id="radial" data-prop="radial">RADIAL
-							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
-					</ul>
 				</div>
 
 				<div>
@@ -256,6 +251,13 @@
 				<div>
 					<span class="config-label">Bar Color Mode</span>
 					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
+				</div>
+
+				<div>
+					<span class="config-label help">Radial
+						<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LED bars)</em> <kbd>C</kbd></span>
+					</span>
+					<form id="radial" class="custom-radio-buttons" data-prop="radial"></form>
 				</div>
 
 				<div class="last-row">
@@ -335,7 +337,7 @@
 				<div>
 					<span class="config-label help">Alpha Bars
 						<span class="tooltip">
-						Configure display of variable opacity bars<br><em>(Bars mode only)</em>
+						Enable variable opacity bars<br><em>(Bars mode only)</em>
 						</span>
 					</span>
 					<form id="alpha_bars" class="custom-radio-buttons" data-prop="alphaBars"></form>
