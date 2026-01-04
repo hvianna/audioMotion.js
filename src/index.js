@@ -291,7 +291,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elFPS           = $('#fps'),
 	  elFreqScale     = $('#freq_scale'),
 	  elFsHeight      = $('#fs_height'),
-	  elGravity       = $('#gravity'),
 	  elHorizontal0   = $('#horizontal_0'),
 	  elHorizontal1   = $('#horizontal_1'),
 	  elInfoTimeout   = $('#info_timeout'),
@@ -314,7 +313,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
 	  elPanelSelection= $('#panel_selection'),
-	  elPeakFade      = $('#peak_fade'),
+	  elPeakDecay     = $('#peak_decay'),
 	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
@@ -743,10 +742,9 @@ const pipRatioOptions = [
 ];
 
 // Peak settings
-const peakOptionsElements = [ elGravity, elPeakFade, elPeakHold ];
+const peakOptionsElements = [ elPeakDecay, elPeakHold ];
 
 const peakOptionsDefaults = {
-	gravity : 3.8,
 	peakFade: 750,
 	peakHold: 500,
 }
@@ -2314,9 +2312,7 @@ function loadPreferences( serverConfig ) {
 
 	// Peak settings
 
-	setRangeAtts( elGravity, .01, 25, .01 );
-
-	setRangeAtts( elPeakFade, 0, 5000, 50 );
+	setRangeAtts( elPeakDecay, 0, 5000, 50 );
 
 	setRangeAtts( elPeakHold, 0, 5000, 50 );
 
@@ -2465,7 +2461,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		minFreq        : getControlValue( elRangeMin ),
 		mirror         : getControlValue( elMirror ),
 		outlineBars    : isSwitchOn( elOutline ),
-		peakFadeTime   : getControlValue( elPeakFade ),
+		peakDecayTime  : getControlValue( elPeakDecay ),
 		peakHoldTime   : getControlValue( elPeakHold ),
 		radial         : getControlValue( elRadial ),
 		radius         : getControlValue( elRadius ),
@@ -2486,7 +2482,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageDim,
 		elChnLayout,
 		elShowPeaks, // also sets fadePeaks
-		elGravity,
 		elSensitivity,
 		elReflex,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
@@ -3473,8 +3468,7 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_PEAK_OPTIONS ) {
 		const peakOptions = {
-			gravity : elGravity.value,
-			peakFade: elPeakFade.value,
+			peakFade: elPeakDecay.value,
 			peakHold: elPeakHold.value,
 		}
 		saveToStorage( KEY_PEAK_OPTIONS, peakOptions );
@@ -3700,9 +3694,8 @@ function setOverlay() {
  * Set peak behavior options
  */
 function setPeakOptions( options ) {
-	elGravity.value  = options.gravity;
-	elPeakFade.value = options.peakFade;
-	elPeakHold.value = options.peakHold;
+	elPeakDecay.value = options.peakFade;
+	elPeakHold.value  = options.peakHold;
 }
 
 /**
@@ -3953,12 +3946,8 @@ function setProperty( elems, save = true ) {
 				audioMotion.outlineBars = isSwitchOn( elOutline );
 				break;
 
-			case elGravity:
-				audioMotion.gravity = elGravity.value;
-				break;
-
-			case elPeakFade:
-				audioMotion.peakFadeTime = elPeakFade.value;
+			case elPeakDecay:
+				audioMotion.peakDecayTime = elPeakDecay.value;
 				break;
 
 			case elPeakHold:
