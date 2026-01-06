@@ -3,10 +3,11 @@
 	--audioMotion-gradient: linear-gradient( -45deg, #ffdf43, #fa5476, #c63bf3, #8550ff, #4a68f7, #23d2ff );
 	--audioMotion-gradient-transparent: linear-gradient( -45deg, #ffdf43cc, #fa5476cc, #c63bf3cc, #8550ffcc, #4a68f7cc, #23d2ffcc );
 	--background-image: none;
+	--border-color-active: #72aa00;
 	--display-background: #1c231a;
 	--glass-gradient: linear-gradient( to bottom, #ffffff 0%, #f1f1f1 50%, #e1e1e1 51%, #f6f6f6 100% );
 	--glass-gradient-hover: linear-gradient( to bottom, #f2ffd3 0%, #e4f1c5 50%, #d4e1b5 51%, #e9f6ca 100% );
-	--glass-gradient-active: linear-gradient( to bottom, #bfd255 0%, #8eb92a 50%, #72aa00 51%, #9ecb2d 100% );
+	--glass-gradient-active: linear-gradient( to bottom, #f3ffb3 0%, #cee59a 50%, #acd753 51%, #cce58f 100% );
 	--glass-active-glow: 0 0 6px var(--light-color); /* inset 1px 1px 1px 0 rgba(0,0,0,.3), 0 0 6px var(--light-color); */
 	--light-color: #b2ff00;
 	--metal-gradient: linear-gradient( to right, #7a7a7a, #ededed, #7a7a7a );
@@ -63,12 +64,13 @@ button,
 	padding: .425em 1.1em;
 }
 button:not([disabled]):hover,
-.button:not([data-active="1"]):hover {
+.button:hover {
 	background: var(--glass-gradient-hover);
-	border-color: #72aa00;
+	border-color: var(--border-color-active);
 }
 button:not([disabled]):active {
 	background: var(--glass-gradient-active);
+	border-color: var(--border-color-active);
 	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	font-weight: 600;
@@ -703,7 +705,6 @@ a.button:visited {
 .switch-bar .switch {
 	background: var(--glass-gradient);
 	border: 1px solid #adadad;
-	border-left-width: 0;
 	color: #333;
 	cursor: pointer;
 	display: inline-block;
@@ -711,12 +712,14 @@ a.button:visited {
 	line-height: normal;
 	margin-top: 3px;
 	padding: 6px 0 4px;
+	position: relative;
 	text-align: center;
 	width: 50%;
 }
-.switch-bar .switch:not([data-active="1"]):hover {
+.switch-bar .switch:hover {
 	background: var(--glass-gradient-hover);
-	border-color: #72aa00;
+	border-color: var(--border-color-active);
+	z-index: 1;
 }
 .switch-bar .switch:nth-child(odd) {
 	border-left-width: 1px;
@@ -730,13 +733,9 @@ a.button:visited {
 }
 .switch-bar .switch:nth-child(even) {
 	border-bottom-right-radius: 999px;
-	border-left-color: transparent;
 	border-top-right-radius: 999px;
-}
-.switch-bar .switch:nth-child(even):not([data-active="1"]):hover {
-	border-left-width: 1px;
 	margin-left: -1px;
-	width: calc( 50% + 1px );
+	padding-left: 1px;
 }
 .switch-bar .switch:last-child,
 .switch-bar .switch:nth-last-child(2):nth-child(odd) {
@@ -746,10 +745,11 @@ a.button:visited {
 .player-controls .button[data-active="1"],
 .switch-bar .switch[data-active="1"] {
 	background: var(--glass-gradient-active);
-	border-color: transparent;
+	border-color: var(--border-color-active);
 	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	text-shadow: var(--glass-active-glow);
+	z-index: 1;
 }
 
 /* Custom radio buttons and button bars */
@@ -770,7 +770,7 @@ a.button:visited {
 .button-bar .button:active,
 .button-bar li.active > a {
 	background: var(--glass-gradient-active);
-	border-color: transparent;
+	border-color: var(--border-color-active);
 	box-shadow: var(--glass-active-glow);
 	color: #293d00;
 	text-shadow: var(--glass-active-glow);
@@ -810,26 +810,19 @@ a.button:visited {
 	border-bottom-right-radius: 999px;
 	border-top-right-radius: 999px;
 }
+.custom-radio-buttons label:hover,
+.button-bar button:hover,
+.button-bar .button:hover,
+.button-bar li:hover > a {
+	background: var(--glass-gradient-hover);
+	border-color: var(--border-color-active);
+	z-index: 1;
+}
 .custom-radio-buttons label:not(:last-of-type),
 .button-bar button:not(:last-child),
 .button-bar .button:not(:last-child),
 .button-bar li:not(:last-of-type) > a {
-	border-right-width: 0;
-}
-.custom-radio-buttons label:hover,
-.button-bar button:not(:active):hover,
-.button-bar .button:not(:active):hover,
-.button-bar li:not(.active):hover > a {
-	background: var(--glass-gradient-hover);
-	border-color: #72aa00;
-}
-.custom-radio-buttons label:not(:last-of-type):hover,
-.button-bar button:not(:last-child):hover,
-.button-bar .button:not(:last-child):hover,
-.button-bar li:not(:last-of-type):hover > a {
-	border-right-width: 1px !important;
 	margin-right: -1px;
-	z-index: 1;
 }
 
 .button-bar .help:not(:only-child) .tooltip {
