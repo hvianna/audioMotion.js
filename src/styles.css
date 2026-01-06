@@ -444,6 +444,7 @@ a.button:visited {
 	border: 1px solid green;
 	border-radius: 50%;
 	color: green;
+	cursor: pointer;
 	display: inline-block;
 	font-weight: 600;
 	height: 1.25em;
@@ -887,7 +888,7 @@ a.button:visited {
 }
 .player-controls .tooltip {
 	left: 50%;
-	top: 50px;
+	top: 60px;
 	transform: translateX(-50%);
 }
 #playlist_panel .tooltip {

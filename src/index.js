@@ -12,7 +12,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2025 Henrique Avila Vianna
+ * @copyright (c) 2018-2026 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -4764,6 +4764,17 @@ function setUIEventListeners() {
 					}
 				});
 			}
+		});
+	});
+
+	// Links to documentation
+	let helpWindow;
+	$$('[data-help]').forEach( el => {
+		el.title = 'Click for contextual help';
+		el.addEventListener( 'click', e => {
+			if ( helpWindow )
+				helpWindow.close();
+			helpWindow = window.open( el.dataset.help, 'helpWindow', `popup, width=700, height=${ window.screen.height * .8 }, top=60, left=150` );
 		});
 	});
 }
