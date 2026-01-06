@@ -347,6 +347,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSource        = $('#source'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
+	  elSquareLeds    = $('#square_leds'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
@@ -394,8 +395,9 @@ const presets = [
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			roundBars    : 0,
-			splitGrad    : 0
 			showPeaks    : PEAKS_DROP,
+			splitGrad    : 0,
+			squareLeds   : 0
 		}
 	},
 
@@ -541,6 +543,7 @@ const presets = [
 			smoothing    : .7,
 			spin         : 2,
 			splitGrad    : 0,
+			squareLeds   : 0,
 			themes       : { name: 'rainbow', modifiers: { ...DEFAULT_MODIFIERS } },
 			volume       : 1,
 			weighting    : FILTER_D
@@ -913,6 +916,7 @@ const getCurrentSettings = _ => ({
 	smoothing    : getControlValue( elSmoothing ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
+	squareLeds   : getControlValue( elSquareLeds ),
 	themes       : getCurrentThemes(),
 	weighting    : getControlValue( elWeighting )
 });
@@ -2489,6 +2493,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBarSpace,
 		elShowSubtitles,
 		elScaleX, // also sets noteLabels
+		elSquareLeds,
 		elMode ]
 	);
 
@@ -4098,6 +4103,11 @@ function setProperty( elems, save = true ) {
 
 			case elSplitGrad:
 				audioMotion.spreadGradient = isSwitchOn( elSplitGrad );
+				break;
+
+			case elSquareLeds:
+				const params = isSwitchOn( elSquareLeds ) ? [ 0, .2 ] : [];
+				audioMotion.setLeds( ...params );
 				break;
 
 			case elSubsBackground:

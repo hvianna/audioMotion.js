@@ -353,20 +353,22 @@
 					</ul>
 				</div>
 
-				<div>
+				<div class="rowspan-2">
 					<span class="config-label help"><u>L</u>ED Bars
 						<span class="tooltip">
 						Configure display of LED bars<br><em>(Bars mode only)</em>
 						</span>
 					</span>
 					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
+					<ul class="switch-bar">
+						<li class="switch" id="led_mask" data-prop="ledMask">LED MASK
+							<span class="tooltip">Toggle display of LED mask</span>
+						<li class="switch" id="square_leds" data-prop="squareLeds">SQUARE LEDS
+							<span class="tooltip">Toggle display of square LEDs</span>
+					</ul>
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div>
+				<div class="last-row">
 					<span class="config-label help">Refle<u>x</u>
 						<span class="tooltip">
 						Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
@@ -385,8 +387,6 @@
 							<span class="tooltip">Toggle display of subtitles</span>
 						<li class="switch" id="no_shadow" data-prop="noShadow">FLAT TEXT
 							<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
-						<li class="switch" id="led_mask" data-prop="ledMask">LED MASK
-							<span class="tooltip">Toggle display of LED mask</span>
 						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
 						<li class="switch" id="fps" data-prop="showFPS">FPS
