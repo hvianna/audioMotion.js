@@ -405,11 +405,9 @@ const presets = [
 		key: 'dual',
 		name: 'Dual-channel combined Graph',
 		options: {
-//			bandCount    : BANDS_FFT,
+			bandCount    : BANDS_FFT,
 			channelLayout: LAYOUT_COMBINED,
 			fillAlpha    : .3,
-			gradient     : 'cool',
-			gradientRight: 'dusk',
 			lineWidth    : 1,
 			linkGrads    : 0,
 			mode         : MODE_GRAPH,
@@ -417,7 +415,8 @@ const presets = [
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			showPeaks    : PEAKS_OFF,
-			splitGrad    : 0
+			splitGrad    : 0,
+			themes       : ['cool', 'dusk']
 		}
 	},
 
@@ -544,7 +543,7 @@ const presets = [
 			spin         : 2,
 			splitGrad    : 0,
 			squareLeds   : 0,
-			themes       : { name: 'rainbow', modifiers: { ...DEFAULT_MODIFIERS } },
+			themes       : 'prism',
 			volume       : 1,
 			weighting    : FILTER_D
 		}
@@ -824,9 +823,6 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
-// shorthand for Array.isArray()
-const { isArray } = Array;
-
 // return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
 const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
 
@@ -962,6 +958,9 @@ const getSelectedThemes = () => {
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
 
+// shorthand for Array.isArray()
+const { isArray } = Array;
+
 // check if a given url/path is a blob
 const isBlob = src => src && src.startsWith('blob:');
 
@@ -976,6 +975,9 @@ const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).l
 
 // check if given value is numeric
 const isNumeric = val => ! isArray( val ) && val == +val; // note: +[] == []
+
+// check if given value is an object (not null or array, which are also considered objects)
+const isObject = val => typeof val == 'object' && !! val && ! isArray( val );
 
 // check if PIP is active
 const isPIP = _ => elContainer.classList.contains('pip');
@@ -2359,14 +2361,27 @@ function loadPreferences( serverConfig ) {
  */
 function loadPreset( key, alert = true, init, keepRandomize ) {
 
-	const isObject   = typeof key == 'object',
-		  thisPreset = isObject ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
+	const getValidThemeName = name => THEMES.hasOwnProperty( name ) ? name : Object.keys( THEMES )[0];
+
+	const convertThemeNameToObject = name => {
+		const theme          = THEMES[ name ] || THEMES[ Object.keys( THEMES )[0] ],
+			  validKeys      = Object.keys( DEFAULT_MODIFIERS ),
+			  themeModifiers = Object.fromEntries( Object.entries( theme ).filter( ([key]) => validKeys.includes( key ) ) ); // note: a simple destructuring may generate `undefined` properties
+
+		return {
+			name,
+			modifiers: { ...DEFAULT_MODIFIERS, ...themeModifiers }
+		};
+	}
+
+	const keyIsObj   = isObject( key ),
+		  thisPreset = keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
 		  defaults   = getPreset( PRESET_KEY_DEFAULT );
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
-	if ( alert && ! isObject )
+	if ( alert && ! keyIsObj )
 		consoleLog( `Loading ${ isNumeric( key ) ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
 
 	if ( key == PRESET_KEY_DEFAULT )
@@ -2401,14 +2416,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		thisPreset.ledDisplay = thisPreset.ledDisplay ? LEDS_MODERN : LEDS_OFF;
 
 	if ( thisPreset.gradient || thisPreset.gradientRight ) {
-		const convert = name => ({
-			name,
-			modifiers: { ...DEFAULT_MODIFIERS }
-		});
-
 		thisPreset.themes = [
-			convert( thisPreset.gradient || thisPreset.gradientRight ),
-			convert( thisPreset.gradientRight || thisPreset.gradient )
+			convertThemeNameToObject( thisPreset.gradient || thisPreset.gradientRight ),
+			convertThemeNameToObject( thisPreset.gradientRight || thisPreset.gradient )
 		];
 	}
 
@@ -2426,8 +2436,11 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 			themes.push( themes[0] );
 
 		for ( const ch of [0,1] ) {
-			const { name }  = themes[ ch ],
-				  modifiers = { ...DEFAULT_MODIFIERS, ...themes[ ch ].modifiers };
+			if ( typeof themes[ ch ] == 'string' )
+				themes[ ch ] = convertThemeNameToObject( themes[ ch ] );
+
+			const name	    = getValidThemeName( themes[ ch ].name ),
+				  modifiers = { ...DEFAULT_MODIFIERS, ...THEMES[ name ].modifiers, ...themes[ ch ].modifiers };
 
 			setControlValue( ch ? elTheme1 : elTheme0, name );
 			setControlValue( ch ? elHorizontal1 : elHorizontal0, modifiers.horizontal );
@@ -2870,9 +2883,13 @@ function populateCustomRadio( element, options, name ) {
 	if ( ! name )
 		name = element.dataset.prop;
 
-	const isObject = ! isArray( options[0] );
+	if ( ! isArray( options ) )
+		return;
 
-	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
+	for ( const item of options ) {
+		if ( item.disabled )
+			continue;
+
 		const text = item.text || item[1],
 			  val  = item.value || item[0],
 			  id   = name + '-' + val,
