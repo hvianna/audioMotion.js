@@ -164,25 +164,33 @@ const FILE_EXT_AUDIO = ['mp3','flac','m4a','aac','ogg','wav'],
 const FILEMODE_SERVER = 'server',
 	  FILEMODE_LOCAL  = 'local';
 
-// localStorage and indexedDB keys
-const KEY_BG_DIR_HANDLE  = 'bgDir',
-	  KEY_CUSTOM_GRADS   = 'custom-grads',
-	  KEY_CUSTOM_PRESET  = 'custom-preset',
-	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
-	  KEY_DISABLED_GRADS = 'disabled-gradients',
-	  KEY_DISABLED_PROPS = 'disabled-properties',
-	  KEY_DISPLAY_OPTS   = 'display-options',
-	  KEY_FORCE_FS_API   = 'force-filesystem',
-	  KEY_GENERAL_OPTS   = 'general-settings',
-	  KEY_LAST_CONFIG    = 'last-config',
-	  KEY_LAST_DIR       = 'last-dir',
-	  KEY_LAST_VERSION   = 'last-version',
-	  KEY_PEAK_OPTIONS   = 'peak-settings',
-	  KEY_PLAYLISTS      = 'playlists',
-	  KEY_PLAYQUEUE      = 'playqueue',
-	  KEY_SENSITIVITY    = 'sensitivity-presets',
-	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
-	  PLAYLIST_PREFIX    = 'pl_';
+// localStorage keys
+const KEY_CONFIGURATION  = 'audioMotion-config',
+	  KEY_CUSTOM_THEMES  = 'audioMotion-themes',
+	  KEY_CUSTOM_PRESETS = 'audioMotion-presets',
+	  KEY_LAST_SESSION   = 'audioMotion-session',
+  	  KEY_FORCE_FS_API   = 'force-filesystem';
+
+// legacy localStorage keys (consolidated into `audioMotion-config` entry, except for grads and presets)
+const KEY_LEGACY_CUSTOM_GRADS   = 'custom-grads',
+	  KEY_LEGACY_CUSTOM_PRESETS = 'custom-preset',
+	  KEY_LEGACY_DISABLED_BGFIT = 'disabled-bgfit',
+	  KEY_LEGACY_DISABLED_GRADS = 'disabled-gradients',
+	  KEY_LEGACY_DISABLED_PROPS = 'disabled-properties',
+	  KEY_LEGACY_DISPLAY_OPTS   = 'display-options',
+	  KEY_LEGACY_GENERAL_OPTS   = 'general-settings',
+	  KEY_LEGACY_LAST_CONFIG    = 'last-config',
+  	  KEY_LEGACY_LAST_VERSION   = 'last-version',
+	  KEY_LEGACY_PEAK_OPTIONS   = 'peak-settings',
+	  KEY_LEGACY_SENSITIVITY    = 'sensitivity-presets',
+	  KEY_LEGACY_SUBTITLES_OPTS = 'subtitles-settings';
+
+// indexedDB data keys
+const KEY_DB_BGDIR_HANDLE = 'bgDir',
+	  KEY_DB_LAST_DIR     = 'last-dir', // also used in localStorage for webserver mode
+	  KEY_DB_PLAYLISTS    = 'playlists',
+	  KEY_DB_PLAYQUEUE    = 'playqueue',
+	  PLAYLIST_PREFIX     = 'pl_';
 
 // Legacy visualization modes (for preset migration)
 const LEGACY_MODE_BARS     = '11',
@@ -1043,9 +1051,9 @@ const randomInt = ( n = 2 ) => Math.random() * n | 0;
 // helper function to save a path to localStorage or IndexedDB
 const saveLastDir = path => {
 	if ( useFileSystemAPI )
-		set( KEY_LAST_DIR, path ); // IndexedDB
+		set( KEY_DB_LAST_DIR, path ); // IndexedDB
 	else if ( webServer )
-		saveToStorage( KEY_LAST_DIR, path );
+		saveToStorage( KEY_DB_LAST_DIR, path );
 }
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
@@ -1301,7 +1309,7 @@ function changeVolume( incr ) {
 
 	setVolume( newVal );
 	setCanvasMsg( `Volume: ${ newVal * 20 }` );
-	updateLastConfig();
+	savePreferences( KEY_LAST_SESSION );
 }
 
 /**
@@ -1501,8 +1509,8 @@ function deleteTheme() {
 
 	populateThemes();
 	populateEnabledThemes();
-	savePreferences(KEY_CUSTOM_GRADS);
-	savePreferences(KEY_DISABLED_GRADS); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
+	savePreferences( KEY_CUSTOM_THEMES );
+	savePreferences( KEY_CONFIGURATION ); // to save disabled gradients - TO-DO: check if still needed (can we still delete the only enabled theme?)
 
 	currentTheme = null;
 	location.href = '#config';
@@ -1519,14 +1527,14 @@ function deletePlaylist( index ) {
 			submitCallback: async () => {
 				const keyName   = elPlaylists[ index ].value,
 					  key       = PLAYLIST_PREFIX + keyName,
-					  playlists = await get( KEY_PLAYLISTS );
+					  playlists = await get( KEY_DB_PLAYLISTS );
 
 				if ( playlists )
 					delete playlists[ keyName ];
 
 				// delete playlist from indexedDB and update list of playlists
 				await del( key );
-				await set( KEY_PLAYLISTS, playlists );
+				await set( KEY_DB_PLAYLISTS, playlists );
 
 				notie.alert({ text: 'Playlist deleted' });
 				loadSavedPlaylists();
@@ -1544,7 +1552,7 @@ function deletePlaylist( index ) {
 function doConfigPanel() {
 
 	// helper function
-	const buildOptions = ( container, cssClass, options, parent, cfgKey ) => {
+	const buildOptions = ( container, cssClass, options, parent ) => {
 		// create checkboxes inside the container
 		options.forEach( item => {
 			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${ item.disabled ? '' : 'checked' }> ${item.text}</label>`;
@@ -1565,14 +1573,14 @@ function doConfigPanel() {
 				if ( opt ) {
 					opt.disabled = ! element.checked;
 					populateSelect( parent, options );
-					savePreferences( cfgKey );
+					savePreferences( KEY_CONFIGURATION );
 				}
 			});
 		});
 	}
 
 	// Enabled Background Image Fit options
-	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
+	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit );
 
 	// Enabled themes
 	Object.keys( THEMES ).forEach( key => {
@@ -1592,7 +1600,7 @@ function doConfigPanel() {
 	$$('.randomProperty').forEach( el => {
 		el.addEventListener( 'click', event => {
 			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
-			savePreferences( KEY_DISABLED_PROPS );
+			savePreferences( KEY_CONFIGURATION );
 		});
 	});
 
@@ -1609,7 +1617,7 @@ function doConfigPanel() {
 				});
 				if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 					setProperty( elSensitivity, false );
-				savePreferences( KEY_SENSITIVITY );
+				savePreferences( KEY_CONFIGURATION );
 			});
 		}
 		else {
@@ -1617,7 +1625,7 @@ function doConfigPanel() {
 				if ( isValidRange( el ) ) {
 					if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
-					savePreferences( KEY_SENSITIVITY );
+					savePreferences( KEY_CONFIGURATION );
 				}
 				el.classList.toggle( 'field-error', ! isValidRange( el ) );
 			});
@@ -1701,7 +1709,7 @@ function eraseUserPreset( index, force ) {
 
 	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = {};
-	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
+	savePreferences( KEY_CUSTOM_PRESETS );
 
 	notie.alert({ text: `Deleted ${ userPresetText }` });
 
@@ -2180,7 +2188,7 @@ function loadPlaylist( fileObject ) {
 			}
 		}
 		else { // try to load playlist or last play queue from indexedDB
-			const list = await get( path === true ? KEY_PLAYQUEUE : PLAYLIST_PREFIX + path );
+			const list = await get( path === true ? KEY_DB_PLAYQUEUE : PLAYLIST_PREFIX + path );
 
 			if ( isArray( list ) ) {
 				list.forEach( entry => {
@@ -2188,7 +2196,7 @@ function loadPlaylist( fileObject ) {
 					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
 					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 				});
-				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
+				resolveAddedSongs( list != KEY_DB_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
 			else {
 				if ( path !== true ) // avoid error message if no play queue found on storage
@@ -2216,18 +2224,22 @@ function loadPreferences( serverConfig ) {
 		}
 	}
 
-	const lastConfig    = loadFromStorage( KEY_LAST_CONFIG ),
-	 	  isLastSession = lastConfig !== null;
+	const lastConfig    = loadFromStorage( KEY_LAST_SESSION ) || loadFromStorage( KEY_LEGACY_LAST_CONFIG ),
+		  lastVersion   = lastConfig.version || loadFromStorage( KEY_LEGACY_LAST_VERSION ),
+	 	  isLastSession = lastConfig !== null,
+	 	  userSettings  = loadFromStorage( KEY_CONFIGURATION ) || {};
+
+	delete lastConfig.version;
 
 	// for compatibility with v24.6 (down to v21.11), when FFT size and smoothing were stored in the general settings
-	const storedGeneralOptions   = loadFromStorage( KEY_GENERAL_OPTS ) || {},
+	const storedGeneralOptions   = userSettings[ KEY_LEGACY_GENERAL_OPTS ] || loadFromStorage( KEY_LEGACY_GENERAL_OPTS ) || {},
 		  { fftSize, smoothing } = storedGeneralOptions;
 
 	// Merge defaults with the last session settings (if any)
 	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), fftSize, smoothing, ...lastConfig } );
 
 	// Load user presets
-	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
+	userPresets = loadFromStorage( KEY_CUSTOM_PRESETS ) || loadFromStorage( KEY_LEGACY_CUSTOM_PRESETS ) || [];
 	if ( ! isArray( userPresets ) )
 		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
@@ -2238,10 +2250,10 @@ function loadPreferences( serverConfig ) {
 	}
 
 	// Load disabled background image fit options
-	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
+	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_BGFIT ] || loadFromStorage( KEY_LEGACY_DISABLED_BGFIT ), bgFitOptions );
 
 	// Load custom themes
-	const customThemes = loadFromStorage( KEY_CUSTOM_GRADS );
+	const customThemes = loadFromStorage( KEY_CUSTOM_THEMES ) || loadFromStorage( KEY_LEGACY_CUSTOM_GRADS );
 	if ( customThemes ) {
 		Object.keys( customThemes ).forEach( key => {
 			const theme = customThemes[ key ];
@@ -2259,10 +2271,10 @@ function loadPreferences( serverConfig ) {
 	}
 
 	// Load disabled gradients preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_GRADS ), THEMES );
+	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_GRADS ] || loadFromStorage( KEY_LEGACY_DISABLED_GRADS ), THEMES );
 
 	// Load disabled random properties preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
+	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_PROPS ] || loadFromStorage( KEY_LEGACY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -2274,7 +2286,7 @@ function loadPreferences( serverConfig ) {
 	const elLinearBoost = $$('.linear-boost');
 	elLinearBoost.forEach( el => setRangeAtts( el, 1, 5, .2 ) );
 
-	const sensitivityPresets = loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
+	const sensitivityPresets = userSettings[ KEY_LEGACY_SENSITIVITY ] || loadFromStorage( KEY_LEGACY_SENSITIVITY ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -2312,7 +2324,7 @@ function loadPreferences( serverConfig ) {
 	]);
 
 	// merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
+	setInfoOptions( { ...infoDisplayDefaults, ...( userSettings[ KEY_LEGACY_DISPLAY_OPTS ] || loadFromStorage( KEY_LEGACY_DISPLAY_OPTS ) || {} ) } );
 
 	// Peak settings
 
@@ -2320,7 +2332,7 @@ function loadPreferences( serverConfig ) {
 
 	setRangeAtts( elPeakHold, 0, 5000, 50 );
 
-	setPeakOptions( { ...peakOptionsDefaults, ...( loadFromStorage( KEY_PEAK_OPTIONS ) || {} ) } );
+	setPeakOptions( { ...peakOptionsDefaults, ...( userSettings[ KEY_LEGACY_PEAK_OPTIONS ] || loadFromStorage( KEY_LEGACY_PEAK_OPTIONS ) || {} ) } );
 
 	// Subtitles configuration
 
@@ -2346,7 +2358,51 @@ function loadPreferences( serverConfig ) {
 	populateSelect( elSubsPosAudio, subsPositionOptions );
 
 	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
-	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( userSettings[ KEY_LEGACY_SUBTITLES_OPTS ] || loadFromStorage( KEY_LEGACY_SUBTITLES_OPTS ) || {} ) } );
+
+	// Show update message if needed
+	const elBanner = $('#update-banner');
+
+	if ( lastVersion == null || lastVersion == VERSION )
+		elBanner.remove();
+
+	if ( lastVersion != VERSION ) {
+		savePreferences( KEY_LAST_SESSION );
+		if ( lastVersion != null ) {
+			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
+			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
+			setTimeout( () => {
+				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
+			}, UPDATE_BANNER_TIMEOUT );
+		}
+	}
+
+	// localStorage clean-up
+	const storageKeys = [],
+		  legacyKeys  = [
+			KEY_LEGACY_CUSTOM_GRADS,
+			KEY_LEGACY_CUSTOM_PRESETS,
+			KEY_LEGACY_DISABLED_BGFIT,
+			KEY_LEGACY_DISABLED_GRADS,
+			KEY_LEGACY_DISABLED_PROPS,
+			KEY_LEGACY_LAST_CONFIG,
+			KEY_LEGACY_LAST_VERSION,
+			KEY_LEGACY_SENSITIVITY,
+			KEY_LEGACY_DISPLAY_OPTS,
+			KEY_LEGACY_GENERAL_OPTS,
+			KEY_LEGACY_PEAK_OPTIONS,
+			KEY_LEGACY_SUBTITLES_OPTS
+		  ];
+
+	for ( let i = 0; i < localStorage.length; i++ )
+		storageKeys.push( localStorage.key( i ) );
+
+	// if any legacy key is found in localStorage, save new entries and remove old keys
+	if ( storageKeys.some( k => legacyKeys.includes( k ) ) ) {
+		savePreferences(); // saves config, custom themes and presets
+		// TO-DO: uncomment line below when the new version is out of beta
+		//removeFromStorage( ...legacyKeys );
+	}
 
 	return isLastSession;
 }
@@ -2535,10 +2591,10 @@ async function loadSavedPlaylists( keyName ) {
 	elPlaylists.options[ elPlaylists.options.length ] = item;
 
 	// load list of playlists from indexedDB
-	let playlists = await get( KEY_PLAYLISTS );
+	let playlists = await get( KEY_DB_PLAYLISTS );
 
 	// migrate playlists from localStorage (for compatibility with versions up to 24.2-beta.1)
-	const oldPlaylists = loadFromStorage( KEY_PLAYLISTS );
+	const oldPlaylists = loadFromStorage( KEY_DB_PLAYLISTS );
 
 	if ( oldPlaylists ) {
 		for ( const key of Object.keys( oldPlaylists ) ) {
@@ -2555,8 +2611,8 @@ async function loadSavedPlaylists( keyName ) {
 			playlists[ key ] = oldPlaylists[ key ];
 		}
 
-		await set( KEY_PLAYLISTS, playlists ); // save updated list to indexedDB
-		removeFromStorage( KEY_PLAYLISTS );
+		await set( KEY_DB_PLAYLISTS, playlists ); // save updated list to indexedDB
+		removeFromStorage( KEY_DB_PLAYLISTS );
 	}
 
 	// add playlists to the selection box
@@ -2941,7 +2997,7 @@ function populateEnabledThemes() {
 			}
 			THEMES[ el.dataset.theme ].disabled = ! el.checked;
 			populateThemes();
-			savePreferences(KEY_DISABLED_GRADS);
+			savePreferences( KEY_CONFIGURATION );
 		});
 	});
 
@@ -3135,10 +3191,11 @@ function randomizeSettings( force = elSource.checked ) {
 /**
  * Remove a key from localStorage
  *
- * @param key {string}
+ * @param {...string} key(s) to be deleted
  */
-function removeFromStorage( key ) {
-	localStorage.removeItem( key );
+function removeFromStorage( ...keys ) {
+	for ( const key of keys )
+		localStorage.removeItem( keys );
 }
 
 /**
@@ -3265,7 +3322,7 @@ async function retrieveBackgrounds() {
 		catch( e ) {} // fail silently (possibly directory not found on server)
 	}
 	else if ( bgLocation == BGFOLDER_LOCAL ) {
-		const bgDirHandle = await get( KEY_BG_DIR_HANDLE );
+		const bgDirHandle = await get( KEY_DB_BGDIR_HANDLE );
 
 		try {
 			if ( bgDirHandle ) {
@@ -3397,7 +3454,7 @@ function saveTheme( isImported ) {
 	audioMotion.registerTheme( currentTheme.key, currentTheme );
 	populateThemes();
 	populateEnabledThemes();
-	savePreferences(KEY_CUSTOM_GRADS);
+	savePreferences( KEY_CUSTOM_THEMES );
 
 	currentTheme = null;
 	location.href = '#config';
@@ -3425,31 +3482,14 @@ function savePlaylist( index ) {
 /**
  * Save Config Panel preferences to localStorage
  *
- * @param [key] {string} preference to save; if undefined save all preferences (default)
+ * @param [key] {string} preference to save; if undefined saves configuration options, custom themes and custom presets
  */
 function savePreferences( key ) {
 	// helper function
 	const getDisabledItems = items => items.map( ( { value, disabled } ) => ( { value, disabled } ) );
 
-	if ( ! key || key == KEY_DISABLED_BGFIT )
-		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
-
-	if ( ! key || key == KEY_DISABLED_GRADS )
-		saveToStorage( KEY_DISABLED_GRADS, Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ) );
-
-	if (! key || key == KEY_CUSTOM_GRADS) {
-		const customThemes = {};
-		Object.keys( THEMES )
-			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom theme
-			.forEach( key => customThemes[ key ] = THEMES [ key ] );
-		saveToStorage( KEY_CUSTOM_GRADS, customThemes );
-	}
-
-	if ( ! key || key == KEY_DISABLED_PROPS )
-		saveToStorage( KEY_DISABLED_PROPS, getDisabledItems( randomProperties ) );
-
-	if ( ! key || key == KEY_SENSITIVITY ) {
-		let sensitivityPresets = [];
+	if ( ! key || key == KEY_CONFIGURATION ) {
+		const sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
 				min: $(`.min-db[data-preset="${i}"]`).value,
@@ -3457,59 +3497,72 @@ function savePreferences( key ) {
 				boost: $(`.linear-boost[data-preset="${i}"]`).value
 			});
 		}
-		saveToStorage( KEY_SENSITIVITY, sensitivityPresets );
+
+		const userSettings = {
+			[ KEY_LEGACY_DISABLED_BGFIT ]: getDisabledItems( bgFitOptions ),
+			[ KEY_LEGACY_DISABLED_GRADS ]: Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ),
+			[ KEY_LEGACY_DISABLED_PROPS ]: getDisabledItems( randomProperties ),
+			[ KEY_LEGACY_SENSITIVITY ]   : sensitivityPresets,
+			[ KEY_LEGACY_DISPLAY_OPTS]   : {
+				info  : elInfoTimeout.value,
+				track : elTrackTimeout.value,
+				end   : elEndTimeout.value,
+				covers: elShowCover.checked,
+				count : elShowCount.checked,
+				osdFontSize: elOSDFontSize.value
+			},
+			[ KEY_LEGACY_GENERAL_OPTS]   : {
+				autoHide   : elAutoHide.checked,
+				bgLocation : elBgLocation.value,
+				bgMaxItems : elBgMaxItems.value,
+				fsHeight   : elFsHeight.value,
+				invertVol  : elInvertVolume.checked,
+				maxFPS     : elMaxFPS.value,
+				pipRatio   : elPIPRatio.value,
+				preserveFilenames: elPreserveFilenames.checked,
+				saveDir    : elSaveDir.checked,
+				saveQueue  : elSaveQueue.checked,
+				surround   : elSurround.checked
+			},
+			[ KEY_LEGACY_PEAK_OPTIONS ]  : {
+				peakFade: elPeakDecay.value,
+				peakHold: elPeakHold.value
+			},
+			[ KEY_LEGACY_SUBTITLES_OPTS] : {
+				background   : elSubsBackground.value,
+				color        : elSubsColor.value,
+				noDimSubs    : elNoDimSubs.checked,
+				noDimVideo   : elNoDimVideo.checked,
+				position     : elSubsPosition.value,
+				posAudio     : elSubsPosAudio.value,
+				reduceOnSubs : elReduceOnSubs.checked,
+				reduceOnVideo: elReduceOnVideo.checked,
+				videoFill    : elVideoFill.checked
+			}
+		}
+
+		saveToStorage( KEY_CONFIGURATION, userSettings );
 	}
 
-	if ( ! key || key == KEY_DISPLAY_OPTS ) {
-		const displayOptions = {
-			info  : elInfoTimeout.value,
-			track : elTrackTimeout.value,
-			end   : elEndTimeout.value,
-			covers: elShowCover.checked,
-			count : elShowCount.checked,
-			osdFontSize: elOSDFontSize.value
-		}
-		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
+	if ( ! key || key == KEY_CUSTOM_THEMES ) {
+		const customThemes = {};
+		Object.keys( THEMES )
+			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom theme
+			.forEach( key => customThemes[ key ] = THEMES [ key ] );
+		saveToStorage( KEY_CUSTOM_THEMES, customThemes );
 	}
 
-	if ( ! key || key == KEY_GENERAL_OPTS ) {
-		const generalOptions = {
-			autoHide   : elAutoHide.checked,
-			bgLocation : elBgLocation.value,
-			bgMaxItems : elBgMaxItems.value,
-			fsHeight   : elFsHeight.value,
-			invertVol  : elInvertVolume.checked,
-			maxFPS     : elMaxFPS.value,
-			pipRatio   : elPIPRatio.value,
-			preserveFilenames: elPreserveFilenames.checked,
-			saveDir    : elSaveDir.checked,
-			saveQueue  : elSaveQueue.checked,
-			surround   : elSurround.checked
-		}
-		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
-	}
+	if ( ! key || key == KEY_CUSTOM_PRESETS )
+		saveToStorage( KEY_CUSTOM_PRESETS, userPresets );
 
-	if ( ! key || key == KEY_PEAK_OPTIONS ) {
-		const peakOptions = {
-			peakFade: elPeakDecay.value,
-			peakHold: elPeakHold.value,
-		}
-		saveToStorage( KEY_PEAK_OPTIONS, peakOptions );
-	}
-
-	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
-		const subtitlesOptions = {
-			background   : elSubsBackground.value,
-			color        : elSubsColor.value,
-			noDimSubs    : elNoDimSubs.checked,
-			noDimVideo   : elNoDimVideo.checked,
-			position     : elSubsPosition.value,
-			posAudio     : elSubsPosAudio.value,
-			reduceOnSubs : elReduceOnSubs.checked,
-			reduceOnVideo: elReduceOnVideo.checked,
-			videoFill    : elVideoFill.checked
-		}
-		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
+	if ( key == KEY_LAST_SESSION ) {
+		saveToStorage( KEY_LAST_SESSION, {
+			...getCurrentSettings(),
+			micSource: elSource.checked,
+			mute     : elMute.checked,
+			volume   : elVolume.dataset.value,
+			version  : VERSION
+		});
 	}
 }
 
@@ -3581,7 +3634,7 @@ function saveUserPreset( index, options, name, force ) {
 
 	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = { name, options };
-	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
+	savePreferences( KEY_CUSTOM_PRESETS );
 
 	const text = `Saved to ${ userPresetText }`;
 	if ( isFullscreen )
@@ -3825,17 +3878,17 @@ function setProperty( elems, save = true ) {
 				if ( elBgLocation.value == BGFOLDER_LOCAL ) {
 					window.showDirectoryPicker({ startIn: 'pictures' })
 						.then( handle => {
-							set( KEY_BG_DIR_HANDLE, handle );
+							set( KEY_DB_BGDIR_HANDLE, handle );
 						})
 						.catch( e => {
 							// disable if user denies access
 							elBgLocation.value = BGFOLDER_NONE;
-							del( KEY_BG_DIR_HANDLE );
+							del( KEY_DB_BGDIR_HANDLE );
 						})
 						.finally( () => retrieveBackgrounds() );
 				}
 				else {
-					del( KEY_BG_DIR_HANDLE );
+					del( KEY_DB_BGDIR_HANDLE );
 					retrieveBackgrounds();
 				}
 				break;
@@ -4056,8 +4109,8 @@ function setProperty( elems, save = true ) {
 				if ( elSaveDir.checked )
 					saveLastDir( fileExplorer.getPath() );
 				else {
-					del( KEY_LAST_DIR ); // IndexedDB
-					removeFromStorage( KEY_LAST_DIR );
+					del( KEY_DB_LAST_DIR ); // IndexedDB
+					removeFromStorage( KEY_DB_LAST_DIR );
 				}
 				break;
 
@@ -4065,7 +4118,7 @@ function setProperty( elems, save = true ) {
 				if ( elSaveQueue.checked )
 					storePlayQueue( true );
 				else
-					del( KEY_PLAYQUEUE );
+					del( KEY_DB_PLAYQUEUE );
 				break;
 
 			case elScaleX:
@@ -4110,7 +4163,7 @@ function setProperty( elems, save = true ) {
 					}
 					else if ( ! isMic )
 						toggleMute( !! wasMuted ); // false if undefined
-					updateLastConfig();
+					savePreferences( KEY_LAST_SESSION );
 				});
 				break;
 
@@ -4152,16 +4205,10 @@ function setProperty( elems, save = true ) {
 		} // switch
 
 		if ( save ) {
-			if ( generalOptionsElements.includes( el ) )
-				savePreferences( KEY_GENERAL_OPTS );
-			else if ( infoOptionsElements.includes( el ) )
-				savePreferences( KEY_DISPLAY_OPTS );
-			else if ( peakOptionsElements.includes( el ) )
-				savePreferences( KEY_PEAK_OPTIONS );
-			else if ( subsOptionsElements.includes( el ) )
-				savePreferences( KEY_SUBTITLES_OPTS );
+			if ( [ ...generalOptionsElements, ...infoOptionsElements, ...peakOptionsElements, ...subsOptionsElements ].includes( el ) )
+				savePreferences( KEY_CONFIGURATION );
 			else
-				updateLastConfig();
+				savePreferences( KEY_LAST_SESSION );
 		}
 
 	} // for
@@ -4520,7 +4567,7 @@ function setUIEventListeners() {
 		setToggleButtonIcon();
 		btnToggleFS.addEventListener( 'click', async () => {
 			useFileSystemAPI = ! useFileSystemAPI;
-			const lastDir = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR );
+			const lastDir = useFileSystemAPI ? await get( KEY_DB_LAST_DIR ) : loadFromStorage( KEY_DB_LAST_DIR );
 			if ( ! useFileSystemAPI || ! lastDir || await lastDir[0].handle.requestPermission() == 'granted' ) {
 				fileExplorer.switchMode( lastDir );
 				setToggleButtonIcon();
@@ -4779,7 +4826,7 @@ async function storePlayQueue( name, update = true ) {
 		if ( ! isSaveQueue && ! update ) {
 			safename = generateSafeKeyName( name, '_' );
 
-			let playlists = await get( KEY_PLAYLISTS ) || {},
+			let playlists = await get( KEY_DB_PLAYLISTS ) || {},
 				attempt   = 0,
 				basename  = safename;
 
@@ -4789,7 +4836,7 @@ async function storePlayQueue( name, update = true ) {
 			}
 
 			playlists[ safename ] = name;
-			await set( KEY_PLAYLISTS, playlists ); // save list to indexedDB
+			await set( KEY_DB_PLAYLISTS, playlists ); // save list to indexedDB
 			loadSavedPlaylists( safename );
 		}
 
@@ -4802,7 +4849,7 @@ async function storePlayQueue( name, update = true ) {
 		}
 
 		if ( isSaveQueue )
-			set( KEY_PLAYQUEUE, songs );
+			set( KEY_DB_PLAYQUEUE, songs );
 		else
 			set( PLAYLIST_PREFIX + safename, songs ).then( () => notie.alert({ text: `Playlist saved!` }) );
 	}
@@ -4951,18 +4998,6 @@ function translateRangeValue( el ) {
 	else if ( el == elSpin )
 		return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
 	return val;
-}
-
-/**
- * Update last used configuration
- */
-function updateLastConfig() {
-	saveToStorage( KEY_LAST_CONFIG, {
-		...getCurrentSettings(),
-		micSource: elSource.checked,
-		mute     : elMute.checked,
-		volume   : elVolume.dataset.value,
-	});
 }
 
 /**
@@ -5253,24 +5288,6 @@ function updateRangeValue( el ) {
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
 	$('#version').innerText = VERSION;
-
-	// Show update message if needed
-	const lastVersion = loadFromStorage( KEY_LAST_VERSION ),
-		  elBanner    = $('#update-banner');
-
-	if ( lastVersion == null || lastVersion == VERSION )
-		elBanner.remove();
-
-	if ( lastVersion != VERSION ) {
-		saveToStorage( KEY_LAST_VERSION, VERSION );
-		if ( lastVersion != null ) {
-			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
-			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
-			setTimeout( () => {
-				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
-			}, UPDATE_BANNER_TIMEOUT );
-		}
-	}
 
 	// Load server configuration options from config.yaml
 	let response;
@@ -5640,8 +5657,8 @@ function updateRangeValue( el ) {
 			}
 		}
 
-		const lastDir         = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ),
-			  bgDirHandle     = await get( KEY_BG_DIR_HANDLE ),
+		const lastDir         = useFileSystemAPI ? await get( KEY_DB_LAST_DIR ) : loadFromStorage( KEY_DB_LAST_DIR ),
+			  bgDirHandle     = await get( KEY_DB_BGDIR_HANDLE ),
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
 			  isLastDirLocked = useFileSystemAPI && isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
