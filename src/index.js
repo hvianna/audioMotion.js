@@ -2367,7 +2367,6 @@ function loadPreferences( serverConfig ) {
 		elBanner.remove();
 
 	if ( lastVersion != VERSION ) {
-		savePreferences( KEY_LAST_SESSION );
 		if ( lastVersion != null ) {
 			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
 			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
