@@ -61,6 +61,9 @@ import {
 	LEDS_VINTAGE,
 	MODE_BARS,
 	MODE_GRAPH,
+	PEAKS_DROP,
+	PEAKS_FADE,
+	PEAKS_OFF,
 	RADIAL_INNER,
 	RADIAL_OFF,
 	RADIAL_OUTER,
@@ -181,7 +184,7 @@ const KEY_BG_DIR_HANDLE  = 'bgDir',
 	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
 	  PLAYLIST_PREFIX    = 'pl_';
 
-// Legacy visualization modes
+// Legacy visualization modes (for preset migration)
 const LEGACY_MODE_BARS     = '11',
  	  LEGACY_MODE_DISCRETE = '0',
 	  LEGACY_MODE_GRAPH    = '10',
@@ -195,11 +198,6 @@ const OSD_SIZE_S = '0',
 // Valid values for the `frontPanel` URL parameter and config.yaml option
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
-
-// Valid values for showPeaks
-const PEAKS_OFF  = 0,
-	  PEAKS_ON   = 1,
-	  PEAKS_FADE = 2;
 
 const PRESET_KEY_DEFAULT = 'default',
 	  PRESET_KEY_LAST_SESSION = 'last';
@@ -396,8 +394,8 @@ const presets = [
 			randomMode   : 0,
 			reflex       : REFLEX_OFF,
 			roundBars    : 0,
-			showPeaks    : PEAKS_ON,
 			splitGrad    : 0
+			showPeaks    : PEAKS_DROP,
 		}
 	},
 
@@ -439,7 +437,7 @@ const presets = [
 			randomMode   : 0,
 			reflex       : REFLEX_SHORT,
 			roundBars    : 0,
-			showPeaks    : PEAKS_ON,
+			showPeaks    : PEAKS_FADE,
 			showScaleX   : SCALEX_NOTES,
 			splitGrad    : 0
 		}
@@ -462,7 +460,7 @@ const presets = [
 			outlineBars  : 0,
 			radial       : 1,
 			randomMode   : 0,
-			showPeaks    : PEAKS_ON,
+			showPeaks    : PEAKS_DROP,
 			splitGrad    : 0
 		}
 	},
@@ -535,7 +533,7 @@ const presets = [
 			sensitivity  : 1,
 			showFPS      : 0,
 			showLedMask  : 1,
-			showPeaks    : PEAKS_ON,
+			showPeaks    : PEAKS_DROP,
 			showScaleX   : SCALEXY_ON,
 			showScaleY   : SCALEXY_OFF,
 			showSong     : 1,
@@ -2378,7 +2376,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( thisPreset.barSpace == 1.5 )
 		thisPreset.barSpace = 1;
 
-	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks )
+	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks ) // boolean fadePeaks / showPeaks (ver =< 24.6)
 		thisPreset.showPeaks = PEAKS_FADE;
 
 	if ( ! [ MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
@@ -2409,6 +2407,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 			convert( thisPreset.gradientRight || thisPreset.gradient )
 		];
 	}
+
+	if ( isNumeric( thisPreset.showPeaks ) ) // ver =< 25.9
+		thisPreset.showPeaks = [ PEAKS_OFF, PEAKS_DROP, PEAKS_FADE ][ thisPreset.showPeaks ] ?? PEAKS_DROP;
 
 	// set themes and modifiers UI controls
 	if ( thisPreset.themes || init ) {
@@ -2463,6 +2464,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		outlineBars    : isSwitchOn( elOutline ),
 		peakDecayTime  : getControlValue( elPeakDecay ),
 		peakHoldTime   : getControlValue( elPeakHold ),
+		peaks          : getControlValue( elShowPeaks ),
 		radial         : getControlValue( elRadial ),
 		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
@@ -2481,7 +2483,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageFit,
 		elBgImageDim,
 		elChnLayout,
-		elShowPeaks, // also sets fadePeaks
 		elSensitivity,
 		elReflex,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
@@ -4064,8 +4065,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elShowPeaks:
-				audioMotion.showPeaks = getControlValue( elShowPeaks ) != PEAKS_OFF;
-				audioMotion.fadePeaks = getControlValue( elShowPeaks ) == PEAKS_FADE;
+				audioMotion.peaks = getControlValue( elShowPeaks );
 				break;
 
 			case elShowSubtitles:
@@ -5448,7 +5448,7 @@ function updateRangeValue( el ) {
 
 	populateCustomRadio( elShowPeaks, [
 		[ PEAKS_OFF,  'Off'  ],
-		[ PEAKS_ON,   'Drop' ],
+		[ PEAKS_DROP, 'Drop' ],
 		[ PEAKS_FADE, 'Fade' ]
 	]);
 
