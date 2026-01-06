@@ -34,7 +34,6 @@ jobs:
           git config user.name "$USERNAME"
           git config user.email "$USERNAME@$ADDRESS_SUFFIX"
           git mv src/manifest.json public
-          git mv docs public
           git add .
           git commit -m "Deploy app"
           git subtree split --prefix public -b gh-pages
