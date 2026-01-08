@@ -4175,7 +4175,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSquareLeds:
-				const params = isSwitchOn( elSquareLeds ) ? [ 0, .2 ] : [];
+				const params = isSwitchOn( elSquareLeds ) ? [ 0, 0 ] : [];
 				audioMotion.setLeds( ...params );
 				break;
 
