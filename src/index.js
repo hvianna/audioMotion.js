@@ -142,6 +142,7 @@ const DATASET_TEMPLATE = {
 // CSS classes
 const CSS_CLASS_COMPACT   = 'compact',
 	  CSS_CLASS_FIT_VIDEO = 'fit-video',
+	  CSS_CLASS_NO_IMAGE  = 'no-image',
 	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
 	  CSS_CLASS_WARNING   = 'warning';
 
@@ -3783,7 +3784,7 @@ function setOverlay() {
 		toggleDisplay( audioEl, ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] );
 
 	// enable/disable background image and set background color
-	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
+	elContainer.classList.toggle( CSS_CLASS_NO_IMAGE, isVideo );
 	elAnalyzer.style.backgroundColor = isOverlay || bgOption == BG_BLACK ? '' : THEMES[ getControlValue( elTheme0 ) ].bgColor || DEFAULT_BG_COLOR;
 
 	// set visibility of background video layer

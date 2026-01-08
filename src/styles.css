@@ -273,6 +273,12 @@ a.button:visited {
 .bg-container.cover {
 	background-size: cover;
 }
+.bg-container.no-image {
+	background-image: none;
+}
+.bg-container.no-image .warp {
+	display: none;
+}
 .bg-container:fullscreen {
 	position: relative !important;
 	transition: none;
