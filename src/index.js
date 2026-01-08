@@ -226,16 +226,22 @@ const RND_ALPHA      = 'alpha',
 	  RND_BANDCOUNT  = 'bands',
 	  RND_BGIMAGEFIT = 'imgfit',
 	  RND_COLORMODE  = 'colormode',
-	  RND_GRADIENT   = 'gradient',
+	  RND_HORIZONTAL = 'horizontal',
 	  RND_LEDS       = 'leds',
+	  RND_LED_MASK   = 'ledmask',
+	  RND_LED_SQUARE = 'ledsquare',
 	  RND_MODE       = 'mode',
 	  RND_OUTLINE    = 'outline',
 	  RND_PEAKS      = 'peaks',
 	  RND_PRESETS    = 'presets',
 	  RND_RADIAL     = 'radial',
 	  RND_REFLEX     = 'reflex',
+	  RND_REVERSE    = 'reverse',
 	  RND_ROUND      = 'round',
-	  RND_SPLIT      = 'split';
+	  RND_SPLIT      = 'split',
+	  RND_THEMES     = 'gradient',
+	  MIN_STREAK_FOR_GRAPH  = 3,
+	  MIN_STREAK_FOR_RADIAL = 5;
 
 // X- and Y- scale switches
 const SCALEXY_OFF  = 0,
@@ -676,14 +682,18 @@ const randomProperties = [
 	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
 	{ value: RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
 	{ value: RND_COLORMODE,   text: 'Color Mode',    disabled: false },
-	{ value: RND_GRADIENT,    text: 'Color Themes',  disabled: false },
+	{ value: RND_THEMES,      text: 'Color Themes',  disabled: false },
+	{ value: RND_HORIZONTAL,  text: 'Horizontal',    disabled: false },
+	{ value: RND_REVERSE,     text: 'Reverse',       disabled: false },
 	{ value: RND_LEDS,        text: 'LED Bars',      disabled: false },
+	{ value: RND_LED_MASK,    text: 'LED Mask',      disabled: false },
+	{ value: RND_LED_SQUARE,  text: 'Square LEDs',   disabled: false },
 	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
 	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
 	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
 	{ value: RND_REFLEX,      text: 'Reflex',        disabled: false },
 	{ value: RND_ROUND,       text: 'Round',         disabled: false },
-	{ value: RND_SPLIT,       text: 'Spread',        disabled: false }
+	{ value: RND_SPLIT,       text: 'Spread',        disabled: false },
 ];
 
 // Sensitivity presets
@@ -796,6 +806,8 @@ let audioElement = [],
 	mediaNodes = [],			// mediaElementSource nodes used to connect to the stereoPanner node
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
+	noGraphStreak = 0,
+	noRadialStreak = 0,
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
 	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
 	queueIndex, 				// index to the current song in the play queue
@@ -809,7 +821,7 @@ let audioElement = [],
 	wasMuted,					// mute status before switching to microphone input
 	webServer;					// web server available? (boolean)
 
-// for on-screen info display
+// for on-screen info display - TO-DO: improve this, make it an array?
 let baseSize,
 	coverSize,
 	centerPos,
@@ -3138,8 +3150,10 @@ function randomizeSettings( force = elSource.checked ) {
 			loadPreset( validIndexes[ randomInt( count ) ], false, false, true );
 	}
 
-	if ( isEnabled( RND_MODE ) )
-		randomizeControl( elMode );
+	if ( isEnabled( RND_MODE ) ) {
+		randomizeControl( elMode, newVal => newVal == MODE_BARS || noGraphStreak > MIN_STREAK_FOR_GRAPH );
+		noGraphStreak = getControlValue( elMode ) == MODE_GRAPH ? 0 : noGraphStreak + 1;
+	}
 
 	if ( isEnabled( RND_ALPHA ) ) {
 		// no FULL alpha bars when LEDs are on and background is image or video
@@ -3149,8 +3163,10 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_BACKGROUND ) )
 		randomizeControl( elBackground );
 
-	if ( isEnabled( RND_BANDCOUNT ) )
-		randomizeControl( elBandCount );
+	if ( isEnabled( RND_BANDCOUNT ) ) {
+		// no full-octave bands with square LEDs
+		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == MODE_GRAPH || newVal == BANDS_FFT || newVal > BANDS_OCTAVE_FULL );
+	}
 
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
@@ -3158,22 +3174,32 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
 
-	if ( isEnabled( RND_PEAKS ) )
-		randomizeControl( elShowPeaks );
-
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
 
+	if ( isEnabled( RND_LED_MASK ) )
+		randomizeControl( elLedMask );
+
+	if ( isEnabled( RND_LED_SQUARE ) ) {
+		// no square LEDs for full-octave bands
+		randomizeControl( elSquareLeds, newVal => ! newVal || getControlValue( elBandCount ) > BANDS_OCTAVE_FULL );
+	}
+
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
+
+	if ( isEnabled( RND_PEAKS ) )
+		randomizeControl( elShowPeaks );
 
 	if ( isEnabled( RND_REFLEX ) ) {
 		// no full reflex with LEDs
 		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || getControlValue( elLedDisplay ) == LEDS_OFF );
 	}
 
-	if ( isEnabled( RND_RADIAL ) )
-		randomizeControl( elRadial );
+	if ( isEnabled( RND_RADIAL ) ) {
+		randomizeControl( elRadial, newVal => newVal == RADIAL_OFF || noRadialStreak > MIN_STREAK_FOR_RADIAL );
+		noRadialStreak = getControlValue( elRadial ) == RADIAL_OFF ? noRadialStreak + 1 : 0;
+	}
 
 	if ( isEnabled( RND_ROUND ) )
 		randomizeControl( elRoundBars );
@@ -3181,8 +3207,16 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
 
-	if ( isEnabled( RND_GRADIENT ) ) {
+	if ( isEnabled( RND_THEMES ) ) {
 		for ( const el of [ elTheme0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elTheme1 ] ) ] )
+			randomizeControl( el );
+	}
+	if ( isEnabled( RND_HORIZONTAL ) ) {
+		for ( const el of [ elHorizontal0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elHorizontal1 ] ) ] )
+			randomizeControl( el );
+	}
+	if ( isEnabled( RND_REVERSE ) ) {
+		for ( const el of [ elReverse0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elReverse1 ] ) ] )
 			randomizeControl( el );
 	}
 }
@@ -4055,6 +4089,8 @@ function setProperty( elems, save = true ) {
 				if ( option > 1 )
 					randomModeTimer = setInterval( randomizeSettings, 2500 * option );
 
+				noGraphStreak  = 0;
+				noRadialStreak = 0;
 				break;
 
 			case elRangeMin:
