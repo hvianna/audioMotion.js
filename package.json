@@ -12,7 +12,7 @@
     "docs": "http-server -p 8081 docs/"
   },
   "devDependencies": {
-    "audiomotion-analyzer": "^4.5.2",
+    "audiomotion-analyzer": "^5.0.0-alpha.0",
     "buffer": "^6.0.3",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.4",
