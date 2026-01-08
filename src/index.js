@@ -3114,11 +3114,13 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
+	const isCompactAnalyzer = elAnalyzer.classList.contains( CSS_CLASS_COMPACT );
+
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
 	const randomizeControl = ( el, validate = () => true ) => {
-		let attempts = 9; // avoid an infinite loop just in case validation is never satisfied
+		let attempts = 99; // avoid infinite loop in case validation is never satisfied
 		do {
 			if ( isCustomRadio( el ) ) {
 				// custom radio buttons
@@ -3141,8 +3143,6 @@ function randomizeSettings( force = elSource.checked ) {
 
 		setProperty( el );
 	}
-
-	let props = []; // properties that need to be updated
 
 	if ( isEnabled( RND_PRESETS ) ) {
 		const validIndexes = userPresets.map( ( item, index ) => isEmpty( item ) ? null : index ).filter( item => item !== null ),
@@ -3193,12 +3193,13 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elShowPeaks );
 
 	if ( isEnabled( RND_REFLEX ) ) {
-		// no full reflex with LEDs
-		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || getControlValue( elLedDisplay ) == LEDS_OFF );
+		// no full reflex with LEDs and no reflex at all in compact analyzer
+		randomizeControl( elReflex, newVal => newVal == REFLEX_OFF || ! isCompactAnalyzer && ( newVal != REFLEX_FULL || getControlValue( elLedDisplay ) == LEDS_OFF ) );
 	}
 
 	if ( isEnabled( RND_RADIAL ) ) {
-		randomizeControl( elRadial, newVal => newVal == RADIAL_OFF || noRadialStreak > MIN_STREAK_FOR_RADIAL );
+		// no radial in compact analyzer, otherwise limit how often it is activated
+		randomizeControl( elRadial, newVal => newVal == RADIAL_OFF || ! isCompactAnalyzer && noRadialStreak > MIN_STREAK_FOR_RADIAL );
 		noRadialStreak = getControlValue( elRadial ) == RADIAL_OFF ? noRadialStreak + 1 : 0;
 	}
 
