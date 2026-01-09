@@ -605,6 +605,12 @@ const THEMES = {
 				{ pos: .794, color: 'rgb( 32, 173, 190 )' },
 				{ pos: 1, color: 'rgb( 22, 158, 95 )' }
 			  ], disabled: false },
+	mono:     {
+				name: 'Mono (BETA!)',
+				colorStops: [ '#eee' ],
+				peakColor: 'red',
+			  	disabled: false
+			  },
 	orient:   { name: 'Orient', bgColor: '#100', colorStops: [
 				{ pos: .1, color: '#f00' },
 				{ pos: 1, color: '#600' }
