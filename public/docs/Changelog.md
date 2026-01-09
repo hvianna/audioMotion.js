@@ -1,12 +1,17 @@
 # Changelog
 
-## version NEXT
+## version BETA
 
-+ Added **LED Mask** switch;
-+ **LEDS** switch changed to **LED bars** selection, with additional **Vintage** option;
-+ Added per channel theme/gradient modifiers: Horizontal and Reverse;
-+ Removed **FFT** mode - moved to **Band Count** option;
-+ **SPLIT** renamed to **SPREAD** - moved to **Display** switches;
++ **Gradients** are now called **Themes** - added option for specific peak color in theme editor (see "Mono" theme for an example);
++ Added per-channel theme/gradient modifiers: [Horizontal and Reverse](settings.md#color-theme);
++ The **SPLIT** switch has been renamed to **SPREAD** (now only displayed when a dual-channel layout is selected);
++ Improvements to [LED Bars](settings.md#led-bars);
++ The **FFT** analyzer mode has been moved to the **Band Count** option - Graph mode now adapts to the selected band resolution;
++ LUMI has been consolidated into [Alpha Bars](settings.md#alpha-bars) and now works with Radial and FFT band resolution;
++ Added [Inner Radial](settings.md#radial) option;
++ Under [Configuration > Peaks behavior](configuration.md#peaks-behavior) the **gravity** option has been removed and the new **Peak decay time** now controls both the fade-out and fall-down time;
++ The **T** keyboard shortcut is now used to select the Theme;
++ Tweaked the color of active buttons in the user interface.
 
 
 ## version 25.9

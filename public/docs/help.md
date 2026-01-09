@@ -27,7 +27,6 @@ Most shortcuts support holding the **Shift** key to cycle backward through optio
 **D** | Display track information on screen; press again for settings info and again to hide<br>(alternatively, click on analyzer)
 **E** | [Shuffle](user-interface.md#player-controls) play queue
 **F** | toggle [Fullscreen](user-interface.md#fullscreen)
-**G** | cycle through [Gradients](settings.md#gradients) options
 **H** | toggle [FPS](settings.md#display-switches)
 **I** | toggle [TRACK INFO](settings.md#display-switches)
 **L** | toggle [LEDS](settings.md#effects-switches)
@@ -37,8 +36,7 @@ Most shortcuts support holding the **Shift** key to cycle backward through optio
 **P** | cycle through [Peaks](settings.md#peaks) options
 **R** | toggle queue [Repeat](user-interface.md#player-controls)
 **S** | cycle through [X-Axis Labels](settings.md#x-axis-labels) and [Y-Axis Labels](settings.md#y-axis-labels) options
-**T** | toggle [FLAT](settings.md#display-switches)
-**U** | toggle [LUMI](settings.md#effects-switches)
+**T** | cycle through [Color Theme](settings.md#color-theme) options
 **X** | cycle through [Reflex](settings.md#reflex) options
 **Esc** | Exit fullscreen
 **F1** | open the Help panel (also works in fullscreen)

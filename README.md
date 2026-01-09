@@ -1,4 +1,4 @@
-![audioMotion-header](docs/img/audioMotion-header.png)
+![audioMotion-header](public/docs/img/audioMotion-header.png)
 
 **audioMotion** is a media player and high-resolution real-time audio spectrum analyzer that allows you to **SEE your music!** ♪♫🤩<br>
 It is completely free, open-source software, created out of my passion for the graphic spectrum analyzers of hi-fi systems from the 1980s.
@@ -9,7 +9,7 @@ It is completely free, open-source software, created out of my passion for the g
 
 ## Features
 
-![screenshot2](docs/img/screenshot2.png)
+![screenshot2](public/docs/img/screenshot2.png)
 
 * Dual channel high-resolution real-time audio spectrum analyzer
 * Media player with subtitles support for audio and video files
@@ -36,7 +36,7 @@ It is completely free, open-source software, created out of my passion for the g
 
 Install audioMotion on your PC by clicking the install icon located in the browser's address bar:
 
-![browser-install](docs/img/browser-install.png)
+![browser-install](public/docs/img/browser-install.png)
 
 ## Documentation
 
@@ -55,5 +55,5 @@ If you'd like to submit a Pull Request, please branch it off the project's `dev`
 
 ## License
 
-audioMotion.js copyright (c) 2018-2025 [Henrique Avila Vianna](https://henriquevianna.com)<br>
+audioMotion.js copyright (c) 2018-2026 [Henrique Avila Vianna](https://henriquevianna.com)<br>
 Licensed under the [GNU Affero General Public License, version 3 or later](https://www.gnu.org/licenses/agpl.html).
