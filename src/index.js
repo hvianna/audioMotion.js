@@ -2685,8 +2685,8 @@ async function loadSong( n, playIt ) {
 				await loadFileBlob( fileBlob, audioEl, playIt );
 				success = true;
 			}
-			catch( e ) {
-				consoleLog( `Error loading ${ song.dataset.file }`, true );
+			catch( error ) {
+				consoleLog( `${ error } - ${ song.dataset.file }`, true );
 				clearAudioElement( audioEl );
 			}
 		}
