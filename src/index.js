@@ -4274,9 +4274,9 @@ async function setSource( isMicSource, callback ) {
 		if ( navigator.mediaDevices ) {
 			navigator.mediaDevices.getUserMedia( { audio: true } )
 			.then( stream => {
-				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
 				if ( isPlaying() )
 					audioElement[ currAudio ].pause();
+				micStream = stream; // save stream reference for disconnection
 				audioMotion.connectInput( micStream );
 				consoleLog( 'Audio source set to microphone' );
 			})
@@ -4298,8 +4298,7 @@ async function setSource( isMicSource, callback ) {
 	}
 	else {
 		if ( micStream ) {
-			audioMotion.disconnectInput( micStream );
-			micStream.mediaStream.getTracks()[0].stop(); // stop (release) stream
+			audioMotion.disconnectInput( micStream, true ); // disconnect and release stream (stops recording)
 			micStream = null;
 		}
 		consoleLog( 'Audio source set to built-in player' );
