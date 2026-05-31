@@ -810,7 +810,7 @@ let audioElement = [],
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
 	latency = 0,
-	mediaNodes = [],			// mediaElementSource nodes used to connect to the stereoPanner node
+	mediaNodes = [],			// mediaElementSource nodes for the video elements - used to connect to the stereoPanner node
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
 	noGraphStreak = 0,
@@ -4976,15 +4976,16 @@ function toggleMultiChannel() {
 		  { maxChannelCount } = destination,
 		  isSurround          = elSurround.checked;
 
-	if ( panNode ) {
-		audioMotion.disconnectInput();
-		if ( isSurround ) {
-			for ( const node of mediaNodes )
-				audioMotion.connectInput( node );
-		}
-		else // on stereo mode we use the panNode to fix mono audio playing only on the left channel
-			audioMotion.connectInput( panNode );
+	// disconnect previously connected inputs - don't use `disconnectInput()` without arguments to avoid disconnecting the microphone too
+	audioMotion.disconnectInput([ panNode, ...mediaNodes ]);
+
+	if ( isSurround || ! panNode ) {
+		// in surround mode, or when panNode is not supported, both media nodes are connected to the analyzer
+		for ( const node of mediaNodes )
+			audioMotion.connectInput( node );
 	}
+	else // in stereo mode, we connect the panNode so any mono source will be upmixed to play on both channels
+		audioMotion.connectInput( panNode );
 
 	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
 	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
@@ -5442,12 +5443,12 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		if ( panNode ) {
-			mediaNodes[ i ] = audioCtx.createMediaElementSource( audioElement[ i ] );
+		mediaNodes[ i ] = audioCtx.createMediaElementSource( audioElement[ i ] );
+
+		if ( panNode )
 			mediaNodes[ i ].connect( panNode );
-		}
-		else
-			audioMotion.connectInput( audioElement[ i ] );
+
+		// NOTE: nodes will be connected to the analyzer when setting the `elSurround` property at the end of initialization
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );
