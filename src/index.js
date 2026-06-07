@@ -226,12 +226,6 @@ const PRESET_KEY_DEFAULT = 'default',
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
 
-// Reflex options
-const REFLEX_OFF  = '0',
-	  REFLEX_ON   = '1',
-	  REFLEX_FULL = '2',
-	  REFLEX_SHORT= '3';
-
 // Property keys for Randomize settings
 const RND_ALPHA      = 'alpha',
 	  RND_BACKGROUND = 'nobg',
@@ -414,7 +408,7 @@ const presets = [
 			mode         : MODE_BARS,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_OFF,
+			reflex       : 0,
 			roundBars    : 0,
 			showPeaks    : PEAKS_DROP,
 			splitGrad    : 0,
@@ -434,7 +428,7 @@ const presets = [
 			mode         : MODE_GRAPH,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_OFF,
+			reflex       : 0,
 			showPeaks    : PEAKS_OFF,
 			splitGrad    : 0,
 			themes       : ['cool', 'dusk']
@@ -457,7 +451,7 @@ const presets = [
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_SHORT,
+			reflex       : .25,
 			roundBars    : 0,
 			showPeaks    : PEAKS_FADE,
 			showScaleX   : LABELS_X_NOTES,
@@ -504,7 +498,7 @@ const presets = [
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_FULL,
+			reflex       : .5,
 			roundBars    : 1,
 			showPeaks    : PEAKS_OFF,
 			splitGrad    : 0
@@ -549,7 +543,7 @@ const presets = [
 			radial       : 0,
 			radius       : .5,
 			randomMode   : 0,
-			reflex       : REFLEX_OFF,
+			reflex       : 0,
 			repeat       : 0,
 			roundBars    : 0,
 			sensitivity  : 1,
@@ -859,7 +853,7 @@ const canvasCtx  = elOSD.getContext('2d'),
 // return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
 const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
 
-// precision fix for floating point numbers
+// precision fix for operations with floating point numbers (up to two decimals)
 const fixFloating = value => Math.round( value * 100 ) / 100;
 
 // removes accents from a given string, converts it to lowercase and replaces any non-alphanumeric character with optional separator
@@ -883,9 +877,9 @@ const getText = el => {
 		if ( option )
 			text = option.textContent;
 	}
-	else if ( el.type == 'range' )
+	else if ( isRangeControl( el ) )
 		text = translateRangeValue( el );
-	else if ( el.tagName == 'SELECT' )
+	else if ( isSelectControl( el ) )
 		text = el[ el.selectedIndex ].text;
 	return text;
 }
@@ -1017,6 +1011,12 @@ const isPIP = _ => elContainer.classList.contains('pip');
 
 // check if audio is playing
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
+
+// check if given object is a range input element
+const isRangeControl = el => el.type == 'range';
+
+// check if given object is a select element
+const isSelectControl = el => el.tagName == 'SELECT';
 
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => !! +getControlValue( el );
@@ -1428,55 +1428,29 @@ function consoleLog( msg, error, clear ) {
  * @param [prev] {boolean} true to select previous option
  */
 function cycleElement( el, prev ) {
-	const options = isCustomRadio( el ) ? el.elements[ el.dataset.prop ] : el.options;
+	if ( isRangeControl( el ) ) {
+		const { min, max, step } = el,
+			  newVal = fixFloating( +el.value + step * ( prev ? -1 : 1 ) );
 
-	let idx = ( isCustomRadio( el ) ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
+		setControlValue( el, newVal > max ? min : newVal < min ? max : newVal );
+	}
+	else {
+		const options = isCustomRadio( el ) ? el.elements[ el.dataset.prop ] : el.options;
 
-	if ( idx < 0 )
-		idx = options.length - 1;
-	else if ( idx >= options.length )
-		idx = 0;
+		let idx = ( isCustomRadio( el ) ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
 
-	if ( isCustomRadio( el ) )
-		options[ idx ].checked = true;
-	else
-		el.selectedIndex = idx;
+		if ( idx < 0 )
+			idx = options.length - 1;
+		else if ( idx >= options.length )
+			idx = 0;
+
+		if ( isCustomRadio( el ) )
+			options[ idx ].checked = true;
+		else
+			el.selectedIndex = idx;
+	}
 
 	setProperty( el );
-}
-
-/**
- * Cycle scale labels for X- and- Y axes
- *
- * @param [{boolean}] `true` to select previous option
- * @return {number} integer indicating status (see table below)
- */
-function cycleScale( prev ) {
-// Y X  scale
-// 0 00 (0): x off    y off
-// 0 01 (1): x freqs  y off
-// 0 10 (2): x notes  y off
-// 0 11 (3): not used
-// 1 00 (4): x off    y on
-// 1 01 (5): x freqs  y on
-// 1 10 (6): x notes  y on
-// 1 11 (7): not used
-//
-	prev = prev * -2 + 1; // true = -1; false = 1
-	let scale = +getControlValue( elScaleX ) + ( +getControlValue( elScaleY ) << 2 ) + prev;
-
-	if ( scale < 0 )
-		scale = 6;
-	else if ( scale == 3 )
-		scale += prev;
-	else if ( scale > 6 )
-		scale = 0;
-
-	setControlValue( elScaleX, scale & 3 );
-	setControlValue( elScaleY, scale >> 2 );
-	setProperty( [ elScaleX, elScaleY ] );
-
-	return scale;
 }
 
 /**
@@ -2469,6 +2443,9 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	// translate legacy options
 
+	if ( thisPreset.reflex >= 1 ) // 0 = off; 1 = on (40%); 2 = mirror (50%); 3 = short (25%) (ver =< 25.9)
+		thisPreset.reflex = [ 0, .4, .5, .25 ][ +thisPreset.reflex ];
+
 	if ( isNumeric( thisPreset.showScaleX ) )
 		thisPreset.showScaleX = [ LABELS_X_OFF, LABELS_X_FREQS, LABELS_X_NOTES ][ +thisPreset.showScaleX ];
 
@@ -3148,18 +3125,22 @@ function randomizeSettings( force = elSource.checked ) {
 				const items = el.elements[ el.dataset.prop ];
 				items[ randomInt( items.length ) ].checked = true;
 			}
-			else if ( el.dataset.active !== undefined ) // on/off switches
-				el.dataset.active = randomInt();
-			else if ( el.step ) {
+			else if ( isRangeControl( el ) ) {
 				// range inputs
-				const { min, max, step } = el, // note: these come as strings
-					  range = ( max - min ) / step,
-					  newVal = randomInt( range + 1 ) * step + +min; // coerce min to number
+				const { min, max, step } = el, // NOTE: values come as strings!!
+					  range  = ( max - min ) / step,
+					  newVal = fixFloating( randomInt( range + 1 ) * step + +min );
 
-				setControlValue( el, ( newVal * 10 | 0 ) / 10 ); // fix rounding errors (1 decimal place)
+				setControlValue( el, newVal );
 			}
-			else // selects
+			else if ( isSelectControl( el ) ) {
+				// selects
 				el.selectedIndex = randomInt( el.options.length );
+			}
+			else if ( el.dataset.active !== undefined ) {
+				// on/off switches
+				el.dataset.active = randomInt();
+			}
 		} while ( ! validate( getControlValue( el ) ) && attempts-- );
 
 		setProperty( el );
@@ -3214,8 +3195,10 @@ function randomizeSettings( force = elSource.checked ) {
 		randomizeControl( elShowPeaks );
 
 	if ( isEnabled( RND_REFLEX ) ) {
-		// no full reflex with LEDs and no reflex at all in compact analyzer
-		randomizeControl( elReflex, newVal => newVal == REFLEX_OFF || ! isCompactAnalyzer && ( newVal != REFLEX_FULL || getControlValue( elLedDisplay ) == LEDS_OFF ) );
+		// randomize reflex value among [ 0, .25, .5 ]
+		// no mirrored reflex with LEDs and no reflex at all in compact analyzer
+		setControlValue( elReflex, isCompactAnalyzer ? 0 : .25 * randomInt( getControlValue( elLedDisplay ) == LEDS_OFF ? 3 : 2 ) );
+		setProperty( elReflex );
 	}
 
 	if ( isEnabled( RND_RADIAL ) ) {
@@ -4104,25 +4087,9 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elReflex:
-				switch ( getControlValue( elReflex ) ) {
-					case REFLEX_SHORT:
-						audioMotion.reflexRatio = .25;
-						audioMotion.reflexAlpha = .2;
-						break;
-
-					case REFLEX_ON:
-						audioMotion.reflexRatio = .4;
-						audioMotion.reflexAlpha = .2;
-						break;
-
-					case REFLEX_FULL:
-						audioMotion.reflexRatio = .5;
-						audioMotion.reflexAlpha = 1;
-						break;
-
-					default:
-						audioMotion.reflexRatio = 0;
-				}
+				const reflex = getControlValue( elReflex );
+				audioMotion.reflexAlpha = reflex == .5 ? 1 : .2;
+				audioMotion.reflexRatio = reflex;
 				break;
 
 			case elReverse0:
@@ -5047,7 +5014,8 @@ function toggleMute( mute ) {
  */
 function translateRangeValue( el ) {
 	const val = el.value,
-		  { abs, sign } = Math;
+		  { abs, sign } = Math,
+		  percent = val => `${ val * 100 | 0 }%`;
 
 	if ( el == elBandCount ) {
 		if ( val == 9 )
@@ -5061,9 +5029,11 @@ function translateRangeValue( el ) {
 		return ucFirst( bands[ +val || 0 ] + ( isOctaves ? 'octave' : '' ) + ' bands' );
 	}
 	else if ( el == elBarSpace )
-		return val == 0 ? 'None' : ( val == 1 ? 'Legacy' : `${ val * 100 | 0 }%` );
+		return val == 0 ? 'None' : val == 1 ? 'Legacy' : percent( val );
 	else if ( el == elFillAlpha )
-		return val == 0 ? 0 : `${ val * 100 | 0 }%`;
+		return val == 0 ? 0 : percent( val );
+	else if ( el == elReflex )
+		return val == 0 ? 'Off' : val == .5 ? 'Mirrored' : percent( val );
 	else if ( el == elSpin )
 		return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
 	return val;
@@ -5522,13 +5492,6 @@ function updateRangeValue( el ) {
 		[ RADIAL_OUTWARD, 'Outward' ]
 	]);
 
-	populateCustomRadio( elReflex, [
-		[ REFLEX_OFF,   'Off'    ],
-		[ REFLEX_SHORT, '25%'    ],
-		[ REFLEX_ON,    '40%'    ],
-		[ REFLEX_FULL,  'Mirror' ]
-	]);
-
 	populateSelect( elBgImageFit, bgFitOptions );
 
 	populateCustomRadio( elMirror, [
@@ -5602,6 +5565,7 @@ function updateRangeValue( el ) {
 	setRangeAtts( elFillAlpha, 0, 1, .05 );
 	setRangeAtts( elLineWidth, 0, 3, .5 );
 	setRangeAtts( elRadius, 0, 1, .05 );
+	setRangeAtts( elReflex, 0, .5, .05 );
 	setRangeAtts( elSmoothing, 0, .95, .05 );
 	setRangeAtts( elSpin, -10, 10, 1 );
 
