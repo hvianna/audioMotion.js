@@ -3908,6 +3908,7 @@ function setProperty( elems, save = true ) {
 
 			case elBandCount:
 				audioMotion.bandResolution = getControlValue( elBandCount );
+				setProperty( elSquareLeds, false );
 				break;
 
 			case elBarSpace:
@@ -4207,7 +4208,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSquareLeds:
-				const params = isSwitchOn( elSquareLeds ) ? [ 0, 0 ] : [];
+				const params = isSwitchOn( elSquareLeds ) ? [ 0, 0 ] : getControlValue( elBandCount ) >= BANDS_OCTAVE_12TH ? [ 4, 4 ] : [];
 				audioMotion.setLeds( ...params );
 				break;
 
