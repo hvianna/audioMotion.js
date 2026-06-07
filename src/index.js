@@ -1976,10 +1976,10 @@ function keyboardControls( event ) {
 					elRepeat.click();
 					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
 					break;
-				case 'KeyS': 		// toggle scale labels for X- and Y- axes
-					const info   = ['None','Frequencies','Musical Notes',,'Level'],
-						  status = cycleScale( isShiftKey );
-					setCanvasMsg( 'Scale labels: ' + ( status < 5 ? info[ status ] : info[ status - 4 ] + ' + ' + info[ 4 ] ) );
+				case 'KeyS': 		// cycle scale labels for X- and Y- axes
+					const scaleEl = isShiftKey ? elScaleY : elScaleX;
+					cycleElement( scaleEl );
+					setCanvasMsg( `${ isShiftKey ? 'Y' : 'X' }-axis Labels: ${ getText( scaleEl ) }` );
 					break;
 				case 'KeyT': 		// theme
 					cycleElement( elTheme0, isShiftKey );
