@@ -11,21 +11,21 @@
     "dev": "webpack serve --config webpack.dev.js"
   },
   "devDependencies": {
-    "audiomotion-analyzer": "^5.0.0-alpha.0",
+    "audiomotion-analyzer": "^5.0.0-alpha.2",
     "buffer": "^6.0.3",
-    "css-loader": "^7.1.2",
+    "css-loader": "^7.1.4",
     "css-minimizer-webpack-plugin": "^7.0.4",
     "http-server": "^14.1.1",
-    "idb-keyval": "^6.2.2",
-    "js-yaml": "^4.1.1",
-    "mini-css-extract-plugin": "^2.9.4",
+    "idb-keyval": "^6.2.5",
+    "js-yaml": "^4.2.0",
+    "mini-css-extract-plugin": "^2.10.2",
     "music-metadata-browser": "^2.5.11",
     "notie": "^4.3.1",
     "process": "^0.11.10",
-    "sortablejs": "^1.15.6",
+    "sortablejs": "^1.15.7",
     "style-loader": "^4.0.0",
-    "webpack": "^5.104.1",
+    "webpack": "^5.107.2",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2"
+    "webpack-dev-server": "^5.2.4"
   }
 }

@@ -52,6 +52,14 @@ import {
 	FILTER_C,
 	FILTER_D,
 	FILTER_468,
+	FILTER_TILT3,
+	FILTER_TILT45,
+	LABELS_X_FREQS,
+	LABELS_X_NOTES,
+	LABELS_X_OFF,
+	LABELS_Y_DB,
+	LABELS_Y_PERCENT,
+	LABELS_Y_OFF,
 	LAYOUT_COMBINED,
 	LAYOUT_HORIZONTAL,
 	LAYOUT_SINGLE,
@@ -59,14 +67,17 @@ import {
 	LEDS_MODERN,
 	LEDS_OFF,
 	LEDS_VINTAGE,
+	MIRROR_LEFT,
+	MIRROR_OFF,
+	MIRROR_RIGHT,
 	MODE_BARS,
 	MODE_GRAPH,
 	PEAKS_DROP,
 	PEAKS_FADE,
 	PEAKS_OFF,
-	RADIAL_INNER,
+	RADIAL_INWARD,
 	RADIAL_OFF,
-	RADIAL_OUTER,
+	RADIAL_OUTWARD,
 	REASON_CREATE,
 	REASON_FULLSCREENCHANGE,
 	REASON_LORES,
@@ -243,11 +254,6 @@ const RND_ALPHA      = 'alpha',
 	  RND_THEMES     = 'gradient',
 	  MIN_STREAK_FOR_GRAPH  = 3,
 	  MIN_STREAK_FOR_RADIAL = 5;
-
-// X- and Y- scale switches
-const SCALEXY_OFF  = 0,
-	  SCALEXY_ON   = 1,
-	  SCALEX_NOTES = 2;
 
 // Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.yaml',
@@ -454,7 +460,7 @@ const presets = [
 			reflex       : REFLEX_SHORT,
 			roundBars    : 0,
 			showPeaks    : PEAKS_FADE,
-			showScaleX   : SCALEX_NOTES,
+			showScaleX   : LABELS_X_NOTES,
 			splitGrad    : 0
 		}
 	},
@@ -471,7 +477,7 @@ const presets = [
 			colorMode    : COLORMODE_LEVEL,
 			gradient     : 'prism',
 			ledDisplay   : LEDS_OFF,
-			mirror       : 0,
+			mirror       : MIRROR_OFF,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
 			radial       : 1,
@@ -493,7 +499,7 @@ const presets = [
 			colorMode    : COLORMODE_INDEX,
 			gradient     : 'apple',
 			ledDisplay   : LEDS_OFF,
-			mirror       : 0,
+			mirror       : MIRROR_OFF,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
 			radial       : 0,
@@ -535,7 +541,7 @@ const presets = [
 			linkGrads    : 0,
 			loRes        : 0,
 			micSource    : 0,
-			mirror       : 0,
+			mirror       : MIRROR_OFF,
 			mode         : MODE_BARS,
 			mute         : 0,
 			noShadow     : 1,
@@ -550,8 +556,8 @@ const presets = [
 			showFPS      : 0,
 			showLedMask  : 1,
 			showPeaks    : PEAKS_DROP,
-			showScaleX   : SCALEXY_ON,
-			showScaleY   : SCALEXY_OFF,
+			showScaleX   : LABELS_X_FREQS,
+			showScaleY   : LABELS_Y_OFF,
 			showSong     : 1,
 			showSubtitles: 1,
 			smoothing    : .7,
@@ -2463,6 +2469,15 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	// translate legacy options
 
+	if ( isNumeric( thisPreset.showScaleX ) )
+		thisPreset.showScaleX = [ LABELS_X_OFF, LABELS_X_FREQS, LABELS_X_NOTES ][ +thisPreset.showScaleX ];
+
+	if ( isNumeric( thisPreset.showScaleY ) ) // ver =< 25.9 (on/off only)
+		thisPreset.showScaleY = [ LABELS_Y_OFF, LABELS_Y_DB ][ +thisPreset.showScaleY ];
+
+	if ( thisPreset.weighting !== undefined )
+		thisPreset.weighting = thisPreset.weighting.toLowerCase();
+
 	if ( thisPreset.stereo !== undefined )
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
@@ -2477,8 +2492,8 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		thisPreset.mode = [ LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? MODE_GRAPH : MODE_BARS;
 	}
 
-	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
-		thisPreset.showScaleX = SCALEX_NOTES;
+	if ( +thisPreset.noteLabels && thisPreset.showScaleX != LABELS_X_OFF )
+		thisPreset.showScaleX = LABELS_X_NOTES;
 
 	if ( isNumeric( thisPreset.alphaBars ) )
 		thisPreset.alphaBars = thisPreset.alphaBars ? ALPHABARS_ON : ALPHABARS_OFF;
@@ -2555,13 +2570,14 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		outlineBars    : isSwitchOn( elOutline ),
 		peakDecayTime  : getControlValue( elPeakDecay ),
 		peakHoldTime   : getControlValue( elPeakHold ),
-		peaks          : getControlValue( elShowPeaks ),
 		radial         : getControlValue( elRadial ),
 		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
 		showLedMask    : isSwitchOn( elLedMask ),
-		showScaleY     : +getControlValue( elScaleY ),
+		showPeaks      : getControlValue( elShowPeaks ),
+		showScaleX     : getControlValue( elScaleX ),
+		showScaleY     : getControlValue( elScaleY ),
 		smoothing      : getControlValue( elSmoothing ),
 		spinSpeed      : getControlValue( elSpin ),
 		spreadGradient : isSwitchOn( elSplitGrad ),
@@ -2579,7 +2595,6 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elShowSubtitles,
-		elScaleX, // also sets noteLabels
 		elSquareLeds,
 		elMode ]
 	);
@@ -3969,32 +3984,6 @@ function setProperty( elems, save = true ) {
 				elAnalyzer.style.height = `${elFsHeight.value}%`;
 				break;
 
-			case elTheme0:
-			case elTheme1:
-				if ( getControlValue( el ) === '' ) // handle invalid setting (coming from preset)
-					el.selectedIndex = 0;
-
-				const themeKey = getControlValue( el ),
-					  { horizontal, reverse } = THEMES[ themeKey ];
-
-				if ( isLinkGrads ) {
-					setControlValue( elTheme0, themeKey );
-					setControlValue( elTheme1, themeKey );
-				}
-				if ( el == elTheme0 ) {
-					setControlValue( elHorizontal0, horizontal );
-					setControlValue( elReverse0, reverse );
-				}
-				if ( el == elTheme1 || isLinkGrads ) {
-					setControlValue( elHorizontal1, horizontal );
-					setControlValue( elReverse1, reverse );
-				}
-
-				audioMotion.setTheme( getCurrentThemes() );
-				if ( getControlValue( elBackground ) == BG_DEFAULT )
-					setOverlay();
-				break;
-
 			case elHorizontal0:
 			case elHorizontal1:
 				if ( isLinkGrads ) {
@@ -4165,12 +4154,11 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elScaleX:
-				audioMotion.showScaleX = getControlValue( elScaleX ) != SCALEXY_OFF;
-				audioMotion.noteLabels = getControlValue( elScaleX ) == SCALEX_NOTES;
+				audioMotion.showScaleX = getControlValue( elScaleX );
 				break;
 
 			case elScaleY:
-				audioMotion.showScaleY = +getControlValue( elScaleY );
+				audioMotion.showScaleY = getControlValue( elScaleY );
 				break;
 
 			case elSensitivity:
@@ -4183,7 +4171,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elShowPeaks:
-				audioMotion.peaks = getControlValue( elShowPeaks );
+				audioMotion.showPeaks = getControlValue( elShowPeaks );
 				break;
 
 			case elShowSubtitles:
@@ -4235,6 +4223,32 @@ function setProperty( elems, save = true ) {
 
 			case elSurround:
 				toggleMultiChannel();
+				break;
+
+			case elTheme0:
+			case elTheme1:
+				if ( getControlValue( el ) === '' ) // handle invalid setting (coming from preset)
+					el.selectedIndex = 0;
+
+				const themeKey = getControlValue( el ),
+					  { horizontal, reverse } = THEMES[ themeKey ];
+
+				if ( isLinkGrads ) {
+					setControlValue( elTheme0, themeKey );
+					setControlValue( elTheme1, themeKey );
+				}
+				if ( el == elTheme0 ) {
+					setControlValue( elHorizontal0, horizontal );
+					setControlValue( elReverse0, reverse );
+				}
+				if ( el == elTheme1 || isLinkGrads ) {
+					setControlValue( elHorizontal1, horizontal );
+					setControlValue( elReverse1, reverse );
+				}
+
+				audioMotion.setTheme( getCurrentThemes() );
+				if ( getControlValue( elBackground ) == BG_DEFAULT )
+					setOverlay();
 				break;
 
 			case elVideoFill:
@@ -5502,9 +5516,9 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elRadial, [
-		[ RADIAL_OFF,   'Off'   ],
-		[ RADIAL_INNER, 'Inner' ],
-		[ RADIAL_OUTER, 'Outer' ]
+		[ RADIAL_OFF,     'Off'     ],
+		[ RADIAL_INWARD,  'Inward'  ],
+		[ RADIAL_OUTWARD, 'Outward' ]
 	]);
 
 	populateCustomRadio( elReflex, [
@@ -5517,9 +5531,9 @@ function updateRangeValue( el ) {
 	populateSelect( elBgImageFit, bgFitOptions );
 
 	populateCustomRadio( elMirror, [
-		[ '-1', 'Left'  ],
-		[ '0',  'Off'   ],
-		[ '1',  'Right' ]
+		[ MIRROR_LEFT,  'Left'  ],
+		[ MIRROR_OFF,   'Off'   ],
+		[ MIRROR_RIGHT, 'Right' ]
 	]);
 
 	populateCustomRadio( elFreqScale, [
@@ -5529,19 +5543,21 @@ function updateRangeValue( el ) {
 		[ SCALE_MEL,    'Mel'    ]
 	]);
 
-	populateCustomRadio( elWeighting, [
-		[ FILTER_NONE, 'Off' ],
-		[ FILTER_A,    'A'   ],
-		[ FILTER_B,    'B'   ],
-		[ FILTER_C,    'C'   ],
-		[ FILTER_D,    'D'   ],
-		[ FILTER_468,  '468' ],
+	populateSelect( elWeighting, [
+		[ FILTER_NONE,   'None'                  ],
+		[ FILTER_A,      'A-weighting'           ],
+		[ FILTER_B,      'B-weighting'           ],
+		[ FILTER_C,      'C-weighting'           ],
+		[ FILTER_D,      'D-weighting'           ],
+		[ FILTER_468,    'ITU-R 468'             ],
+		[ FILTER_TILT3,  '3dB per octave tilt'   ],
+		[ FILTER_TILT45, '4.5dB per octave tilt' ],
 	]);
 
 	populateCustomRadio( elColorMode, [
-		[ COLORMODE_GRADIENT, 'Gradient'  ],
-		[ COLORMODE_INDEX,    'Index' ],
-		[ COLORMODE_LEVEL,    'Level' ]
+		[ COLORMODE_GRADIENT, 'Gradient' ],
+		[ COLORMODE_INDEX,    'Index'    ],
+		[ COLORMODE_LEVEL,    'Level'    ]
 	]);
 
 	populateCustomRadio( elShowPeaks, [
@@ -5551,14 +5567,15 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elScaleX, [
-		[ SCALEXY_OFF,  'Off'   ],
-		[ SCALEXY_ON,   'Freqs' ],
-		[ SCALEX_NOTES, 'Notes' ]
+		[ LABELS_X_OFF,   'Off'   ],
+		[ LABELS_X_FREQS, 'Freqs' ],
+		[ LABELS_X_NOTES, 'Notes' ]
 	]);
 
 	populateCustomRadio( elScaleY, [
-		[ SCALEXY_OFF, 'Off' ],
-		[ SCALEXY_ON,  'On'  ]
+		[ LABELS_Y_OFF,     'Off' ],
+		[ LABELS_Y_DB,      'dB'  ],
+		[ LABELS_Y_PERCENT, '%'   ],
 	]);
 
 	populateCustomRadio( elAnsiBands, [
