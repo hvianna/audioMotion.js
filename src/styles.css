@@ -176,6 +176,9 @@ a.button:visited {
 .controls select {
 	height: 25px; /* mostly for Firefox, because emojis in the Background selection increase line height */
 }
+.controls .align-end {
+	align-content: end;
+}
 
 /* custom range inputs - thanks https://www.smashingmagazine.com/2021/12/create-custom-range-input-consistent-browsers/ */
 .custom-slider {
@@ -765,6 +768,11 @@ a.button:visited {
 	display: grid;
 	grid-template-columns: repeat( auto-fit, minmax( 0, 1fr ) );
 }
+.custom-radio-buttons.multiline {
+	margin-bottom: 4px;
+	grid-template-columns: repeat( 4, minmax( 0, 1fr ) );
+	row-gap: 1px;
+}
 .button-bar li {
 	display: block;
 }
@@ -803,6 +811,7 @@ a.button:visited {
 /*	transition: .15s ease-in; */
 }
 .custom-radio-buttons label:first-of-type,
+.custom-radio-buttons.multiline label:nth-of-type(4n+1),
 .button-bar button:first-child,
 .button-bar .button:first-child,
 .button-bar li:first-of-type > a {
@@ -810,6 +819,7 @@ a.button:visited {
 	border-top-left-radius: 999px;
 }
 .custom-radio-buttons label:last-of-type,
+.custom-radio-buttons.multiline label:nth-of-type(4n),
 .button-bar button:last-child,
 .button-bar .button:last-child,
 .button-bar li:last-of-type > a {

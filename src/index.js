@@ -5483,15 +5483,15 @@ function updateRangeValue( el ) {
 		[ '2', 'High'   ]
 	]);
 
-	populateSelect( elRandomMode, [
-		[ '0',   'OFF'              ],
-		[ '1',   'On track change'  ],
-		[ '2',   'every 5 seconds'  ],
-		[ '6',   'every 15 seconds' ],
-		[ '12',  'every 30 seconds' ],
-		[ '24',  'every minute'     ],
-		[ '48',  'every 2 minutes'  ],
-		[ '120', 'every 5 minutes'  ]
+	populateCustomRadio( elRandomMode, [
+		[ '0',   'Off'    ],
+		[ '2',   '5 sec'  ],
+		[ '6',   '15 sec' ],
+		[ '12',  '30 sec' ],
+		[ '1',   'Track'  ],
+		[ '24',  '1 min'  ],
+		[ '48',  '2 min'  ],
+		[ '120', '5 min'  ]
 	]);
 
 	populateCustomRadio( elAlphaBars, [
@@ -5533,15 +5533,15 @@ function updateRangeValue( el ) {
 		[ SCALE_MEL,    'Mel'    ]
 	]);
 
-	populateSelect( elWeighting, [
-		[ FILTER_NONE,   'None'                  ],
-		[ FILTER_A,      'A-weighting'           ],
-		[ FILTER_B,      'B-weighting'           ],
-		[ FILTER_C,      'C-weighting'           ],
-		[ FILTER_D,      'D-weighting'           ],
-		[ FILTER_468,    'ITU-R 468'             ],
-		[ FILTER_TILT3,  '3dB per octave tilt'   ],
-		[ FILTER_TILT45, '4.5dB per octave tilt' ],
+	populateCustomRadio( elWeighting, [
+		[ FILTER_NONE,   'Off'    ],
+		[ FILTER_TILT3,  '3 dB'   ],
+		[ FILTER_TILT45, '4.5 dB' ],
+		[ FILTER_468,    '468'    ],
+		[ FILTER_A,      'A'      ],
+		[ FILTER_B,      'B'      ],
+		[ FILTER_C,      'C'      ],
+		[ FILTER_D,      'D'      ]
 	]);
 
 	populateCustomRadio( elColorMode, [
