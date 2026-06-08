@@ -204,6 +204,24 @@ const KEY_DB_BGDIR_HANDLE = 'bgDir',
 	  KEY_DB_PLAYQUEUE    = 'playqueue',
 	  PLAYLIST_PREFIX     = 'pl_';
 
+// Options for LED format
+const LEDFORMAT_REGULAR = 0,
+	  LEDFORMAT_THIN    = 1,
+	  LEDFORMAT_SQUARE  = 2;
+
+// LED height for each bandCount (for Regular format)
+const LEDHEIGHTS = {
+	[ BANDS_FFT ]: undefined,
+	[ BANDS_OCTAVE_FULL ]: 12,
+	[ BANDS_OCTAVE_HALF ]: 10,
+	[ BANDS_OCTAVE_3RD  ]: 8,
+	[ BANDS_OCTAVE_4TH  ]: 8,
+	[ BANDS_OCTAVE_6TH  ]: 6,
+	[ BANDS_OCTAVE_8TH  ]: 6,
+	[ BANDS_OCTAVE_12TH ]: 4,
+	[ BANDS_OCTAVE_24TH ]: 4
+};
+
 // Legacy visualization modes (for preset migration)
 const LEGACY_MODE_BARS     = '11',
  	  LEGACY_MODE_DISCRETE = '0',
@@ -234,8 +252,8 @@ const RND_ALPHA      = 'alpha',
 	  RND_COLORMODE  = 'colormode',
 	  RND_HORIZONTAL = 'horizontal',
 	  RND_LEDS       = 'leds',
+	  RND_LED_FORMAT = 'ledformat',
 	  RND_LED_MASK   = 'ledmask',
-	  RND_LED_SQUARE = 'ledsquare',
 	  RND_MODE       = 'mode',
 	  RND_OUTLINE    = 'outline',
 	  RND_PEAKS      = 'peaks',
@@ -309,6 +327,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elInfoTimeout   = $('#info_timeout'),
 	  elInvertVolume  = $('#invert_volume'),
 	  elLedDisplay    = $('#led_display'),
+	  elLedFormat     = $('#led_format'),
 	  elLedMask       = $('#led_mask'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
@@ -362,7 +381,6 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSource        = $('#source'),
 	  elSpin		  = $('#spin'),
 	  elSplitGrad     = $('#split_grad'),
-	  elSquareLeds    = $('#square_leds'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
@@ -404,6 +422,7 @@ const presets = [
 			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'classic',
 			ledDisplay   : LEDS_MODERN,
+			ledFormat    : LEDFORMAT_REGULAR,
 			outlineBars  : 0,
 			mode         : MODE_BARS,
 			radial       : 0,
@@ -411,8 +430,7 @@ const presets = [
 			reflex       : 0,
 			roundBars    : 0,
 			showPeaks    : PEAKS_DROP,
-			splitGrad    : 0,
-			squareLeds   : 0
+			splitGrad    : 0
 		}
 	},
 
@@ -530,6 +548,7 @@ const presets = [
 			freqMin      : 20,
 			freqScale    : SCALE_LOG,
 			ledDisplay   : LEDS_OFF,
+			ledFormat    : LEDFORMAT_REGULAR,
 			linearAmpl   : 1,
 			lineWidth    : 1,
 			linkGrads    : 0,
@@ -557,7 +576,6 @@ const presets = [
 			smoothing    : .7,
 			spin         : 2,
 			splitGrad    : 0,
-			squareLeds   : 0,
 			themes       : 'prism',
 			volume       : 1,
 			weighting    : FILTER_D
@@ -693,8 +711,8 @@ const randomProperties = [
 	{ value: RND_HORIZONTAL,  text: 'Horizontal',    disabled: false },
 	{ value: RND_REVERSE,     text: 'Reverse',       disabled: false },
 	{ value: RND_LEDS,        text: 'LED Bars',      disabled: false },
+	{ value: RND_LED_FORMAT,  text: 'LED Format',    disabled: false },
 	{ value: RND_LED_MASK,    text: 'LED Mask',      disabled: false },
-	{ value: RND_LED_SQUARE,  text: 'Square LEDs',   disabled: false },
 	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
 	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
 	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
@@ -914,6 +932,7 @@ const getCurrentSettings = _ => ({
 	freqMin		 : getControlValue( elRangeMin ),
 	freqScale    : getControlValue( elFreqScale ),
 	ledDisplay   : getControlValue( elLedDisplay ),
+	ledFormat    : getControlValue( elLedFormat ),
 	linearAmpl   : getControlValue( elLinearAmpl ),
 	lineWidth    : getControlValue( elLineWidth ),
 	linkGrads    : getControlValue( elLinkGrads ),
@@ -939,7 +958,6 @@ const getCurrentSettings = _ => ({
 	smoothing    : getControlValue( elSmoothing ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
-	squareLeds   : getControlValue( elSquareLeds ),
 	themes       : getCurrentThemes(),
 	weighting    : getControlValue( elWeighting )
 });
@@ -2572,7 +2590,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elShowSubtitles,
-		elSquareLeds,
+		elLedFormat,
 		elMode ]
 	);
 
@@ -3168,7 +3186,7 @@ function randomizeSettings( force = elSource.checked ) {
 
 	if ( isEnabled( RND_BANDCOUNT ) ) {
 		// no full-octave bands with square LEDs
-		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == MODE_GRAPH || newVal == BANDS_FFT || newVal > BANDS_OCTAVE_FULL );
+		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == MODE_GRAPH || newVal > BANDS_OCTAVE_FULL || getControlValue( elLedFormat ) != LEDFORMAT_SQUARE );
 	}
 
 	if ( isEnabled( RND_BGIMAGEFIT ) )
@@ -3180,13 +3198,13 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
 
+	if ( isEnabled( RND_LED_FORMAT ) ) {
+		// no square LEDs for full-octave bands (avoid huge LEDs)
+		randomizeControl( elLedFormat, newVal => newVal != LEDFORMAT_SQUARE || getControlValue( elBandCount ) > BANDS_OCTAVE_FULL );
+	}
+
 	if ( isEnabled( RND_LED_MASK ) )
 		randomizeControl( elLedMask );
-
-	if ( isEnabled( RND_LED_SQUARE ) ) {
-		// no square LEDs for full-octave bands
-		randomizeControl( elSquareLeds, newVal => ! newVal || getControlValue( elBandCount ) > BANDS_OCTAVE_FULL );
-	}
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
@@ -3842,14 +3860,15 @@ function setProperty( elems, save = true ) {
 	};
 
 	for ( const el of elems ) {
+		const elValue = getControlValue( el );
 		switch ( el ) {
 			case elAlphaBars:
-				audioMotion.alphaBars = getControlValue( elAlphaBars );
+				audioMotion.alphaBars = elValue;
 				setProperty( elBarSpace, false );
 				break;
 
 			case elAnsiBands:
-				audioMotion.ansiBands = +getControlValue( elAnsiBands );
+				audioMotion.ansiBands = +elValue;
 				break;
 
 			case elAutoHide:
@@ -3857,7 +3876,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBackground:
-				const bgOption  = elBackground.value[0],
+				const bgOption  = elValue[0],
 					  index     = elBackground[ elBackground.selectedIndex ].idx,
 					  isOverlay = setOverlay(); // configures overlay for video playback or background media
 
@@ -3890,24 +3909,22 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBandCount:
-				audioMotion.bandResolution = getControlValue( elBandCount );
-				setProperty( elSquareLeds, false );
+				audioMotion.bandResolution = elValue;
+				setProperty( elLedFormat, false );
 				break;
 
 			case elBarSpace:
-				const value = getControlValue( elBarSpace );
-				audioMotion.barSpace = ( getControlValue( elAlphaBars ) == ALPHABARS_FULL && audioMotion.isAlphaBars ) || value == 1 ? 1.5 : value;
+				audioMotion.barSpace = ( getControlValue( elAlphaBars ) == ALPHABARS_FULL && audioMotion.isAlphaBars ) || elValue == 1 ? 1.5 : elValue;
 				break;
 
 			case elBgImageFit:
-				const bgFit  = elBgImageFit.value,
-					  isWarp = bgFit == BGFIT_WARP || bgFit == BGFIT_WARP_ANI || bgFit == BGFIT_WARP_ROT;
-				elContainer.classList.toggle( 'repeat', bgFit == BGFIT_REPEAT );
-				elContainer.classList.toggle( 'cover', bgFit == BGFIT_ADJUST || isWarp );
+				const isWarp = elValue == BGFIT_WARP || elValue == BGFIT_WARP_ANI || elValue == BGFIT_WARP_ROT;
+				elContainer.classList.toggle( 'repeat', elValue == BGFIT_REPEAT );
+				elContainer.classList.toggle( 'cover', elValue == BGFIT_ADJUST || isWarp );
 				elContainer.style.backgroundSize = '';
 				toggleDisplay( elWarp, isWarp );
-				elWarp.classList.toggle( 'rotating', bgFit == BGFIT_WARP_ROT );
-				elWarp.classList.toggle( 'paused', bgFit == BGFIT_WARP );
+				elWarp.classList.toggle( 'rotating', elValue == BGFIT_WARP_ROT );
+				elWarp.classList.toggle( 'paused', elValue == BGFIT_WARP );
 				break;
 
 			case elBgImageDim:
@@ -3938,20 +3955,20 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elChnLayout:
-				audioMotion.channelLayout = getControlValue( elChnLayout );
+				audioMotion.channelLayout = elValue;
 				toggleDualChannelThemeOptions();
 				break;
 
 			case elColorMode:
-				audioMotion.colorMode = getControlValue( elColorMode );
+				audioMotion.colorMode = elValue;
 				break;
 
 			case elFillAlpha:
-				audioMotion.fillAlpha = elFillAlpha.value;
+				audioMotion.fillAlpha = elValue;
 				break;
 
 			case elFFTsize :
-				audioMotion.fftSize = getControlValue( elFFTsize );
+				audioMotion.fftSize = elValue;
 				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 				break;
 
@@ -3960,7 +3977,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elFreqScale:
-				audioMotion.frequencyScale = getControlValue( elFreqScale );
+				audioMotion.frequencyScale = elValue;
 				updateRangeValue( elBandCount );
 				break;
 
@@ -3971,26 +3988,26 @@ function setProperty( elems, save = true ) {
 			case elHorizontal0:
 			case elHorizontal1:
 				if ( isLinkGrads ) {
-					setControlValue( elHorizontal0, getControlValue( el ) );
-					setControlValue( elHorizontal1, getControlValue( el ) );
+					setControlValue( elHorizontal0, elValue );
+					setControlValue( elHorizontal1, elValue );
 				}
 				audioMotion.setTheme( getCurrentThemes() );
 				break;
 
 			case elLedDisplay:
-				audioMotion.ledBars = getControlValue( elLedDisplay );
+				audioMotion.ledBars = elValue;
 				break;
 
 			case elLedMask:
-				audioMotion.showLedMask = isSwitchOn( elLedMask );
+				audioMotion.showLedMask = +elValue;
 				break;
 
 			case elLinearAmpl:
-				audioMotion.linearAmplitude = +getControlValue( elLinearAmpl );
+				audioMotion.linearAmplitude = +elValue;
 				break;
 
 			case elLineWidth:
-				audioMotion.lineWidth = elLineWidth.value;
+				audioMotion.lineWidth = elValue;
 				break;
 
 			case elLinkGrads:
@@ -4003,19 +4020,19 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLoRes:
-				audioMotion.loRes = isSwitchOn( elLoRes );
+				audioMotion.loRes = +elValue;
 				break;
 
 			case elMaxFPS:
-				audioMotion.maxFPS = elMaxFPS.value;
+				audioMotion.maxFPS = elValue;
 				break;
 
 			case elMirror:
-				audioMotion.mirror = getControlValue( elMirror );
+				audioMotion.mirror = elValue;
 				break;
 
 			case elMode:
-				audioMotion.mode = getControlValue( elMode );
+				audioMotion.mode = elValue;
 				setProperty( elBarSpace, false );
 				break;
 
@@ -4033,20 +4050,20 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elOutline:
-				audioMotion.outlineBars = isSwitchOn( elOutline );
+				audioMotion.outlineBars = +elValue;
 				break;
 
 			case elPeakDecay:
-				audioMotion.peakDecayTime = elPeakDecay.value;
+				audioMotion.peakDecayTime = elValue;
 				break;
 
 			case elPeakHold:
-				audioMotion.peakHoldTime = elPeakHold.value;
+				audioMotion.peakHoldTime = elValue;
 				break;
 
 			case elPIPRatio:
 				if ( isPIP() )
-					audioMotion.width = audioMotion.height * elPIPRatio.value;
+					audioMotion.width = audioMotion.height * elValue;
 				break;
 
 			case elPreserveFilenames:
@@ -4054,21 +4071,19 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elRadial:
-				audioMotion.radial = getControlValue( elRadial );
+				audioMotion.radial = elValue;
 				break;
 
 			case elRadius:
-				audioMotion.radius = getControlValue( elRadius );
+				audioMotion.radius = elValue;
 				break;
 
 			case elRandomMode:
-				const option = elRandomMode.value;
-
 				if ( randomModeTimer )
 					randomModeTimer = clearInterval( randomModeTimer );
 
-				if ( option > 1 )
-					randomModeTimer = setInterval( randomizeSettings, 2500 * option );
+				if ( elValue > 1 )
+					randomModeTimer = setInterval( randomizeSettings, 2500 * elValue );
 
 				noGraphStreak  = 0;
 				noRadialStreak = 0;
@@ -4087,16 +4102,15 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elReflex:
-				const reflex = getControlValue( elReflex );
-				audioMotion.reflexAlpha = reflex == .5 ? 1 : .2;
-				audioMotion.reflexRatio = reflex;
+				audioMotion.reflexAlpha = elValue == .5 ? 1 : .2;
+				audioMotion.reflexRatio = elValue;
 				break;
 
 			case elReverse0:
 			case elReverse1:
 				if ( isLinkGrads ) {
-					setControlValue( elReverse0, getControlValue( el ) );
-					setControlValue( elReverse1, getControlValue( el ) );
+					setControlValue( elReverse0, elValue );
+					setControlValue( elReverse1, elValue );
 				}
 				audioMotion.setTheme( getCurrentThemes() );
 				break;
@@ -4122,24 +4136,23 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elScaleX:
-				audioMotion.showScaleX = getControlValue( elScaleX );
+				audioMotion.showScaleX = elValue;
 				break;
 
 			case elScaleY:
-				audioMotion.showScaleY = getControlValue( elScaleY );
+				audioMotion.showScaleY = elValue;
 				break;
 
 			case elSensitivity:
-				const sensitivity = getControlValue( elSensitivity );
 				audioMotion.setSensitivity(
-					$(`.min-db[data-preset="${sensitivity}"]`).value,
-					$(`.max-db[data-preset="${sensitivity}"]`).value
+					$(`.min-db[data-preset="${ elValue }"]`).value,
+					$(`.max-db[data-preset="${ elValue }"]`).value
 				);
-				audioMotion.linearBoost = $(`.linear-boost[data-preset="${sensitivity}"]`).value;
+				audioMotion.linearBoost = $(`.linear-boost[data-preset="${ elValue }"]`).value;
 				break;
 
 			case elShowPeaks:
-				audioMotion.showPeaks = getControlValue( elShowPeaks );
+				audioMotion.showPeaks = elValue;
 				break;
 
 			case elShowSubtitles:
@@ -4147,7 +4160,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSmoothing:
-				audioMotion.smoothing = elSmoothing.value;
+				audioMotion.smoothing = elValue;
 				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 				break;
 
@@ -4167,16 +4180,23 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSpin:
-				audioMotion.spinSpeed = elSpin.value;
+				audioMotion.spinSpeed = elValue;
 				break;
 
 			case elSplitGrad:
-				audioMotion.spreadGradient = isSwitchOn( elSplitGrad );
+				audioMotion.spreadGradient = +elValue;
 				break;
 
-			case elSquareLeds:
-				const params = isSwitchOn( elSquareLeds ) ? [ 0, 0 ] : getControlValue( elBandCount ) >= BANDS_OCTAVE_12TH ? [ 4, 4 ] : [];
-				audioMotion.setLeds( ...params );
+			case elLedFormat:
+				let ledHeight = LEDHEIGHTS[ getControlValue( elBandCount ) ],
+				 	gapHeight = ledHeight;
+
+				if ( elValue == LEDFORMAT_SQUARE )
+					ledHeight = gapHeight = 0;
+				else if ( elValue == LEDFORMAT_THIN )
+					ledHeight = 2;
+
+				audioMotion.setLeds( ledHeight, gapHeight );
 				break;
 
 			case elSubsBackground:
@@ -5484,6 +5504,12 @@ function updateRangeValue( el ) {
 		[ LEDS_OFF,     'Off'     ],
 		[ LEDS_MODERN,  'Modern'  ],
 		[ LEDS_VINTAGE, 'Vintage' ]
+	]);
+
+	populateCustomRadio( elLedFormat, [
+		[ LEDFORMAT_REGULAR, 'Regular' ],
+		[ LEDFORMAT_THIN,    'Thin'    ],
+		[ LEDFORMAT_SQUARE,  'Square'  ]
 	]);
 
 	populateCustomRadio( elRadial, [
