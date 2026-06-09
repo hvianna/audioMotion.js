@@ -4258,6 +4258,23 @@ function setProperty( elems, save = true ) {
 
 	} // for
 
+	// Enable/disable UI controls based on current settings
+
+	const { alphaBars, colorMode, ledBars, isBandsMode, isLedBars, isOutlineBars, mode, radial } = audioMotion,
+		  isBars   = mode == MODE_BARS,
+		  isGraph  = mode == MODE_GRAPH,
+		  isLumi   = alphaBars == ALPHABARS_FULL,
+		  isRadial = radial != RADIAL_OFF;
+
+	toggleEnableControl( [ elAlphaBars, elColorMode ], isBars );
+	toggleEnableControl( [ elBarSpace ], isBars && isBandsMode && ! isLumi );
+	toggleEnableControl( [ elOutline, elRoundBars ], isBars && isBandsMode && ! isLedBars && ! isLumi );
+	toggleEnableControl( [ elLedDisplay ], isBars && isBandsMode && ! isRadial );
+	toggleEnableControl( [ elLedFormat, elLedMask ], isLedBars );
+	toggleEnableControl( [ elReflex ], ! isRadial );
+	toggleEnableControl( [ elFillAlpha, elLineWidth ], isOutlineBars || isGraph );
+	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], colorMode == COLORMODE_GRADIENT && ! isRadial && ( ! isLedBars || ledBars != LEDS_VINTAGE ) );
+	toggleEnableControl( [ elRadius, elSpin ], isRadial );
 }
 
 /**
@@ -5012,6 +5029,16 @@ function setQueueIndex( newValue ) {
 		newCurr.classList.add('current');
 		newCurr.scrollIntoViewIfNeeded();
 	}
+}
+
+/**
+ * Enable or disable a UI control
+ */
+function toggleEnableControl( elements, force ) {
+	if ( ! isArray( elements ) )
+		elements = [ elements ];
+	for ( const el of elements )
+		el.classList.toggle( 'disabled', force === undefined ? undefined : ! force );
 }
 
 /**

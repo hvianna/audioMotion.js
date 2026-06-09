@@ -841,6 +841,22 @@ a.button:visited {
 	margin-right: -1px;
 }
 
+.custom-radio-buttons.disabled label,
+.switch.disabled {
+	background: var(--glass-gradient) !important;
+	border-color: #adadad !important;
+	box-shadow: none !important;
+	color: #666 !important;
+	text-shadow: none !important;
+}
+
+.custom-radio-buttons.disabled label,
+.custom-slider.disabled,
+.switch.disabled {
+	opacity: .6;
+	pointer-events: none;
+}
+
 .button-bar .help:not(:only-child) .tooltip {
 	left: 0;
 	top: 40px;
