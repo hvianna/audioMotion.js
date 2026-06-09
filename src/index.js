@@ -1881,10 +1881,8 @@ function keyboardControls( event ) {
 			const index = event.code.slice(-1) - 1;
 			if ( index == -1 ) { // '0' pressed
 				// ignore if Shift pressed as it could be a user mistake
-				if ( ! isShiftKey ) {
-					randomizeSettings( true );
-					setProperty( elRandomMode, false ); // restart randomize timer (if active)
-				}
+				if ( ! isShiftKey )
+					randomizeNow();
 			}
 			else if ( isShiftKey ) {
 				const settings = getCurrentSettings();
@@ -2597,7 +2595,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	audioMotion.setTheme( getCurrentThemes() );
 
 	if ( key == 'demo' )
-		randomizeSettings( true );
+		randomizeNow();
 
 	if ( alert )
 		notie.alert({ text: 'Settings loaded!' });
@@ -3243,6 +3241,14 @@ function randomizeSettings( force = elSource.checked ) {
 		for ( const el of [ elReverse0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elReverse1 ] ) ] )
 			randomizeControl( el );
 	}
+}
+
+/**
+ * Randomize settings on demand
+ */
+function randomizeNow() {
+	randomizeSettings( true );
+	setProperty( elRandomMode, false ); // restart randomize timer (if active)
 }
 
 /**
@@ -4505,6 +4511,8 @@ function setUIEventListeners() {
 		}
 	});
 
+	$('#randomize_now').addEventListener( 'click', () => randomizeNow() );
+
 	// helper debounce function - thanks https://www.freecodecamp.org/news/javascript-debounce-example/
 	const debounce = ( func, timeout = 300 ) => {
 		let timer;
@@ -5314,6 +5322,8 @@ function updateRangeValue( el ) {
 	const audioOnError = e => {
 		if ( e.target.attributes.src )
 			consoleLog( 'Error loading ' + e.target.src, true );
+		// NOTE: error message can be retrieved from the media element's `error` property,
+		// but "format error" is misleading in the case of a file not found
 	}
 
 	const audioOnPlay = e => {
