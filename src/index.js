@@ -152,6 +152,7 @@ const DATASET_TEMPLATE = {
 
 // CSS classes
 const CSS_CLASS_COMPACT   = 'compact',
+	  CSS_CLASS_DISABLED  = 'disabled',
 	  CSS_CLASS_FIT_VIDEO = 'fit-video',
 	  CSS_CLASS_NO_IMAGE  = 'no-image',
 	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
@@ -910,7 +911,7 @@ const getControlValue = el => {
 		ret = ret == 9 ? 0 : ret; // FFT = 0
 	else if ( isCustomRadio( el ) )
 		ret = el.elements[ el.dataset.prop ].value;
-	else if ( el.className.includes('switch') )
+	else if ( isCustomSwitch( el ) )
 		ret = el.dataset.active || 0; // note: may be undefined; in this case, make sure to return 0
 	return '' + ret;
 }
@@ -1011,6 +1012,9 @@ const isBlob = src => src && src.startsWith('blob:');
 
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
+
+// check if a given object is a custom switch
+const isCustomSwitch = el => el.classList.contains('switch');
 
 // check if a string is an external URL
 const isExternalURL = path => path.startsWith('http') && ! path.startsWith( URL_ORIGIN );
@@ -4267,20 +4271,30 @@ function setProperty( elems, save = true ) {
 	// Enable/disable UI controls based on current settings
 
 	const { alphaBars, colorMode, ledBars, isBandsMode, isLedBars, isOutlineBars, mode, radial } = audioMotion,
-		  isBars   = mode == MODE_BARS,
-		  isGraph  = mode == MODE_GRAPH,
-		  isLumi   = alphaBars == ALPHABARS_FULL,
-		  isRadial = radial != RADIAL_OFF;
+		  isBars     = mode == MODE_BARS,
+		  isGradient = colorMode == COLORMODE_GRADIENT,
+		  isGraph    = mode == MODE_GRAPH,
+		  isLumi     = alphaBars == ALPHABARS_FULL,
+		  isRadial   = radial != RADIAL_OFF;
 
-	toggleEnableControl( [ elAlphaBars, elColorMode ], isBars );
-	toggleEnableControl( [ elBarSpace ], isBars && isBandsMode && ! isLumi );
-	toggleEnableControl( [ elOutline, elRoundBars ], isBars && isBandsMode && ! isLedBars && ! isLumi );
-	toggleEnableControl( [ elLedDisplay ], isBars && isBandsMode && ! isRadial );
-	toggleEnableControl( [ elLedFormat, elLedMask ], isLedBars );
-	toggleEnableControl( [ elReflex ], ! isRadial );
-	toggleEnableControl( [ elFillAlpha, elLineWidth ], isOutlineBars || isGraph );
-	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], colorMode == COLORMODE_GRADIENT && ! isRadial && ( ! isLedBars || ledBars != LEDS_VINTAGE ) );
-	toggleEnableControl( [ elRadius, elSpin ], isRadial );
+	const DISABLED_BY_ALPHABARS     = 'Not available on Full Alpha Bars',
+		  DISABLED_BY_BANDCOUNT     = 'Not available on current Band Count',
+		  DISABLED_BY_LEDBARS       = 'Not available on LED Bars',
+		  DISABLED_BY_MODE_NOT_BARS = 'Only on Bars mode',
+		  DISABLED_BY_NOT_GRADIENT  = 'Only on Gradient Color Mode',
+		  DISABLED_BY_NOT_LEDBARS   = 'LED Bars is Off',
+		  DISABLED_BY_NOT_RADIAL    = 'Only on Radial spectrum',
+		  DISABLED_BY_RADIAL        = 'Not available on Radial spectrum';
+
+	toggleEnableControl( [ elAlphaBars, elColorMode ], isBars, DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elBarSpace ], isBars && isBandsMode && ! isLumi, isLumi ? DISABLED_BY_ALPHABARS : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elOutline, elRoundBars ], isBars && isBandsMode && ! isLedBars && ! isLumi, isLumi ? DISABLED_BY_ALPHABARS : isLedBars ? DISABLED_BY_LEDBARS : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elLedDisplay ], isBars && isBandsMode && ! isRadial, isRadial ? DISABLED_BY_RADIAL : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elLedFormat, elLedMask ], isLedBars, DISABLED_BY_NOT_LEDBARS );
+	toggleEnableControl( [ elReflex ], ! isRadial && ! isLumi, isRadial ? DISABLED_BY_RADIAL : DISABLED_BY_ALPHABARS );
+	toggleEnableControl( [ elFillAlpha, elLineWidth ], isOutlineBars || isGraph, 'For Outline Bars or Graph mode only' );
+	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], isGradient && ! isRadial && ( ! isLedBars || ledBars != LEDS_VINTAGE ), isRadial ? DISABLED_BY_RADIAL : isGradient ? 'No effect with Vintage LEDs' : DISABLED_BY_NOT_GRADIENT );
+	toggleEnableControl( [ elRadius, elSpin ], isRadial, DISABLED_BY_NOT_RADIAL );
 }
 
 /**
@@ -4482,7 +4496,11 @@ function setUIEventListeners() {
 
 	// settings switches
 	$$('.switch').forEach( el => {
-		el.addEventListener( 'click', () => {
+		el.addEventListener( 'click', evt => {
+			if ( el.classList.contains( CSS_CLASS_DISABLED ) ) {
+				evt.preventDefault();
+				return false;
+			}
 			el.dataset.active = +!+el.dataset.active;
 			setProperty( el );
 		});
@@ -4492,7 +4510,13 @@ function setUIEventListeners() {
 	$$('[data-prop]').forEach( el => {
 		if ( isCustomRadio( el ) ) {
 			el.elements[ el.dataset.prop ].forEach( btn => {
-				btn.addEventListener( 'click', () => setProperty( el ) );
+				btn.addEventListener( 'click', evt => {
+					if ( el.classList.contains( CSS_CLASS_DISABLED ) ) {
+						evt.preventDefault();
+						return false;
+					}
+					setProperty( el );
+				});
 			});
 		}
 		else { // 'input' event is triggered for select and input elements
@@ -5042,11 +5066,17 @@ function setQueueIndex( newValue ) {
 /**
  * Enable or disable a UI control
  */
-function toggleEnableControl( elements, force ) {
+function toggleEnableControl( elements, state, message ) {
 	if ( ! isArray( elements ) )
 		elements = [ elements ];
-	for ( const el of elements )
-		el.classList.toggle( 'disabled', force === undefined ? undefined : ! force );
+
+	for ( const el of elements ) {
+		el.classList.toggle( CSS_CLASS_DISABLED, ! state );
+		if ( isRangeControl( el ) )
+			el.disabled = ! state;
+		// when control is disabled add informative message to the element's title
+		( isCustomSwitch( el ) ? el.parentElement : el ).title = ! state && message || '';
+	}
 }
 
 /**

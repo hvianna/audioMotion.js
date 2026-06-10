@@ -853,8 +853,8 @@ a.button:visited {
 .custom-radio-buttons.disabled label,
 .custom-slider.disabled,
 .switch.disabled {
+	cursor: not-allowed;
 	opacity: .6;
-	pointer-events: none;
 }
 
 .button-bar .help:not(:only-child) .tooltip {
