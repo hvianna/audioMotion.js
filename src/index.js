@@ -2239,9 +2239,9 @@ function loadPreferences( serverConfig ) {
 		}
 	}
 
-	const lastConfig    = loadFromStorage( KEY_LAST_SESSION ) || loadFromStorage( KEY_LEGACY_LAST_CONFIG ),
+	const lastConfig    = loadFromStorage( KEY_LAST_SESSION ) || loadFromStorage( KEY_LEGACY_LAST_CONFIG ) || {},
 		  lastVersion   = lastConfig.version || loadFromStorage( KEY_LEGACY_LAST_VERSION ),
-	 	  isLastSession = lastConfig !== null,
+	 	  isLastSession = ! isEmpty( lastConfig ),
 	 	  userSettings  = loadFromStorage( KEY_CONFIGURATION ) || {};
 
 	delete lastConfig.version;
