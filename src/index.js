@@ -229,10 +229,12 @@ const LEGACY_MODE_BARS     = '11',
 	  LEGACY_MODE_GRAPH    = '10',
 	  LEGACY_MODE_LINE     = '101';
 
-// Options for OSD font size
+// Options for OSD font size and style
 const OSD_SIZE_S = '0',
 	  OSD_SIZE_M = '1',
-	  OSD_SIZE_L = '2';
+	  OSD_SIZE_L = '2',
+	  OSD_STYLE_OUTLINE = '0',
+	  OSD_STYLE_SHADOW  = '1';
 
 // Valid values for the `frontPanel` URL parameter and config.yaml option
 const PANEL_CLOSE = 'close',
@@ -341,10 +343,10 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elMute          = $('#mute'),
 	  elNoDimSubs     = $('#no_dim_subs'),
 	  elNoDimVideo    = $('#no_dim_video'),
-	  elNoShadow      = $('#no_shadow'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
+	  elOSDTextStyle  = $('#osd_text_style'),
 	  elPanelSelection= $('#panel_selection'),
 	  elPeakDecay     = $('#peak_decay'),
 	  elPeakHold      = $('#peak_hold'),
@@ -558,7 +560,6 @@ const presets = [
 			mirror       : MIRROR_OFF,
 			mode         : MODE_BARS,
 			mute         : 0,
-			noShadow     : 1,
 			outlineBars  : 0,
 			radial       : 0,
 			radius       : .5,
@@ -730,7 +731,7 @@ const sensitivityDefaults = [
 ];
 
 // On-screen information display options
-const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elShowCount, elShowCover, elTrackTimeout ];
+const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elOSDTextStyle, elShowCount, elShowCover, elTrackTimeout ];
 
 const infoDisplayDefaults = {
 	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
@@ -738,7 +739,8 @@ const infoDisplayDefaults = {
 	end   : 10,   // display time (secs) at the end of the song
 	covers: true, // show album covers in song information
 	count : true, // show song number and play queue count
-	osdFontSize: OSD_SIZE_M
+	osdFontSize: OSD_SIZE_M,
+	osdTextStyle: OSD_STYLE_OUTLINE
 }
 
 // Background Image Fit options
@@ -940,7 +942,6 @@ const getCurrentSettings = _ => ({
 	loRes        : getControlValue( elLoRes ),
 	mirror       : getControlValue( elMirror ),
 	mode         : getControlValue( elMode ),
-	noShadow     : getControlValue( elNoShadow ),
 	outlineBars  : getControlValue( elOutline ),
 	radial       : getControlValue( elRadial ),
 	radius       : getControlValue( elRadius ),
@@ -2342,6 +2343,11 @@ function loadPreferences( serverConfig ) {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
+	populateSelect( elOSDTextStyle, [
+		[ OSD_STYLE_OUTLINE, 'Outlined' ],
+		[ OSD_STYLE_SHADOW,  'Shadowed' ]
+	]);
+
 	// merge saved options (if any) with the defaults and set UI fields
 	setInfoOptions( { ...infoDisplayDefaults, ...( userSettings[ KEY_LEGACY_DISPLAY_OPTS ] || loadFromStorage( KEY_LEGACY_DISPLAY_OPTS ) || {} ) } );
 
@@ -3576,7 +3582,8 @@ function savePreferences( key ) {
 				end   : elEndTimeout.value,
 				covers: elShowCover.checked,
 				count : elShowCount.checked,
-				osdFontSize: elOSDFontSize.value
+				osdFontSize : elOSDFontSize.value,
+				osdTextStyle: elOSDTextStyle.value
 			},
 			[ KEY_LEGACY_GENERAL_OPTS]   : {
 				autoHide   : elAutoHide.checked,
@@ -3796,6 +3803,7 @@ function setInfoOptions( options ) {
 	elTrackTimeout.value = options.track;
 	elEndTimeout.value   = options.end;
 	elOSDFontSize.value  = options.osdFontSize;
+	elOSDTextStyle.value = options.osdTextStyle;
 	elShowCover.checked  = options.covers;
 	elShowCount.checked  = options.count;
 }
@@ -5196,7 +5204,7 @@ function updateRangeValue( el ) {
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
 			  interval   = latency + 1 / instance.fps, // audio context latency + refresh rate interval
-			  noShadow   = isSwitchOn( elNoShadow ),
+			  noShadow   = elOSDTextStyle.value == OSD_STYLE_OUTLINE,
 			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
