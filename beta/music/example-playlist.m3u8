@@ -1,0 +1,35 @@
+﻿#EXTM3U
+#
+# This is an example of m3u playlist using the Extended M3U format directives.
+# For format reference, see: https://en.wikipedia.org/wiki/M3U#Extended_M3U
+#
+# Notes:
+#
+# * Any metadata found in the media files will have precedence over the
+#   content added here;
+#
+# * Only EXTALB and EXTINF directives are currently supported;
+#
+# * Contents of EXTALB will be applied to all songs that come after it, so
+#   no need to repeat the directive for consecutive songs in the same album;
+#
+# * Filenames may include folders, but all paths must be relative to the
+#   location of the .m3u file (no initial slash or drive letter).
+#
+#
+#EXTALB:Royalty Free (2024)
+#EXTINF:239,Kevin MacLeod - Funky Chunk
+Kevin MacLeod - Funky Chunk.mp3
+#
+#EXTALB:Digital Memories (2011)
+#EXTINF:262,Lukhash - We Come Together
+Lukhash - We Come Together.mp3
+#
+#EXTALB:The Factory (2009)
+#EXTINF:282,Multifaros - The Factory
+Multifaros - The_Factory.mp3
+#
+#EXTALB:Straw Fields (2011)
+#EXTINF:137,Rolemusic - Spell
+Rolemusic - Spell.mp3
+#
