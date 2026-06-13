@@ -579,7 +579,7 @@ const presets = [
 			splitGrad    : 0,
 			themes       : 'prism',
 			volume       : 1,
-			weighting    : FILTER_D
+			weighting    : FILTER_TILT3
 		}
 	}
 ];
@@ -724,9 +724,9 @@ const randomProperties = [
 
 // Sensitivity presets
 const sensitivityDefaults = [
-	{ min: -70,  max: -20, boost: 1 }, // low
-	{ min: -85,  max: -25, boost: 1.6 }, // normal
-	{ min: -100, max: -30, boost: 2.4 }  // high
+	{ min: -84, max: -21, boost: 1 },   // low
+	{ min: -90, max: -30, boost: 1.6 }, // medium
+	{ min: -96, max: -36, boost: 2.4 }  // high
 ];
 
 // On-screen information display options
