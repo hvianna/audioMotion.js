@@ -83,17 +83,24 @@ canvas {
 }
 
 header {
+	align-items: baseline;
 	align-self: center;
-}
-header h1 {
 	background-clip: text;
 	background-color: #0008;
 	color: transparent;
-	font: 32px 'Orbitron', sans-serif;
-	margin: 0;
+	display: flex;
 	text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
 	-webkit-background-clip: text;
 }
+header h1 {
+	font: 32px 'Orbitron', sans-serif;
+	margin: 0;
+}
+header div {
+	font-size: .85rem;
+	margin-left: .25rem;
+}
+
 h2 {
 	font-size: 1.4em;
 	margin: 0 0 1em;

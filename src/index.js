@@ -5421,7 +5421,7 @@ function updateRangeValue( el ) {
 	consoleLog( `audioMotion v${VERSION} initializing...` );
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
-	$('#version').innerText = VERSION;
+	$$('.app-version').forEach( el => el.innerText = VERSION );
 
 	// Load server configuration options from config.yaml
 	let response;
@@ -5559,14 +5559,14 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elRandomMode, [
-		[ '0',   'Off'    ],
-		[ '2',   '5 sec'  ],
-		[ '6',   '15 sec' ],
-		[ '12',  '30 sec' ],
-		[ '1',   'Track'  ],
-		[ '24',  '1 min'  ],
-		[ '48',  '2 min'  ],
-		[ '120', '5 min'  ]
+		[ '0',   'Off'   ],
+		[ '2',   '5s'    ],
+		[ '6',   '15s'   ],
+		[ '12',  '30s'   ],
+		[ '1',   'Track' ],
+		[ '24',  '1 min' ],
+		[ '48',  '2 min' ],
+		[ '120', '5 min' ]
 	]);
 
 	populateCustomRadio( elAlphaBars, [

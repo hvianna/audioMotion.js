@@ -89,7 +89,7 @@
 					<a href="#!" class="modal-close-internal"></a>
 					<div class="credits">
 						<h1>audioMotion</h1>
-						<div><a href="docs/changelog" title="click for changelog" target="_blank">version <span id="version"></span></a></div>
+						<div><a href="docs/changelog" title="click for changelog" target="_blank">version <span class="app-version"></span></a></div>
 						<p>Copyright &copy; 2018-2026 Henrique Avila Vianna</p>
 						<ul>
 							<li><a href="https://audiomotion.app/docs" target="_blank">Website</a></li>
@@ -143,7 +143,10 @@
 					</label>
 				</div>
 
-				<header><h1>audioMotion</h1></header>
+				<header>
+					<h1>audioMotion</h1>
+					<div>v<span class="app-version"></span></div>
+				</header>
 			</div>
 
 			<ul class="player-controls">
@@ -222,8 +225,14 @@
 					</div>
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
+				<div class="last-row">
+					<span class="config-label help" data-help="/docs/#/advanced?id=import-export-settings">Import / Export Settings</span>
+					<div class="button-bar">
+						<label class="button">Import
+							<input id="import_settings" type="file" accept=".json">
+						</label>
+						<button class="help" id="export_settings">Export</button>
+					</div>
 				</div>
 
 			<!-- COLUMN 2 -->
@@ -379,13 +388,7 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help" data-help="/docs/#/advanced?id=import-export-settings">Import / Export Settings</span>
-					<div class="button-bar">
-						<label class="button">Import
-							<input id="import_settings" type="file" accept=".json">
-						</label>
-						<button class="help" id="export_settings">Export</button>
-					</div>
+					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 2 -->
