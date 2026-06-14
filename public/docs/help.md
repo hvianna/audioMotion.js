@@ -23,7 +23,7 @@ Most shortcuts support holding the **Shift** key to cycle backward through optio
 **A** | cycle through [Randomize](settings.md#randomize) options
 **B** | cycle through [Background](settings.md#background) options
 **Shift+B** | cycle through [Background Image Fit](settings.md#background-image-fit) options
-**C** | toggle [RADIAL](settings.md#effects-switches)
+**C** | cycle through [RADIAL](settings.md#radial) options
 **D** | Display track information on screen; press again for settings info and again to hide<br>(alternatively, click on analyzer)
 **E** | [Shuffle](user-interface.md#player-controls) play queue
 **F** | toggle [Fullscreen](user-interface.md#fullscreen)
@@ -35,7 +35,8 @@ Most shortcuts support holding the **Shift** key to cycle backward through optio
 **O** | toggle [LO-RES](settings.md#display-switches)
 **P** | cycle through [Peaks](settings.md#peaks) options
 **R** | toggle queue [Repeat](user-interface.md#player-controls)
-**S** | cycle through [X-Axis Labels](settings.md#x-axis-labels) and [Y-Axis Labels](settings.md#y-axis-labels) options
+**S** | cycle through [X-Axis Labels](settings.md#x-axis-labels) options
+**Shift+S** | cycle through [Y-Axis Labels](settings.md#y-axis-labels) options
 **T** | cycle through [Color Theme](settings.md#color-theme) options
 **X** | cycle through [Reflex](settings.md#reflex) options
 **Esc** | Exit fullscreen
