@@ -12,7 +12,7 @@
  * https://github.com/hvianna/audioMotion.js
  *
  * @author    Henrique Vianna <hvianna@gmail.com>
- * @copyright (c) 2018-2025 Henrique Avila Vianna
+ * @copyright (c) 2018-2026 Henrique Avila Vianna
  * @license   AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,66 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import {
+	AudioMotionAnalyzer,
+	ALPHABARS_FULL,
+	ALPHABARS_OFF,
+	ALPHABARS_ON,
+	BANDS_FFT,
+	BANDS_OCTAVE_FULL,
+	BANDS_OCTAVE_HALF,
+	BANDS_OCTAVE_3RD,
+	BANDS_OCTAVE_4TH,
+	BANDS_OCTAVE_6TH,
+	BANDS_OCTAVE_8TH,
+	BANDS_OCTAVE_12TH,
+	BANDS_OCTAVE_24TH,
+	COLORMODE_GRADIENT,
+	COLORMODE_INDEX,
+	COLORMODE_LEVEL,
+	FILTER_NONE,
+	FILTER_A,
+	FILTER_B,
+	FILTER_C,
+	FILTER_D,
+	FILTER_468,
+	FILTER_TILT3,
+	FILTER_TILT45,
+	LABELS_X_FREQS,
+	LABELS_X_NOTES,
+	LABELS_X_OFF,
+	LABELS_Y_DB,
+	LABELS_Y_PERCENT,
+	LABELS_Y_OFF,
+	LAYOUT_COMBINED,
+	LAYOUT_HORIZONTAL,
+	LAYOUT_SINGLE,
+	LAYOUT_VERTICAL,
+	LEDS_MODERN,
+	LEDS_OFF,
+	LEDS_VINTAGE,
+	MIRROR_LEFT,
+	MIRROR_OFF,
+	MIRROR_RIGHT,
+	MODE_BARS,
+	MODE_GRAPH,
+	PEAKS_DROP,
+	PEAKS_FADE,
+	PEAKS_OFF,
+	RADIAL_INWARD,
+	RADIAL_OFF,
+	RADIAL_OUTWARD,
+	REASON_CREATE,
+	REASON_FULLSCREENCHANGE,
+	REASON_LORES,
+	REASON_RESIZE,
+	REASON_USER,
+	SCALE_BARK,
+	SCALE_LINEAR,
+	SCALE_LOG,
+	SCALE_MEL
+} from 'audiomotion-analyzer';
+
 import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
 import * as mm from 'music-metadata-browser';
@@ -59,7 +118,8 @@ const BG_DEFAULT = '0',
 	  BG_BLACK   = '1',
 	  BG_COVER   = '2',
 	  BG_IMAGE   = '3',
-	  BG_VIDEO   = '4';
+	  BG_VIDEO   = '4',
+	  DEFAULT_BG_COLOR = '#111111'; // for themes with no `bgColor` property; must be a full hex string for color picker compatibility
 
 // Backgrounds folder options
 const BGFOLDER_NONE   = '0',
@@ -92,20 +152,17 @@ const DATASET_TEMPLATE = {
 
 // CSS classes
 const CSS_CLASS_COMPACT   = 'compact',
+	  CSS_CLASS_DISABLED  = 'disabled',
 	  CSS_CLASS_FIT_VIDEO = 'fit-video',
+	  CSS_CLASS_NO_IMAGE  = 'no-image',
 	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
 	  CSS_CLASS_WARNING   = 'warning';
 
-// Channel Layouts
-const CHANNEL_COMBINED   = 'dual-combined',
- 	  CHANNEL_HORIZONTAL = 'dual-horizontal',
-	  CHANNEL_SINGLE     = 'single',
-	  CHANNEL_VERTICAL   = 'dual-vertical';
-
-// Color modes
-const COLOR_GRADIENT = 'gradient',
-	  COLOR_INDEX    = 'bar-index',
-	  COLOR_LEVEL    = 'bar-level';
+// default theme modifiers
+const DEFAULT_MODIFIERS = {
+	horizontal: false,
+	reverse: false
+};
 
 // Error codes
 const ERR_ABORT = 20; // AbortError
@@ -120,53 +177,74 @@ const FILE_EXT_AUDIO = ['mp3','flac','m4a','aac','ogg','wav'],
 const FILEMODE_SERVER = 'server',
 	  FILEMODE_LOCAL  = 'local';
 
-// localStorage and indexedDB keys
-const KEY_BG_DIR_HANDLE  = 'bgDir',
-	  KEY_CUSTOM_GRADS   = 'custom-grads',
-	  KEY_CUSTOM_PRESET  = 'custom-preset',
-	  KEY_DISABLED_BGFIT = 'disabled-bgfit',
-	  KEY_DISABLED_GRADS = 'disabled-gradients',
-	  KEY_DISABLED_PROPS = 'disabled-properties',
-	  KEY_DISPLAY_OPTS   = 'display-options',
-	  KEY_FORCE_FS_API   = 'force-filesystem',
-	  KEY_GENERAL_OPTS   = 'general-settings',
-	  KEY_LAST_CONFIG    = 'last-config',
-	  KEY_LAST_DIR       = 'last-dir',
-	  KEY_LAST_VERSION   = 'last-version',
-	  KEY_PEAK_OPTIONS   = 'peak-settings',
-	  KEY_PLAYLISTS      = 'playlists',
-	  KEY_PLAYQUEUE      = 'playqueue',
-	  KEY_SENSITIVITY    = 'sensitivity-presets',
-	  KEY_SUBTITLES_OPTS = 'subtitles-settings',
-	  PLAYLIST_PREFIX    = 'pl_';
+// Limit values for frequency range selection
+const FREQ_LO_MIN = 1,
+	  FREQ_LO_MAX = 2000,
+	  FREQ_HI_MIN = 1000,
+	  FREQ_HI_MAX = 24000;
 
-// Visualization modes
-const MODE_BARS        = '11',
- 	  MODE_DISCRETE    = '0',
-	  MODE_GRAPH       = '10',
-	  MODE_LINE        = '101', // deprecated
-	  MODE_OCTAVE_FULL = '8',
-	  MODE_OCTAVE_HALF = '7',
-	  MODE_OCTAVE_3RD  = '6',
-	  MODE_OCTAVE_4TH  = '5',
-	  MODE_OCTAVE_6TH  = '4',
-	  MODE_OCTAVE_8TH  = '3',
-	  MODE_OCTAVE_12TH = '2',
-	  MODE_OCTAVE_24TH = '1';
+// localStorage keys
+const KEY_CONFIGURATION  = 'audioMotion-config',
+	  KEY_CUSTOM_THEMES  = 'audioMotion-themes',
+	  KEY_CUSTOM_PRESETS = 'audioMotion-presets',
+	  KEY_LAST_SESSION   = 'audioMotion-session',
+  	  KEY_FORCE_FS_API   = 'force-filesystem';
 
-// Options for OSD font size
+// legacy localStorage keys (consolidated into `audioMotion-config` entry, except for grads and presets)
+const KEY_LEGACY_CUSTOM_GRADS   = 'custom-grads',
+	  KEY_LEGACY_CUSTOM_PRESETS = 'custom-preset',
+	  KEY_LEGACY_DISABLED_BGFIT = 'disabled-bgfit',
+	  KEY_LEGACY_DISABLED_GRADS = 'disabled-gradients',
+	  KEY_LEGACY_DISABLED_PROPS = 'disabled-properties',
+	  KEY_LEGACY_DISPLAY_OPTS   = 'display-options',
+	  KEY_LEGACY_GENERAL_OPTS   = 'general-settings',
+	  KEY_LEGACY_LAST_CONFIG    = 'last-config',
+  	  KEY_LEGACY_LAST_VERSION   = 'last-version',
+	  KEY_LEGACY_PEAK_OPTIONS   = 'peak-settings',
+	  KEY_LEGACY_SENSITIVITY    = 'sensitivity-presets',
+	  KEY_LEGACY_SUBTITLES_OPTS = 'subtitles-settings';
+
+// indexedDB data keys
+const KEY_DB_BGDIR_HANDLE = 'bgDir',
+	  KEY_DB_LAST_DIR     = 'last-dir', // also used in localStorage for webserver mode
+	  KEY_DB_PLAYLISTS    = 'playlists',
+	  KEY_DB_PLAYQUEUE    = 'playqueue',
+	  PLAYLIST_PREFIX     = 'pl_';
+
+// Options for LED format
+const LEDFORMAT_REGULAR = 0,
+	  LEDFORMAT_THIN    = 1,
+	  LEDFORMAT_SQUARE  = 2;
+
+// LED height for each bandCount (for Regular format)
+const LEDHEIGHTS = {
+	[ BANDS_FFT ]: undefined,
+	[ BANDS_OCTAVE_FULL ]: 12,
+	[ BANDS_OCTAVE_HALF ]: 10,
+	[ BANDS_OCTAVE_3RD  ]: 8,
+	[ BANDS_OCTAVE_4TH  ]: 8,
+	[ BANDS_OCTAVE_6TH  ]: 6,
+	[ BANDS_OCTAVE_8TH  ]: 6,
+	[ BANDS_OCTAVE_12TH ]: 4,
+	[ BANDS_OCTAVE_24TH ]: 4
+};
+
+// Legacy visualization modes (for preset migration)
+const LEGACY_MODE_BARS     = '11',
+ 	  LEGACY_MODE_DISCRETE = '0',
+	  LEGACY_MODE_GRAPH    = '10',
+	  LEGACY_MODE_LINE     = '101';
+
+// Options for OSD font size and style
 const OSD_SIZE_S = '0',
 	  OSD_SIZE_M = '1',
-	  OSD_SIZE_L = '2';
+	  OSD_SIZE_L = '2',
+	  OSD_STYLE_OUTLINE = '0',
+	  OSD_STYLE_SHADOW  = '1';
 
 // Valid values for the `frontPanel` URL parameter and config.yaml option
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
-
-// Valid values for showPeaks
-const PEAKS_OFF  = 0,
-	  PEAKS_ON   = 1,
-	  PEAKS_FADE = 2;
 
 const PRESET_KEY_DEFAULT = 'default',
 	  PRESET_KEY_LAST_SESSION = 'last';
@@ -175,40 +253,28 @@ const PRESET_KEY_DEFAULT = 'default',
 const PRESET_EMPTY  = 'Empty slot',
 	  PRESET_NONAME = 'No description';
 
-// Reflex options
-const REFLEX_OFF  = '0',
-	  REFLEX_ON   = '1',
-	  REFLEX_FULL = '2',
-	  REFLEX_SHORT= '3';
-
 // Property keys for Randomize settings
 const RND_ALPHA      = 'alpha',
 	  RND_BACKGROUND = 'nobg',
 	  RND_BANDCOUNT  = 'bands',
 	  RND_BGIMAGEFIT = 'imgfit',
 	  RND_COLORMODE  = 'colormode',
-	  RND_GRADIENT   = 'gradient',
+	  RND_HORIZONTAL = 'horizontal',
 	  RND_LEDS       = 'leds',
-	  RND_LUMI       = 'lumi',
+	  RND_LED_FORMAT = 'ledformat',
+	  RND_LED_MASK   = 'ledmask',
 	  RND_MODE       = 'mode',
 	  RND_OUTLINE    = 'outline',
 	  RND_PEAKS      = 'peaks',
 	  RND_PRESETS    = 'presets',
 	  RND_RADIAL     = 'radial',
 	  RND_REFLEX     = 'reflex',
+	  RND_REVERSE    = 'reverse',
 	  RND_ROUND      = 'round',
-	  RND_SPLIT      = 'split';
-
-// Frequency scales
-const SCALE_BARK   = 'bark',
-	  SCALE_LINEAR = 'linear',
-	  SCALE_LOG    = 'log',
-	  SCALE_MEL    = 'mel';
-
-// X- and Y- scale switches
-const SCALEXY_OFF  = 0,
-	  SCALEXY_ON   = 1,
-	  SCALEX_NOTES = 2;
+	  RND_SPLIT      = 'split',
+	  RND_THEMES     = 'gradient',
+	  MIN_STREAK_FOR_GRAPH  = 3,
+	  MIN_STREAK_FOR_RADIAL = 5;
 
 // Server configuration filename and default values
 const SERVERCFG_FILE     = 'config.yaml',
@@ -237,14 +303,6 @@ const SUBS_BG_NONE      = 'none',
 const UPDATE_BANNER_TIMEOUT = 10000,  // time visible (milliseconds)
 	  UPDATE_SHOW_CSS_CLASS = 'show'; // active CSS class
 
-// Weighting filters
-const WEIGHT_NONE = '',
-	  WEIGHT_A    = 'A',
-	  WEIGHT_B    = 'B',
-	  WEIGHT_C    = 'C',
-	  WEIGHT_D    = 'D',
-	  WEIGHT_468  = '468';
-
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
@@ -266,23 +324,24 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDebug         = $('#debug'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
+	  elEnabledThemes = $('#enabled_themes'),
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
 	  elFillAlpha     = $('#fill_alpha'),
 	  elFPS           = $('#fps'),
 	  elFreqScale     = $('#freq_scale'),
 	  elFsHeight      = $('#fs_height'),
-	  elGradient      = $('#gradient'),
-	  elGradientRight = $('#gradientRight'),
-	  elGravity       = $('#gravity'),
+	  elHorizontal0   = $('#horizontal_0'),
+	  elHorizontal1   = $('#horizontal_1'),
 	  elInfoTimeout   = $('#info_timeout'),
 	  elInvertVolume  = $('#invert_volume'),
 	  elLedDisplay    = $('#led_display'),
+	  elLedFormat     = $('#led_format'),
+	  elLedMask       = $('#led_mask'),
 	  elLinearAmpl    = $('#linear_amplitude'),
 	  elLineWidth     = $('#line_width'),
 	  elLinkGrads     = $('#link_grads'),
 	  elLoRes         = $('#lo_res'),
-	  elLumiBars      = $('#lumi_bars'),
 	  elMaxFPS        = $('#max_fps'),
 	  elMediaPanel    = $('#files_panel'),
 	  elMirror        = $('#mirror'),
@@ -290,12 +349,12 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elMute          = $('#mute'),
 	  elNoDimSubs     = $('#no_dim_subs'),
 	  elNoDimVideo    = $('#no_dim_video'),
-	  elNoShadow      = $('#no_shadow'),
 	  elOutline       = $('#outline'),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
+	  elOSDTextStyle  = $('#osd_text_style'),
 	  elPanelSelection= $('#panel_selection'),
-	  elPeakFade      = $('#peak_fade'),
+	  elPeakDecay     = $('#peak_decay'),
 	  elPeakHold      = $('#peak_hold'),
 	  elPIPRatio      = $('#pip_ratio'),
 	  elPlaylists     = $('#playlists'),
@@ -311,6 +370,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elReduceOnVideo = $('#reduce_video'),
 	  elReflex        = $('#reflex'),
 	  elRepeat        = $('#repeat'),
+	  elReverse0      = $('#reverse_0'),
+	  elReverse1      = $('#reverse_1'),
 	  elRoundBars     = $('#round_bars'),
 	  elSaveDir       = $('#save_dir'),
 	  elSaveQueue     = $('#save_queue'),
@@ -334,6 +395,8 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elSubsPosition  = $('#subs_position'),
 	  elSubsPosAudio  = $('#subs_position_audio'),
   	  elSurround      = $('#enable_surround'),
+	  elTheme0        = $('#theme_0'),
+	  elTheme1        = $('#theme_1'),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
@@ -360,22 +423,22 @@ const presets = [
 		key: 'ledbars',
 		name: 'Classic LED bars',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			background   : BG_DEFAULT,
-			bandCount    : MODE_OCTAVE_3RD,
+			bandCount    : BANDS_OCTAVE_3RD,
 			barSpace     : .2,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_GRADIENT,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'classic',
-			ledDisplay   : 1,
-			lumiBars     : 0,
+			ledDisplay   : LEDS_MODERN,
+			ledFormat    : LEDFORMAT_REGULAR,
 			outlineBars  : 0,
 			mode         : MODE_BARS,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_OFF,
+			reflex       : 0,
 			roundBars    : 0,
-			showPeaks    : PEAKS_ON,
+			showPeaks    : PEAKS_DROP,
 			splitGrad    : 0
 		}
 	},
@@ -384,18 +447,18 @@ const presets = [
 		key: 'dual',
 		name: 'Dual-channel combined Graph',
 		options: {
-			channelLayout: CHANNEL_COMBINED,
+			bandCount    : BANDS_FFT,
+			channelLayout: LAYOUT_COMBINED,
 			fillAlpha    : .3,
-			gradient     : 'cool',
-			gradientRight: 'dusk',
 			lineWidth    : 1,
 			linkGrads    : 0,
-			mode         : MODE_LINE,
+			mode         : MODE_GRAPH,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_OFF,
+			reflex       : 0,
 			showPeaks    : PEAKS_OFF,
-			splitGrad    : 0
+			splitGrad    : 0,
+			themes       : ['cool', 'dusk']
 		}
 	},
 
@@ -403,23 +466,22 @@ const presets = [
 		key: 'bands',
 		name: 'Octave Bands + Reflex',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_12TH,
+			bandCount    : BANDS_OCTAVE_12TH,
 			bgImageFit   : BGFIT_ADJUST,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_GRADIENT,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_GRADIENT,
 			gradient     : 'rainbow',
-			ledDisplay   : 0,
-			lumiBars     : 0,
+			ledDisplay   : LEDS_OFF,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_SHORT,
+			reflex       : .25,
 			roundBars    : 0,
-			showPeaks    : PEAKS_ON,
-			showScaleX   : SCALEX_NOTES,
+			showPeaks    : PEAKS_FADE,
+			showScaleX   : LABELS_X_NOTES,
 			splitGrad    : 0
 		}
 	},
@@ -428,21 +490,20 @@ const presets = [
 		key: 'radial',
 		name: 'Radial, Color by Level',
 		options: {
-			alphaBars    : 1,
+			alphaBars    : ALPHABARS_ON,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_4TH,
+			bandCount    : BANDS_OCTAVE_4TH,
 			bgImageFit   : BGFIT_PULSE,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_LEVEL,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_LEVEL,
 			gradient     : 'prism',
-			ledDisplay   : 0,
-			lumiBars     : 0,
-			mirror       : 0,
+			ledDisplay   : LEDS_OFF,
+			mirror       : MIRROR_OFF,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
 			radial       : 1,
 			randomMode   : 0,
-			showPeaks    : PEAKS_ON,
+			showPeaks    : PEAKS_DROP,
 			splitGrad    : 0
 		}
 	},
@@ -451,21 +512,20 @@ const presets = [
 		key: 'round',
 		name: 'Round Bars, Color by Index',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_8TH,
+			bandCount    : BANDS_OCTAVE_8TH,
 			bgImageFit   : BGFIT_WARP_ANI,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_INDEX,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_INDEX,
 			gradient     : 'apple',
-			ledDisplay   : 0,
-			lumiBars     : 0,
-			mirror       : 0,
+			ledDisplay   : LEDS_OFF,
+			mirror       : MIRROR_OFF,
 			mode         : MODE_BARS,
 			outlineBars  : 0,
 			radial       : 0,
 			randomMode   : 0,
-			reflex       : REFLEX_FULL,
+			reflex       : .5,
 			roundBars    : 1,
 			showPeaks    : PEAKS_OFF,
 			splitGrad    : 0
@@ -482,58 +542,57 @@ const presets = [
 		key: PRESET_KEY_DEFAULT,
 		name: 'Restore defaults',
 		options: {
-			alphaBars    : 0,
+			alphaBars    : ALPHABARS_OFF,
 			ansiBands    : 0,
 			background   : BG_COVER,
-			bandCount    : MODE_OCTAVE_3RD,
+			bandCount    : BANDS_FFT,
 			barSpace     : .2,
 			bgImageDim   : .3,
 			bgImageFit   : BGFIT_CENTER,
-			channelLayout: CHANNEL_SINGLE,
-			colorMode    : COLOR_GRADIENT,
+			channelLayout: LAYOUT_SINGLE,
+			colorMode    : COLORMODE_GRADIENT,
 			fftSize      : 8192,
 			fillAlpha    : .3,
 			freqMax      : 20000,
 			freqMin      : 20,
 			freqScale    : SCALE_LOG,
-			gradient     : 'prism',
-			gradientRight: 'prism',
-			ledDisplay   : 0,
+			ledDisplay   : LEDS_OFF,
+			ledFormat    : LEDFORMAT_REGULAR,
 			linearAmpl   : 1,
 			lineWidth    : 1,
 			linkGrads    : 0,
 			loRes        : 0,
-			lumiBars     : 0,
 			micSource    : 0,
-			mirror       : 0,
-			mode         : MODE_DISCRETE,
+			mirror       : MIRROR_OFF,
+			mode         : MODE_BARS,
 			mute         : 0,
-			noShadow     : 1,
 			outlineBars  : 0,
 			radial       : 0,
 			radius       : .5,
 			randomMode   : 0,
-			reflex       : REFLEX_OFF,
+			reflex       : 0,
 			repeat       : 0,
 			roundBars    : 0,
 			sensitivity  : 1,
 			showFPS      : 0,
-			showPeaks    : PEAKS_ON,
-			showScaleX   : SCALEXY_ON,
-			showScaleY   : SCALEXY_OFF,
+			showLedMask  : 1,
+			showPeaks    : PEAKS_DROP,
+			showScaleX   : LABELS_X_FREQS,
+			showScaleY   : LABELS_Y_OFF,
 			showSong     : 1,
 			showSubtitles: 1,
 			smoothing    : .7,
 			spin         : 2,
 			splitGrad    : 0,
+			themes       : 'prism',
 			volume       : 1,
-			weighting    : WEIGHT_D
+			weighting    : FILTER_TILT3
 		}
 	}
 ];
 
-// Gradient definitions
-const gradients = {
+// Color theme definitions
+const THEMES = {
 	apple:    { name: 'Apple ][', colorStops: [
 				{ pos: .1667, color: '#61bb46' },
 				{ pos: .3333, color: '#fdb827' },
@@ -556,11 +615,7 @@ const gradients = {
 				{ pos: .5, color: '#d76d77' },
 				{ pos: 1, color: '#3a1c71' }
 			  ], disabled: false },
-	classic:  { name: 'Classic', colorStops: [
-				'#f00',
-				{ color: '#ff0', level: .85, pos: .6 },
-				{ color: '#0f0', level: .475 }
-			  ], disabled: false },
+	classic:  { name: 'Classic', disabled: false },
 	cool:     { name: 'Cool', bgColor: '#0b202b', colorStops: [
 				'hsl( 208, 0%, 100% )',
 				'hsl( 208, 100%, 35% )'
@@ -576,6 +631,12 @@ const gradients = {
 				{ pos: .794, color: 'rgb( 32, 173, 190 )' },
 				{ pos: 1, color: 'rgb( 22, 158, 95 )' }
 			  ], disabled: false },
+	mono:     {
+				name: 'Mono (BETA!)',
+				colorStops: [ '#eee' ],
+				peakColor: 'red',
+			  	disabled: false
+			  },
 	orient:   { name: 'Orient', bgColor: '#100', colorStops: [
 				{ pos: .1, color: '#f00' },
 				{ pos: 1, color: '#600' }
@@ -592,9 +653,7 @@ const gradients = {
 				{ pos: .1, color: '#34e89e' },
 				{ pos: 1, color: '#0f3443' }
 			  ], disabled: false },
-	prism:    { name: 'Prism', colorStops: [
-				'#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b'
-			  ], disabled: false },
+	prism:    { name: 'Prism', disabled: false },
 	prism_old: { name: 'Prism (legacy)', colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
@@ -602,10 +661,8 @@ const gradients = {
 				'hsl( 180, 100%, 50% )',
 				'hsl( 240, 100%, 50% )'
 			  ], disabled: true },
-	rainbow:  { name: 'Rainbow', dir: 'h', colorStops: [
-				'#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639'
-			  ], disabled: false },
-	rainbow_old: { name: 'Rainbow (legacy)', dir: 'h', colorStops: [
+	rainbow:  { name: 'Rainbow', horizontal: 1, disabled: false },
+	rainbow_old: { name: 'Rainbow (legacy)', horizontal: 1, colorStops: [
 				'hsl( 0, 100%, 50% )',
 				'hsl( 60, 100%, 50% )',
 				'hsl( 120, 100%, 50% )',
@@ -637,48 +694,50 @@ const gradients = {
 
 // Visualization modes
 const modeOptions = [
-	[ MODE_BARS,     'Bars'  ],
-	[ MODE_DISCRETE, 'FFT'   ],
-	[ MODE_GRAPH,    'Graph' ]
+	[ MODE_BARS,  'Bars'  ],
+	[ MODE_GRAPH, 'Graph' ]
 ];
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ CHANNEL_SINGLE,     'Single' ],
-	[ CHANNEL_COMBINED,   'Comb'   ],
-	[ CHANNEL_HORIZONTAL, 'Horiz'  ],
-	[ CHANNEL_VERTICAL,   'Vert'   ]
+	[ LAYOUT_SINGLE,     'Single' ],
+	[ LAYOUT_COMBINED,   'Comb'   ],
+	[ LAYOUT_HORIZONTAL, 'Horiz'  ],
+	[ LAYOUT_VERTICAL,   'Vert'   ]
 ];
 
 // Randomize options
 const randomProperties = [
 	{ value: RND_PRESETS,     text: 'User Presets',  disabled: true  },
-	{ value: RND_ALPHA,       text: 'Alpha',         disabled: false },
+	{ value: RND_ALPHA,       text: 'Alpha Bars',    disabled: false },
 	{ value: RND_MODE,        text: 'Analyzer Mode', disabled: false },
 	{ value: RND_BACKGROUND,  text: 'Background',    disabled: false },
 	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
 	{ value: RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
 	{ value: RND_COLORMODE,   text: 'Color Mode',    disabled: false },
-	{ value: RND_GRADIENT,    text: 'Gradients',     disabled: false },
-	{ value: RND_LEDS,        text: 'LEDs',          disabled: false },
-	{ value: RND_LUMI,        text: 'Lumi',          disabled: false },
+	{ value: RND_THEMES,      text: 'Color Themes',  disabled: false },
+	{ value: RND_HORIZONTAL,  text: 'Horizontal',    disabled: false },
+	{ value: RND_REVERSE,     text: 'Reverse',       disabled: false },
+	{ value: RND_LEDS,        text: 'LED Bars',      disabled: false },
+	{ value: RND_LED_FORMAT,  text: 'LED Format',    disabled: false },
+	{ value: RND_LED_MASK,    text: 'LED Mask',      disabled: false },
 	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
 	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
 	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
 	{ value: RND_REFLEX,      text: 'Reflex',        disabled: false },
 	{ value: RND_ROUND,       text: 'Round',         disabled: false },
-	{ value: RND_SPLIT,       text: 'Split',         disabled: false }
+	{ value: RND_SPLIT,       text: 'Spread',        disabled: false },
 ];
 
 // Sensitivity presets
 const sensitivityDefaults = [
-	{ min: -70,  max: -20, boost: 1 }, // low
-	{ min: -85,  max: -25, boost: 1.6 }, // normal
-	{ min: -100, max: -30, boost: 2.4 }  // high
+	{ min: -84, max: -21, boost: 1 },   // low
+	{ min: -90, max: -30, boost: 1.6 }, // medium
+	{ min: -96, max: -36, boost: 2.4 }  // high
 ];
 
 // On-screen information display options
-const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elShowCount, elShowCover, elTrackTimeout ];
+const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elOSDTextStyle, elShowCount, elShowCover, elTrackTimeout ];
 
 const infoDisplayDefaults = {
 	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
@@ -686,7 +745,8 @@ const infoDisplayDefaults = {
 	end   : 10,   // display time (secs) at the end of the song
 	covers: true, // show album covers in song information
 	count : true, // show song number and play queue count
-	osdFontSize: OSD_SIZE_M
+	osdFontSize: OSD_SIZE_M,
+	osdTextStyle: OSD_STYLE_OUTLINE
 }
 
 // Background Image Fit options
@@ -734,10 +794,9 @@ const pipRatioOptions = [
 ];
 
 // Peak settings
-const peakOptionsElements = [ elGravity, elPeakFade, elPeakHold ];
+const peakOptionsElements = [ elPeakDecay, elPeakHold ];
 
 const peakOptionsDefaults = {
-	gravity : 3.8,
 	peakFade: 750,
 	peakHold: 500,
 }
@@ -772,15 +831,17 @@ let audioElement = [],
 	bgVideos = [],
 	canvasMsg = {},
 	currAudio, 					// audio element currently in use
-	currentGradient = null,     // gradient that is currently loaded in gradient editor
+	currentTheme = null,        // theme that is currently loaded in theme editor
 	elToggleConsole,			// defined later because HTML element is generated dynamically in setUIEventListeners()
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
 	latency = 0,
-	mediaNodes = [],			// mediaElementSource nodes used to connect to the stereoPanner node
+	mediaNodes = [],			// mediaElementSource nodes for the video elements - used to connect to the stereoPanner node
 	micStream,
 	nextAudio, 					// audio element loaded with the next song (for improved seamless playback)
+	noGraphStreak = 0,
+	noRadialStreak = 0,
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
 	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
 	queueIndex, 				// index to the current song in the play queue
@@ -794,7 +855,7 @@ let audioElement = [],
 	wasMuted,					// mute status before switching to microphone input
 	webServer;					// web server available? (boolean)
 
-// for on-screen info display
+// for on-screen info display - TO-DO: improve this, make it an array?
 let baseSize,
 	coverSize,
 	centerPos,
@@ -816,10 +877,17 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
+// clamp a given value between `min` and `max`
+const clamp = ( val, min, max ) => {
+ 	// TO-DO: handle NaN
+ 	[ min, max ] = [ Math.min( min, max ), Math.max( min, max ) ];
+	return val <= min ? min : val >= max ? max : val;
+};
+
 // return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
 const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
 
-// precision fix for floating point numbers
+// precision fix for operations with floating point numbers (up to two decimals)
 const fixFloating = value => Math.round( value * 100 ) / 100;
 
 // removes accents from a given string, converts it to lowercase and replaces any non-alphanumeric character with optional separator
@@ -843,9 +911,9 @@ const getText = el => {
 		if ( option )
 			text = option.textContent;
 	}
-	else if ( el.type == 'range' )
+	else if ( isRangeControl( el ) )
 		text = translateRangeValue( el );
-	else if ( el.tagName == 'SELECT' )
+	else if ( isSelectControl( el ) )
 		text = el[ el.selectedIndex ].text;
 	return text;
 }
@@ -855,10 +923,10 @@ const getText = el => {
 const getControlValue = el => {
 	let ret = el.value;  // basic select and input elements
 	if ( el == elBandCount )
-		ret = 9 - ret;
+		ret = ret == 9 ? 0 : ret; // FFT = 0
 	else if ( isCustomRadio( el ) )
 		ret = el.elements[ el.dataset.prop ].value;
-	else if ( el.className.includes('switch') )
+	else if ( isCustomSwitch( el ) )
 		ret = el.dataset.active || 0; // note: may be undefined; in this case, make sure to return 0
 	return '' + ret;
 }
@@ -879,17 +947,14 @@ const getCurrentSettings = _ => ({
 	freqMax		 : getControlValue( elRangeMax ),
 	freqMin		 : getControlValue( elRangeMin ),
 	freqScale    : getControlValue( elFreqScale ),
-	gradient	 : getControlValue( elGradient ),
-	gradientRight: getControlValue( elGradientRight ),
 	ledDisplay   : getControlValue( elLedDisplay ),
+	ledFormat    : getControlValue( elLedFormat ),
 	linearAmpl   : getControlValue( elLinearAmpl ),
 	lineWidth    : getControlValue( elLineWidth ),
 	linkGrads    : getControlValue( elLinkGrads ),
 	loRes        : getControlValue( elLoRes ),
-	lumiBars     : getControlValue( elLumiBars ),
 	mirror       : getControlValue( elMirror ),
 	mode         : getControlValue( elMode ),
-	noShadow     : getControlValue( elNoShadow ),
 	outlineBars  : getControlValue( elOutline ),
 	radial       : getControlValue( elRadial ),
 	radius       : getControlValue( elRadius ),
@@ -899,6 +964,7 @@ const getCurrentSettings = _ => ({
 	roundBars    : getControlValue( elRoundBars ),
 	sensitivity  : getControlValue( elSensitivity ),
 	showFPS      : getControlValue( elFPS ),
+	showLedMask  : getControlValue( elLedMask ),
 	showPeaks 	 : getControlValue( elShowPeaks ),
 	showScaleX 	 : getControlValue( elScaleX ),
 	showScaleY 	 : getControlValue( elScaleY ),
@@ -907,12 +973,27 @@ const getCurrentSettings = _ => ({
 	smoothing    : getControlValue( elSmoothing ),
 	spin         : getControlValue( elSpin ),
 	splitGrad    : getControlValue( elSplitGrad ),
+	themes       : getCurrentThemes(),
 	weighting    : getControlValue( elWeighting )
 });
 
+const getCurrentThemes = () => {
+	let ret = [];
+	for ( const ch of [0,1] ) {
+		ret.push({
+			name: getControlValue( ch ? elTheme1 : elTheme0 ),
+			modifiers: {
+				horizontal: +getControlValue( ch ? elHorizontal1 : elHorizontal0 ),
+				reverse: +getControlValue( ch ? elReverse1 : elReverse0 ),
+			}
+		});
+	}
+	return ret;
+}
+
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
 const getPresetIndex = key => {
-	const index = ( +key == key ) ? key : presets.findIndex( item => item.key == key );
+	const index = isNumeric( key ) ? key : presets.findIndex( item => item.key == key );
 	return ( index < 0 || index > presets.length - 1 ) ? -1 : index;
 }
 
@@ -928,14 +1009,17 @@ const getPresetName = key => {
 	return ( index == -1 ) ? false : presets[ index ].name;
 }
 
-// return selected gradient(s) for canvas OSD message
-const getSelectedGradients = () => {
-	const isDual = getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads );
-	return `Gradient${ isDual ? 's' : ''}: ${ gradients[ elGradient.value ].name + ( isDual ? ' / ' + gradients[ elGradientRight.value ].name : '' ) }`;
+// return selected theme(s) for canvas OSD message
+const getSelectedThemes = () => {
+	const isDual = getControlValue( elChnLayout ) != LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
+	return `Theme${ isDual ? 's' : ''}: ${ THEMES[ elTheme0.value ].name + ( isDual ? ' / ' + THEMES[ elTheme1.value ].name : '' ) }`;
 }
 
 // return a list of user preset slots and descriptions
 const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
+
+// shorthand for Array.isArray()
+const { isArray } = Array;
 
 // check if a given url/path is a blob
 const isBlob = src => src && src.startsWith('blob:');
@@ -943,17 +1027,35 @@ const isBlob = src => src && src.startsWith('blob:');
 // check if a given object is a custom radio buttons element
 const isCustomRadio = el => el.tagName == 'FORM' && el.dataset.prop != undefined;
 
+// check if a given object is a custom switch
+const isCustomSwitch = el => el.classList.contains('switch');
+
 // check if a string is an external URL
 const isExternalURL = path => path.startsWith('http') && ! path.startsWith( URL_ORIGIN );
 
 // check if an object is empty
 const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).length;
 
+// check if given object is a number input element
+const isNumberControl = el => el.type == 'number';
+
+// check if given value is numeric
+const isNumeric = val => ! isArray( val ) && val == +val; // note: +[] == []
+
+// check if given value is an object (not null or array, which are also considered objects)
+const isObject = val => typeof val == 'object' && !! val && ! isArray( val );
+
 // check if PIP is active
 const isPIP = _ => elContainer.classList.contains('pip');
 
 // check if audio is playing
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
+
+// check if given object is a range input element
+const isRangeControl = el => el.type == 'range';
+
+// check if given object is a select element
+const isSelectControl = el => el.tagName == 'SELECT';
 
 // returns a boolean with the current status of a UI switch
 const isSwitchOn = el => !! +getControlValue( el );
@@ -1013,9 +1115,9 @@ const randomInt = ( n = 2 ) => Math.random() * n | 0;
 // helper function to save a path to localStorage or IndexedDB
 const saveLastDir = path => {
 	if ( useFileSystemAPI )
-		set( KEY_LAST_DIR, path ); // IndexedDB
+		set( KEY_DB_LAST_DIR, path ); // IndexedDB
 	else if ( webServer )
-		saveToStorage( KEY_LAST_DIR, path );
+		saveToStorage( KEY_DB_LAST_DIR, path );
 }
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
@@ -1051,8 +1153,8 @@ const setControlValue = ( el, val ) => {
 		setSource( val );
 	else if ( el == elVolume )
 		setVolume( val );
-	else if ( el == elBandCount ) // invert values when setting/getting, so the slider goes from lower to higher band count
-		el.value = 9 - val;
+	else if ( el == elBandCount )
+		el.value = val == 0 ? 9 : val; // convert 0 to 9, so the FFT (max resolution) appears at the end of the slider
 	else if ( isCustomRadio( el ) ) {
 		// note: el.elements[ prop ].value = val won't work for empty string value
 		const option = el.querySelector(`[value="${val}"]`);
@@ -1060,7 +1162,7 @@ const setControlValue = ( el, val ) => {
 			option.checked = true;
 	}
 	else if ( el.classList.contains('switch') )
-		el.dataset.active = +val;
+		el.dataset.active = +val || 0;
 	else {
 		el.value = val;
 		if ( el.selectedIndex == -1 ) // fix invalid values in select elements
@@ -1271,7 +1373,7 @@ function changeVolume( incr ) {
 
 	setVolume( newVal );
 	setCanvasMsg( `Volume: ${ newVal * 20 }` );
-	updateLastConfig();
+	savePreferences( KEY_LAST_SESSION );
 }
 
 /**
@@ -1324,8 +1426,8 @@ function resizeOSD( instance = audioMotion ) {
 	coverSize   = baseSize * 3;				// cover image size
 	centerPos   = width / 2;
 	rightPos    = width - baseSize;
-	topLine1    = baseSize * 1.4;			// gradient, mode & sensitivity status + informative messages
-	topLine2    = topLine1 * 1.8;			// auto gradient, Randomize & repeat status
+	topLine1    = baseSize * 1.4;			// theme, mode & sensitivity status + informative messages
+	topLine2    = topLine1 * 1.8;			// auto theme, Randomize & repeat status
 	maxWidthTop = width / 3 - baseSize;		// maximum width for messages shown at the top
 	bottomLine1 = height - baseSize * 4;	// artist name, codec/quality
 	bottomLine2 = height - baseSize * 2.8;	// song title
@@ -1365,55 +1467,29 @@ function consoleLog( msg, error, clear ) {
  * @param [prev] {boolean} true to select previous option
  */
 function cycleElement( el, prev ) {
-	const options = isCustomRadio( el ) ? el.elements[ el.dataset.prop ] : el.options;
+	if ( isRangeControl( el ) ) {
+		const { min, max, step } = el,
+			  newVal = fixFloating( +el.value + step * ( prev ? -1 : 1 ) );
 
-	let idx = ( isCustomRadio( el ) ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
+		setControlValue( el, newVal > max ? min : newVal < min ? max : newVal );
+	}
+	else {
+		const options = isCustomRadio( el ) ? el.elements[ el.dataset.prop ] : el.options;
 
-	if ( idx < 0 )
-		idx = options.length - 1;
-	else if ( idx >= options.length )
-		idx = 0;
+		let idx = ( isCustomRadio( el ) ? Array.from( options ).findIndex( item => item.checked ) : el.selectedIndex ) + ( prev ? -1 : 1 );
 
-	if ( isCustomRadio( el ) )
-		options[ idx ].checked = true;
-	else
-		el.selectedIndex = idx;
+		if ( idx < 0 )
+			idx = options.length - 1;
+		else if ( idx >= options.length )
+			idx = 0;
+
+		if ( isCustomRadio( el ) )
+			options[ idx ].checked = true;
+		else
+			el.selectedIndex = idx;
+	}
 
 	setProperty( el );
-}
-
-/**
- * Cycle scale labels for X- and- Y axes
- *
- * @param [{boolean}] `true` to select previous option
- * @return {number} integer indicating status (see table below)
- */
-function cycleScale( prev ) {
-// Y X  scale
-// 0 00 (0): x off    y off
-// 0 01 (1): x freqs  y off
-// 0 10 (2): x notes  y off
-// 0 11 (3): not used
-// 1 00 (4): x off    y on
-// 1 01 (5): x freqs  y on
-// 1 10 (6): x notes  y on
-// 1 11 (7): not used
-//
-	prev = prev * -2 + 1; // true = -1; false = 1
-	let scale = +getControlValue( elScaleX ) + ( +getControlValue( elScaleY ) << 2 ) + prev;
-
-	if ( scale < 0 )
-		scale = 6;
-	else if ( scale == 3 )
-		scale += prev;
-	else if ( scale > 6 )
-		scale = 0;
-
-	setControlValue( elScaleX, scale & 3 );
-	setControlValue( elScaleY, scale >> 2 );
-	setProperty( [ elScaleX, elScaleY ] );
-
-	return scale;
 }
 
 /**
@@ -1450,30 +1526,31 @@ function deleteChildren( el ) {
 }
 
 /**
- * Removes gradient that has been loaded into the editor from the gradients object as well as the saved custom gradients
+ * Removes theme that has been loaded into the editor from the THEMES object as well as the saved custom gradients
  * preference.
- *
- * Note, this does not remove the gradient from the analyzer. Rather, the analyzer's gradient object will be
- * overwritten next time a gradient is created. This is because custom gradient keys are generated based on how many
- * custom gradients. See `openGradientEditorNew()`. Additionally, the deleted gradient is removed from the stored
- * preferences, so the analyzer will not have it on next load.
  */
-function deleteGradient() {
-	if (!currentGradient || !currentGradient.key) return;
+function deleteTheme() {
+	if ( ! currentTheme ||  ! currentTheme.key )
+		return;
 
-	delete gradients[currentGradient.key];
-
-	// if that was the only enabled gradient, set the first gradient as enabled
-	if (Object.keys(gradients).filter(key => !gradients[key].disabled).length === 0) {
-		gradients[Object.keys(gradients)[0]].disabled = false;
+	if ( ! audioMotion.unregisterTheme( currentTheme.key ) ) {
+		notie.alert({ text: `COULD NOT UNREGISTER THEME: ${ currentTheme.name }<br>Themes in use cannot be deleted!` });
+		return;
 	}
 
-	populateGradients();
-	populateEnabledGradients();
-	savePreferences(KEY_CUSTOM_GRADS);
-	savePreferences(KEY_DISABLED_GRADS); // saving disabled gradients because if we the only enabled one, we set the first to be enabled.
+	delete THEMES[ currentTheme.key ];
 
-	currentGradient = null;
+	// if that was the only enabled theme, set the first theme as enabled
+	if ( Object.keys( THEMES ).filter( key => ! THEMES[ key ].disabled ).length === 0 ) {
+		THEMES[ Object.keys( THEMES )[0] ].disabled = false;
+	}
+
+	populateThemes();
+	populateEnabledThemes();
+	savePreferences( KEY_CUSTOM_THEMES );
+	savePreferences( KEY_CONFIGURATION ); // to save disabled gradients - TO-DO: check if still needed (can we still delete the only enabled theme?)
+
+	currentTheme = null;
 	location.href = '#config';
 }
 
@@ -1488,14 +1565,14 @@ function deletePlaylist( index ) {
 			submitCallback: async () => {
 				const keyName   = elPlaylists[ index ].value,
 					  key       = PLAYLIST_PREFIX + keyName,
-					  playlists = await get( KEY_PLAYLISTS );
+					  playlists = await get( KEY_DB_PLAYLISTS );
 
 				if ( playlists )
 					delete playlists[ keyName ];
 
 				// delete playlist from indexedDB and update list of playlists
 				await del( key );
-				await set( KEY_PLAYLISTS, playlists );
+				await set( KEY_DB_PLAYLISTS, playlists );
 
 				notie.alert({ text: 'Playlist deleted' });
 				loadSavedPlaylists();
@@ -1513,7 +1590,7 @@ function deletePlaylist( index ) {
 function doConfigPanel() {
 
 	// helper function
-	const buildOptions = ( container, cssClass, options, parent, cfgKey ) => {
+	const buildOptions = ( container, cssClass, options, parent ) => {
 		// create checkboxes inside the container
 		options.forEach( item => {
 			container.innerHTML += `<label><input type="checkbox" class="${cssClass}" data-option="${item.value}" ${ item.disabled ? '' : 'checked' }> ${item.text}</label>`;
@@ -1534,24 +1611,21 @@ function doConfigPanel() {
 				if ( opt ) {
 					opt.disabled = ! element.checked;
 					populateSelect( parent, options );
-					savePreferences( cfgKey );
+					savePreferences( KEY_CONFIGURATION );
 				}
 			});
 		});
 	}
 
 	// Enabled Background Image Fit options
-	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit, KEY_DISABLED_BGFIT );
+	buildOptions( $('#enabled_bgfit'), 'enabledBgFit', bgFitOptions, elBgImageFit );
 
-	// Enabled gradients
-
-	const elEnabledGradients = $('#enabled_gradients');
-
-	Object.keys( gradients ).forEach( key => {
-		elEnabledGradients.innerHTML += `<label><input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}> ${gradients[ key ].name}</label>`;
+	// Enabled themes
+	Object.keys( THEMES ).forEach( key => {
+		elEnabledThemes.innerHTML += `<label><input type="checkbox" class="enabledTheme" data-theme="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }> ${ THEMES[ key ].name }</label>`;
 	});
 
-	populateEnabledGradients();
+	populateEnabledThemes();
 
 	// Randomize configuration
 
@@ -1564,7 +1638,7 @@ function doConfigPanel() {
 	$$('.randomProperty').forEach( el => {
 		el.addEventListener( 'click', event => {
 			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
-			savePreferences( KEY_DISABLED_PROPS );
+			savePreferences( KEY_CONFIGURATION );
 		});
 	});
 
@@ -1581,7 +1655,7 @@ function doConfigPanel() {
 				});
 				if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 					setProperty( elSensitivity, false );
-				savePreferences( KEY_SENSITIVITY );
+				savePreferences( KEY_CONFIGURATION );
 			});
 		}
 		else {
@@ -1589,7 +1663,7 @@ function doConfigPanel() {
 				if ( isValidRange( el ) ) {
 					if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
-					savePreferences( KEY_SENSITIVITY );
+					savePreferences( KEY_CONFIGURATION );
 				}
 				el.classList.toggle( 'field-error', ! isValidRange( el ) );
 			});
@@ -1673,7 +1747,7 @@ function eraseUserPreset( index, force ) {
 
 	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = {};
-	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
+	savePreferences( KEY_CUSTOM_PRESETS );
 
 	notie.alert({ text: `Deleted ${ userPresetText }` });
 
@@ -1828,10 +1902,8 @@ function keyboardControls( event ) {
 			const index = event.code.slice(-1) - 1;
 			if ( index == -1 ) { // '0' pressed
 				// ignore if Shift pressed as it could be a user mistake
-				if ( ! isShiftKey ) {
-					randomizeSettings( true );
-					setProperty( elRandomMode, false ); // restart randomize timer (if active)
-				}
+				if ( ! isShiftKey )
+					randomizeNow();
 			}
 			else if ( isShiftKey ) {
 				const settings = getCurrentSettings();
@@ -1876,10 +1948,6 @@ function keyboardControls( event ) {
 						skipTrack(true);
 					}
 					break;
-				case 'KeyG': 		// gradient
-					cycleElement( elGradient, isShiftKey );
-					setCanvasMsg( getSelectedGradients() );
-					break;
 				case 'ArrowRight': 	// next song
 				case 'KeyK':
 					if ( ! finishFastSearch() && ! isShiftKey ) {
@@ -1898,8 +1966,8 @@ function keyboardControls( event ) {
 					setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
 					break;
 				case 'KeyC': 		// radial
-					elRadial.click();
-					setCanvasMsg( 'Radial ' + onOff( elRadial ) );
+					cycleElement( elRadial, isShiftKey );
+					setCanvasMsg( 'Radial: ' + getText( elRadial ) );
 					break;
 				case 'KeyD': 		// display information
 					toggleInfo();
@@ -1921,8 +1989,8 @@ function keyboardControls( event ) {
 					setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
 					break;
 				case 'KeyL': 		// toggle LED display effect
-					elLedDisplay.click();
-					setCanvasMsg( 'LED effect ' + onOff( elLedDisplay ) );
+					cycleElement( elLedDisplay, isShiftKey );
+					setCanvasMsg( 'LED bars: ' + getText( elLedDisplay ) );
 					break;
 				case 'KeyM': 		// visualization mode
 				case 'KeyV':
@@ -1945,18 +2013,14 @@ function keyboardControls( event ) {
 					elRepeat.click();
 					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
 					break;
-				case 'KeyS': 		// toggle scale labels for X- and Y- axes
-					const info   = ['None','Frequencies','Musical Notes',,'Level'],
-						  status = cycleScale( isShiftKey );
-					setCanvasMsg( 'Scale labels: ' + ( status < 5 ? info[ status ] : info[ status - 4 ] + ' + ' + info[ 4 ] ) );
+				case 'KeyS': 		// cycle scale labels for X- and Y- axes
+					const scaleEl = isShiftKey ? elScaleY : elScaleX;
+					cycleElement( scaleEl );
+					setCanvasMsg( `${ isShiftKey ? 'Y' : 'X' }-axis Labels: ${ getText( scaleEl ) }` );
 					break;
-				case 'KeyT': 		// toggle text shadow
-					elNoShadow.click();
-					setCanvasMsg( ( isSwitchOn( elNoShadow ) ? 'Flat' : 'Shadowed' ) + ' text mode' );
-					break;
-				case 'KeyU': 		// toggle lumi bars
-					elLumiBars.click();
-					setCanvasMsg( 'Luminance bars ' + onOff( elLumiBars ) );
+				case 'KeyT': 		// theme
+					cycleElement( elTheme0, isShiftKey );
+					setCanvasMsg( getSelectedThemes() );
 					break;
 				case 'KeyX':
 					cycleElement( elReflex, isShiftKey );
@@ -2025,53 +2089,22 @@ function loadFromStorage( key ) {
 }
 
 /**
- * Clones the gradient of the given key into the currentGradient variable
+ * Clones the theme of the given key into the currentTheme variable
  */
-function loadGradientIntoCurrentGradient(gradientKey) {
-	if (!gradients[gradientKey]) throw new Error(`gradients[${gradientKey}] is null or undefined.`);
+function loadThemeIntoCurrentTheme( themeKey ) {
+	if ( ! THEMES[ themeKey ] ) throw new Error(`THEMES[${themeKey}] is null or undefined.`);
 
-	// convert hsl values to rgb hexadecimal string - thanks https://stackoverflow.com/a/64090995
-	const hsl2rgb = ( h, s, l ) => {
-		// h in [0,360] and s,l in [0,1]
-		const a = s * Math.min( l, 1 - l );
-		const f = ( n, k = ( n + h / 30 ) % 12 ) => l - a * Math.max( Math.min( k - 3, 9 - k, 1 ), -1 );
-		let rgb = '#';
-		for ( const i of [ 0, 8, 4 ] )
-			rgb += Math.round( f( i ) * 255 ).toString(16).padStart(2, '0');
-		return rgb;
+	currentTheme = {
+		...THEMES[ themeKey ],                  // make a copy of theme data (includes `key`, `name`, `bgColor`, `horizontal` and `reverse`)
+		...audioMotion.getThemeData( themeKey ) // gets normalized colorStops from registered theme
 	}
 
-	// split values from a hsl or rgb string (removes % sign from hsl values)
-	const splitValues = str => str.match( /\(\s+(.*),\s+(.*?)%?,\s+(.*?)%?\s+\)/ ).slice(1);
-
-	const src  = gradients[ gradientKey ],
-		  dest = { ...src }; // make a copy of the gradient object
-
-	dest.colorStops = [];
-
-	// NOTE: colorStops in our `gradients` objects are normalized (modified!) by the analyzer's registerGradient()
-	//       method, which ensures all colorStops elements are objects with `pos` and `color` attributes!
-
-	// clone the source colorStops and convert all colors to hexadecimal format, required by the HTML color picker
-	for ( const stop of src.colorStops ) {
-		if ( stop.color.startsWith('rgb') ) {
-			const { color } = stop;
-			stop.color = '#';
-			for ( const component of splitValues( color ) )
-				stop.color += ( +component ).toString(16).padStart(2, '0');
-		}
-		else if ( stop.color.startsWith('hsl') ) {
-			const [ h, s, l ] = splitValues( stop.color );
-			stop.color = hsl2rgb( h, s/100, l/100 );
-		}
-		else if ( stop.color.length == 4 ) { // short hexadecimal format
-			const [ _, r, g, b ] = stop.color;
-			stop.color = '#' + r + r + g + g + b + b;
-		}
-		dest.colorStops.push({...stop});
+	// use a canvas context to quickly convert any color format to hexadecimal string, as required by the HTML color picker
+	const ctx = document.createElement('canvas').getContext('2d');
+	for ( const colorStop of currentTheme.colorStops ) {
+		ctx.fillStyle = colorStop.color;
+		colorStop.color = ctx.fillStyle;
 	}
-
-	currentGradient = dest;
 }
 
 /**
@@ -2191,15 +2224,15 @@ function loadPlaylist( fileObject ) {
 			}
 		}
 		else { // try to load playlist or last play queue from indexedDB
-			const list = await get( path === true ? KEY_PLAYQUEUE : PLAYLIST_PREFIX + path );
+			const list = await get( path === true ? KEY_DB_PLAYQUEUE : PLAYLIST_PREFIX + path );
 
-			if ( Array.isArray( list ) ) {
+			if ( isArray( list ) ) {
 				list.forEach( entry => {
 					const { file, handle, dirHandle, subs, content } = entry;
 					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
 					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 				});
-				resolveAddedSongs( list != KEY_PLAYQUEUE ); // save playqueue when loading an internal playlist
+				resolveAddedSongs( list != KEY_DB_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
 			else {
 				if ( path !== true ) // avoid error message if no play queue found on storage
@@ -2216,30 +2249,34 @@ function loadPlaylist( fileObject ) {
 function loadPreferences( serverConfig ) {
 	// helper function
 	const parseDisabled = ( data, optionList ) => {
-		if ( Array.isArray( data ) ) {
+		if ( isArray( data ) ) {
 			data.forEach( option => {
 				// if `option` is not an object, `disabled` is inferred true - for compatibility with legacy versions
 				const { value, disabled } = typeof option == 'object' ? option : { value: option, disabled: true } ;
-				const opt = Array.isArray( optionList ) ? optionList.find( item => item.value == value ) : optionList[ value ];
+				const opt = isArray( optionList ) ? optionList.find( item => item.value == value ) : optionList[ value ];
 				if ( opt )
 					opt.disabled = disabled;
 			});
 		}
 	}
 
-	const lastConfig        = loadFromStorage( KEY_LAST_CONFIG ),
-	 	  isLastSession     = lastConfig !== null;
+	const lastConfig    = loadFromStorage( KEY_LAST_SESSION ) || loadFromStorage( KEY_LEGACY_LAST_CONFIG ) || {},
+		  lastVersion   = lastConfig.version || loadFromStorage( KEY_LEGACY_LAST_VERSION ),
+	 	  isLastSession = ! isEmpty( lastConfig ),
+	 	  userSettings  = loadFromStorage( KEY_CONFIGURATION ) || {};
+
+	delete lastConfig.version;
 
 	// for compatibility with v24.6 (down to v21.11), when FFT size and smoothing were stored in the general settings
-	const storedGeneralOptions   = loadFromStorage( KEY_GENERAL_OPTS ) || {},
+	const storedGeneralOptions   = userSettings[ KEY_LEGACY_GENERAL_OPTS ] || loadFromStorage( KEY_LEGACY_GENERAL_OPTS ) || {},
 		  { fftSize, smoothing } = storedGeneralOptions;
 
 	// Merge defaults with the last session settings (if any)
 	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), fftSize, smoothing, ...lastConfig } );
 
 	// Load user presets
-	userPresets = loadFromStorage( KEY_CUSTOM_PRESET ) || [];
-	if ( ! Array.isArray( userPresets ) )
+	userPresets = loadFromStorage( KEY_CUSTOM_PRESETS ) || loadFromStorage( KEY_LEGACY_CUSTOM_PRESETS ) || [];
+	if ( ! isArray( userPresets ) )
 		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
 		if ( userPresets[ i ] === undefined )
@@ -2249,22 +2286,31 @@ function loadPreferences( serverConfig ) {
 	}
 
 	// Load disabled background image fit options
-	parseDisabled( loadFromStorage( KEY_DISABLED_BGFIT ), bgFitOptions );
+	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_BGFIT ] || loadFromStorage( KEY_LEGACY_DISABLED_BGFIT ), bgFitOptions );
 
-	// Load custom gradients
-	const customGradients = loadFromStorage( KEY_CUSTOM_GRADS );
-	if ( customGradients ) {
-		Object.keys( customGradients ).forEach( key => {
-			gradients[ key ] = customGradients[ key ];
-			gradients[ key ].key = key; // a `key` property indicates this is a custom gradient
+	// Load custom themes
+	const customThemes = loadFromStorage( KEY_CUSTOM_THEMES ) || loadFromStorage( KEY_LEGACY_CUSTOM_GRADS );
+	if ( customThemes ) {
+		Object.keys( customThemes ).forEach( key => {
+			const theme = customThemes[ key ];
+
+			// convert legacy `dir` property
+			if ( theme.hasOwnProperty('dir') ) {
+				if ( theme.dir == 'h' )
+					theme.horizontal = 1;
+				delete theme.dir;
+			}
+
+			THEMES[ key ] = theme;
+			THEMES[ key ].key = key; // a `key` property indicates this is a custom theme
 		});
 	}
 
 	// Load disabled gradients preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_GRADS ), gradients );
+	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_GRADS ] || loadFromStorage( KEY_LEGACY_DISABLED_GRADS ), THEMES );
 
 	// Load disabled random properties preference
-	parseDisabled( loadFromStorage( KEY_DISABLED_PROPS ), randomProperties );
+	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_PROPS ] || loadFromStorage( KEY_LEGACY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -2276,7 +2322,7 @@ function loadPreferences( serverConfig ) {
 	const elLinearBoost = $$('.linear-boost');
 	elLinearBoost.forEach( el => setRangeAtts( el, 1, 5, .2 ) );
 
-	const sensitivityPresets = loadFromStorage( KEY_SENSITIVITY ) || sensitivityDefaults;
+	const sensitivityPresets = userSettings[ KEY_LEGACY_SENSITIVITY ] || loadFromStorage( KEY_LEGACY_SENSITIVITY ) || sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
@@ -2313,18 +2359,21 @@ function loadPreferences( serverConfig ) {
 		[ OSD_SIZE_L, 'Large'  ]
 	]);
 
+	populateSelect( elOSDTextStyle, [
+		[ OSD_STYLE_OUTLINE, 'Outlined' ],
+		[ OSD_STYLE_SHADOW,  'Shadowed' ]
+	]);
+
 	// merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( loadFromStorage( KEY_DISPLAY_OPTS ) || {} ) } );
+	setInfoOptions( { ...infoDisplayDefaults, ...( userSettings[ KEY_LEGACY_DISPLAY_OPTS ] || loadFromStorage( KEY_LEGACY_DISPLAY_OPTS ) || {} ) } );
 
 	// Peak settings
 
-	setRangeAtts( elGravity, .01, 25, .01 );
-
-	setRangeAtts( elPeakFade, 0, 5000, 50 );
+	setRangeAtts( elPeakDecay, 0, 5000, 50 );
 
 	setRangeAtts( elPeakHold, 0, 5000, 50 );
 
-	setPeakOptions( { ...peakOptionsDefaults, ...( loadFromStorage( KEY_PEAK_OPTIONS ) || {} ) } );
+	setPeakOptions( { ...peakOptionsDefaults, ...( userSettings[ KEY_LEGACY_PEAK_OPTIONS ] || loadFromStorage( KEY_LEGACY_PEAK_OPTIONS ) || {} ) } );
 
 	// Subtitles configuration
 
@@ -2350,7 +2399,50 @@ function loadPreferences( serverConfig ) {
 	populateSelect( elSubsPosAudio, subsPositionOptions );
 
 	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
-	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( loadFromStorage( KEY_SUBTITLES_OPTS ) || {} ) } );
+	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( userSettings[ KEY_LEGACY_SUBTITLES_OPTS ] || loadFromStorage( KEY_LEGACY_SUBTITLES_OPTS ) || {} ) } );
+
+	// Show update message if needed
+	const elBanner = $('#update-banner');
+
+	if ( lastVersion == null || lastVersion == VERSION )
+		elBanner.remove();
+
+	if ( lastVersion != VERSION ) {
+		if ( lastVersion != null ) {
+			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
+			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
+			setTimeout( () => {
+				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
+			}, UPDATE_BANNER_TIMEOUT );
+		}
+	}
+
+	// localStorage clean-up
+	const storageKeys = [],
+		  legacyKeys  = [
+			KEY_LEGACY_CUSTOM_GRADS,
+			KEY_LEGACY_CUSTOM_PRESETS,
+			KEY_LEGACY_DISABLED_BGFIT,
+			KEY_LEGACY_DISABLED_GRADS,
+			KEY_LEGACY_DISABLED_PROPS,
+			KEY_LEGACY_LAST_CONFIG,
+			KEY_LEGACY_LAST_VERSION,
+			KEY_LEGACY_SENSITIVITY,
+			KEY_LEGACY_DISPLAY_OPTS,
+			KEY_LEGACY_GENERAL_OPTS,
+			KEY_LEGACY_PEAK_OPTIONS,
+			KEY_LEGACY_SUBTITLES_OPTS
+		  ];
+
+	for ( let i = 0; i < localStorage.length; i++ )
+		storageKeys.push( localStorage.key( i ) );
+
+	// if any legacy key is found in localStorage, save new entries and remove old keys
+	if ( storageKeys.some( k => legacyKeys.includes( k ) ) ) {
+		savePreferences(); // saves config, custom themes and presets
+		// TO-DO: uncomment line below when the new version is out of beta
+		//removeFromStorage( ...legacyKeys );
+	}
 
 	return isLastSession;
 }
@@ -2365,77 +2457,149 @@ function loadPreferences( serverConfig ) {
  */
 function loadPreset( key, alert = true, init, keepRandomize ) {
 
-	const isUserPreset = ( +key == key ),
-		  isObject     = typeof key == 'object',
-		  thisPreset   = isObject ? key : ( isUserPreset ? userPresets[ key ].options : getPreset( key ) ),
-		  defaults     = getPreset( PRESET_KEY_DEFAULT );
+	const getValidThemeName = name => THEMES.hasOwnProperty( name ) ? name : Object.keys( THEMES )[0];
+
+	const convertThemeNameToObject = name => {
+		const theme          = THEMES[ name ] || THEMES[ Object.keys( THEMES )[0] ],
+			  validKeys      = Object.keys( DEFAULT_MODIFIERS ),
+			  themeModifiers = Object.fromEntries( Object.entries( theme ).filter( ([key]) => validKeys.includes( key ) ) ); // note: a simple destructuring may generate `undefined` properties
+
+		return {
+			name,
+			modifiers: { ...DEFAULT_MODIFIERS, ...themeModifiers }
+		};
+	}
+
+	const keyIsObj   = isObject( key ),
+		  thisPreset = keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
+		  defaults   = getPreset( PRESET_KEY_DEFAULT );
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
-	if ( alert && ! isObject )
-		consoleLog( `Loading ${ isUserPreset ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+	if ( alert && ! keyIsObj )
+		consoleLog( `Loading ${ isNumeric( key ) ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
 
 	if ( key == PRESET_KEY_DEFAULT )
 		delete thisPreset.volume; // don't reset the volume when restoring to defaults!
 
-	if ( thisPreset.stereo !== undefined ) // convert legacy 'stereo' option to 'channelLayout'
+	// translate legacy options
+
+	if ( thisPreset.reflex >= 1 ) // 0 = off; 1 = on (40%); 2 = mirror (50%); 3 = short (25%) (ver =< 25.9)
+		thisPreset.reflex = [ 0, .4, .5, .25 ][ +thisPreset.reflex ];
+
+	if ( isNumeric( thisPreset.showScaleX ) )
+		thisPreset.showScaleX = [ LABELS_X_OFF, LABELS_X_FREQS, LABELS_X_NOTES ][ +thisPreset.showScaleX ];
+
+	if ( isNumeric( thisPreset.showScaleY ) ) // ver =< 25.9 (on/off only)
+		thisPreset.showScaleY = [ LABELS_Y_OFF, LABELS_Y_DB ][ +thisPreset.showScaleY ];
+
+	if ( thisPreset.weighting !== undefined )
+		thisPreset.weighting = thisPreset.weighting.toLowerCase();
+
+	if ( thisPreset.stereo !== undefined )
 		thisPreset.channelLayout = channelLayoutOptions[ +thisPreset.stereo ][0];
 
-	// convert options from version <= 24.6
 	if ( thisPreset.barSpace == 1.5 )
 		thisPreset.barSpace = 1;
 
-	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks )
+	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks ) // boolean fadePeaks / showPeaks (ver =< 24.6)
 		thisPreset.showPeaks = PEAKS_FADE;
 
-	if ( thisPreset.mode == MODE_LINE )
-		thisPreset.mode = MODE_GRAPH;
-
-	if ( ! [ MODE_DISCRETE, MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
-		thisPreset.bandCount = thisPreset.mode;
-		thisPreset.mode = MODE_BARS;
+	if ( ! [ MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
+		thisPreset.bandCount = [ LEGACY_MODE_DISCRETE, LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? 0 : 9 - thisPreset.mode;
+		thisPreset.mode = [ LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? MODE_GRAPH : MODE_BARS;
 	}
 
-	if ( +thisPreset.noteLabels && +thisPreset.showScaleX )
-		thisPreset.showScaleX = SCALEX_NOTES;
+	if ( +thisPreset.noteLabels && thisPreset.showScaleX != LABELS_X_OFF )
+		thisPreset.showScaleX = LABELS_X_NOTES;
+
+	if ( isNumeric( thisPreset.alphaBars ) )
+		thisPreset.alphaBars = thisPreset.alphaBars ? ALPHABARS_ON : ALPHABARS_OFF;
+
+	if ( thisPreset.lumiBars )
+		thisPreset.alphaBars = ALPHABARS_FULL;
+
+	if ( isNumeric( thisPreset.ledDisplay ) )
+		thisPreset.ledDisplay = thisPreset.ledDisplay ? LEDS_MODERN : LEDS_OFF;
+
+	if ( thisPreset.gradient || thisPreset.gradientRight ) {
+		thisPreset.themes = [
+			convertThemeNameToObject( thisPreset.gradient || thisPreset.gradientRight ),
+			convertThemeNameToObject( thisPreset.gradientRight || thisPreset.gradient )
+		];
+	}
+
+	if ( isNumeric( thisPreset.showPeaks ) ) // ver =< 25.9
+		thisPreset.showPeaks = [ PEAKS_OFF, PEAKS_DROP, PEAKS_FADE ][ thisPreset.showPeaks ] ?? PEAKS_DROP;
+
+	// set themes and modifiers UI controls
+	if ( thisPreset.themes || init ) {
+		let themes = thisPreset.themes || defaults.themes;
+
+		if ( ! isArray( themes ) )
+			themes = [ themes ];
+
+		if ( themes.length < 2 )
+			themes.push( themes[0] );
+
+		for ( const ch of [0,1] ) {
+			if ( typeof themes[ ch ] == 'string' )
+				themes[ ch ] = convertThemeNameToObject( themes[ ch ] );
+
+			const name	    = getValidThemeName( themes[ ch ].name ),
+				  modifiers = { ...DEFAULT_MODIFIERS, ...THEMES[ name ].modifiers, ...themes[ ch ].modifiers };
+
+			setControlValue( ch ? elTheme1 : elTheme0, name );
+			setControlValue( ch ? elHorizontal1 : elHorizontal0, modifiers.horizontal );
+			setControlValue( ch ? elReverse1 : elReverse0, modifiers.reverse );
+		}
+	}
 
 	// assign values read from the preset to the UI controls
 	$$('[data-prop]').forEach( el => {
-		const prop = el.dataset.prop,
-			  val  = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
+		const prop = el.dataset.prop;
+
+		// themes and modifiers already handled above (data-prop used only for adding event listeners)
+		if ( prop == 'themes' )
+			return;
+
+		const val = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
 
 		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) )
 			setControlValue( el, val );
 	});
 
 	audioMotion.setOptions( {
-		alphaBars      : isSwitchOn( elAlphaBars ),
+		alphaBars      : getControlValue( elAlphaBars ),
 		ansiBands      : +getControlValue( elAnsiBands ),
+		bandResolution : getControlValue( elBandCount ),
 		colorMode      : getControlValue( elColorMode ),
 		fftSize        : getControlValue( elFFTsize ),
 		fillAlpha      : getControlValue( elFillAlpha ),
 		frequencyScale : getControlValue( elFreqScale ),
-		ledBars        : isSwitchOn( elLedDisplay ),
+		ledBars        : getControlValue( elLedDisplay ),
 		linearAmplitude: +getControlValue( elLinearAmpl ),
 		lineWidth      : getControlValue( elLineWidth ),
 		loRes          : isSwitchOn( elLoRes ),
-		lumiBars       : isSwitchOn( elLumiBars ),
 		maxFPS         : getControlValue( elMaxFPS ),
 		maxFreq        : getControlValue( elRangeMax ),
 		minFreq        : getControlValue( elRangeMin ),
 		mirror         : getControlValue( elMirror ),
 		outlineBars    : isSwitchOn( elOutline ),
-		peakFadeTime   : getControlValue( elPeakFade ),
+		peakDecayTime  : getControlValue( elPeakDecay ),
 		peakHoldTime   : getControlValue( elPeakHold ),
-		radial         : isSwitchOn( elRadial ),
+		radial         : getControlValue( elRadial ),
 		radius         : getControlValue( elRadius ),
 		roundBars      : isSwitchOn( elRoundBars ),
 		showFPS        : isSwitchOn( elFPS ),
-		showScaleY     : +getControlValue( elScaleY ),
+		showLedMask    : isSwitchOn( elLedMask ),
+		showPeaks      : getControlValue( elShowPeaks ),
+		showScaleX     : getControlValue( elScaleX ),
+		showScaleY     : getControlValue( elScaleY ),
 		smoothing      : getControlValue( elSmoothing ),
 		spinSpeed      : getControlValue( elSpin ),
-		splitGradient  : isSwitchOn( elSplitGrad ),
+		spreadGradient : isSwitchOn( elSplitGrad ),
 		weightingFilter: getControlValue( elWeighting )
 	} );
 
@@ -2445,22 +2609,19 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		elBgImageFit,
 		elBgImageDim,
 		elChnLayout,
-		elShowPeaks, // also sets fadePeaks
-		elGravity,
-		elLinkGrads, // note: this needs to be set before the gradients!
 		elSensitivity,
 		elReflex,
-		elGradient,
-		elGradientRight,
 		...( keepRandomize ? [] : [ elRandomMode ] ),
 		elBarSpace,
 		elShowSubtitles,
-		elScaleX, // also sets noteLabels
+		elLedFormat,
 		elMode ]
 	);
 
+	audioMotion.setTheme( getCurrentThemes() );
+
 	if ( key == 'demo' )
-		randomizeSettings( true );
+		randomizeNow();
 
 	if ( alert )
 		notie.alert({ text: 'Settings loaded!' });
@@ -2482,10 +2643,10 @@ async function loadSavedPlaylists( keyName ) {
 	elPlaylists.options[ elPlaylists.options.length ] = item;
 
 	// load list of playlists from indexedDB
-	let playlists = await get( KEY_PLAYLISTS );
+	let playlists = await get( KEY_DB_PLAYLISTS );
 
 	// migrate playlists from localStorage (for compatibility with versions up to 24.2-beta.1)
-	const oldPlaylists = loadFromStorage( KEY_PLAYLISTS );
+	const oldPlaylists = loadFromStorage( KEY_DB_PLAYLISTS );
 
 	if ( oldPlaylists ) {
 		for ( const key of Object.keys( oldPlaylists ) ) {
@@ -2502,8 +2663,8 @@ async function loadSavedPlaylists( keyName ) {
 			playlists[ key ] = oldPlaylists[ key ];
 		}
 
-		await set( KEY_PLAYLISTS, playlists ); // save updated list to indexedDB
-		removeFromStorage( KEY_PLAYLISTS );
+		await set( KEY_DB_PLAYLISTS, playlists ); // save updated list to indexedDB
+		removeFromStorage( KEY_DB_PLAYLISTS );
 	}
 
 	// add playlists to the selection box
@@ -2558,8 +2719,8 @@ async function loadSong( n, playIt ) {
 				await loadFileBlob( fileBlob, audioEl, playIt );
 				success = true;
 			}
-			catch( e ) {
-				consoleLog( `Error loading ${ song.dataset.file }`, true );
+			catch( error ) {
+				consoleLog( `${ error } - ${ song.dataset.file }`, true );
 				clearAudioElement( audioEl );
 			}
 		}
@@ -2648,51 +2809,51 @@ async function loadSubs( audioEl, song ) {
 }
 
 /**
- * Copy the gradient of given key into currentGradient, and render the gradient editor.
+ * Copy the theme of given key into currentTheme, and render the theme editor.
  */
-function openGradientEdit(key) {
-	loadGradientIntoCurrentGradient(key);
-	renderGradientEditor();
+function openThemeEdit( key ) {
+	loadThemeIntoCurrentTheme(key);
+	renderThemeEditor();
 
-	// save and delete buttons are enabled for custom gradients only
-	toggleDisplay( $('#btn-delete-gradient'), !! gradients[ key ].key );
-	toggleDisplay( $('#btn-save-gradient'), !! gradients[ key ].key );
-	toggleDisplay( $('#btn-export-gradient'), true );
-	toggleDisplay( $('#btn-save-gradient-copy'), true );
+	// save and delete buttons are enabled for custom themes only
+	toggleDisplay( $('#btn-delete-theme'), !! THEMES[ key ].key );
+	toggleDisplay( $('#btn-save-theme'), !! THEMES[ key ].key );
+	toggleDisplay( $('#btn-export-theme'), true );
+	toggleDisplay( $('#btn-save-theme-copy'), true );
 
-	location.href = '#gradient-editor';
+	location.href = '#theme-editor';
 }
 
 /**
- * Build a new gradient (or duplicate the current one), set it as the current gradient, then render the gradient editor.
+ * Build a new theme (or duplicate the current one), set it as the current theme, then render the theme editor.
  */
-function openGradientEditorNew( makeCopy ) {
+function openThemeEditorNew( makeCopy ) {
 	if ( makeCopy ) {
-		currentGradient.name += ' (copy)';
-		currentGradient.key = '';
+		currentTheme.name += ' (copy)';
+		currentTheme.key = '';
 	}
 	else {
-		currentGradient = {
-			name: 'New Gradient',
-			bgColor: '#111111',
+		currentTheme = {
+			name: 'New Theme',
+			bgColor: DEFAULT_BG_COLOR,
 			colorStops: [
 				{ pos: .1, color: '#222222' },
 				{ pos: 1, color: '#eeeeee' }
 			],
 			disabled: false,
-			key: '', // using this to keep track of the key of the gradient object in the gradient list - will be set by saveGradient()
+			key: '', // using this to keep track of the key of the theme object in the theme list - will be set by saveTheme()
 		};
 	}
 
-	renderGradientEditor();
+	renderThemeEditor();
 
-	// for new gradients only the save button is enabled
-	toggleDisplay( $('#btn-delete-gradient'), false );
-	toggleDisplay( $('#btn-save-gradient'), true );
-	toggleDisplay( $('#btn-export-gradient'), false );
-	toggleDisplay( $('#btn-save-gradient-copy'), false );
+	// for new themes only the save button is enabled
+	toggleDisplay( $('#btn-delete-theme'), false );
+	toggleDisplay( $('#btn-save-theme'), true );
+	toggleDisplay( $('#btn-export-theme'), false );
+	toggleDisplay( $('#btn-save-theme-copy'), false );
 
-	location.href = '#gradient-editor';
+	location.href = '#theme-editor';
 }
 
 /**
@@ -2794,9 +2955,9 @@ function playSong( n ) {
 function populateBackgrounds() {
 	// basic background options
 	let bgOptions = [
-		{ value: BG_COVER,   text: 'Album cover'      },
-		{ value: BG_BLACK,   text: 'Black'            },
-		{ value: BG_DEFAULT, text: 'Gradient default' }
+		{ value: BG_COVER,   text: "Album cover"              },
+		{ value: BG_BLACK,   text: "Black"                    },
+		{ value: BG_DEFAULT, text: "Theme's background color" }
 	];
 
 	const basicCount = bgOptions.length,
@@ -2830,9 +2991,13 @@ function populateCustomRadio( element, options, name ) {
 	if ( ! name )
 		name = element.dataset.prop;
 
-	const isObject = ! Array.isArray( options[0] );
+	if ( ! isArray( options ) )
+		return;
 
-	for ( const item of ( isObject ? options.filter( i => ! i.disabled ) : options ) ) {
+	for ( const item of options ) {
+		if ( item.disabled )
+			continue;
+
 		const text = item.text || item[1],
 			  val  = item.value || item[0],
 			  id   = name + '-' + val,
@@ -2852,70 +3017,68 @@ function populateCustomRadio( element, options, name ) {
 }
 
 /**
- * Build checkboxes in #config that enables gradients in the combo box of the settings panel
+ * Build checkboxes in #config that enables themes in the combo box of the settings panel
  */
-function populateEnabledGradients() {
-	// Enabled gradients
-	const elEnabledGradients = $('#enabled_gradients'),
-		  gradientKeys       = Object.keys( gradients ),
-		  collator           = new Intl.Collator();
+function populateEnabledThemes() {
+	const themeKeys = Object.keys( THEMES ),
+		  collator  = new Intl.Collator();
 
 	// case-insensitive sorting with international characters support - https://stackoverflow.com/a/40390844/2370385
-	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
+	themeKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
 
 	// reset
-	deleteChildren(elEnabledGradients);
+	deleteChildren( elEnabledThemes );
 
-	gradientKeys.forEach( key => {
-		elEnabledGradients.innerHTML +=
+	themeKeys.forEach( key => {
+		elEnabledThemes.innerHTML +=
 			`<label>
-				<input type="checkbox" class="enabledGradient" data-grad="${key}" ${gradients[ key ].disabled ? '' : 'checked'}>
-				${gradients[ key ].name}<a href="#" data-grad="${key}" class="grad-edit-link" title="edit"></a>
+				<input type="checkbox" class="enabledTheme" data-theme="${key}" ${ THEMES[ key ].disabled ? '' : 'checked' }>
+				${ THEMES[ key ].name }<a href="#" data-theme="${key}" class="theme-edit-link" title="edit"></a>
 			</label>`;
 	});
 
-	$$('.enabledGradient').forEach( el => {
+	$$('.enabledTheme').forEach( el => {
 		el.addEventListener( 'click', event => {
 			if ( ! el.checked ) {
-				const count = Object.keys( gradients ).reduce( ( acc, val ) => acc + ! gradients[ val ].disabled, 0 );
+				const count = Object.keys( THEMES ).reduce( ( acc, val ) => acc + ! THEMES[ val ].disabled, 0 );
 				if ( count < 2 ) {
-					notie.alert({ text: 'At least one Gradient must be enabled!' });
+					notie.alert({ text: 'At least one Theme must be enabled!' });
 					event.preventDefault();
 					return false;
 				}
 			}
-			gradients[ el.dataset.grad ].disabled = ! el.checked;
-			populateGradients();
-			savePreferences(KEY_DISABLED_GRADS);
+			THEMES[ el.dataset.theme ].disabled = ! el.checked;
+			populateThemes();
+			savePreferences( KEY_CONFIGURATION );
 		});
 	});
 
-	$$('.grad-edit-link').forEach( el => {
+	$$('.theme-edit-link').forEach( el => {
 		el.addEventListener('click', event => {
 			event.preventDefault();
-			const key = event.target.getAttribute("data-grad");
-			openGradientEdit(key);
+			const key = event.target.getAttribute("data-theme");
+			openThemeEdit(key);
 		})
 	})
 }
 
 /**
- * Populate UI gradient selection combo box
+ * Populate UI theme selection combo box
  */
-function populateGradients() {
-	const gradientKeys = Object.keys( gradients ),
+function populateThemes() {
+	const themeKeys = Object.keys( THEMES ),
 		  collator     = new Intl.Collator();
 
-	gradientKeys.sort( ( keyA, keyB ) => collator.compare( gradients[ keyA ].name, gradients[ keyB ].name ) );
+	themeKeys.sort( ( keyA, keyB ) => collator.compare( THEMES[ keyA ].name, THEMES[ keyB ].name ) );
 
-	for ( const el of [ elGradient, elGradientRight ] ) {
+	for ( const el of [ elTheme0, elTheme1 ] ) {
 		let grad = el.value;
 		deleteChildren( el );
 
 		// add the option to the html select element for the user interface
-		for ( const key of gradientKeys ) {
-			if ( ! gradients[ key ].disabled )
-				el.options[ el.options.length ] = new Option( gradients[ key ].name, key );
+		for ( const key of themeKeys ) {
+			if ( ! THEMES[ key ].disabled )
+				el.options[ el.options.length ] = new Option( THEMES[ key ].name, key );
 		}
 
 		if ( grad !== '' ) {
@@ -2959,7 +3122,7 @@ function populatePresets() {
 function populateSelect( element, options ) {
 	const oldValue = element.value;
 
-	if ( ! Array.isArray( options ) )
+	if ( ! isArray( options ) )
 		options = [ options ]; // ensure options is an array
 
 	deleteChildren( element );
@@ -2991,35 +3154,39 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
+	const isCompactAnalyzer = elAnalyzer.classList.contains( CSS_CLASS_COMPACT );
+
 	// helper functions
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
 	const randomizeControl = ( el, validate = () => true ) => {
-		let attempts = 9; // avoid an infinite loop just in case validation is never satisfied
+		let attempts = 99; // avoid infinite loop in case validation is never satisfied
 		do {
 			if ( isCustomRadio( el ) ) {
 				// custom radio buttons
 				const items = el.elements[ el.dataset.prop ];
 				items[ randomInt( items.length ) ].checked = true;
 			}
-			else if ( el.dataset.active !== undefined ) // on/off switches
-				el.dataset.active = randomInt();
-			else if ( el.step ) {
+			else if ( isRangeControl( el ) ) {
 				// range inputs
-				const { min, max, step } = el, // note: these come as strings
-					  range = ( max - min ) / step,
-					  newVal = randomInt( range + 1 ) * step + +min; // coerce min to number
+				const { min, max, step } = el, // NOTE: values come as strings!!
+					  range  = ( max - min ) / step,
+					  newVal = fixFloating( randomInt( range + 1 ) * step + +min );
 
-				setControlValue( el, ( newVal * 10 | 0 ) / 10 ); // fix rounding errors (1 decimal place)
+				setControlValue( el, newVal );
 			}
-			else // selects
+			else if ( isSelectControl( el ) ) {
+				// selects
 				el.selectedIndex = randomInt( el.options.length );
+			}
+			else if ( el.dataset.active !== undefined ) {
+				// on/off switches
+				el.dataset.active = randomInt();
+			}
 		} while ( ! validate( getControlValue( el ) ) && attempts-- );
 
 		setProperty( el );
 	}
-
-	let props = []; // properties that need to be updated
 
 	if ( isEnabled( RND_PRESETS ) ) {
 		const validIndexes = userPresets.map( ( item, index ) => isEmpty( item ) ? null : index ).filter( item => item !== null ),
@@ -3028,17 +3195,23 @@ function randomizeSettings( force = elSource.checked ) {
 			loadPreset( validIndexes[ randomInt( count ) ], false, false, true );
 	}
 
-	if ( isEnabled( RND_MODE ) )
-		randomizeControl( elMode );
+	if ( isEnabled( RND_MODE ) ) {
+		randomizeControl( elMode, newVal => newVal == MODE_BARS || noGraphStreak > MIN_STREAK_FOR_GRAPH );
+		noGraphStreak = getControlValue( elMode ) == MODE_GRAPH ? 0 : noGraphStreak + 1;
+	}
 
-	if ( isEnabled( RND_ALPHA ) )
-		randomizeControl( elAlphaBars );
+	if ( isEnabled( RND_ALPHA ) ) {
+		// no FULL alpha bars when LEDs are on and background is image or video
+		randomizeControl( elAlphaBars, newVal => newVal != ALPHABARS_FULL || ! audioMotion.overlay || getControlValue( elLedDisplay ) == LEDS_OFF );
+	}
 
 	if ( isEnabled( RND_BACKGROUND ) )
 		randomizeControl( elBackground );
 
-	if ( isEnabled( RND_BANDCOUNT ) )
-		randomizeControl( elBandCount );
+	if ( isEnabled( RND_BANDCOUNT ) ) {
+		// no full-octave bands with square LEDs
+		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == MODE_GRAPH || newVal > BANDS_OCTAVE_FULL || getControlValue( elLedFormat ) != LEDFORMAT_SQUARE );
+	}
 
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
@@ -3046,27 +3219,35 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_COLORMODE ) )
 		randomizeControl( elColorMode );
 
-	if ( isEnabled( RND_PEAKS ) )
-		randomizeControl( elShowPeaks );
-
 	if ( isEnabled( RND_LEDS ) )
 		randomizeControl( elLedDisplay );
 
-	if ( isEnabled( RND_LUMI ) ) {
-		// no LUMI when LEDs are on and background is image or video
-		randomizeControl( elLumiBars, newVal => ! +newVal || ! audioMotion.overlay || ! isSwitchOn( elLedDisplay ) );
+	if ( isEnabled( RND_LED_FORMAT ) ) {
+		// no square LEDs for full-octave bands (avoid huge LEDs)
+		randomizeControl( elLedFormat, newVal => newVal != LEDFORMAT_SQUARE || getControlValue( elBandCount ) > BANDS_OCTAVE_FULL );
 	}
+
+	if ( isEnabled( RND_LED_MASK ) )
+		randomizeControl( elLedMask );
 
 	if ( isEnabled( RND_OUTLINE ) )
 		randomizeControl( elOutline );
 
+	if ( isEnabled( RND_PEAKS ) )
+		randomizeControl( elShowPeaks );
+
 	if ( isEnabled( RND_REFLEX ) ) {
-		// no full reflex with LEDs
-		randomizeControl( elReflex, newVal => newVal != REFLEX_FULL || ! isSwitchOn( elLedDisplay ) );
+		// randomize reflex value among [ 0, .25, .5 ]
+		// no mirrored reflex with LEDs and no reflex at all in compact analyzer
+		setControlValue( elReflex, isCompactAnalyzer ? 0 : .25 * randomInt( getControlValue( elLedDisplay ) == LEDS_OFF ? 3 : 2 ) );
+		setProperty( elReflex );
 	}
 
-	if ( isEnabled( RND_RADIAL ) )
-		randomizeControl( elRadial );
+	if ( isEnabled( RND_RADIAL ) ) {
+		// no radial in compact analyzer, otherwise limit how often it is activated
+		randomizeControl( elRadial, newVal => newVal == RADIAL_OFF || ! isCompactAnalyzer && noRadialStreak > MIN_STREAK_FOR_RADIAL );
+		noRadialStreak = getControlValue( elRadial ) == RADIAL_OFF ? noRadialStreak + 1 : 0;
+	}
 
 	if ( isEnabled( RND_ROUND ) )
 		randomizeControl( elRoundBars );
@@ -3074,47 +3255,65 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
 
-	if ( isEnabled( RND_GRADIENT ) ) {
-		for ( const el of [ elGradient, ...( isSwitchOn( elLinkGrads ) ? [] : [ elGradientRight ] ) ] )
+	if ( isEnabled( RND_THEMES ) ) {
+		for ( const el of [ elTheme0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elTheme1 ] ) ] )
+			randomizeControl( el );
+	}
+	if ( isEnabled( RND_HORIZONTAL ) ) {
+		for ( const el of [ elHorizontal0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elHorizontal1 ] ) ] )
+			randomizeControl( el );
+	}
+	if ( isEnabled( RND_REVERSE ) ) {
+		for ( const el of [ elReverse0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elReverse1 ] ) ] )
 			randomizeControl( el );
 	}
 }
 
 /**
- * Remove a key from localStorage
- *
- * @param key {string}
+ * Randomize settings on demand
  */
-function removeFromStorage( key ) {
-	localStorage.removeItem( key );
+function randomizeNow() {
+	randomizeSettings( true );
+	setProperty( elRandomMode, false ); // restart randomize timer (if active)
 }
 
 /**
- * Renders #grad-color-table based upon values of currentGradient.
+ * Remove a key from localStorage
+ *
+ * @param {...string} key(s) to be deleted
  */
-function renderGradientEditor() {
-	if (currentGradient == null) throw new Error("Current gradient must be set before editing gradient")
+function removeFromStorage( ...keys ) {
+	for ( const key of keys )
+		localStorage.removeItem( keys );
+}
+
+/**
+ * Renders #grad-color-table based upon values of currentTheme.
+ */
+function renderThemeEditor() {
+	if ( currentTheme == null ) throw new Error("Current theme must be set before editing theme")
 
 	// empty table
 	const table = $('#grad-color-table');
-	deleteChildren(table);
+	deleteChildren( table );
 
 	// set name
-	$('#new-gradient-name').value = currentGradient.name;
-
-	// set horizontal
-	$('#new-gradient-horizontal').checked = currentGradient.dir === 'h';
+	$('#new-theme-name').value = currentTheme.name;
 
 	const tableLabels = $('#grad-row-label-template').cloneNode(true);
 	tableLabels.removeAttribute("id");
 	table.appendChild(tableLabels);
 
 	// build row for each stop in the gradient
-	currentGradient.colorStops.forEach((stop, i) => {
-		renderColorRow(i, currentGradient.colorStops[i]);
+	currentTheme.colorStops.forEach((stop, i) => {
+		renderColorRow( i, currentTheme.colorStops[ i ] );
 	});
 
-	$('#new-gradient-bkgd').value = currentGradient.bgColor;
+	$('#new-theme-bkgd').value = currentTheme.bgColor ?? DEFAULT_BG_COLOR;
+	$('#new-theme-horizontal').checked = currentTheme.horizontal == 1;
+	$('#new-theme-reverse').checked = currentTheme.reverse == 1;
+	$('#new-theme-peakcolor').value = currentTheme.peakColor;
+	$('#new-theme-peakcolor-disable').checked = ! currentTheme.peakColor;
 }
 
 /**
@@ -3136,16 +3335,16 @@ function renderColorRow(index, stop) {
 
 	colorPicker.addEventListener('input', (e) => {
 		colorValue.value = e.target.value;
-		currentGradient.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[index].color = colorPicker.value;
 	});
 
 	colorValue.addEventListener('input', (e) => {
 		colorPicker.value = e.target.value;
-		currentGradient.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[index].color = colorPicker.value;
 	});
 
 	colorStop.addEventListener('input', (e) => {
-		currentGradient.colorStops[index].pos = parseFloat(e.target.value);
+		currentTheme.colorStops[index].pos = parseFloat(e.target.value);
 	});
 
 	addColorButton.addEventListener('click', () => {
@@ -3153,30 +3352,30 @@ function renderColorRow(index, stop) {
 			// if this is the last color stop, set the second to last stop's position as the midpoint between the last
 			// and the second to last, then return this stop's position
 			// if not, return the midpoint between this and the next stop
-			if (index === currentGradient.colorStops.length - 1) {
-				const lastPos = currentGradient.colorStops[currentGradient.colorStops.length - 1].pos
-				currentGradient.colorStops[currentGradient.colorStops.length - 1].pos =
-					(currentGradient.colorStops[currentGradient.colorStops.length - 2].pos + lastPos) / 2;
+			if (index === currentTheme.colorStops.length - 1) {
+				const lastPos = currentTheme.colorStops[currentTheme.colorStops.length - 1].pos
+				currentTheme.colorStops[currentTheme.colorStops.length - 1].pos =
+					(currentTheme.colorStops[currentTheme.colorStops.length - 2].pos + lastPos) / 2;
 				return lastPos;
 			} else {
-				return (currentGradient.colorStops[index].pos + currentGradient.colorStops[index + 1].pos) / 2;
+				return (currentTheme.colorStops[index].pos + currentTheme.colorStops[index + 1].pos) / 2;
 			}
 		}
 
-		currentGradient.colorStops.splice(index + 1, 0, {
+		currentTheme.colorStops.splice(index + 1, 0, {
 			pos: idealColorPos(),
 			color: '#111111',
 		});
-		renderGradientEditor();
+		renderThemeEditor();
 	});
 
 	// prevent from being able to delete stops if there are two stops
-	if (currentGradient.colorStops.length === 2) {
+	if (currentTheme.colorStops.length === 2) {
 		removeColorButton.setAttribute('disabled', 'true');
 	} else {
 		removeColorButton.addEventListener('click', () => {
-			currentGradient.colorStops.splice(index, 1);
-			renderGradientEditor();
+			currentTheme.colorStops.splice(index, 1);
+			renderThemeEditor();
 		});
 	}
 
@@ -3212,7 +3411,7 @@ async function retrieveBackgrounds() {
 		catch( e ) {} // fail silently (possibly directory not found on server)
 	}
 	else if ( bgLocation == BGFOLDER_LOCAL ) {
-		const bgDirHandle = await get( KEY_BG_DIR_HANDLE );
+		const bgDirHandle = await get( KEY_DB_BGDIR_HANDLE );
 
 		try {
 			if ( bgDirHandle ) {
@@ -3314,39 +3513,39 @@ function revokeBlobURL( item ) {
 }
 
 /**
- * Assign the gradient in the global gradients object, register in the analyzer, populate gradients in the config,
+ * Assign the theme in the global THEMES object, register in the analyzer, populate themes in the config,
  * then close the panel.
  */
-function saveGradient( isImported ) {
-	if (currentGradient === null) return;
+function saveTheme( isImported ) {
+	if ( currentTheme === null ) return;
 
-	if ( ! currentGradient.key || isImported ) {
-		// use the given key when importing a gradient or generate a key for new (and copied) gradients
-		let safename = isImported && currentGradient.key || generateSafeKeyName( currentGradient.name );
-		currentGradient.key = safename;
+	if ( ! currentTheme.key || isImported ) {
+		// use the given key when importing a theme or generate a key for new (and copied) themes
+		let safename = isImported && currentTheme.key || generateSafeKeyName( currentTheme.name );
+		currentTheme.key = safename;
 
-		// find unique key for new gradient
+		// find unique key for new theme
 		let modifier = 1;
-		while ( Object.keys( gradients ).some( key => key === currentGradient.key ) && modifier < 1000 ) {
-			currentGradient.key = `${safename}-${modifier}`;
+		while ( Object.keys( THEMES ).some( key => key === currentTheme.key ) && modifier < 1000 ) {
+			currentTheme.key = `${safename}-${modifier}`;
 			modifier++;
 		}
 
 		// if the same name already exists, add a suffix to it
 		modifier = 1;
-		while ( Object.keys( gradients ).some( key => gradients[ key ].name === currentGradient.name ) && modifier < 1000 ) {
-			currentGradient.name += ` (${modifier})`;
+		while ( Object.keys( THEMES ).some( key => THEMES[ key ].name === currentTheme.name ) && modifier < 1000 ) {
+			currentTheme.name += ` (${modifier})`;
 			modifier++;
 		}
 	}
 
-	gradients[currentGradient.key] = currentGradient;
-	audioMotion.registerGradient(currentGradient.key, currentGradient);
-	populateGradients();
-	populateEnabledGradients();
-	savePreferences(KEY_CUSTOM_GRADS);
+	THEMES[ currentTheme.key ] = currentTheme;
+	audioMotion.registerTheme( currentTheme.key, currentTheme );
+	populateThemes();
+	populateEnabledThemes();
+	savePreferences( KEY_CUSTOM_THEMES );
 
-	currentGradient = null;
+	currentTheme = null;
 	location.href = '#config';
 }
 
@@ -3372,31 +3571,14 @@ function savePlaylist( index ) {
 /**
  * Save Config Panel preferences to localStorage
  *
- * @param [key] {string} preference to save; if undefined save all preferences (default)
+ * @param [key] {string} preference to save; if undefined saves configuration options, custom themes and custom presets
  */
 function savePreferences( key ) {
 	// helper function
 	const getDisabledItems = items => items.map( ( { value, disabled } ) => ( { value, disabled } ) );
 
-	if ( ! key || key == KEY_DISABLED_BGFIT )
-		saveToStorage( KEY_DISABLED_BGFIT, getDisabledItems( bgFitOptions ) );
-
-	if ( ! key || key == KEY_DISABLED_GRADS )
-		saveToStorage( KEY_DISABLED_GRADS, Object.keys( gradients ).map( key => ( { value: key, disabled: gradients[ key ].disabled } ) ) );
-
-	if (! key || key == KEY_CUSTOM_GRADS) {
-		const customGradients = {};
-		Object.keys(gradients)
-			.filter( key => gradients[ key ].key ) // if it has a `key` property it's a custom gradient
-			.forEach( key => customGradients[key] = gradients[key]);
-		saveToStorage( KEY_CUSTOM_GRADS, customGradients);
-	}
-
-	if ( ! key || key == KEY_DISABLED_PROPS )
-		saveToStorage( KEY_DISABLED_PROPS, getDisabledItems( randomProperties ) );
-
-	if ( ! key || key == KEY_SENSITIVITY ) {
-		let sensitivityPresets = [];
+	if ( ! key || key == KEY_CONFIGURATION ) {
+		const sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
 				min: $(`.min-db[data-preset="${i}"]`).value,
@@ -3404,60 +3586,73 @@ function savePreferences( key ) {
 				boost: $(`.linear-boost[data-preset="${i}"]`).value
 			});
 		}
-		saveToStorage( KEY_SENSITIVITY, sensitivityPresets );
+
+		const userSettings = {
+			[ KEY_LEGACY_DISABLED_BGFIT ]: getDisabledItems( bgFitOptions ),
+			[ KEY_LEGACY_DISABLED_GRADS ]: Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ),
+			[ KEY_LEGACY_DISABLED_PROPS ]: getDisabledItems( randomProperties ),
+			[ KEY_LEGACY_SENSITIVITY ]   : sensitivityPresets,
+			[ KEY_LEGACY_DISPLAY_OPTS]   : {
+				info  : elInfoTimeout.value,
+				track : elTrackTimeout.value,
+				end   : elEndTimeout.value,
+				covers: elShowCover.checked,
+				count : elShowCount.checked,
+				osdFontSize : elOSDFontSize.value,
+				osdTextStyle: elOSDTextStyle.value
+			},
+			[ KEY_LEGACY_GENERAL_OPTS]   : {
+				autoHide   : elAutoHide.checked,
+				bgLocation : elBgLocation.value,
+				bgMaxItems : elBgMaxItems.value,
+				fsHeight   : elFsHeight.value,
+				invertVol  : elInvertVolume.checked,
+				maxFPS     : elMaxFPS.value,
+				pipRatio   : elPIPRatio.value,
+				preserveFilenames: elPreserveFilenames.checked,
+				saveDir    : elSaveDir.checked,
+				saveQueue  : elSaveQueue.checked,
+				surround   : elSurround.checked
+			},
+			[ KEY_LEGACY_PEAK_OPTIONS ]  : {
+				peakFade: elPeakDecay.value,
+				peakHold: elPeakHold.value
+			},
+			[ KEY_LEGACY_SUBTITLES_OPTS] : {
+				background   : elSubsBackground.value,
+				color        : elSubsColor.value,
+				noDimSubs    : elNoDimSubs.checked,
+				noDimVideo   : elNoDimVideo.checked,
+				position     : elSubsPosition.value,
+				posAudio     : elSubsPosAudio.value,
+				reduceOnSubs : elReduceOnSubs.checked,
+				reduceOnVideo: elReduceOnVideo.checked,
+				videoFill    : elVideoFill.checked
+			}
+		}
+
+		saveToStorage( KEY_CONFIGURATION, userSettings );
 	}
 
-	if ( ! key || key == KEY_DISPLAY_OPTS ) {
-		const displayOptions = {
-			info  : elInfoTimeout.value,
-			track : elTrackTimeout.value,
-			end   : elEndTimeout.value,
-			covers: elShowCover.checked,
-			count : elShowCount.checked,
-			osdFontSize: elOSDFontSize.value
-		}
-		saveToStorage( KEY_DISPLAY_OPTS, displayOptions );
+	if ( ! key || key == KEY_CUSTOM_THEMES ) {
+		const customThemes = {};
+		Object.keys( THEMES )
+			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom theme
+			.forEach( key => customThemes[ key ] = THEMES [ key ] );
+		saveToStorage( KEY_CUSTOM_THEMES, customThemes );
 	}
 
-	if ( ! key || key == KEY_GENERAL_OPTS ) {
-		const generalOptions = {
-			autoHide   : elAutoHide.checked,
-			bgLocation : elBgLocation.value,
-			bgMaxItems : elBgMaxItems.value,
-			fsHeight   : elFsHeight.value,
-			invertVol  : elInvertVolume.checked,
-			maxFPS     : elMaxFPS.value,
-			pipRatio   : elPIPRatio.value,
-			preserveFilenames: elPreserveFilenames.checked,
-			saveDir    : elSaveDir.checked,
-			saveQueue  : elSaveQueue.checked,
-			surround   : elSurround.checked
-		}
-		saveToStorage( KEY_GENERAL_OPTS, generalOptions );
-	}
+	if ( ! key || key == KEY_CUSTOM_PRESETS )
+		saveToStorage( KEY_CUSTOM_PRESETS, userPresets );
 
-	if ( ! key || key == KEY_PEAK_OPTIONS ) {
-		const peakOptions = {
-			gravity : elGravity.value,
-			peakFade: elPeakFade.value,
-			peakHold: elPeakHold.value,
-		}
-		saveToStorage( KEY_PEAK_OPTIONS, peakOptions );
-	}
-
-	if ( ! key || key == KEY_SUBTITLES_OPTS ) {
-		const subtitlesOptions = {
-			background   : elSubsBackground.value,
-			color        : elSubsColor.value,
-			noDimSubs    : elNoDimSubs.checked,
-			noDimVideo   : elNoDimVideo.checked,
-			position     : elSubsPosition.value,
-			posAudio     : elSubsPosAudio.value,
-			reduceOnSubs : elReduceOnSubs.checked,
-			reduceOnVideo: elReduceOnVideo.checked,
-			videoFill    : elVideoFill.checked
-		}
-		saveToStorage( KEY_SUBTITLES_OPTS, subtitlesOptions );
+	if ( key == KEY_LAST_SESSION ) {
+		saveToStorage( KEY_LAST_SESSION, {
+			...getCurrentSettings(),
+			micSource: elSource.checked,
+			mute     : elMute.checked,
+			volume   : elVolume.dataset.value,
+			version  : VERSION
+		});
 	}
 }
 
@@ -3529,7 +3724,7 @@ function saveUserPreset( index, options, name, force ) {
 
 	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = { name, options };
-	saveToStorage( KEY_CUSTOM_PRESET, userPresets );
+	savePreferences( KEY_CUSTOM_PRESETS );
 
 	const text = `Saved to ${ userPresetText }`;
 	if ( isFullscreen )
@@ -3575,7 +3770,7 @@ function setCanvasMsg( msg, timer = 2, dir = -1 ) {
 	else {
 		const now = performance.now(),
 		 	  targetTime = now + timer * 1000;
-		if ( msg == +msg ) { // msg is a number
+		if ( isNumeric( msg ) ) {
 			canvasMsg.info = msg; // set info level 1 or 2
 			canvasMsg.startTime = now;
 			canvasMsg.endTime = Math.max( targetTime, canvasMsg.endTime || 0 ); // note: Infinity | 0 == 0
@@ -3624,6 +3819,7 @@ function setInfoOptions( options ) {
 	elTrackTimeout.value = options.track;
 	elEndTimeout.value   = options.end;
 	elOSDFontSize.value  = options.osdFontSize;
+	elOSDTextStyle.value = options.osdTextStyle;
 	elShowCover.checked  = options.covers;
 	elShowCount.checked  = options.count;
 }
@@ -3644,13 +3840,13 @@ function setOverlay() {
 	for ( const audioEl of audioElement )
 		toggleDisplay( audioEl, ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] );
 
-	audioMotion.overlay = isOverlay;
-	audioMotion.showBgColor = ! isVideo && bgOption == BG_DEFAULT;
+	// enable/disable background image and set background color
+	elContainer.classList.toggle( CSS_CLASS_NO_IMAGE, isVideo );
+	elAnalyzer.style.backgroundColor = isOverlay || bgOption == BG_BLACK ? '' : THEMES[ getControlValue( elTheme0 ) ].bgColor || DEFAULT_BG_COLOR;
 
-	// enable/disable background image
-	elContainer.style.backgroundImage = isVideo ? 'none' : 'var(--background-image)';
 	// set visibility of background video layer
 	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
+
 	// enable/disable background dim layer
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
 
@@ -3665,9 +3861,8 @@ function setOverlay() {
  * Set peak behavior options
  */
 function setPeakOptions( options ) {
-	elGravity.value  = options.gravity;
-	elPeakFade.value = options.peakFade;
-	elPeakHold.value = options.peakHold;
+	elPeakDecay.value = options.peakFade;
+	elPeakHold.value  = options.peakHold;
 }
 
 /**
@@ -3677,19 +3872,37 @@ function setPeakOptions( options ) {
  * @param {boolean} `true` (default) to save current settings to last used preset
  */
 function setProperty( elems, save = true ) {
-	if ( ! Array.isArray( elems ) )
+	if ( ! isArray( elems ) )
 		elems = [ elems ];
 
-	const toggleGradientRight = () => toggleDisplay( elGradientRight, getControlValue( elChnLayout ) != CHANNEL_SINGLE && ! isSwitchOn( elLinkGrads ) );
+	const isLinkGrads = isSwitchOn( elLinkGrads );
+
+	// helper function
+	const toggleDualChannelThemeOptions = () => {
+		const isDual    = getControlValue( elChnLayout ) != LAYOUT_SINGLE,
+		 	  showRight = isDual && ! isLinkGrads;
+
+		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
+			toggleDisplay( el, showRight );
+		$('#themes_grid').classList.toggle( 'grid', showRight );
+
+		elHorizontal0.innerText = 'HORIZONTAL'.slice( 0, showRight ? 3 : undefined );
+		elReverse0.innerText = 'REVERSE'.slice( 0, showRight ? 3 : undefined );
+
+		toggleDisplay( $('#dual_theme_options'), isDual );
+		toggleDisplay( $('#manage_themes'), ! isDual );
+	};
 
 	for ( const el of elems ) {
+		const elValue = getControlValue( el );
 		switch ( el ) {
 			case elAlphaBars:
-				audioMotion.alphaBars = isSwitchOn( elAlphaBars );
+				audioMotion.alphaBars = elValue;
+				setProperty( elBarSpace, false );
 				break;
 
 			case elAnsiBands:
-				audioMotion.ansiBands = +getControlValue( elAnsiBands );
+				audioMotion.ansiBands = +elValue;
 				break;
 
 			case elAutoHide:
@@ -3697,7 +3910,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBackground:
-				const bgOption  = elBackground.value[0],
+				const bgOption  = elValue[0],
 					  index     = elBackground[ elBackground.selectedIndex ].idx,
 					  isOverlay = setOverlay(); // configures overlay for video playback or background media
 
@@ -3730,24 +3943,22 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBandCount:
-				setControlValue( elMode, getControlValue( elBandCount ) ); // note: elBandCount value must be translated by getControlValue()
-				setProperty( elMode, false );
+				audioMotion.bandResolution = elValue;
+				setProperty( elLedFormat, false );
 				break;
 
 			case elBarSpace:
-				const value = getControlValue( elBarSpace );
-				audioMotion.barSpace = audioMotion.isLumiBars || value == 1 ? 1.5 : value;
+				audioMotion.barSpace = ( getControlValue( elAlphaBars ) == ALPHABARS_FULL && audioMotion.isAlphaBars ) || elValue == 1 ? 1.5 : elValue;
 				break;
 
 			case elBgImageFit:
-				const bgFit  = elBgImageFit.value,
-					  isWarp = bgFit == BGFIT_WARP || bgFit == BGFIT_WARP_ANI || bgFit == BGFIT_WARP_ROT;
-				elContainer.classList.toggle( 'repeat', bgFit == BGFIT_REPEAT );
-				elContainer.classList.toggle( 'cover', bgFit == BGFIT_ADJUST || isWarp );
+				const isWarp = elValue == BGFIT_WARP || elValue == BGFIT_WARP_ANI || elValue == BGFIT_WARP_ROT;
+				elContainer.classList.toggle( 'repeat', elValue == BGFIT_REPEAT );
+				elContainer.classList.toggle( 'cover', elValue == BGFIT_ADJUST || isWarp );
 				elContainer.style.backgroundSize = '';
 				toggleDisplay( elWarp, isWarp );
-				elWarp.classList.toggle( 'rotating', bgFit == BGFIT_WARP_ROT );
-				elWarp.classList.toggle( 'paused', bgFit == BGFIT_WARP );
+				elWarp.classList.toggle( 'rotating', elValue == BGFIT_WARP_ROT );
+				elWarp.classList.toggle( 'paused', elValue == BGFIT_WARP );
 				break;
 
 			case elBgImageDim:
@@ -3758,17 +3969,17 @@ function setProperty( elems, save = true ) {
 				if ( elBgLocation.value == BGFOLDER_LOCAL ) {
 					window.showDirectoryPicker({ startIn: 'pictures' })
 						.then( handle => {
-							set( KEY_BG_DIR_HANDLE, handle );
+							set( KEY_DB_BGDIR_HANDLE, handle );
 						})
 						.catch( e => {
 							// disable if user denies access
 							elBgLocation.value = BGFOLDER_NONE;
-							del( KEY_BG_DIR_HANDLE );
+							del( KEY_DB_BGDIR_HANDLE );
 						})
 						.finally( () => retrieveBackgrounds() );
 				}
 				else {
-					del( KEY_BG_DIR_HANDLE );
+					del( KEY_DB_BGDIR_HANDLE );
 					retrieveBackgrounds();
 				}
 				break;
@@ -3778,20 +3989,20 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elChnLayout:
-				audioMotion.channelLayout = getControlValue( elChnLayout );
-				toggleGradientRight();
+				audioMotion.channelLayout = elValue;
+				toggleDualChannelThemeOptions();
 				break;
 
 			case elColorMode:
-				audioMotion.colorMode = getControlValue( elColorMode );
+				audioMotion.colorMode = elValue;
 				break;
 
 			case elFillAlpha:
-				audioMotion.fillAlpha = elFillAlpha.value;
+				audioMotion.fillAlpha = elValue;
 				break;
 
 			case elFFTsize :
-				audioMotion.fftSize = getControlValue( elFFTsize );
+				audioMotion.fftSize = elValue;
 				consoleLog( 'FFT size is ' + audioMotion.fftSize + ' samples' );
 				break;
 
@@ -3800,7 +4011,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elFreqScale:
-				audioMotion.frequencyScale = getControlValue( elFreqScale );
+				audioMotion.frequencyScale = elValue;
 				updateRangeValue( elBandCount );
 				break;
 
@@ -3808,54 +4019,54 @@ function setProperty( elems, save = true ) {
 				elAnalyzer.style.height = `${elFsHeight.value}%`;
 				break;
 
-			case elGradient:
-			case elGradientRight:
-				if ( el.value === '' ) // handle invalid setting
-					el.selectedIndex = 0;
-				if ( isSwitchOn( elLinkGrads ) )
-					audioMotion.gradient = elGradient.value = elGradientRight.value = el.value;
-				else
-					audioMotion[ el == elGradient ? 'gradientLeft' : 'gradientRight' ] = el.value;
+			case elHorizontal0:
+			case elHorizontal1:
+				if ( isLinkGrads ) {
+					setControlValue( elHorizontal0, elValue );
+					setControlValue( elHorizontal1, elValue );
+				}
+				audioMotion.setTheme( getCurrentThemes() );
 				break;
 
 			case elLedDisplay:
-				audioMotion.ledBars = isSwitchOn( elLedDisplay );
+				audioMotion.ledBars = elValue;
+				break;
+
+			case elLedMask:
+				audioMotion.showLedMask = +elValue;
 				break;
 
 			case elLinearAmpl:
-				audioMotion.linearAmplitude = +getControlValue( elLinearAmpl );
+				audioMotion.linearAmplitude = +elValue;
 				break;
 
 			case elLineWidth:
-				audioMotion.lineWidth = elLineWidth.value;
+				audioMotion.lineWidth = elValue;
 				break;
 
 			case elLinkGrads:
-				toggleGradientRight();
-				if ( isSwitchOn( elLinkGrads ) )
-					setProperty( elGradient, false );
+				toggleDualChannelThemeOptions();
+				if ( isLinkGrads ) {
+					setProperty( elTheme0, false );
+					setProperty( elHorizontal0, false );
+					setProperty( elReverse0, false );
+				}
 				break;
 
 			case elLoRes:
-				audioMotion.loRes = isSwitchOn( elLoRes );
-				break;
-
-			case elLumiBars:
-				audioMotion.lumiBars = isSwitchOn( elLumiBars );
-				setProperty( elBarSpace, false );
+				audioMotion.loRes = +elValue;
 				break;
 
 			case elMaxFPS:
-				audioMotion.maxFPS = elMaxFPS.value;
+				audioMotion.maxFPS = elValue;
 				break;
 
 			case elMirror:
-				audioMotion.mirror = getControlValue( elMirror );
+				audioMotion.mirror = elValue;
 				break;
 
 			case elMode:
-				const mode = getControlValue( elMode );
-				audioMotion.mode = ( mode == MODE_BARS ) ? getControlValue( elBandCount ) : mode;
+				audioMotion.mode = elValue;
 				setProperty( elBarSpace, false );
 				break;
 
@@ -3873,24 +4084,20 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elOutline:
-				audioMotion.outlineBars = isSwitchOn( elOutline );
+				audioMotion.outlineBars = +elValue;
 				break;
 
-			case elGravity:
-				audioMotion.gravity = elGravity.value;
-				break;
-
-			case elPeakFade:
-				audioMotion.peakFadeTime = elPeakFade.value;
+			case elPeakDecay:
+				audioMotion.peakDecayTime = elValue;
 				break;
 
 			case elPeakHold:
-				audioMotion.peakHoldTime = elPeakHold.value;
+				audioMotion.peakHoldTime = elValue;
 				break;
 
 			case elPIPRatio:
 				if ( isPIP() )
-					audioMotion.width = audioMotion.height * elPIPRatio.value;
+					audioMotion.width = audioMotion.height * elValue;
 				break;
 
 			case elPreserveFilenames:
@@ -3898,29 +4105,33 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elRadial:
-				audioMotion.radial = isSwitchOn( elRadial );
-				setProperty( elBarSpace, false );
+				audioMotion.radial = elValue;
 				break;
 
 			case elRadius:
-				audioMotion.radius = getControlValue( elRadius );
+				audioMotion.radius = elValue;
 				break;
 
 			case elRandomMode:
-				const option = elRandomMode.value;
-
 				if ( randomModeTimer )
 					randomModeTimer = clearInterval( randomModeTimer );
 
-				if ( option > 1 )
-					randomModeTimer = setInterval( randomizeSettings, 2500 * option );
+				if ( elValue > 1 )
+					randomModeTimer = setInterval( randomizeSettings, 2500 * elValue );
 
+				noGraphStreak  = 0;
+				noRadialStreak = 0;
 				break;
 
 			case elRangeMin:
+				elRangeMin.value = clamp( +elRangeMin.value, FREQ_LO_MIN, FREQ_LO_MAX );
+				elRangeMax.value = clamp( +elRangeMax.value, Math.max( FREQ_HI_MIN, +elRangeMin.value << 2 ), FREQ_HI_MAX );
+				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
+
 			case elRangeMax:
-				while ( +elRangeMax.value <= +elRangeMin.value )
-					elRangeMax.selectedIndex++;
+				elRangeMax.value = clamp( +elRangeMax.value, FREQ_HI_MIN, FREQ_HI_MAX );
+				elRangeMin.value = clamp( +elRangeMin.value, FREQ_LO_MIN, Math.min( +elRangeMax.value >> 2, FREQ_LO_MAX ) );
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
@@ -3930,25 +4141,17 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elReflex:
-				switch ( getControlValue( elReflex ) ) {
-					case REFLEX_SHORT:
-						audioMotion.reflexRatio = .25;
-						audioMotion.reflexAlpha = .2;
-						break;
+				audioMotion.reflexAlpha = elValue == .5 ? 1 : .2;
+				audioMotion.reflexRatio = elValue;
+				break;
 
-					case REFLEX_ON:
-						audioMotion.reflexRatio = .4;
-						audioMotion.reflexAlpha = .2;
-						break;
-
-					case REFLEX_FULL:
-						audioMotion.reflexRatio = .5;
-						audioMotion.reflexAlpha = 1;
-						break;
-
-					default:
-						audioMotion.reflexRatio = 0;
+			case elReverse0:
+			case elReverse1:
+				if ( isLinkGrads ) {
+					setControlValue( elReverse0, elValue );
+					setControlValue( elReverse1, elValue );
 				}
+				audioMotion.setTheme( getCurrentThemes() );
 				break;
 
 			case elRoundBars:
@@ -3959,8 +4162,8 @@ function setProperty( elems, save = true ) {
 				if ( elSaveDir.checked )
 					saveLastDir( fileExplorer.getPath() );
 				else {
-					del( KEY_LAST_DIR ); // IndexedDB
-					removeFromStorage( KEY_LAST_DIR );
+					del( KEY_DB_LAST_DIR ); // IndexedDB
+					removeFromStorage( KEY_DB_LAST_DIR );
 				}
 				break;
 
@@ -3968,30 +4171,27 @@ function setProperty( elems, save = true ) {
 				if ( elSaveQueue.checked )
 					storePlayQueue( true );
 				else
-					del( KEY_PLAYQUEUE );
+					del( KEY_DB_PLAYQUEUE );
 				break;
 
 			case elScaleX:
-				audioMotion.showScaleX = getControlValue( elScaleX ) != SCALEXY_OFF;
-				audioMotion.noteLabels = getControlValue( elScaleX ) == SCALEX_NOTES;
+				audioMotion.showScaleX = elValue;
 				break;
 
 			case elScaleY:
-				audioMotion.showScaleY = +getControlValue( elScaleY );
+				audioMotion.showScaleY = elValue;
 				break;
 
 			case elSensitivity:
-				const sensitivity = getControlValue( elSensitivity );
 				audioMotion.setSensitivity(
-					$(`.min-db[data-preset="${sensitivity}"]`).value,
-					$(`.max-db[data-preset="${sensitivity}"]`).value
+					$(`.min-db[data-preset="${ elValue }"]`).value,
+					$(`.max-db[data-preset="${ elValue }"]`).value
 				);
-				audioMotion.linearBoost = $(`.linear-boost[data-preset="${sensitivity}"]`).value;
+				audioMotion.linearBoost = $(`.linear-boost[data-preset="${ elValue }"]`).value;
 				break;
 
 			case elShowPeaks:
-				audioMotion.showPeaks = getControlValue( elShowPeaks ) != PEAKS_OFF;
-				audioMotion.fadePeaks = getControlValue( elShowPeaks ) == PEAKS_FADE;
+				audioMotion.showPeaks = elValue;
 				break;
 
 			case elShowSubtitles:
@@ -3999,7 +4199,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elSmoothing:
-				audioMotion.smoothing = elSmoothing.value;
+				audioMotion.smoothing = elValue;
 				consoleLog( 'smoothingTimeConstant is ' + audioMotion.smoothing );
 				break;
 
@@ -4014,16 +4214,28 @@ function setProperty( elems, save = true ) {
 					}
 					else if ( ! isMic )
 						toggleMute( !! wasMuted ); // false if undefined
-					updateLastConfig();
+					savePreferences( KEY_LAST_SESSION );
 				});
 				break;
 
 			case elSpin:
-				audioMotion.spinSpeed = elSpin.value;
+				audioMotion.spinSpeed = elValue;
 				break;
 
 			case elSplitGrad:
-				audioMotion.splitGradient = isSwitchOn( elSplitGrad );
+				audioMotion.spreadGradient = +elValue;
+				break;
+
+			case elLedFormat:
+				let ledHeight = LEDHEIGHTS[ getControlValue( elBandCount ) ],
+				 	gapHeight = ledHeight;
+
+				if ( elValue == LEDFORMAT_SQUARE )
+					ledHeight = gapHeight = 0;
+				else if ( elValue == LEDFORMAT_THIN )
+					ledHeight = 2;
+
+				audioMotion.setLeds( ledHeight, gapHeight );
 				break;
 
 			case elSubsBackground:
@@ -4040,6 +4252,32 @@ function setProperty( elems, save = true ) {
 				toggleMultiChannel();
 				break;
 
+			case elTheme0:
+			case elTheme1:
+				if ( getControlValue( el ) === '' ) // handle invalid setting (coming from preset)
+					el.selectedIndex = 0;
+
+				const themeKey = getControlValue( el ),
+					  { horizontal, reverse } = THEMES[ themeKey ];
+
+				if ( isLinkGrads ) {
+					setControlValue( elTheme0, themeKey );
+					setControlValue( elTheme1, themeKey );
+				}
+				if ( el == elTheme0 ) {
+					setControlValue( elHorizontal0, horizontal );
+					setControlValue( elReverse0, reverse );
+				}
+				if ( el == elTheme1 || isLinkGrads ) {
+					setControlValue( elHorizontal1, horizontal );
+					setControlValue( elReverse1, reverse );
+				}
+
+				audioMotion.setTheme( getCurrentThemes() );
+				if ( getControlValue( elBackground ) == BG_DEFAULT )
+					setOverlay();
+				break;
+
 			case elVideoFill:
 				elContainer.classList.toggle( CSS_CLASS_FIT_VIDEO, ! elVideoFill.checked );
 				break;
@@ -4051,20 +4289,41 @@ function setProperty( elems, save = true ) {
 		} // switch
 
 		if ( save ) {
-			if ( generalOptionsElements.includes( el ) )
-				savePreferences( KEY_GENERAL_OPTS );
-			else if ( infoOptionsElements.includes( el ) )
-				savePreferences( KEY_DISPLAY_OPTS );
-			else if ( peakOptionsElements.includes( el ) )
-				savePreferences( KEY_PEAK_OPTIONS );
-			else if ( subsOptionsElements.includes( el ) )
-				savePreferences( KEY_SUBTITLES_OPTS );
+			if ( [ ...generalOptionsElements, ...infoOptionsElements, ...peakOptionsElements, ...subsOptionsElements ].includes( el ) )
+				savePreferences( KEY_CONFIGURATION );
 			else
-				updateLastConfig();
+				savePreferences( KEY_LAST_SESSION );
 		}
 
 	} // for
 
+	// Enable/disable UI controls based on current settings
+
+	const { alphaBars, colorMode, ledBars, isAlphaBars, isBandsMode, isLedBars, isOutlineBars, mode, radial } = audioMotion,
+		  isBars     = mode == MODE_BARS,
+		  isGradient = colorMode == COLORMODE_GRADIENT,
+		  isGraph    = mode == MODE_GRAPH,
+		  isLumi     = isAlphaBars && alphaBars == ALPHABARS_FULL,
+		  isRadial   = radial != RADIAL_OFF;
+
+	const DISABLED_BY_ALPHABARS     = 'No effect with Full Alpha Bars',
+		  DISABLED_BY_BANDCOUNT     = 'No effect with current Band Count',
+		  DISABLED_BY_LEDBARS       = 'No effect with LED Bars on',
+		  DISABLED_BY_MODE_NOT_BARS = 'Only in Bars mode',
+		  DISABLED_BY_NOT_GRADIENT  = 'Only in Gradient Color Mode',
+		  DISABLED_BY_NOT_LEDBARS   = 'LED Bars is Off',
+		  DISABLED_BY_NOT_RADIAL    = 'For Radial spectrum only',
+		  DISABLED_BY_RADIAL        = 'No effect with Radial spectrum';
+
+	toggleEnableControl( [ elAlphaBars, elColorMode ], isBars, DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elBarSpace ], isBars && isBandsMode && ! isLumi, isLumi ? DISABLED_BY_ALPHABARS : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elOutline, elRoundBars ], isBars && isBandsMode && ! isLedBars && ! isLumi, isLumi ? DISABLED_BY_ALPHABARS : isLedBars ? DISABLED_BY_LEDBARS : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elLedDisplay ], isBars && isBandsMode && ! isRadial, isRadial ? DISABLED_BY_RADIAL : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
+	toggleEnableControl( [ elLedFormat, elLedMask ], isLedBars, DISABLED_BY_NOT_LEDBARS );
+	toggleEnableControl( [ elReflex ], ! isRadial && ! isLumi, isRadial ? DISABLED_BY_RADIAL : DISABLED_BY_ALPHABARS );
+	toggleEnableControl( [ elFillAlpha, elLineWidth ], isOutlineBars || isGraph, 'For Outline Bars or Graph mode only' );
+	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], isGradient && ! isRadial && ( ! isLedBars || ledBars != LEDS_VINTAGE ), isRadial ? DISABLED_BY_RADIAL : isGradient ? 'No effect with Vintage LEDs' : DISABLED_BY_NOT_GRADIENT );
+	toggleEnableControl( [ elRadius, elSpin ], isRadial, DISABLED_BY_NOT_RADIAL );
 }
 
 /**
@@ -4083,9 +4342,9 @@ async function setSource( isMicSource, callback ) {
 		if ( navigator.mediaDevices ) {
 			navigator.mediaDevices.getUserMedia( { audio: true } )
 			.then( stream => {
-				micStream = audioMotion.audioCtx.createMediaStreamSource( stream );
 				if ( isPlaying() )
 					audioElement[ currAudio ].pause();
+				micStream = stream; // save stream reference for disconnection
 				audioMotion.connectInput( micStream );
 				consoleLog( 'Audio source set to microphone' );
 			})
@@ -4107,8 +4366,7 @@ async function setSource( isMicSource, callback ) {
 	}
 	else {
 		if ( micStream ) {
-			audioMotion.disconnectInput( micStream );
-			micStream.mediaStream.getTracks()[0].stop(); // stop (release) stream
+			audioMotion.disconnectInput( micStream, true ); // disconnect and release stream (stops recording)
 			micStream = null;
 		}
 		consoleLog( 'Audio source set to built-in player' );
@@ -4267,7 +4525,11 @@ function setUIEventListeners() {
 
 	// settings switches
 	$$('.switch').forEach( el => {
-		el.addEventListener( 'click', () => {
+		el.addEventListener( 'click', evt => {
+			if ( el.classList.contains( CSS_CLASS_DISABLED ) ) {
+				evt.preventDefault();
+				return false;
+			}
 			el.dataset.active = +!+el.dataset.active;
 			setProperty( el );
 		});
@@ -4277,11 +4539,17 @@ function setUIEventListeners() {
 	$$('[data-prop]').forEach( el => {
 		if ( isCustomRadio( el ) ) {
 			el.elements[ el.dataset.prop ].forEach( btn => {
-				btn.addEventListener( 'click', () => setProperty( el ) );
+				btn.addEventListener( 'click', evt => {
+					if ( el.classList.contains( CSS_CLASS_DISABLED ) ) {
+						evt.preventDefault();
+						return false;
+					}
+					setProperty( el );
+				});
 			});
 		}
 		else { // 'input' event is triggered for select and input elements
-			el.addEventListener( 'input', () => {
+			el.addEventListener( isNumberControl( el ) ? 'change' : 'input', () => {
 				if ( ( el == elFillAlpha || el == elLineWidth ) && elFillAlpha.value == 0 && elLineWidth.value == 0 ) {
 					// prevent fillAlpha and lineWidth being both set to 0
 					const newEl = el == elFillAlpha ? elLineWidth : elFillAlpha;
@@ -4295,6 +4563,8 @@ function setUIEventListeners() {
 			});
 		}
 	});
+
+	$('#randomize_now').addEventListener( 'click', () => randomizeNow() );
 
 	// helper debounce function - thanks https://www.freecodecamp.org/news/javascript-debounce-example/
 	const debounce = ( func, timeout = 300 ) => {
@@ -4419,7 +4689,7 @@ function setUIEventListeners() {
 		setToggleButtonIcon();
 		btnToggleFS.addEventListener( 'click', async () => {
 			useFileSystemAPI = ! useFileSystemAPI;
-			const lastDir = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR );
+			const lastDir = useFileSystemAPI ? await get( KEY_DB_LAST_DIR ) : loadFromStorage( KEY_DB_LAST_DIR );
 			if ( ! useFileSystemAPI || ! lastDir || await lastDir[0].handle.requestPermission() == 'granted' ) {
 				fileExplorer.switchMode( lastDir );
 				setToggleButtonIcon();
@@ -4519,45 +4789,61 @@ function setUIEventListeners() {
 		mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
 	}
 
-	// setup gradient editor controls
-	$('#add-gradient').addEventListener('click', () => openGradientEditorNew() );
-	$('#btn-save-gradient').addEventListener( 'click', () => saveGradient() );
-	$('#btn-save-gradient-copy').addEventListener( 'click', () => openGradientEditorNew( true ) );
-	$('#btn-delete-gradient').addEventListener('click', () => {
+	// setup theme editor controls
+	$('#add_theme').addEventListener('click', () => openThemeEditorNew() );
+	$('#btn-save-theme').addEventListener( 'click', () => saveTheme() );
+	$('#btn-save-theme-copy').addEventListener( 'click', () => openThemeEditorNew( true ) );
+	$('#btn-delete-theme').addEventListener('click', () => {
 		notie.confirm({
-			text: `Do you really want to DELETE <strong>${ currentGradient.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
+			text: `Do you really want to DELETE <strong>${ currentTheme.name }</strong>?<br>THIS CANNOT BE UNDONE!`,
 			submitText: 'DELETE',
-			submitCallback: () => deleteGradient()
+			submitCallback: () => deleteTheme()
 		});
 	});
-	$('#btn-export-gradient').addEventListener( 'click', () => downloadObject( currentGradient, `audioMotion-gradient-${ currentGradient.key }` ) );
+	$('#btn-export-theme').addEventListener( 'click', () => downloadObject( currentTheme, `audioMotion-theme-${ currentTheme.key }` ) );
 
-	const btnImportGradient = $('#import_gradient');
-	btnImportGradient.addEventListener( 'input', () => {
-		const fileBlob = btnImportGradient.files[0];
-		btnImportGradient.value = ''; // clear file (needed for the event to trigger if user loads the same file again)
+	const btnImportTheme = $('#import_theme');
+	btnImportTheme.addEventListener( 'input', () => {
+		const fileBlob = btnImportTheme.files[0];
+		btnImportTheme.value = ''; // clear file (needed for the event to trigger if user loads the same file again)
 		fileBlob.text().then( contents => {
 			try {
-				currentGradient = JSON.parse( contents );
+				currentTheme = JSON.parse( contents );
 			}
 			catch ( e ) {
 				consoleLog( e, true );
 				return;
 			}
-			saveGradient( true ); // indicate this is an imported gradient
+			saveTheme( true ); // indicate this is an imported theme
 		});
 	});
 
-	$('#new-gradient-bkgd').addEventListener('input', (e) => {
-		currentGradient.bgColor = e.target.value;
+	$('#new-theme-name').addEventListener('input', (e) => {
+		currentTheme.name = e.target.value;
 	});
 
-	$('#new-gradient-name').addEventListener('input', (e) => {
-		currentGradient.name = e.target.value;
+	$('#new-theme-bkgd').addEventListener('input', (e) => {
+		currentTheme.bgColor = e.target.value;
 	});
 
-	$('#new-gradient-horizontal').addEventListener('input', (e) => {
-		currentGradient.dir = e.target.checked ? 'h' : undefined;
+	$('#new-theme-horizontal').addEventListener('input', (e) => {
+		currentTheme.horizontal = +e.target.checked;
+	});
+
+	$('#new-theme-reverse').addEventListener('input', (e) => {
+		currentTheme.reverse = +e.target.checked;
+	});
+
+	$('#new-theme-peakcolor').addEventListener('input', (e) => {
+		$('#new-theme-peakcolor-disable').checked = false;
+		currentTheme.peakColor = e.target.value;
+	});
+
+	$('#new-theme-peakcolor-disable').addEventListener('input', (e) => {
+		if ( e.target.checked ) {
+			currentTheme.peakColor = undefined;
+			$('#new-theme-peakcolor').value = undefined;
+		}
 	});
 
 	// Configuration panel accordion
@@ -4572,11 +4858,11 @@ function setUIEventListeners() {
 		});
 	});
 
-	// "Manage Gradients" button on Settings panel
-	$('#manage_gradients').addEventListener( 'click', () => {
+	// "Manage Themes" button on Settings panel
+	$('#manage_themes').addEventListener( 'click', () => {
 		location.href = '#config';
 		closeAccordionItems();
-		$('#gradients_management').open = true;
+		$('#theme_management').open = true;
 	});
 
 	// Export / import settings
@@ -4600,6 +4886,17 @@ function setUIEventListeners() {
 					}
 				});
 			}
+		});
+	});
+
+	// Links to documentation
+	let helpWindow;
+	$$('[data-help]').forEach( el => {
+		el.title = 'Click for contextual help';
+		el.addEventListener( 'click', e => {
+			if ( helpWindow )
+				helpWindow.close();
+			helpWindow = window.open( el.dataset.help, 'helpWindow', `popup, width=700, height=${ window.screen.height * .8 }, top=60, left=150` );
 		});
 	});
 }
@@ -4662,7 +4959,7 @@ async function storePlayQueue( name, update = true ) {
 		if ( ! isSaveQueue && ! update ) {
 			safename = generateSafeKeyName( name, '_' );
 
-			let playlists = await get( KEY_PLAYLISTS ) || {},
+			let playlists = await get( KEY_DB_PLAYLISTS ) || {},
 				attempt   = 0,
 				basename  = safename;
 
@@ -4672,7 +4969,7 @@ async function storePlayQueue( name, update = true ) {
 			}
 
 			playlists[ safename ] = name;
-			await set( KEY_PLAYLISTS, playlists ); // save list to indexedDB
+			await set( KEY_DB_PLAYLISTS, playlists ); // save list to indexedDB
 			loadSavedPlaylists( safename );
 		}
 
@@ -4685,7 +4982,7 @@ async function storePlayQueue( name, update = true ) {
 		}
 
 		if ( isSaveQueue )
-			set( KEY_PLAYQUEUE, songs );
+			set( KEY_DB_PLAYQUEUE, songs );
 		else
 			set( PLAYLIST_PREFIX + safename, songs ).then( () => notie.alert({ text: `Playlist saved!` }) );
 	}
@@ -4759,15 +5056,16 @@ function toggleMultiChannel() {
 		  { maxChannelCount } = destination,
 		  isSurround          = elSurround.checked;
 
-	if ( panNode ) {
-		audioMotion.disconnectInput();
-		if ( isSurround ) {
-			for ( const node of mediaNodes )
-				audioMotion.connectInput( node );
-		}
-		else // on stereo mode we use the panNode to fix mono audio playing only on the left channel
-			audioMotion.connectInput( panNode );
+	// disconnect previously connected inputs - don't use `disconnectInput()` without arguments to avoid disconnecting the microphone too
+	audioMotion.disconnectInput([ panNode, ...mediaNodes ]);
+
+	if ( isSurround || ! panNode ) {
+		// in surround mode, or when panNode is not supported, both media nodes are connected to the analyzer
+		for ( const node of mediaNodes )
+			audioMotion.connectInput( node );
 	}
+	else // in stereo mode, we connect the panNode so any mono source will be upmixed to play on both channels
+		audioMotion.connectInput( panNode );
 
 	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
 	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
@@ -4795,6 +5093,22 @@ function setQueueIndex( newValue ) {
 }
 
 /**
+ * Enable or disable a UI control
+ */
+function toggleEnableControl( elements, state, message ) {
+	if ( ! isArray( elements ) )
+		elements = [ elements ];
+
+	for ( const el of elements ) {
+		el.classList.toggle( CSS_CLASS_DISABLED, ! state );
+		if ( isRangeControl( el ) )
+			el.disabled = ! state;
+		// when control is disabled add informative message to the element's title
+		( isCustomSwitch( el ) ? el.parentElement : el ).title = ! state && message || '';
+	}
+}
+
+/**
  * Connect or disconnect audio output to the speakers
  */
 function toggleMute( mute ) {
@@ -4814,9 +5128,13 @@ function toggleMute( mute ) {
  */
 function translateRangeValue( el ) {
 	const val = el.value,
-		  { abs, sign } = Math;
+		  { abs, sign } = Math,
+		  percent = val => `${ val * 100 | 0 }%`;
 
 	if ( el == elBandCount ) {
+		if ( val == 9 )
+			return 'FFT frequencies';
+
 		const isOctaves = getControlValue( elFreqScale ) == SCALE_LOG,
 			  bands = isOctaves
 					  ? [ '', '', 'half-', '1/3rd-', '1/4th-', '1/6th-', '1/8th-', '1/12th-', '1/24th-' ]
@@ -4825,24 +5143,14 @@ function translateRangeValue( el ) {
 		return ucFirst( bands[ +val || 0 ] + ( isOctaves ? 'octave' : '' ) + ' bands' );
 	}
 	else if ( el == elBarSpace )
-		return val == 0 ? 'None' : ( val == 1 ? 'Legacy' : `${ val * 100 | 0 }%` );
+		return val == 0 ? 'None' : val == 1 ? 'Legacy' : percent( val );
 	else if ( el == elFillAlpha )
-		return val == 0 ? 0 : `${ val * 100 | 0 }%`;
+		return val == 0 ? 0 : percent( val );
+	else if ( el == elReflex )
+		return val == 0 ? 'Off' : val == .5 ? 'Mirrored' : percent( val );
 	else if ( el == elSpin )
 		return val == 0 ? 'OFF' : abs( val ) + ' RPM' + ( sign( val ) == -1 ? ' (CCW)' : '' );
 	return val;
-}
-
-/**
- * Update last used configuration
- */
-function updateLastConfig() {
-	saveToStorage( KEY_LAST_CONFIG, {
-		...getCurrentSettings(),
-		micSource: elSource.checked,
-		mute     : elMute.checked,
-		volume   : elVolume.dataset.value,
-	});
 }
 
 /**
@@ -4872,17 +5180,17 @@ function updateRangeValue( el ) {
 
 		let msg;
 		switch ( reason ) {
-			case 'create':
+			case REASON_CREATE:
 				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
 				msg = 'Canvas created';
 				break;
-			case 'lores':
+			case REASON_LORES:
 				msg = `Lo-res ${ loRes ? 'ON' : 'OFF' } (pixelRatio = ${ pixelRatio })`;
 				break;
-			case 'fschange':
+			case REASON_FULLSCREENCHANGE:
 				msg = `${ isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
 				break;
-			case 'user' :
+			case REASON_USER:
 				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
 				break;
 			default:
@@ -4917,7 +5225,7 @@ function updateRangeValue( el ) {
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
 			  interval   = latency + 1 / instance.fps, // audio context latency + refresh rate interval
-			  noShadow   = isSwitchOn( elNoShadow ),
+			  noShadow   = elOSDTextStyle.value == OSD_STYLE_OUTLINE,
 			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
@@ -4998,7 +5306,7 @@ function updateRangeValue( el ) {
 
 			// display additional information (level 2) at the top
 			if ( canvasMsg.info == 2 ) {
-				drawText( getSelectedGradients(), centerPos, topLine1, maxWidthTop );
+				drawText( getSelectedThemes(), centerPos, topLine1, maxWidthTop );
 
 				canvasCtx.textAlign = 'left';
 				drawText( getText( getControlValue( elMode ) == MODE_BARS ? elBandCount : elMode ), baseSize, topLine1, maxWidthTop );
@@ -5073,6 +5381,8 @@ function updateRangeValue( el ) {
 	const audioOnError = e => {
 		if ( e.target.attributes.src )
 			consoleLog( 'Error loading ' + e.target.src, true );
+		// NOTE: error message can be retrieved from the media element's `error` property,
+		// but "format error" is misleading in the case of a file not found
 	}
 
 	const audioOnPlay = e => {
@@ -5132,25 +5442,7 @@ function updateRangeValue( el ) {
 	consoleLog( `audioMotion v${VERSION} initializing...` );
 	consoleLog( `User agent: ${navigator.userAgent}` );
 
-	$('#version').innerText = VERSION;
-
-	// Show update message if needed
-	const lastVersion = loadFromStorage( KEY_LAST_VERSION ),
-		  elBanner    = $('#update-banner');
-
-	if ( lastVersion == null || lastVersion == VERSION )
-		elBanner.remove();
-
-	if ( lastVersion != VERSION ) {
-		saveToStorage( KEY_LAST_VERSION, VERSION );
-		if ( lastVersion != null ) {
-			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
-			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
-			setTimeout( () => {
-				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
-			}, UPDATE_BANNER_TIMEOUT );
-		}
-	}
+	$$('.app-version').forEach( el => el.innerText = VERSION );
 
 	// Load server configuration options from config.yaml
 	let response;
@@ -5189,7 +5481,6 @@ function updateRangeValue( el ) {
 	consoleLog( `Instantiating audioMotion-analyzer v${ AudioMotionAnalyzer.version }` );
 
 	audioMotion = new AudioMotionAnalyzer( elAnalyzer, {
-		bgAlpha: 0, // transparent background when overlay is active (for subtitles display)
 		fsElement: elContainer,
 		onCanvasDraw: displayCanvasMsg,
 		onCanvasResize: showCanvasInfo
@@ -5253,12 +5544,12 @@ function updateRangeValue( el ) {
 		audioElement[ i ].addEventListener( 'timeupdate', audioOnTimeUpdate );
 		audioElement[ i ].querySelector('track').addEventListener( 'load', setSubtitlesPosition );
 
-		if ( panNode ) {
-			mediaNodes[ i ] = audioCtx.createMediaElementSource( audioElement[ i ] );
+		mediaNodes[ i ] = audioCtx.createMediaElementSource( audioElement[ i ] );
+
+		if ( panNode )
 			mediaNodes[ i ].connect( panNode );
-		}
-		else
-			audioMotion.connectInput( audioElement[ i ] );
+
+		// NOTE: nodes will be connected to the analyzer when setting the `elSurround` property at the end of initialization
 	}
 
 	setRangeAtts( elSongProgress, 0, 1, .001 );
@@ -5272,11 +5563,8 @@ function updateRangeValue( el ) {
 
 	populatePresets();
 
-	for ( const i of [16,20,25,30,40,50,60,100,250,500,1000,2000] )
-		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
-
-	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
-		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
+	setRangeAtts( elRangeMin, FREQ_LO_MIN, FREQ_LO_MAX );
+	setRangeAtts( elRangeMax, FREQ_HI_MIN, FREQ_HI_MAX );
 
 	populateCustomRadio( elMode, modeOptions );
 
@@ -5288,30 +5576,47 @@ function updateRangeValue( el ) {
 		[ '2', 'High'   ]
 	]);
 
-	populateSelect( elRandomMode, [
-		[ '0',   'OFF'              ],
-		[ '1',   'On track change'  ],
-		[ '2',   'every 5 seconds'  ],
-		[ '6',   'every 15 seconds' ],
-		[ '12',  'every 30 seconds' ],
-		[ '24',  'every minute'     ],
-		[ '48',  'every 2 minutes'  ],
-		[ '120', 'every 5 minutes'  ]
+	populateCustomRadio( elRandomMode, [
+		[ '0',   'Off'   ],
+		[ '2',   '5s'    ],
+		[ '6',   '15s'   ],
+		[ '12',  '30s'   ],
+		[ '1',   'Track' ],
+		[ '24',  '1 min' ],
+		[ '48',  '2 min' ],
+		[ '120', '5 min' ]
 	]);
 
-	populateCustomRadio( elReflex, [
-		[ REFLEX_OFF,   'Off'    ],
-		[ REFLEX_SHORT, '25%'    ],
-		[ REFLEX_ON,    '40%'    ],
-		[ REFLEX_FULL,  'Mirror' ]
+	populateCustomRadio( elAlphaBars, [
+		[ ALPHABARS_OFF,  'Off'  ],
+		[ ALPHABARS_ON,   'On'   ],
+		[ ALPHABARS_FULL, 'Full' ],
+	]);
+
+	populateCustomRadio( elLedDisplay, [
+		[ LEDS_OFF,     'Off'     ],
+		[ LEDS_MODERN,  'Modern'  ],
+		[ LEDS_VINTAGE, 'Vintage' ]
+	]);
+
+	populateCustomRadio( elLedFormat, [
+		[ LEDFORMAT_REGULAR, 'Regular' ],
+		[ LEDFORMAT_THIN,    'Thin'    ],
+		[ LEDFORMAT_SQUARE,  'Square'  ]
+	]);
+
+	populateCustomRadio( elRadial, [
+		[ RADIAL_OFF,     'Off'     ],
+		[ RADIAL_INWARD,  'Inward'  ],
+		[ RADIAL_OUTWARD, 'Outward' ]
 	]);
 
 	populateSelect( elBgImageFit, bgFitOptions );
 
 	populateCustomRadio( elMirror, [
-		[ '-1', 'Left'  ],
-		[ '0',  'Off'   ],
-		[ '1',  'Right' ]
+		[ MIRROR_LEFT,  'Left'  ],
+		[ MIRROR_OFF,   'Off'   ],
+		[ MIRROR_RIGHT, 'Right' ]
 	]);
 
 	populateCustomRadio( elFreqScale, [
@@ -5322,40 +5627,43 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elWeighting, [
-		[ WEIGHT_NONE, 'Off' ],
-		[ WEIGHT_A,    'A'   ],
-		[ WEIGHT_B,    'B'   ],
-		[ WEIGHT_C,    'C'   ],
-		[ WEIGHT_D,    'D'   ],
-		[ WEIGHT_468,  '468' ],
+		[ FILTER_NONE,   'Off'    ],
+		[ FILTER_TILT3,  '3 dB'   ],
+		[ FILTER_TILT45, '4.5 dB' ],
+		[ FILTER_468,    '468'    ],
+		[ FILTER_A,      'A'      ],
+		[ FILTER_B,      'B'      ],
+		[ FILTER_C,      'C'      ],
+		[ FILTER_D,      'D'      ]
 	]);
 
 	populateCustomRadio( elColorMode, [
-		[ COLOR_GRADIENT, 'Gradient'  ],
-		[ COLOR_INDEX,    'Index' ],
-		[ COLOR_LEVEL,    'Level' ]
+		[ COLORMODE_GRADIENT, 'Gradient' ],
+		[ COLORMODE_INDEX,    'Index'    ],
+		[ COLORMODE_LEVEL,    'Level'    ]
 	]);
 
 	populateCustomRadio( elShowPeaks, [
 		[ PEAKS_OFF,  'Off'  ],
-		[ PEAKS_ON,   'Drop' ],
+		[ PEAKS_DROP, 'Drop' ],
 		[ PEAKS_FADE, 'Fade' ]
 	]);
 
 	populateCustomRadio( elScaleX, [
-		[ SCALEXY_OFF,  'Off'   ],
-		[ SCALEXY_ON,   'Freqs' ],
-		[ SCALEX_NOTES, 'Notes' ]
+		[ LABELS_X_OFF,   'Off'   ],
+		[ LABELS_X_FREQS, 'Freqs' ],
+		[ LABELS_X_NOTES, 'Notes' ]
 	]);
 
 	populateCustomRadio( elScaleY, [
-		[ SCALEXY_OFF, 'Off' ],
-		[ SCALEXY_ON,  'On'  ]
+		[ LABELS_Y_OFF,     'Off' ],
+		[ LABELS_Y_DB,      'dB'  ],
+		[ LABELS_Y_PERCENT, '%'   ],
 	]);
 
 	populateCustomRadio( elAnsiBands, [
-		[ 0, 'Tempered' ],
-		[ 1, 'ANSI/IEC' ]
+		[ 1, 'ANSI/IEC' ],
+		[ 0, 'Tempered' ]
 	]);
 
 	populateCustomRadio( elLinearAmpl, [
@@ -5370,25 +5678,25 @@ function updateRangeValue( el ) {
 	}
 	populateCustomRadio( elFFTsize, fftOptions );
 
-	setRangeAtts( elBandCount, 1, 8 );
+	setRangeAtts( elBandCount, 1, 9 );
 	setRangeAtts( elBarSpace, 0, 1, .05 );
 	setRangeAtts( elBgImageDim, 0.1, 1, .05 );
 	setRangeAtts( elFillAlpha, 0, 1, .05 );
 	setRangeAtts( elLineWidth, 0, 3, .5 );
 	setRangeAtts( elRadius, 0, 1, .05 );
+	setRangeAtts( elReflex, 0, .5, .05 );
 	setRangeAtts( elSmoothing, 0, .95, .05 );
 	setRangeAtts( elSpin, -10, 10, 1 );
 
 	// Clear canvas messages
 	setCanvasMsg();
 
-	// Register custom gradients
-	Object.keys( gradients ).forEach( key => {
-		const { bgColor, dir, colorStops } = gradients[ key ];
-		if ( colorStops )
-			audioMotion.registerGradient( key, { bgColor, dir, colorStops } );
+	// Register color themes
+	Object.keys( THEMES ).forEach( key => {
+		if ( THEMES[ key ].colorStops )
+			audioMotion.registerTheme( key, THEMES[ key ] );
 	});
-	populateGradients();
+	populateThemes();
 
 	// Initialize file explorer
 	const fileExplorerPromise = fileExplorer.create(
@@ -5504,10 +5812,10 @@ function updateRangeValue( el ) {
 			}
 		}
 
-		const lastDir         = useFileSystemAPI ? await get( KEY_LAST_DIR ) : loadFromStorage( KEY_LAST_DIR ),
-			  bgDirHandle     = await get( KEY_BG_DIR_HANDLE ),
+		const lastDir         = useFileSystemAPI ? await get( KEY_DB_LAST_DIR ) : loadFromStorage( KEY_DB_LAST_DIR ),
+			  bgDirHandle     = await get( KEY_DB_BGDIR_HANDLE ),
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
-			  isLastDirLocked = useFileSystemAPI && Array.isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
+			  isLastDirLocked = useFileSystemAPI && isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
 		loadPreset( PRESET_KEY_LAST_SESSION, false, true );

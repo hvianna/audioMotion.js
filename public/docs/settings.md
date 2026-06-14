@@ -4,7 +4,17 @@ Click **Settings** in the panel selection buttons to open the Settings Panel.
 
 ![ui-buttons-settings](img/UI_main_buttons_settings.png)
 
-Settings are listed below in alphabetical order.
+Settings are listed below in **alphabetical order.**
+
+### Alpha Bars
+
+>>> NEEDS UPDATE
+
+option | Description
+-------|--------------------------
+Off    | Disable effect
+On     | Low amplitude bars are more transparent, while high amplitude ones are more opaque
+Full   | Bar opacity vary according to its level as above, but all bars are displayed at full height
 
 ## Analyzer Mode
 
@@ -12,11 +22,10 @@ Settings are listed below in alphabetical order.
 
 Selects the visualization mode. Keyboard shortcut: **M** / **Shift + M**.
 
-| Analyzer&nbsp;Mode | Description |
-|------|-------------|
-| **Bars** | Displays bars of equal width, representing frequency bands, as selected by [**Band Count**](#band-count).
-| **FFT** | Displays individual discrete frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation.
-| **Graph** | Uses the FFT data points to create an area or line graph - [**Line Width**](advanced.md#line-width) and [**Fill Opacity**](advanced.md#fill-opacity) can be customized in the Advanced panel.
+option    | Description
+----------|---------------
+**Bars**  | Displays bars of equal width, representing frequency bands, as selected by [**Band Count**](#band-count).
+**Graph** | Uses the bands data points to create an area or line graph - [**Line Width**](advanced.md#line-width) and [**Fill Opacity**](advanced.md#fill-opacity) can be customized in the Advanced panel.
 
 ## Background
 
@@ -24,13 +33,13 @@ Selects the visualization mode. Keyboard shortcut: **M** / **Shift + M**.
 
 Selects the analyzer background.
 
-| Background | Description |
-|------------|-------------|
-| **Gradient default** | Uses the background color defined by the currently selected gradient - when the [LEDs effect](#leds) is on, this shows the "unlit" LEDs instead |
-| **Black** | Uses a black background |
-| **Album cover** | Displays the album cover for the current song<sup> (1)</sup> |
-| **Random image** | Selects a random image from the backgrounds folder<sup> (2)</sup> |
-| **Random video** | Selects a random video from the backgrounds folder<sup> (2)</sup> |
+option | Description
+-------|-------------
+**Theme default** | Uses the background color defined by the currently selected [Theme](#color-theme)
+**Black** | Uses a black background
+**Album cover** | Displays the album cover for the current song<sup> (1)</sup>
+**Random image** | Selects a random image from the backgrounds folder<sup> (2)</sup>
+**Random video** | Selects a random video from the backgrounds folder<sup> (2)</sup>
 
 <sup>**( 1 )**</sup> Album covers will be preferably retrieved from the file's metadata. When a picture is not found in the metadata, **audioMotion** will look for image files
 in the song's folder, and will pick any image which filename contains the words *cover*, *folder* or *front* (in this order), or the first image found otherwise.
@@ -85,19 +94,45 @@ How many frequency bands should be displayed in [**Bars** mode](#analyzer-mode),
 When [Frequency Scale](advanced.md#frequency-scale) is set to **Log**, this setting defines which fraction of an octave is included in each bar.
 Otherwise, the frequency spectrum is divided into a fixed amount of bars, with the bandwidth of each bar varying according to the selected frequency scale.
 
+The **FFT frequencies** option displays individual discrete frequencies, as provided by the [FFT](https://en.wikipedia.org/wiki/Fast_Fourier_transform) computation.
+
 ## Bar Color Mode
 
 <div class="settings-panel highlight-color-mode"></div>
 
 Desired method for coloring the analyzer bars. This setting has no effect in [**Graph** mode](#analyzer-mode).
 
-| Color&nbsp;Mode | Description | Preview ('prism' gradient)
-|-----------------|-------------|----------------------------
-| **Gradient**    | Analyzer bars are painted with the currently selected [Gradient](#gradients). | ![prism](img/gradient-prism.png)
-| **Index**       | Each analyzer bar is painted with a **single color** from the selected gradient, starting with the first color applied to the first bar, and so on, cycling through the available colors. | ![prism-bar-index](img/gradient-prism-bar-index.png)
-| **Level**       | Colors from the selected gradient are used to paint each bar, according to its current level (amplitude). | ![prism-bar-level](img/gradient-prism-bar-level.png)
+option | Description | Preview ('prism' theme)
+----------------|-------------|----------------------------
+**Gradient**    | Analyzer bars are painted with the gradient of the selected [Color Theme](#color-theme). | ![prism](img/gradient-prism.png)
+**Index**       | Each analyzer bar is painted with a **single color** from the selected Theme, starting with the first color applied to the first bar, and so on, cycling through the available colors. | ![prism-bar-index](img/gradient-prism-bar-index.png)
+**Level**       | Colors from the selected Theme are used to paint each bar, according to its current level (amplitude). | ![prism-bar-level](img/gradient-prism-bar-level.png)
 
-## Display switches
+## Bar effects
+
+<div class="settings-panel highlight-effects"></div>
+
+switch  | Description
+--------|-----------------------
+OUTLINE | Toggle bar outline - see [Line Width](advanced.md#line-width) and [Fill Opacity](advanced.md#fill-opacity) settings *(Bars mode only)*.
+ROUND   | Toggle rounded corners at the top of analyzer bars *(Bars mode only)*.
+
+## Color Theme
+
+<div class="settings-panel highlight-gradients"></div>
+
+Select color themes for left and right analyzer channels. Keyboard shortcut: **T** / **Shift + T**.
+
+switch          | Description
+----------------|------------
+**HORIZONTAL**  | When active, and [Color Mode](#color-mode) is set to **Gradient**, generates an horizontal color gradient
+**REVERSE**     | Reverse the order of theme's colors
+**LINK**        | When active, applies the same theme to both channels. *(Not shown for **single** [Channel Layout](advanced.md#channel-layout))*
+**SPREAD**      | When active, gradient colors spread between both channels (use same theme for best effect). *(Not shown for **single** [Channel Layout](advanced.md#channel-layout))*
+
+Click the **Manage Themes** button to create, edit, import and export themes - see [Configuration > Color Themes management](configuration.md#color-themes-management).
+
+## Display
 
 <div class="settings-panel highlight-display"></div>
 
@@ -109,7 +144,7 @@ Toggle display of on-screen information on track start and end, as configured in
 
 Toggle display of [subtitles](media-panel.md#subtitles).
 
-### FLAT
+### FLAT TEXT
 
 Switch between outlined (on) or shadowed (off) text for messages displayed on screen.
 
@@ -121,47 +156,22 @@ Toggle low resolution mode *(may improve performance, especially on 4K+ displays
 
 Toggle display of current frame rate at the top right corner.
 
+### LED Bars
 
-## Effects switches
-
-<div class="settings-panel highlight-effects"></div>
-
-### ALPHA
-
-Toggle dynamic bar transparency - when active, bars become more opaque as their amplitude increases.
-
-### LUMI
-
-Toggle luminance bars - similar to ALPHA, bars' opacity vary according to their level, but all bars are displayed at full height *(no effect with RADIAL)*.
-
-### LEDS
+>>> NEEDS UPDATE
 
 Toggle LED effect for the analyzer bars *(Bars mode only, no effect with RADIAL)*.
 
-### OUTLINE
+option  | Description
+--------|----------------------
+Off     | Disable effect
+Modern  | LEDs are painted with the gradient of the selected Color Theme
+Vintage | Each LED element is painted a single color of the selected Theme, according to its level
 
-Toggle bar outline - see [Line Width](advanced.md#line-width) and [Fill Opacity](advanced.md#fill-opacity) settings *(Bars mode only)*.
-
-### RADIAL
-
-Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.**
-
-### ROUND
-
-Toggle rounded corners at the top of analyzer bars *(Bars mode only)*.
-
-
-## Gradients
-
-<div class="settings-panel highlight-gradients"></div>
-
-Select color gradients for left and right analyzer channels. Keyboard shortcut: **G** / **Shift + G**.
-
-Button / switch | Description
-----------------|------------
-**LINK**        | When active and using a dual [Channel Layout](advanced.md#channel-layout), uses the same gradient for both channels.
-**SPLIT**       | When active, splits gradient colors between both channels (**Vertical** [channel layout](advanced.md#channel-layout) only).
-**Manage Gradients** | Click to create, edit, import and export gradients - see [Configuration > Gradient management](configuration.md#gradient-management).
+switch      | Description
+------------|----------------------
+LED MASK    | Toggle display of the entire grid of LED elements, including "unlit" ones
+SQUARE LEDS | When active, generate square LED elements
 
 ## Peaks
 
@@ -169,11 +179,11 @@ Button / switch | Description
 
 Toggle display of level peaks.
 
-Peaks | Description
-------|-------------
-Off   | Do not show level peaks
-Drop  | Peaks fall down after a short time
-Fade  | Peaks fade out after a short time
+option | Description
+-------|-------------
+Off    | Do not show level peaks
+Drop   | Peaks fall down after a short time
+Fade   | Peaks fade out after a short time
 
 Drop and Fade behavior can be customized in [Configuration > Peaks behavior](configuration.md#peaks-behavior).
 
@@ -223,6 +233,12 @@ Button | Action
 !> **Download your presets and keep backup copies of them!**<br>User presets are saved to the browser's internal storage and may be lost if you uninstall the browser or clear its data.
 
 External presets can be imported via [**Advanced Panel > Import Settings**](advanced.md#import-export-settings).
+
+## Radial
+
+>>> NEEDS UPDATE
+
+Toggle display of circular spectrum analyzer with radial bars. **This option disables both LEDS and LUMI effects.**
 
 ## Randomize
 

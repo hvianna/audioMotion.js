@@ -10,6 +10,33 @@ Click **Configuration** in the main function buttons to open the Configuration p
 
 Uncheck options to remove them from the [Background Image Fit](settings.md#background-image-fit) selection box in the Settings panel.
 
+
+## Color Themes management
+
+![config-gradients](img/config-gradients.png)
+
+Uncheck themes to remove them from the [Color Theme](settings.md#color-theme) selection box in the Settings panel.
+
+Move the mouse over a theme name and click the <img src="img/button-edit-gradient.png" style="vertical-align: middle"> button to clone, edit, delete, or export it (see [**Theme Editor**](#theme-editor) below).
+
+Click the **Create Theme** button to create a new custom theme, or the **Import Theme** button to import a downloaded theme.
+
+?> Visit [Resources > Gradients](https://github.com/hvianna/audioMotion.js/discussions/categories/gradients) in our GitHub Discussions to download community Themes and share your creations too!
+
+## Theme Editor
+
+The theme editor is accessed via [Color Themes management](#color-themes-management), by clicking the **Create Theme** button, or the <img src="img/button-edit-gradient.png" style="vertical-align: middle"> button next to a theme's name.
+
+Built-in themes can't be changed or deleted, but you can clone a built-in theme and make the changes you'd like. Then disable the built-in themes you don't want to use by unchecking them in the [Color Themes management](#color-themes-management) list.
+
+![gradient-editor](img/gradient-editor.png)
+
+At least two colors are required to create a theme, but you can add as many colors as you like.
+The **offset** must be a number between `0.0` and `1.0` - use it to adjust the position of each color inside the generated gradient.
+
+!> **Use the Export function to save backup copies of your custom themes!**<br>Custom themes are saved to the browser's internal storage and may be lost if you uninstall the browser or clear its data.
+
+
 ## General settings
 
 <img src="img/config-general-settings.png" class="img-right">
@@ -81,31 +108,6 @@ Start the file explorer in the last previously used folder the next time you ope
 Automatically restores the contents of the play queue the next time you open audioMotion.
 
 
-## Gradients management
-
-![config-gradients](img/config-gradients.png)
-
-Uncheck gradients to remove them from the [Gradients](settings.md#gradients) selection box in the Settings panel.
-
-Move the mouse over a gradient name and click the <img src="img/button-edit-gradient.png" style="vertical-align: middle"> button to clone, edit, delete, or export it (see [**Gradient Editor**](#gradient-editor) below).
-
-Click the **Create Gradient** button to create a new custom gradient, or the **Import Gradient** button to import a downloaded gradient.
-
-?> Visit [Resources > Gradients](https://github.com/hvianna/audioMotion.js/discussions/categories/gradients) in our GitHub Discussions to download community gradients and share your creations too!
-
-## Gradient Editor
-
-The gradient editor is accessed via [Gradients management](#gradients-management), by clicking the **Create Gradient** button, or the <img src="img/button-edit-gradient.png" style="vertical-align: middle"> button next to a gradient's name.
-
-Built-in gradients can't be changed or deleted, but you can clone a built-in gradient and make the changes you'd like. Then disable the built-in gradients you don't want to use by unchecking them in the [Gradients management](#gradients-management) list.
-
-![gradient-editor](img/gradient-editor.png)
-
-At least two colors are required to create a gradient, but you can add as many colors as you like.
-The **offset** must be a number between 0 and 1 - use it to adjust the position of each color inside the gradient.
-
-!> **Use the Export function to save backup copies of your custom gradients!**<br>Custom gradients are saved to the browser's internal storage and may be lost if you uninstall the browser or clear its data.
-
 ## On-screen information display
 
 ![config-osd-options](img/config-osd-options.png)
@@ -121,13 +123,9 @@ You can also toggle the display of album covers and number of tracks.
 
 ![config-peaks-behavior](img/config-peaks-behavior.png)
 
-### Gravity
+### Peak decay time
 
-Acceleration for peaks falling down (in thousands of pixels per second squared), when [set to *Drop*](settings.md#peaks).
-
-### Peak fade time
-
-Time in milliseconds for peaks to completely fade out, when [set to *Fade*](settings.md#peaks).
+Time in milliseconds for peaks to completely fall down or fade out.
 
 ### Peak hold time
 

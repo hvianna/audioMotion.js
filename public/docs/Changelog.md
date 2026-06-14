@@ -1,5 +1,39 @@
 # Changelog
 
+## version 26.6-beta.3
+
+> NOTE: BETA version - features/settings may still change! Documentation is not updated yet.
+>
+> **DEMO 👉 https://audiomotion.app/beta**
+
++ **Gradients** are now called **Themes**;
++ Added option for specific peak color in theme editor (see "Mono" theme for an example);
++ Added per-channel theme/gradient modifiers: [Horizontal and Reverse](settings.md#color-theme);
++ New options for the [**LED Bars**](settings.md#led-bars): *Vintage* style, plus *Thin* and *Square* formats;
++ The **FFT** analyzer mode has been moved to the [**Band Count**](settings.md#band-count) setting, as Graph mode now adapts to the selected band count as well;
++ The **LUMI** bars effect has been consolidated into [**Alpha Bars**](settings.md#alpha-bars) (as the *Full* option) and now also works with Radial and FFT band count;
++ Added *Inward* option to [**Radial**](settings.md#radial) spectrum;
++ [**Reflex**](settings.md#reflex) setting now has more levels to choose from;
++ **Gravity** setting has been replaced by **Peak decay time** which now controls both the fade-out and fall-down time, under [**Configuration > Peaks behavior**](configuration.md#peaks-behavior);
++ New [**weighting filters**](advanced.md#weighting-filter): 3dB/octave tilt and 4.5dB/octave tilt;
++ [**Y-Axis Labels**](settings.md#y-axis-labels) can now be set to display dB or percentage values;
++ [**Frequency range**](advanced.md#frequency-range) now allows free input of desired values, with only minor constraints to ensure a valid range;
++ Default weighting filter changed to 3dB tilt;
++ Adjusted default sensitivity presets under [**Configuration > Sensitivity presets**](configuration.md#sensitivity-presets) *(click the **Reset** button on each preset to try the new defaults)*;
++ The **FLAT** switch has been replaced by the **On-screen text style**, under [**Configuration > On-screen information display**](configuration.md#on-screen-information-display)
++ The **SPLIT** switch has been renamed to **SPREAD** (now only displayed when a dual-channel layout is selected);
++ The **T** keyboard shortcut (previously used for the **FLAT** switch) is now used to select the Theme;
++ Controls not effective in the current configuration are now disabled - hover the mouse over a control to see why it's not available;
++ The settings randomizer now picks some effects less often and avoids activating radial and reflex in the compact analyzer;
++ Added contextual help for all options in Settings and Advanced panels - click a control title to open help in a window;
++ Minor tweaks to the user interface.
+
+Thanks go to:
+
++ **@will-hut** for implementing the [3dB/octave and 4.5dB/octave tilt filters](https://github.com/hvianna/audioMotion-analyzer/pull/107);
++ **@JesusGod-Pope666-Info** for suggesting the [square LEDs](https://github.com/hvianna/audioMotion.js/discussions/115) and [specific peak colors](https://github.com/hvianna/audioMotion.js/discussions/119), and for all the useful feedback!
+
+
 ## version 25.9
 
 ### Added: <!-- {docsify-ignore} -->

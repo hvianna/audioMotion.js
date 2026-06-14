@@ -16,7 +16,7 @@
  *
  * https://github.com/hvianna/audioMotion.js
  *
- * Copyright (c) 2018-2025 Henrique Avila Vianna <hvianna@gmail.com>
+ * Copyright (c) 2018-2026 Henrique Avila Vianna <hvianna@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -89,11 +89,11 @@
 					<a href="#!" class="modal-close-internal"></a>
 					<div class="credits">
 						<h1>audioMotion</h1>
-						<div><a href="https://audiomotion.app/docs/changelog" title="click for changelog" target="_blank">version <span id="version"></span></a></div>
-						<p>Copyright &copy; 2018-2025 Henrique Avila Vianna</p>
+						<div><a href="docs/changelog" title="click for changelog" target="_blank">version <span class="app-version"></span></a></div>
+						<p>Copyright &copy; 2018-2026 Henrique Avila Vianna</p>
 						<ul>
 							<li><a href="https://audiomotion.app/docs" target="_blank">Website</a></li>
-							<li><a href="https://audiomotion.app/docs/users-manual" target="_blank">User's Manual</a></li>
+							<li><a href="docs/users-manual" target="_blank">User's Manual</a></li>
 							<li><a href="https://github.com/hvianna/audioMotion.js/" target="_blank">GitHub</a></li>
 						</ul>
 					</div>
@@ -113,18 +113,16 @@
 						<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>Display track information<br>(press again for more info, and again to hide)</td></tr>
 						<tr><td><kbd>E</kbd></td><td>Shuffle</td></tr>
 						<tr><td><kbd>F</kbd></td><td>Fullscreen</td></tr>
-						<tr><td><kbd>G</kbd></td><td>Gradients</td></tr>
 						<tr><td><kbd>H</kbd></td><td>FPS</td></tr>
 						<tr><td><kbd>I</kbd></td><td>TRACK INFO</td></tr>
-						<tr><td><kbd>L</kbd></td><td>LEDS</td></tr>
+						<tr><td><kbd>L</kbd></td><td>LED Bars</td></tr>
 						<tr><td><kbd>M</kbd></td><td>Analyzer Mode</td></tr>
 						<tr><td><kbd>N</kbd></td><td>Sensitivity</td></tr>
 						<tr><td><kbd>O</kbd></td><td>LO-RES</td></tr>
 						<tr><td><kbd>P</kbd></td><td>Peaks</td></tr>
 						<tr><td><kbd>R</kbd></td><td>Repeat</td></tr>
-						<tr><td><kbd>S</kbd></td><td>Scale Labels (both axes)</td></tr>
-						<tr><td><kbd>T</kbd></td><td>FLAT</td></tr>
-						<tr><td><kbd>U</kbd></td><td>LUMI</td></tr>
+						<tr><td><kbd>S</kbd> / <kbd>Shift</kbd> + <kbd>S</kbd></td><td>X-Axis / Y-Axis Labels</td></tr>
+						<tr><td><kbd>T</kbd></td><td>Theme</td></tr>
 						<tr><td><kbd>X</kbd></td><td>Reflex</td></tr>
 						<tr><td><kbd>Esc</kbd></td><td>Exit fullscreen</td></tr>
 						<tr><td><kbd>F1</kbd></td><td>Help (this panel) - also works in fullscreen</td></tr>
@@ -145,7 +143,10 @@
 					</label>
 				</div>
 
-				<header><h1>audioMotion</h1></header>
+				<header>
+					<h1>audioMotion</h1>
+					<div>v<span class="app-version"></span></div>
+				</header>
 			</div>
 
 			<ul class="player-controls">
@@ -204,196 +205,161 @@
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div class="rowspan-2">
-					<span class="config-label">Presets</span>
+					<span class="config-label help" data-help="docs/#/settings?id=presets">Presets</span>
 					<select id="presets"></select>
 					<div class="button-bar">
-						<button id="preset_last" class="help">Session start
-							<span class="tooltip">Restore all settings to as they were when you last launched the app</span>
-						</button>
-						<button id="preset_default" class="help">Defaults
-							<span class="tooltip">Reset all settings to their default values</span>
-						</button>
+						<button id="preset_last">Session start</button>
+						<button id="preset_default">Defaults</button>
 					</div>
 					<div class="button-bar">
-						<button id="btn_manage_presets" class="help">Save / Manage
-							<span class="tooltip">Save current settings to a User Preset or manage saved presets</span>
-						</button>
+						<button id="btn_manage_presets">Save / Manage</button>
 					</div>
 				</div>
 
-				<div>
-					<span class="config-label">R<u>a</u>ndomize</span>
-					<select id="random_mode" data-prop="randomMode"></select>
+				<div class="rowspan-2">
+					<span class="config-label help" data-help="docs/#/settings?id=randomize">R<u>a</u>ndomize</span>
+					<form id="random_mode" class="custom-radio-buttons multiline" data-prop="randomMode"></form>
+
+					<div class="button-bar">
+						<button id="randomize_now">Randomize now</button>
+					</div>
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
+				<div class="last-row">
+					<span class="config-label help" data-help="/docs/#/advanced?id=import-export-settings">Import / Export Settings</span>
+					<div class="button-bar">
+						<label class="button">Import
+							<input id="import_settings" type="file" accept=".json">
+						</label>
+						<button class="help" id="export_settings">Export</button>
+					</div>
 				</div>
 
 			<!-- COLUMN 2 -->
 				<div>
-					<span class="config-label">Analyzer <u>M</u>ode</span>
+					<span class="config-label help" data-help="docs/#/settings?id=analyzer-mode">Analyzer <u>M</u>ode</span>
 					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
 				</div>
 
 				<div>
-					<span class="config-label help">Band Count
-						<span class="tooltip">
-							Number of frequency bands to display<br><em>(Bars mode only)</em>
-						</span>
-					</span>
+					<span class="config-label help" data-help="docs/#/settings?id=band-count">Band Count</span>
 					<div class="value"></div>
 					<input id="band_count" data-prop="bandCount" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label">Bar Color Mode</span>
+					<span class="config-label help" data-help="docs/#/settings?id=bar-color-mode">Bar Color Mode</span>
 					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
 				</div>
 
 				<div>
-					<!-- EMPTY CELL -->
+					<span class="config-label help" data-help="docs/#/settings?id=radial">Radial</span>
+					<form id="radial" class="custom-radio-buttons" data-prop="radial"></form>
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help">Se<u>n</u>sitivity
-						<span class="tooltip">
-						Improve visualization of songs too quiet or too loud. Customize in Configuration.
-						</span>
-					</span>
+					<span class="config-label help" data-help="docs/#/settings?id=sensitivity">Se<u>n</u>sitivity</span>
 					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
 				</div>
 
 			<!-- COLUMN 3 -->
 				<div class="column rowspan-2">
-					<span class="config-label help"><u>G</u>radients
-						<span class="tooltip">
-							Gradients for left and right channels. Set channel layout in Advanced.
-						</span>
-					</span>
+					<span class="config-label help" data-help="docs/#/settings?id=color-theme">Color <u>T</u>heme</span>
 
-					<div class="flex align-center">
-						<select id="gradient" data-prop="gradient"></select>
-						<select id="gradientRight" data-prop="gradientRight"></select>
+					<div id="themes_grid" class="grid grid-2-cols">
+						<select id="theme_0" data-prop="themes"></select>
+						<select id="theme_1" data-prop="themes"></select>
+
+						<ul class="switch-bar">
+							<li class="switch" id="horizontal_0" data-prop="themes">HORIZONTAL
+							<li class="switch" id="reverse_0" data-prop="themes">REVERSE
+						</ul>
+						<ul class="switch-bar">
+							<li class="switch" id="horizontal_1" data-prop="themes">HOR
+							<li class="switch" id="reverse_1" data-prop="themes">REV
+						</ul>
 					</div>
 
-					<ul class="switch-bar">
+					<ul id="dual_theme_options" class="switch-bar">
 						<li class="switch" id="link_grads" data-prop="linkGrads">LINK
-							<span class="tooltip">Use the same Gradient for both channels</span>
-						<li class="switch" id="split_grad" data-prop="splitGrad">SPLIT
-							<span class="tooltip">Split gradients in two different parts<br><em>(for Vertical dual-channel layout)</em></span>
+						<li class="switch" id="split_grad" data-prop="splitGrad">SPREAD
 					</ul>
+
 					<div class="button-bar">
-						<button id="manage_gradients">Manage Gradients</button>
+						<button id="manage_themes">Manage Themes</button>
 					</div>
 				</div>
 
 				<div>
-					<span class="config-label help"><u>B</u>ackground
-						<span class="tooltip">
-						Select background option
-						</span>
-					</span>
+					<span class="config-label help" data-help="docs/#/settings?id=background"><u>B</u>ackground</span>
 					<select id="background" data-prop="background"></select>
 				</div>
 
 				<div>
 					<div>
-						<span class="config-label help">Background Image Fit
-							<span class="tooltip">
-								Adjust the size and position of the background image <kbd>Shift</kbd><kbd>B</kbd>
-							</span>
-						</span>
+						<span class="config-label help" data-help="docs/#/settings?id=background-image-fit">Background Image Fit</span>
 						<select id="bg_img_fit" data-prop="bgImageFit"></select>
 					</div>
 				</div>
 
 				<div>
-					<span class="config-label help">Background Dim
-						<span class="tooltip">
-							Adjust the intensity of the background image or video
-						</span>
-					</span>
+					<span class="config-label help" data-help="docs/#/settings?id=background-dim">Background Dim</span>
 					<div class="value"></div>
 					<input id="bg_img_dim" type="range" data-prop="bgImageDim" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 4 -->
-				<div class="rowspan-2">
-					<span class="config-label">Effects</span>
+				<div>
+					<span class="config-label help" data-help="docs/#/settings?id=alpha-bars">Alpha Bars</span>
+					<form id="alpha_bars" class="custom-radio-buttons" data-prop="alphaBars"></form>
+				</div>
 
+				<div>
+					<span class="config-label help" data-help="docs/#/settings?id=bar-effects">Bar effects</span>
 					<ul class="switch-bar">
-						<li class="switch" id="alpha_bars" data-prop="alphaBars">Alpha
-							<span class="tooltip">Bar amplitude affects its opacity<br><em>(no effect in Graph mode)</em></span>
-						<li class="switch" id="lumi_bars" data-prop="lumiBars">L<u>U</u>MI
-							<span class="tooltip">Show full height bars with varying luminance <em>(Bars mode only)</em></span>
-
-						<li class="switch" id="led_display" data-prop="ledDisplay"><u>L</u>EDS
-							<span class="tooltip">Vintage LED bars effect <em>(Bars mode only)</em></span>
-						<li class="switch" id="outline" data-prop="outlineBars">Outline
-							<span class="tooltip">Outlined bars <em>(Bars mode only)</em></span>
-
-						<li class="switch" id="radial" data-prop="radial">RADIAL
-							<span class="tooltip">Circular analyzer with radial frequencies<br><em>(disables LEDS and LUMI)</em> <kbd>C</kbd></span>
+						<li class="switch" id="outline" data-prop="outlineBars">OUTLINE
 						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
-							<span class="tooltip">Rounded tip bars <em>(Bars mode only)</em></span>
 					</ul>
 				</div>
 
-				<div>
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div>
-					<!-- EMPTY CELL -->
+				<div class="rowspan-2">
+					<span class="config-label help" data-help="docs/#/settings?id=led-bars"><u>L</u>ED Bars</span>
+					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
+					<form id="led_format" class="custom-radio-buttons" data-prop="ledFormat"></form>
+					<ul class="switch-bar">
+						<li class="switch" id="led_mask" data-prop="showLedMask">LED MASK
+					</ul>
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help">Refle<u>x</u>
-						<span class="tooltip">
-						Vertical reflection style<br><em>(no effect when LUMI or RADIAL are on)</em>
-						</span>
-					</span>
-					<form id="reflex" class="custom-radio-buttons" data-prop="reflex"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=reflex">Refle<u>x</u></span>
+					<div class="value"></div>
+					<input id="reflex" data-prop="reflex" type="range" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 5 -->
 				<div class="rowspan-2 last-column">
-					<span class="config-label">Display</span>
+					<span class="config-label help" data-help="docs/#/settings?id=display">Display</span>
 					<ul class="switch-bar">
-						<li class="switch" id="show_song" data-prop="showSong">Track <u>I</u>nfo
-							<span class="tooltip">Display song info at track start/end.<br>Customize in Configuration.</span>
-						<li class="switch" id="show_subs" data-prop="showSubtitles">Subtitles
-							<span class="tooltip">Toggle display of subtitles</span>
-						<li class="switch" id="no_shadow" data-prop="noShadow">FLA<u>T</u>
-							<span class="tooltip">Disable shadow on canvas text<br>(may improve performance)</span>
-						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
-							<span class="tooltip">Lower canvas resolution to improve rendering speed</span>
+						<li class="switch" id="show_song" data-prop="showSong">TRACK <u>I</u>NFO
+						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
 						<li class="switch" id="fps" data-prop="showFPS">FPS
-							<span class="tooltip">Display current frame rate <kbd>H</kbd></span>
+						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
 					</ul>
 				</div>
 
 				<div class="last-column">
-					<span class="config-label help"><u>P</u>eaks</u>
-						<span class="tooltip">
-						Toggle amplitude peaks. Customize in Configuration &gt; Peaks behavior.
-						</span>
-					</span>
+					<span class="config-label help" data-help="docs/#/settings?id=peaks"><u>P</u>eaks</u></span>
 					<form id="show_peaks" class="custom-radio-buttons" data-prop="showPeaks"></form>
 				</div>
 
 				<div class="last-column">
-					<span class="config-label">X-Axis Label<u>s</u></span>
+					<span class="config-label help" data-help="docs/#/settings?id=x-axis-labels">X-Axis Label<u>s</u></span>
 					<form id="scaleX" class="custom-radio-buttons" data-prop="showScaleX"></form>
 				</div>
 
 				<div class="last-column last-row">
-					<span class="config-label">Y-Axis Label<u>s</u></span>
+					<span class="config-label help" data-help="docs/#/settings?id=y-axis-labels">Y-Axis Label<u>s</u></span>
 					<form id="scaleY" class="custom-radio-buttons" data-prop="showScaleY"></form>
 				</div>
 
@@ -404,16 +370,12 @@
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div>
-					<span class="config-label help">Channel Layout
-						<span class="tooltip">
-						Select the number and layout of analyzer channels
-						</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=channel-layout">Channel Layout</span>
 					<form id="channel_layout" class="custom-radio-buttons" data-prop="channelLayout"></form>
 				</div>
 
 				<div>
-					<span class="config-label">Mirror</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=mirror">Mirror</span>
 					<form id="mirror" class="custom-radio-buttons" data-prop="mirror"></form>
 				</div>
 
@@ -426,55 +388,36 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label">Import / Export Settings</span>
-					<div class="button-bar">
-						<label class="button help">Import
-							<input id="import_settings" type="file" accept=".json">
-							<span class="tooltip">Import settings from external JSON file</span>
-						</label>
-						<button class="help" id="export_settings">Export
-							<span class="tooltip">Export current settings to JSON file</span>
-						</button>
-					</div>
+					<!-- EMPTY CELL -->
 				</div>
 
 			<!-- COLUMN 2 -->
 				<div>
-					<span class="config-label help">Bar Spacing
-						<span class="tooltip">Bar spacing for Bars mode<br><em>(no effect when LUMI is on)</em></span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=bar-spacing">Bar Spacing</span>
 					<div class="value"></div>
 					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label help">Fill Opacity
-						<span class="tooltip">
-							Fill opacity for Graph mode<br>and Outline bar effect
-						</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=fill-opacity">Fill Opacity</span>
 					<div class="value"></div>
 					<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label help">Line Width
-						<span class="tooltip">
-							Line width for Graph mode<br>and Outline bar effect
-						</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=line-width">Line Width</span>
 					<div class="value"></div>
 					<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label">Radial Size</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=radial-size">Radial Size</span>
 					<div class="value"></div>
 					<input id="radius" data-prop="radius" type="range" class="custom-slider">
 				</div>
 
 				<div class="last-row">
-					<span class="config-label">Radial Spin</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=radial-spin">Radial Spin</span>
 					<div class="value"></div>
 					<input id="spin" data-prop="spin" type="range" class="custom-slider">
 				</div>
@@ -502,25 +445,21 @@
 
 			<!-- COLUMN 4 -->
 				<div>
-					<span class="config-label">Frequency Range</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=frequency-range">Frequency Range</span>
 					<div class="flex align-center">
-						<select id="freq_min" data-prop="freqMin"></select>
+						<span><input type="number" id="freq_min" data-prop="freqMin"> Hz</span>
 						&nbsp;to&nbsp;
-						<select id="freq_max" data-prop="freqMax"></select>
+						<span><input type="number" id="freq_max" data-prop="freqMax"> Hz</span>
 					</div>
 				</div>
 
 				<div>
-					<span class="config-label help">Frequency Scale
-						<span class="tooltip">Frequency distribution in the X-axis</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=frequency-scale">Frequency Scale</span>
 					<form id="freq_scale" class="custom-radio-buttons" data-prop="freqScale"></form>
 				</div>
 
 				<div>
-					<span class="config-label help">Level Scale
-						<span class="tooltip">Select how volume levels are represented in the Y-axis</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=level-scale">Level Scale</span>
 					<form id="linear_amplitude" class="custom-radio-buttons" data-prop="linearAmpl"></form>
 				</div>
 
@@ -529,24 +468,18 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help">Octave Bands
-						<span class="tooltip">Use the equal-tempered scale or ANSI/IEC preferred frequencies to generate octave bands</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=octave-bands">Octave Bands</span>
 					<form id="ansi_bands" class="custom-radio-buttons" data-prop="ansiBands"></form>
 				</div>
 
 			<!-- COLUMN 5 -->
 				<div class="last-column">
-					<span class="config-label help">FFT Size
-						<span class="tooltip">Higher values provide greater detail for low frequencies, but slower response<br>(8k is recommended)</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=fft-size">FFT Size</span>
 					<form id="fft_size" class="custom-radio-buttons" data-prop="fftSize"></form>
 				</div>
 
 				<div class="last-column">
-					<span class="config-label help">FFT Smoothing
-						<span class="tooltip">Lower values make the analyzer react faster (recommended for larger FFT sizes); increase if it looks too "jumpy"</span>
-					</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=fft-smoothing">FFT Smoothing</span>
 					<div class="value"></div>
 					<input id="smoothing" data-prop="smoothing" type="range" class="custom-slider">
 				</div>
@@ -555,15 +488,9 @@
 					<!-- EMPTY CELL -->
 				</div>
 
-				<div class="last-column">
-					<!-- EMPTY CELL -->
-				</div>
-
-				<div class="last-column last-row">
-					<span class="config-label help">Weighting Filter
-						<span class="tooltip">Enhance or attenuate specific frequency ranges (for visualization only)</span>
-					</span>
-					<form id="weighting" class="custom-radio-buttons" data-prop="weighting"></form>
+				<div class="last-column rowspan-2 align-end">
+					<span class="config-label help" data-help="/docs/#/advanced?id=weighting-filter">Weighting Filter</span>
+					<form id="weighting" class="custom-radio-buttons multiline" data-prop="weighting"></form>
 				</div>
 
 			</div> <!-- .controls -->
@@ -648,16 +575,25 @@
 			<h2>Configuration</h2>
 
 			<details>
-				<summary>Background Image Fit options
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=background-image-fit-options" target="_blank"></a>
-				</summary>
+				<summary>Background Image Fit options <span class="link-to-docs" data-help="docs/#/configuration?id=background-image-fit-options"></span></summary>
 				<div id="enabled_bgfit" class="grid grid-2-cols gap-sm"></div>
 			</details>
 
+			<details id="theme_management">
+				<summary>Color Themes management <span class="link-to-docs" data-help="docs/#/configuration?id=color-themes-management"></span></summary>
+				<div>
+					<div id="enabled_themes" class="grid grid-2-cols gap-sm"></div>
+					<div class="flex align-center mt-1">
+						<button class="button mt-1" id="add_theme">Create Theme</button>
+						<label class="button mt-1">Import Theme
+							<input id="import_theme" type="file" accept=".json">
+						</label>
+					</div>
+				</div>
+			</details>
+
 			<details>
-				<summary class="colspan-2">General settings
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=general-settings" target="_blank"></a>
-				</summary>
+				<summary class="colspan-2">General settings <span class="link-to-docs" data-help="docs/#/configuration?id=general-settings"></span></summary>
 				<div class="grid grid-3-cols align-center">
 					<p class="colspan-2">Analyzer height on fullscreen (%):</p>
 					<input id="fs_height" type="number">
@@ -687,28 +623,14 @@
 				</div>
 			</details>
 
-			<details id="gradients_management">
-				<summary>Gradients management
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=gradients-management" target="_blank"></a>
-				</summary>
-				<div>
-					<div id="enabled_gradients" class="grid grid-2-cols gap-sm"></div>
-					<div class="flex align-center mt-1">
-						<button class="button mt-1" id="add-gradient">Create Gradient</button>
-						<label class="button mt-1">Import Gradient
-							<input id="import_gradient" type="file" accept=".json">
-						</label>
-					</div>
-				</div>
-			</details>
-
 			<details>
-				<summary>On-screen information display
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=on-screen-information-display" target="_blank"></a>
-				</summary>
+				<summary>On-screen information display <span class="link-to-docs" data-help="docs/#/configuration?id=on-screen-information-display"></span></summary>
 				<div class="grid grid-2-cols align-center">
 					<p>Font size:</p>
 					<select id="osd_font_size"></select>
+
+					<p>On-screen text style:</p>
+					<select id="osd_text_style"></select>
 
 					<p class="colspan-2"><br>Duration (in seconds) of displayed information:</p>
 
@@ -734,15 +656,10 @@
 			</details>
 
 			<details>
-				<summary>Peaks behavior
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=peaks-behavior" target="_blank"></a>
-				</summary>
+				<summary>Peaks behavior <span class="link-to-docs" data-help="docs/#/configuration?id=peaks-behavior"></span></summary>
 				<div class="grid grid-2-cols align-center">
-					<p>Gravity (kpx/s²):</p>
-					<input id="gravity" type="number">
-
-					<p>Peak fade time (ms):</p>
-					<input id="peak_fade" type="number">
+					<p>Peak decay time (ms):</p>
+					<input id="peak_decay" type="number">
 
 					<p>Peak hold time (ms):</p>
 					<input id="peak_hold" type="number">
@@ -752,16 +669,12 @@
 			</details>
 
 			<details>
-				<summary>Randomize
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=randomize" target="_blank"></a>
-				</summary>
+				<summary>Randomize <span class="link-to-docs" data-help="docs/#/configuration?id=randomize"></span></summary>
 				<div id="random_properties" class="grid grid-3-cols gap-sm"></div>
 			</details>
 
 			<details>
-				<summary>Sensitivity presets
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=sensitivity-presets" target="_blank"></a>
-				</summary>
+				<summary>Sensitivity presets <span class="link-to-docs" data-help="docs/#/configuration?id=sensitivity-presets"></span></summary>
 				<div class="sensitivity-presets">
 					<table class="table-fixed">
 						<tr>
@@ -797,9 +710,7 @@
 			</details>
 
 			<details>
-				<summary class="colspan-2">Subtitles & Video
-					<a class="link-to-docs" href="https://audiomotion.app/docs/#/configuration?id=subtitles-configuration" target="_blank"></a>
-				</summary>
+				<summary class="colspan-2">Subtitles & Video <span class="link-to-docs" data-help="docs/#/configuration?id=subtitles-amp-video"></span></summary>
 
 				<div class="grid grid-2-cols align-center">
 					<p>Subtitles Background:</p>
@@ -829,28 +740,22 @@
 		</div> <!-- .config-panel -->
 	</div> <!-- #config -->
 
-	<div id="gradient-editor" class="modal-window">
+	<div id="theme-editor" class="modal-window">
 		<a href="#config" title="Close" class="modal-close"></a>
 		<div>
 			<a href="#config" title="Close" class="modal-close-internal"></a>
-			<div><span class="config-label"><label for="new-gradient-name">Name</label></span></div>
-			<div class="mt-5px"><input type="text" id="new-gradient-name"></div>
+			<div><span class="config-label"><label for="new-theme-name">Name</label></span></div>
+			<div class="mt-5px"><input type="text" id="new-theme-name"></div>
+
+			<div class="mt-1"><span class="config-label"><label for="new-theme-bkgd">Background Color</label></span></div>
+			<div class="mt-5px"><input type="color" id="new-theme-bkgd"></div>
+
 			<div class="mt-1">
-				<table id="grad-color-table">
-					<tr>
-						<td><span class="config-label">Colors</span></td>
-						<td></td>
-						<td><span class="config-label">Offset</span></td>
-					</tr>
-				</table>
-				<div class="mt-5px">
-					<input type="checkbox" id="new-gradient-horizontal">
-					<label for="new-gradient-horizontal">Horizontal</label>
-				</div>
+				<table id="grad-color-table"></table>
+
 				<table id="grad-color-table-template">
 					<tr id="grad-row-label-template">
-						<td><span class="config-label">Colors</span></td>
-						<td></td>
+						<td colspan="2"><span class="config-label">Gradient Colors</span></td>
 						<td><span class="config-label">Offset</span></td>
 					</tr>
 					<tr id="grad-row-template" class="grad-color-row">
@@ -862,20 +767,31 @@
 					</tr>
 				</table>
 			</div>
-			<div class="mt-1"><span class="config-label"><label for="new-gradient-bkgd">Background Color</label></span></div>
-			<div class="mt-5px"><input type="color" id="new-gradient-bkgd"></div>
+
+			<div class="mt-1"><span class="config-label"><label>Modifiers</label></span></div>
+			<div class="mt-5px">
+				<label><input type="checkbox" id="new-theme-horizontal">Horizontal</label> &nbsp;
+				<label><input type="checkbox" id="new-theme-reverse">Reverse</label> &nbsp;
+			</div>
+
+			<div class="mt-1"><span class="config-label"><label for="new-theme-peakcolor">Peak Color</label></span></div>
+			<div class="mt-5px">
+				<input type="color" id="new-theme-peakcolor"> &nbsp;
+				<labeL><input type="checkbox" id="new-theme-peakcolor-disable">Disabled (use gradient colors)</labeL>
+			</div>
+
 			<div class="grid grid-2-cols gap-lg mt-2">
-				<button id="btn-delete-gradient">Delete</button>
-				<button id="btn-save-gradient">Save</button>
+				<button id="btn-delete-theme">Delete</button>
+				<button id="btn-save-theme">Save</button>
 			</div>
 			<div class="grid grid-2-cols gap-lg mt-1">
-				<button id="btn-export-gradient">Export</button>
-				<button id="btn-save-gradient-copy">Clone</button>
+				<button id="btn-export-theme">Export</button>
+				<button id="btn-save-theme-copy">Clone</button>
 			</div>
 		</div>
-	</div> <!-- #gradient-editor -->
+	</div> <!-- #theme-editor -->
 
-	<div id="update-banner" class="update-banner"><a href="https://audiomotion.app/docs/changelog" target="_blank">audioMotion has been updated to the latest version!</a></div>
+	<div id="update-banner" class="update-banner"><a href="docs/changelog" target="_blank">audioMotion has been updated to the latest version!</a></div>
 
 	<script src="vendors.js"></script>
 	<script src="audioMotion.js"></script>
