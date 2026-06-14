@@ -177,6 +177,12 @@ const FILE_EXT_AUDIO = ['mp3','flac','m4a','aac','ogg','wav'],
 const FILEMODE_SERVER = 'server',
 	  FILEMODE_LOCAL  = 'local';
 
+// Limit values for frequency range selection
+const FREQ_LO_MIN = 1,
+	  FREQ_LO_MAX = 2000,
+	  FREQ_HI_MIN = 1000,
+	  FREQ_HI_MAX = 24000;
+
 // localStorage keys
 const KEY_CONFIGURATION  = 'audioMotion-config',
 	  KEY_CUSTOM_THEMES  = 'audioMotion-themes',
@@ -871,6 +877,13 @@ const canvasCtx  = elOSD.getContext('2d'),
 
 // HELPER FUNCTIONS -------------------------------------------------------------------------------
 
+// clamp a given value between `min` and `max`
+const clamp = ( val, min, max ) => {
+ 	// TO-DO: handle NaN
+ 	[ min, max ] = [ Math.min( min, max ), Math.max( min, max ) ];
+	return val <= min ? min : val >= max ? max : val;
+};
+
 // return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
 const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
 
@@ -1022,6 +1035,9 @@ const isExternalURL = path => path.startsWith('http') && ! path.startsWith( URL_
 
 // check if an object is empty
 const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).length;
+
+// check if given object is a number input element
+const isNumberControl = el => el.type == 'number';
 
 // check if given value is numeric
 const isNumeric = val => ! isArray( val ) && val == +val; // note: +[] == []
@@ -4108,9 +4124,14 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elRangeMin:
+				elRangeMin.value = clamp( +elRangeMin.value, FREQ_LO_MIN, FREQ_LO_MAX );
+				elRangeMax.value = clamp( +elRangeMax.value, Math.max( FREQ_HI_MIN, +elRangeMin.value << 2 ), FREQ_HI_MAX );
+				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
+				break;
+
 			case elRangeMax:
-				while ( +elRangeMax.value <= +elRangeMin.value )
-					elRangeMax.selectedIndex++;
+				elRangeMax.value = clamp( +elRangeMax.value, FREQ_HI_MIN, FREQ_HI_MAX );
+				elRangeMin.value = clamp( +elRangeMin.value, FREQ_LO_MIN, Math.min( +elRangeMax.value >> 2, FREQ_LO_MAX ) );
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
@@ -4528,7 +4549,7 @@ function setUIEventListeners() {
 			});
 		}
 		else { // 'input' event is triggered for select and input elements
-			el.addEventListener( 'input', () => {
+			el.addEventListener( isNumberControl( el ) ? 'change' : 'input', () => {
 				if ( ( el == elFillAlpha || el == elLineWidth ) && elFillAlpha.value == 0 && elLineWidth.value == 0 ) {
 					// prevent fillAlpha and lineWidth being both set to 0
 					const newEl = el == elFillAlpha ? elLineWidth : elFillAlpha;
@@ -5542,11 +5563,8 @@ function updateRangeValue( el ) {
 
 	populatePresets();
 
-	for ( const i of [16,20,25,30,40,50,60,100,250,500,1000,2000] )
-		elRangeMin[ elRangeMin.options.length ] = new Option( ( i >= 1000 ? ( i / 1000 ) + 'k' : i ) + 'Hz', i );
-
-	for ( const i of [1000,2000,4000,8000,12000,16000,20000,22000] )
-		elRangeMax[ elRangeMax.options.length ] = new Option( ( i / 1000 ) + 'kHz', i );
+	setRangeAtts( elRangeMin, FREQ_LO_MIN, FREQ_LO_MAX );
+	setRangeAtts( elRangeMax, FREQ_HI_MIN, FREQ_HI_MAX );
 
 	populateCustomRadio( elMode, modeOptions );
 
