@@ -4278,21 +4278,21 @@ function setProperty( elems, save = true ) {
 
 	// Enable/disable UI controls based on current settings
 
-	const { alphaBars, colorMode, ledBars, isBandsMode, isLedBars, isOutlineBars, mode, radial } = audioMotion,
+	const { alphaBars, colorMode, ledBars, isAlphaBars, isBandsMode, isLedBars, isOutlineBars, mode, radial } = audioMotion,
 		  isBars     = mode == MODE_BARS,
 		  isGradient = colorMode == COLORMODE_GRADIENT,
 		  isGraph    = mode == MODE_GRAPH,
-		  isLumi     = alphaBars == ALPHABARS_FULL,
+		  isLumi     = isAlphaBars && alphaBars == ALPHABARS_FULL,
 		  isRadial   = radial != RADIAL_OFF;
 
-	const DISABLED_BY_ALPHABARS     = 'Not available on Full Alpha Bars',
-		  DISABLED_BY_BANDCOUNT     = 'Not available on current Band Count',
-		  DISABLED_BY_LEDBARS       = 'Not available on LED Bars',
-		  DISABLED_BY_MODE_NOT_BARS = 'Only on Bars mode',
-		  DISABLED_BY_NOT_GRADIENT  = 'Only on Gradient Color Mode',
+	const DISABLED_BY_ALPHABARS     = 'No effect with Full Alpha Bars',
+		  DISABLED_BY_BANDCOUNT     = 'No effect with current Band Count',
+		  DISABLED_BY_LEDBARS       = 'No effect with LED Bars on',
+		  DISABLED_BY_MODE_NOT_BARS = 'Only in Bars mode',
+		  DISABLED_BY_NOT_GRADIENT  = 'Only in Gradient Color Mode',
 		  DISABLED_BY_NOT_LEDBARS   = 'LED Bars is Off',
-		  DISABLED_BY_NOT_RADIAL    = 'Only on Radial spectrum',
-		  DISABLED_BY_RADIAL        = 'Not available on Radial spectrum';
+		  DISABLED_BY_NOT_RADIAL    = 'For Radial spectrum only',
+		  DISABLED_BY_RADIAL        = 'No effect with Radial spectrum';
 
 	toggleEnableControl( [ elAlphaBars, elColorMode ], isBars, DISABLED_BY_MODE_NOT_BARS );
 	toggleEnableControl( [ elBarSpace ], isBars && isBandsMode && ! isLumi, isLumi ? DISABLED_BY_ALPHABARS : isBars ? DISABLED_BY_BANDCOUNT : DISABLED_BY_MODE_NOT_BARS );
