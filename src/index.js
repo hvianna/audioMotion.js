@@ -3207,10 +3207,44 @@ function populateSelect( element, options ) {
 }
 
 /**
+ * Randomize a UI control
+ *
+ * @param {object} UI element
+ * @param [{function}] validation callback - passed the candidate randomized value, must return boolean
+ */
+function randomizeControl( el, validate = () => true ) {
+	let attempts = 99; // avoid infinite loop in case validation is never satisfied
+	do {
+		if ( isCustomRadio( el ) ) {
+			// custom radio buttons
+			const items = el.elements[ el.dataset.prop ];
+			items[ randomInt( items.length ) ].checked = true;
+		}
+		else if ( isRangeControl( el ) ) {
+			// range inputs
+			const { min, max, step } = el, // NOTE: values come as strings!!
+				  range  = ( max - min ) / step,
+				  newVal = fixFloating( randomInt( range + 1 ) * step + +min );
+
+			setControlValue( el, newVal );
+		}
+		else if ( isSelectControl( el ) ) {
+			// selects
+			el.selectedIndex = randomInt( el.options.length );
+		}
+		else if ( el.dataset.active !== undefined ) {
+			// on/off switches
+			el.dataset.active = randomInt();
+		}
+	} while ( ! validate( getControlValue( el ) ) && attempts-- );
+
+	setProperty( el );
+}
+
+/**
  * Choose random settings
  *
- * @param [force] {boolean} force change even when not playing
- *                (default true for microphone input, false otherwise )
+ * @param {boolean} force change even when not playing (default `true` for microphone input, `false` otherwise)
  */
 function randomizeSettings( force = elSource.checked ) {
 	if ( ! isPlaying() && ! force )
@@ -3219,42 +3253,27 @@ function randomizeSettings( force = elSource.checked ) {
 	const isCompactAnalyzer = elAnalyzer.classList.contains( CSS_CLASS_COMPACT );
 
 	// helper functions
+	const currentThemeColorCount = () => audioMotion.getThemeData( elTheme0.value )?.colorStops.length;
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
-
-	const randomizeControl = ( el, validate = () => true ) => {
-		let attempts = 99; // avoid infinite loop in case validation is never satisfied
-		do {
-			if ( isCustomRadio( el ) ) {
-				// custom radio buttons
-				const items = el.elements[ el.dataset.prop ];
-				items[ randomInt( items.length ) ].checked = true;
-			}
-			else if ( isRangeControl( el ) ) {
-				// range inputs
-				const { min, max, step } = el, // NOTE: values come as strings!!
-					  range  = ( max - min ) / step,
-					  newVal = fixFloating( randomInt( range + 1 ) * step + +min );
-
-				setControlValue( el, newVal );
-			}
-			else if ( isSelectControl( el ) ) {
-				// selects
-				el.selectedIndex = randomInt( el.options.length );
-			}
-			else if ( el.dataset.active !== undefined ) {
-				// on/off switches
-				el.dataset.active = randomInt();
-			}
-		} while ( ! validate( getControlValue( el ) ) && attempts-- );
-
-		setProperty( el );
-	}
 
 	if ( isEnabled( RND_PRESETS ) ) {
 		const validIndexes = userPresets.map( ( item, index ) => isEmpty( item ) ? null : index ).filter( item => item !== null ),
 			  count = validIndexes.length;
 		if ( count )
 			loadPreset( validIndexes[ randomInt( count ) ], false, false, true );
+	}
+
+	if ( isEnabled( RND_THEMES ) ) {
+		for ( const el of [ elTheme0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elTheme1 ] ) ] )
+			randomizeControl( el );
+	}
+	if ( isEnabled( RND_HORIZONTAL ) ) {
+		for ( const el of [ elHorizontal0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elHorizontal1 ] ) ] )
+			randomizeControl( el );
+	}
+	if ( isEnabled( RND_REVERSE ) ) {
+		for ( const el of [ elReverse0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elReverse1 ] ) ] )
+			randomizeControl( el );
 	}
 
 	if ( isEnabled( RND_MODE ) ) {
@@ -3278,11 +3297,15 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
 
-	if ( isEnabled( RND_COLORMODE ) )
-		randomizeControl( elColorMode );
+	if ( isEnabled( RND_COLORMODE ) ) {
+		// avoid non-gradient color modes on themes with less than 3 colors
+		randomizeControl( elColorMode, newVal => newVal == COLORMODE_GRADIENT || currentThemeColorCount() > 2 );
+	}
 
-	if ( isEnabled( RND_LEDS ) )
-		randomizeControl( elLedDisplay );
+	if ( isEnabled( RND_LEDS ) ) {
+		// avoid vintage LEDs on themes with less than 3 colors
+		randomizeControl( elLedDisplay, newVal => newVal != LEDS_VINTAGE || currentThemeColorCount() > 2 );
+	}
 
 	if ( isEnabled( RND_LED_FORMAT ) ) {
 		// no square LEDs for full-octave bands (avoid huge LEDs)
@@ -3317,18 +3340,6 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( isEnabled( RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
 
-	if ( isEnabled( RND_THEMES ) ) {
-		for ( const el of [ elTheme0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elTheme1 ] ) ] )
-			randomizeControl( el );
-	}
-	if ( isEnabled( RND_HORIZONTAL ) ) {
-		for ( const el of [ elHorizontal0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elHorizontal1 ] ) ] )
-			randomizeControl( el );
-	}
-	if ( isEnabled( RND_REVERSE ) ) {
-		for ( const el of [ elReverse0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elReverse1 ] ) ] )
-			randomizeControl( el );
-	}
 }
 
 /**
