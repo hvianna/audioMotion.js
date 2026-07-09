@@ -4188,12 +4188,8 @@ function setProperty( elems, save = true ) {
 			case elRandomMode:
 				if ( randomModeTimer )
 					randomModeTimer = clearInterval( randomModeTimer );
-
 				if ( elValue > 1 )
 					randomModeTimer = setInterval( randomizeSettings, 2500 * elValue );
-
-				noGraphStreak  = 0;
-				noRadialStreak = 0;
 				break;
 
 			case elRangeMin:
@@ -4395,7 +4391,7 @@ function setProperty( elems, save = true ) {
 	toggleEnableControl( [ elLedFormat, elLedMask ], isLedBars, DISABLED_BY_NOT_LEDBARS );
 	toggleEnableControl( [ elReflex ], ! isRadial && ! isLumi, isRadial ? DISABLED_BY_RADIAL : DISABLED_BY_ALPHABARS );
 	toggleEnableControl( [ elFillAlpha, elLineWidth ], isOutlineBars || isGraph, 'For Outline Bars or Graph mode only' );
-	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], isGradient && ! isRadial && ( ! isLedBars || ledBars != LEDS_VINTAGE ), isRadial ? DISABLED_BY_RADIAL : isGradient ? 'No effect with Vintage LEDs' : DISABLED_BY_NOT_GRADIENT );
+	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], ! isRadial && ( isGraph || ( isGradient && ( ! isLedBars || ledBars != LEDS_VINTAGE ) ) ), isRadial ? DISABLED_BY_RADIAL : isGradient ? 'No effect with Vintage LEDs' : DISABLED_BY_NOT_GRADIENT );
 	toggleEnableControl( [ elRadius, elSpin ], isRadial, DISABLED_BY_NOT_RADIAL );
 }
 
@@ -5169,16 +5165,16 @@ function setQueueIndex( newValue ) {
 /**
  * Enable or disable a UI control
  */
-function toggleEnableControl( elements, state, message ) {
+function toggleEnableControl( elements, enable, message ) {
 	if ( ! isArray( elements ) )
 		elements = [ elements ];
 
 	for ( const el of elements ) {
-		el.classList.toggle( CSS_CLASS_DISABLED, ! state );
+		el.classList.toggle( CSS_CLASS_DISABLED, ! enable );
 		if ( isRangeControl( el ) )
-			el.disabled = ! state;
+			el.disabled = ! enable;
 		// when control is disabled add informative message to the element's title
-		( isCustomSwitch( el ) ? el.parentElement : el ).title = ! state && message || '';
+		( isCustomSwitch( el ) ? el.parentElement : el ).title = ! enable && message || '';
 	}
 }
 
