@@ -216,17 +216,17 @@ const LEDFORMAT_REGULAR = 0,
 	  LEDFORMAT_THIN    = 1,
 	  LEDFORMAT_SQUARE  = 2;
 
-// LED height for each bandCount (for Regular format)
-const LEDHEIGHTS = {
-	[ BANDS_FFT ]: undefined,
-	[ BANDS_OCTAVE_FULL ]: 12,
-	[ BANDS_OCTAVE_HALF ]: 10,
-	[ BANDS_OCTAVE_3RD  ]: 8,
-	[ BANDS_OCTAVE_4TH  ]: 8,
-	[ BANDS_OCTAVE_6TH  ]: 6,
-	[ BANDS_OCTAVE_8TH  ]: 6,
-	[ BANDS_OCTAVE_12TH ]: 4,
-	[ BANDS_OCTAVE_24TH ]: 4
+// LED properties for each bandCount (for Regular format)
+const LEDPROPS = {
+	[ BANDS_FFT ]: [],
+	[ BANDS_OCTAVE_FULL ]: [ 12, 8 ],
+	[ BANDS_OCTAVE_HALF ]: [ 10, 6 ],
+	[ BANDS_OCTAVE_3RD  ]: [  8, 5 ],
+	[ BANDS_OCTAVE_4TH  ]: [  8, 5 ],
+	[ BANDS_OCTAVE_6TH  ]: [  6, 4 ],
+	[ BANDS_OCTAVE_8TH  ]: [  6, 4 ],
+	[ BANDS_OCTAVE_12TH ]: [  4, 3 ],
+	[ BANDS_OCTAVE_24TH ]: [  4, 3 ]
 };
 
 // Legacy visualization modes (for preset migration)
@@ -4296,15 +4296,14 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLedFormat:
-				let ledHeight = LEDHEIGHTS[ getControlValue( elBandCount ) ],
-				 	gapHeight = ledHeight;
+				let [ ledHeight, gapHeight ] = LEDPROPS[ getControlValue( elBandCount ) ];
 
 				if ( elValue == LEDFORMAT_SQUARE )
 					ledHeight = gapHeight = 0;
 				else if ( elValue == LEDFORMAT_THIN )
 					ledHeight = 2;
 
-				audioMotion.setLeds( ledHeight, gapHeight );
+				audioMotion.setLedProps({ ledHeight, gapHeight });
 				break;
 
 			case elSubsBackground:
