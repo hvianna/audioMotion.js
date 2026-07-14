@@ -1623,15 +1623,15 @@ input.slider:not(:checked) + .slider .slider-on {
 
 /* Color theme editor */
 .mt-1 {
-	margin-top: 1rem;
+	margin-top: 1rem !important;
 }
 
 .mt-2 {
-	margin-top: 2rem;
+	margin-top: 2rem !important;
 }
 
 .mt-5px {
-	margin-top: 5px;
+	margin-top: 5px !important;
 }
 
 .grad-color-row td {

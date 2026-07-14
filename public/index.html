@@ -583,6 +583,9 @@
 				<summary>Color Themes management <span class="link-to-docs" data-help="docs/#/configuration?id=color-themes-management"></span></summary>
 				<div>
 					<div id="enabled_themes" class="grid grid-2-cols gap-sm"></div>
+
+					<p class="colspan-3 mt-2"><label><input type="checkbox" id="preserve_modifiers"> Preserve Horizontal & Reverse state on theme change</label></p>
+
 					<div class="flex align-center mt-1">
 						<button class="button mt-1" id="add_theme">Create Theme</button>
 						<label class="button mt-1">Import Theme
@@ -610,8 +613,7 @@
 					<p class="colspan-2">PIP aspect ratio:</p>
 					<select id="pip_ratio"></select>
 
-					<p class="colspan-3"></p>
-					<p class="colspan-3"><label><input type="checkbox" id="auto_hide"> Auto-collapse front panel on analyzer hover</label></p>
+					<p class="colspan-3 mt-2"><label><input type="checkbox" id="auto_hide"> Auto-collapse front panel on analyzer hover</label></p>
 					<p class="colspan-3"><label><input type="checkbox" id="enable_surround"> Enable 5.1 surround audio output (experimental)</label></p>
 					<p class="colspan-3"><label><input type="checkbox" id="invert_volume"> Invert scroll direction for Volume control</label></p>
 					<p class="colspan-3"><label><input type="checkbox" id="preserve_filenames"> Preserve filenames as is in the play queue</label></p>

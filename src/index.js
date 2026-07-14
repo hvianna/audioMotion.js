@@ -360,6 +360,7 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elPlaylists     = $('#playlists'),
 	  elPlayqueue     = $('#playlist'),
 	  elPreserveFilenames = $('#preserve_filenames'),
+	  elPreserveModifiers = $('#preserve_modifiers'),
 	  elPresets       = $('#presets'),
 	  elRadial        = $('#radial'),
 	  elRadius        = $('#radius'),
@@ -825,7 +826,7 @@ const bgFitOptions = [
 ];
 
 // General settings
-const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elInvertVolume, elMaxFPS, elPIPRatio, elPreserveFilenames, elSaveDir, elSaveQueue, elSurround ];
+const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHeight, elInvertVolume, elMaxFPS, elPIPRatio, elPreserveFilenames, elPreserveModifiers, elSaveDir, elSaveQueue, elSurround ];
 
 const generalOptionsDefaults = {
 	autoHide   : false,
@@ -836,6 +837,7 @@ const generalOptionsDefaults = {
 	maxFPS     : 60,
 	pipRatio   : 2.35,
 	preserveFilenames: false,
+	preserveModifiers: false,
 	saveDir    : true,
 	saveQueue  : true,
 	surround   : false
@@ -945,6 +947,9 @@ const clamp = ( val, min, max ) => {
  	[ min, max ] = [ Math.min( min, max ), Math.max( min, max ) ];
 	return val <= min ? min : val >= max ? max : val;
 };
+
+// deep clone object
+const deepCloneObject = obj => JSON.parse( JSON.stringify( obj ) );
 
 // return an encoded JSON data URI for a given object - thanks https://stackoverflow.com/a/30800715
 const encodeJSONDataURI = obj => 'data:text/json;charset=utf-8,' + encodeURIComponent( JSON.stringify( obj, null, 2 ) );
@@ -2156,10 +2161,8 @@ function loadFromStorage( key ) {
 function loadThemeIntoCurrentTheme( themeKey ) {
 	if ( ! THEMES[ themeKey ] ) throw new Error(`THEMES[${themeKey}] is null or undefined.`);
 
-	currentTheme = {
-		...THEMES[ themeKey ],                  // make a copy of theme data (includes `key`, `name`, `bgColor`, `horizontal` and `reverse`)
-		...audioMotion.getThemeData( themeKey ) // gets normalized colorStops from registered theme
-	}
+	// make a copy of theme data
+	currentTheme = deepCloneObject( THEMES[ themeKey ] );
 
 	// use a canvas context to quickly convert any color format to hexadecimal string, as required by the HTML color picker
 	const ctx = document.createElement('canvas').getContext('2d');
@@ -3253,7 +3256,7 @@ function randomizeSettings( force = elSource.checked ) {
 	const isCompactAnalyzer = elAnalyzer.classList.contains( CSS_CLASS_COMPACT );
 
 	// helper functions
-	const currentThemeColorCount = () => audioMotion.getThemeData( elTheme0.value )?.colorStops.length;
+	const themesHaveEnoughColors = () => THEMES[ elTheme0.value ]?.colorStops.length > 2 && THEMES[ elTheme1.value ]?.colorStops.length > 2;
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
 
 	if ( isEnabled( RND_PRESETS ) ) {
@@ -3299,12 +3302,12 @@ function randomizeSettings( force = elSource.checked ) {
 
 	if ( isEnabled( RND_COLORMODE ) ) {
 		// avoid non-gradient color modes on themes with less than 3 colors
-		randomizeControl( elColorMode, newVal => newVal == COLORMODE_GRADIENT || currentThemeColorCount() > 2 );
+		randomizeControl( elColorMode, newVal => newVal == COLORMODE_GRADIENT || themesHaveEnoughColors() );
 	}
 
 	if ( isEnabled( RND_LEDS ) ) {
 		// avoid vintage LEDs on themes with less than 3 colors
-		randomizeControl( elLedDisplay, newVal => newVal != LEDS_VINTAGE || currentThemeColorCount() > 2 );
+		randomizeControl( elLedDisplay, newVal => newVal != LEDS_VINTAGE || themesHaveEnoughColors() );
 	}
 
 	if ( isEnabled( RND_LED_FORMAT ) ) {
@@ -3614,6 +3617,10 @@ function saveTheme( isImported ) {
 
 	THEMES[ currentTheme.key ] = currentTheme;
 	audioMotion.registerTheme( currentTheme.key, currentTheme );
+
+	// obtain the normalized colorStops
+	THEMES[ currentTheme.key ].colorStops = audioMotion.getThemeData( currentTheme.key ).colorStops;
+
 	populateThemes();
 	populateEnabledThemes();
 	savePreferences( KEY_CUSTOM_THEMES );
@@ -3683,6 +3690,7 @@ function savePreferences( key ) {
 				maxFPS     : elMaxFPS.value,
 				pipRatio   : elPIPRatio.value,
 				preserveFilenames: elPreserveFilenames.checked,
+				preserveModifiers: elPreserveModifiers.checked,
 				saveDir    : elSaveDir.checked,
 				saveQueue  : elSaveQueue.checked,
 				surround   : elSurround.checked
@@ -3879,6 +3887,7 @@ function setGeneralOptions( options ) {
 	elMaxFPS.value      = options.maxFPS;
 	elPIPRatio.value    = options.pipRatio;
 	elPreserveFilenames.checked = options.preserveFilenames;
+	elPreserveModifiers.checked = options.preserveModifiers;
 	elSaveDir.checked   = options.saveDir;
 	elSaveQueue.checked = options.saveQueue;
 	elSurround.checked  = options.surround;
@@ -3952,15 +3961,15 @@ function setProperty( elems, save = true ) {
 
 	// helper function
 	const toggleDualChannelThemeOptions = () => {
-		const isDual    = getControlValue( elChnLayout ) != LAYOUT_SINGLE,
-		 	  showRight = isDual && ! isLinkGrads;
+		const isDual       = getControlValue( elChnLayout ) != LAYOUT_SINGLE,
+		 	  enableTheme1 = isDual && ! isLinkGrads;
 
 		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
-			toggleDisplay( el, showRight );
-		$('#themes_grid').classList.toggle( 'grid', showRight );
+			toggleDisplay( el, enableTheme1 );
+		$('#themes_grid').classList.toggle( 'grid', enableTheme1 );
 
-		elHorizontal0.innerText = 'HORIZONTAL'.slice( 0, showRight ? 3 : undefined );
-		elReverse0.innerText = 'REVERSE'.slice( 0, showRight ? 3 : undefined );
+		elHorizontal0.innerText = 'HORIZONTAL'.slice( 0, enableTheme1 ? 3 : undefined );
+		elReverse0.innerText = 'REVERSE'.slice( 0, enableTheme1 ? 3 : undefined );
 
 		toggleDisplay( $('#dual_theme_options'), isDual );
 		toggleDisplay( $('#manage_themes'), ! isDual );
@@ -4332,13 +4341,16 @@ function setProperty( elems, save = true ) {
 					setControlValue( elTheme0, themeKey );
 					setControlValue( elTheme1, themeKey );
 				}
-				if ( el == elTheme0 ) {
-					setControlValue( elHorizontal0, horizontal );
-					setControlValue( elReverse0, reverse );
-				}
-				if ( el == elTheme1 || isLinkGrads ) {
-					setControlValue( elHorizontal1, horizontal );
-					setControlValue( elReverse1, reverse );
+
+				if ( ! elPreserveModifiers.checked ) {
+					if ( el == elTheme0 ) {
+						setControlValue( elHorizontal0, horizontal );
+						setControlValue( elReverse0, reverse );
+					}
+					if ( el == elTheme1 || isLinkGrads ) {
+						setControlValue( elHorizontal1, horizontal );
+						setControlValue( elReverse1, reverse );
+					}
 				}
 
 				audioMotion.setTheme( getCurrentThemes() );
@@ -5762,8 +5774,12 @@ function updateRangeValue( el ) {
 
 	// Register color themes
 	Object.keys( THEMES ).forEach( key => {
+		// no `colorStops` property indicates it's an audioMotion-analyzer built-in theme
 		if ( THEMES[ key ].colorStops )
 			audioMotion.registerTheme( key, THEMES[ key ] );
+
+		// obtain the normalized colorStops
+		THEMES[ key ].colorStops = audioMotion.getThemeData( key ).colorStops;
 	});
 	populateThemes();
 
