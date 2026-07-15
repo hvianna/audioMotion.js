@@ -535,13 +535,13 @@ const presets = [
 
 	{
 		key: PRESET_KEY_LAST_SESSION,
-		name: 'Last session',
+		name: 'Session start',
 		options: {}
 	},
 
 	{
 		key: PRESET_KEY_DEFAULT,
-		name: 'Restore defaults',
+		name: 'Defaults',
 		options: {
 			alphaBars    : ALPHABARS_OFF,
 			ansiBands    : 0,
@@ -2535,15 +2535,16 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		};
 	}
 
-	const keyIsObj   = isObject( key ),
-		  thisPreset = keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
-		  defaults   = getPreset( PRESET_KEY_DEFAULT );
+	const keyIsObj    = isObject( key ),
+		  thisPreset  = keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
+		  defaults    = getPreset( PRESET_KEY_DEFAULT ),
+		  description = keyIsObj || ! alert ? '' : isNumeric( key ) ? `User Preset #${ +key + 1 }` : `"${ getPresetName( key ) }" preset`;
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
 
-	if ( alert && ! keyIsObj )
-		consoleLog( `Loading ${ isNumeric( key ) ? 'User Preset #' + ( +key + 1 ) : "'" + getPresetName( key ) + "' preset" }` );
+	if ( description )
+		consoleLog( `Loading ${ description }.` );
 
 	if ( key == PRESET_KEY_DEFAULT )
 		delete thisPreset.volume; // don't reset the volume when restoring to defaults!
@@ -2689,7 +2690,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		randomizeNow();
 
 	if ( alert )
-		notie.alert({ text: 'Settings loaded!' });
+		notie.alert({ text: ( description || 'Settings' ) + ' loaded!' });
 }
 
 /**
@@ -3516,7 +3517,7 @@ async function retrieveBackgrounds() {
 		const imageCount = bgImages.length,
 			  videoCount = bgVideos.length;
 
-		consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder' );
+		consoleLog( 'Found ' + ( imageCount + videoCount == 0 ? 'no media' : imageCount + ' image files and ' + videoCount + ' video' ) + ' files in the backgrounds folder.' );
 	}
 
 	populateBackgrounds();
@@ -4426,7 +4427,7 @@ async function setSource( isMicSource, callback ) {
 					audioElement[ currAudio ].pause();
 				micStream = stream; // save stream reference for disconnection
 				audioMotion.connectInput( micStream );
-				consoleLog( 'Audio source set to microphone' );
+				consoleLog( 'Audio source set to microphone.' );
 			})
 			.catch( err => {
 				consoleLog( `Could not change audio source - ${err}`, true );
@@ -4438,7 +4439,7 @@ async function setSource( isMicSource, callback ) {
 			});
 		}
 		else {
-			consoleLog( 'Cannot access user microphone', true );
+			consoleLog( 'Cannot access user microphone.', true );
 			elSource.checked = false;
 			if ( callback )
 				callback( false );
@@ -4449,7 +4450,7 @@ async function setSource( isMicSource, callback ) {
 			audioMotion.disconnectInput( micStream, true ); // disconnect and release stream (stops recording)
 			micStream = null;
 		}
-		consoleLog( 'Audio source set to built-in player' );
+		consoleLog( 'Audio source set to built-in player.' );
 		if ( callback )
 			callback( true );
 	}
@@ -4700,11 +4701,7 @@ function setUIEventListeners() {
 	elPresets.addEventListener( 'input', () => {
 		const key = elPresets.value;
 		if ( key ) {
-			notie.confirm({
-				text: `Load preset ${ getText( elPresets ) }?`,
-				submitText: 'LOAD',
-				submitCallback: () => loadPreset( key )
-			});
+			loadPreset( key );
 			elPresets.value = '';
 		}
 	});
@@ -5150,7 +5147,7 @@ function toggleMultiChannel() {
 
 	// NOTE: highest standard speaker layout is 5.1 - https://webaudio.github.io/web-audio-api/#ChannelLayouts
 	destination.channelCount = Math.min( isSurround ? 6 : 2, maxChannelCount );
-	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }` );
+	consoleLog( `Surround audio output ${ isSurround ? 'enabled' : 'disabled' }. Device supports ${ maxChannelCount } channels; channels in use: ${ destination.channelCount }.` );
 
 	debugLog( 'connected nodes', audioMotion.connectedSources );
 }
@@ -5262,7 +5259,7 @@ function updateRangeValue( el ) {
 		let msg;
 		switch ( reason ) {
 			case REASON_CREATE:
-				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio })` );
+				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio }).` );
 				msg = 'Canvas created';
 				break;
 			case REASON_LORES:
@@ -5278,7 +5275,7 @@ function updateRangeValue( el ) {
 				// don't display any message for window/canvas resizing
 				return;
 		}
-		consoleLog( `${ msg || reason }. Canvas size is ${ canvas.width } x ${ canvas.height } px` );
+		consoleLog( `${ msg || reason }. Canvas size is ${ canvas.width } x ${ canvas.height } px.` );
 	}
 
 	/**
@@ -5510,7 +5507,7 @@ function updateRangeValue( el ) {
 
 	if ( enableDebug ) {
 		elDebug.checked = true;
-		consoleLog('Debug enabled via URL parameter');
+		consoleLog('Debug enabled via URL parameter.');
 	}
 
 	// Create the main panel selection buttons
@@ -5807,7 +5804,7 @@ function updateRangeValue( el ) {
 		const { filelist } = status;
 
 		if ( ! serverHasMedia )
-			consoleLog( `${ webServer ? 'Cannot access music directory on server' : 'No server found' }`, true );
+			consoleLog( `${ webServer ? 'Cannot access music directory on server.' : 'No server found.' }`, true );
 		if ( useFileSystemAPI )
 			consoleLog( 'Accessing files from local device via File System Access API.' );
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
@@ -5902,7 +5899,7 @@ function updateRangeValue( el ) {
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
 			  isLastDirLocked = useFileSystemAPI && isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
-		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings` );
+		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings.` );
 		loadPreset( PRESET_KEY_LAST_SESSION, false, true );
 
 		if ( isBgDirLocked || isLastDirLocked ) {
@@ -5917,7 +5914,7 @@ function updateRangeValue( el ) {
 
 		latency = ( audioCtx.outputLatency || 0 ) + audioCtx.baseLatency;
 
-		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ latency * 1e3 | 0 }ms` );
+		consoleLog( `AudioContext sample rate is ${audioCtx.sampleRate}Hz; Total latency is ${ latency * 1e3 | 0 }ms.` );
 		debugLog( { PANEL_MIN_HEIGHT, WINDOW_MIN_HEIGHT } );
 		consoleLog( 'Initialization complete!' );
 		initDone = true;
