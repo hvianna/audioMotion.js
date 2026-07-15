@@ -1,0 +1,19 @@
+{
+  "alphaBars": "off",
+  "background": "2",
+  "bandCount": "7",
+  "bgImageFit": "0",
+  "channelLayout": "single",
+  "colorMode": "gradient",
+  "ledDisplay": "off",
+  "mode": "bars",
+  "outlineBars": "0",
+  "radial": "0",
+  "randomMode": "0",
+  "reflex": "0.25",
+  "roundBars": "0",
+  "showPeaks": "fade",
+  "showScaleX": "notes",
+  "splitGrad": 0,
+  "themes": "rainbow"
+}

@@ -1,0 +1,19 @@
+{
+  "alphaBars": "off",
+  "background": "0",
+  "bandCount": "3",
+  "barSpace": "0.2",
+  "channelLayout": "single",
+  "colorMode": "gradient",
+  "ledDisplay": "vintage",
+  "ledFormat": "0",
+  "outlineBars": "0",
+  "mode": "bars",
+  "radial": "0",
+  "randomMode": "0",
+  "reflex": "0",
+  "roundBars": "0",
+  "showPeaks": "drop",
+  "splitGrad": "0",
+  "themes": "classic"
+}

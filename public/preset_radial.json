@@ -1,0 +1,17 @@
+{
+  "alphaBars": "on",
+  "background": "2",
+  "bandCount": "4",
+  "bgImageFit": "3",
+  "channelLayout": "single",
+  "colorMode": "bar-level",
+  "ledDisplay": "off",
+  "mirror": "0",
+  "mode": "bars",
+  "outlineBars": "0",
+  "radial": "1",
+  "randomMode": "0",
+  "showPeaks": "drop",
+  "splitGrad": "0",
+  "themes": "prism"
+}

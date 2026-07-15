@@ -20,12 +20,24 @@ A **config.yaml** file in the same directory as audioMotion's _index.html_ allow
 
 | option | possible values<br>(default in bold) | description |
 |--------|--------------------------|-------------|
-| **defaultAccessMode** | **`local`** \| `server` | Initial (first run) file access mode - user's device or /music directory on server
-| **enableLocalAccess** | **`true`** \| `false` | Whether to enable access to local device (*true* allows user to switch between local or server)
-| **frontPanel**        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](user-interface.md#main-function-buttons)
-| **preserveFilenames** | `true` \| **`false`** | Whether to preserve filenames as is in the play queue (can also be toggled via [General Settings](configuration.md#general-settings))
+| `defaultAccessMode` | **`local`** \| `server` | Initial (first run) file access mode - user's device or /music directory on server
+| `enableLocalAccess` | **`true`** \| `false` | Whether to enable access to local device (*true* allows user to switch between local or server)
+| `frontPanel`        | **`open`** \| `close` | Initial state of the Front Panel - behaves like the [collapse/expand front panel button](user-interface.md#main-function-buttons)
+| `preserveFilenames` | `true` \| **`false`** | Whether to preserve filenames as is in the play queue (can also be toggled via [General Settings](configuration.md#general-settings))
+| `presets`           | sequence of<br>- `keyname`: `description` | Defines the built-in presets (see below)
 
-The `config.yaml.example` file included in the `public/` folder can be used as a template.
+### Customizing built-in presets
+
+The app's [built-in presets](settings.md#presets) can be customized through the `presets` option, which is defined as a list of keyname-description pairs.
+For each *keyname*, a corresponding **preset_*keyname*.json** file must exist in the app directory.
+Use the [Export settings](settings.md#import-export-settings) option to generate files with your favorite presets.
+The *description* is shown in the preset selection box.
+
+Please note that the `defaults` keyname should not be changed or removed, to ensure it remains associated with the **Defaults** button.
+You can, however, edit the contents of the `preset_defaults.json` file to suit your preferences.
+
+Also, the `demo` keyname tells the app to automatically select random settings as soon as the corresponding preset is loaded.
+The included `preset_demo.json` file sets [Randomize](settings.md#randomize) to every 15 seconds.
 
 ## URL parameters
 

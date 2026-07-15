@@ -1,0 +1,14 @@
+{
+  "bandCount": "0",
+  "channelLayout": "dual-combined",
+  "fillAlpha": "0.3",
+  "lineWidth": "1",
+  "linkGrads": "0",
+  "mode": "graph",
+  "radial": "0",
+  "randomMode": "0",
+  "reflex": "0",
+  "showPeaks": "off",
+  "splitGrad": "0",
+  "themes": ["cool", "dusk"]
+}

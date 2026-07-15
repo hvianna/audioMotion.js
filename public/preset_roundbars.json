@@ -1,0 +1,19 @@
+{
+  "alphaBars": "off",
+  "background": "2",
+  "bandCount": "6",
+  "bgImageFit": "7",
+  "channelLayout": "single",
+  "colorMode": "bar-index",
+  "ledDisplay": "off",
+  "mirror": "0",
+  "mode": "bars",
+  "outlineBars": "0",
+  "radial": "0",
+  "randomMode": "0",
+  "reflex": "0.5",
+  "roundBars": "1",
+  "showPeaks": "off",
+  "splitGrad": "0",
+  "themes": "apple"
+}

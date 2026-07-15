@@ -246,7 +246,9 @@ const OSD_SIZE_S = '0',
 const PANEL_CLOSE = 'close',
 	  PANEL_OPEN  = 'open';
 
-const PRESET_KEY_DEFAULT = 'default',
+// Keynames for "special" built-in presets
+const PRESET_KEY_DEFAULT      = 'defaults',
+	  PRESET_KEY_DEMO         = 'demo',     // triggers randomizeNow() when loaded
 	  PRESET_KEY_LAST_SESSION = 'last';
 
 // User presets placeholders
@@ -411,186 +413,67 @@ const PANEL_MIN_HEIGHT  = $('.player-panel').clientHeight + $('.bottom-panel').c
 	  WINDOW_MIN_HEIGHT = parseInt( getComputedStyle( elContainer ).minHeight ) + PANEL_MIN_HEIGHT + elMediaPanel.clientHeight;
 
 // Configuration presets
-const presets = [
-	{
-		key: 'demo',
-		name: 'Demo (random)',
-		options: {
-			randomMode  : 6    // 15 seconds
-		}
-	},
-
-	{
-		key: 'ledbars',
-		name: 'Classic LED bars',
-		options: {
-			alphaBars    : ALPHABARS_OFF,
-			background   : BG_DEFAULT,
-			bandCount    : BANDS_OCTAVE_3RD,
-			barSpace     : .2,
-			channelLayout: LAYOUT_SINGLE,
-			colorMode    : COLORMODE_GRADIENT,
-			gradient     : 'classic',
-			ledDisplay   : LEDS_MODERN,
-			ledFormat    : LEDFORMAT_REGULAR,
-			outlineBars  : 0,
-			mode         : MODE_BARS,
-			radial       : 0,
-			randomMode   : 0,
-			reflex       : 0,
-			roundBars    : 0,
-			showPeaks    : PEAKS_DROP,
-			splitGrad    : 0
-		}
-	},
-
-	{
-		key: 'dual',
-		name: 'Dual-channel combined Graph',
-		options: {
-			bandCount    : BANDS_FFT,
-			channelLayout: LAYOUT_COMBINED,
-			fillAlpha    : .3,
-			lineWidth    : 1,
-			linkGrads    : 0,
-			mode         : MODE_GRAPH,
-			radial       : 0,
-			randomMode   : 0,
-			reflex       : 0,
-			showPeaks    : PEAKS_OFF,
-			splitGrad    : 0,
-			themes       : ['cool', 'dusk']
-		}
-	},
-
-	{
-		key: 'bands',
-		name: 'Octave Bands + Reflex',
-		options: {
-			alphaBars    : ALPHABARS_OFF,
-			background   : BG_COVER,
-			bandCount    : BANDS_OCTAVE_12TH,
-			bgImageFit   : BGFIT_ADJUST,
-			channelLayout: LAYOUT_SINGLE,
-			colorMode    : COLORMODE_GRADIENT,
-			gradient     : 'rainbow',
-			ledDisplay   : LEDS_OFF,
-			mode         : MODE_BARS,
-			outlineBars  : 0,
-			radial       : 0,
-			randomMode   : 0,
-			reflex       : .25,
-			roundBars    : 0,
-			showPeaks    : PEAKS_FADE,
-			showScaleX   : LABELS_X_NOTES,
-			splitGrad    : 0
-		}
-	},
-
-	{
-		key: 'radial',
-		name: 'Radial, Color by Level',
-		options: {
-			alphaBars    : ALPHABARS_ON,
-			background   : BG_COVER,
-			bandCount    : BANDS_OCTAVE_4TH,
-			bgImageFit   : BGFIT_PULSE,
-			channelLayout: LAYOUT_SINGLE,
-			colorMode    : COLORMODE_LEVEL,
-			gradient     : 'prism',
-			ledDisplay   : LEDS_OFF,
-			mirror       : MIRROR_OFF,
-			mode         : MODE_BARS,
-			outlineBars  : 0,
-			radial       : 1,
-			randomMode   : 0,
-			showPeaks    : PEAKS_DROP,
-			splitGrad    : 0
-		}
-	},
-
-	{
-		key: 'round',
-		name: 'Round Bars, Color by Index',
-		options: {
-			alphaBars    : ALPHABARS_OFF,
-			background   : BG_COVER,
-			bandCount    : BANDS_OCTAVE_8TH,
-			bgImageFit   : BGFIT_WARP_ANI,
-			channelLayout: LAYOUT_SINGLE,
-			colorMode    : COLORMODE_INDEX,
-			gradient     : 'apple',
-			ledDisplay   : LEDS_OFF,
-			mirror       : MIRROR_OFF,
-			mode         : MODE_BARS,
-			outlineBars  : 0,
-			radial       : 0,
-			randomMode   : 0,
-			reflex       : .5,
-			roundBars    : 1,
-			showPeaks    : PEAKS_OFF,
-			splitGrad    : 0
-		}
-	},
-
+const BUILTIN_PRESETS = [
 	{
 		key: PRESET_KEY_LAST_SESSION,
 		name: 'Session start',
 		options: {}
-	},
-
-	{
-		key: PRESET_KEY_DEFAULT,
-		name: 'Defaults',
-		options: {
-			alphaBars    : ALPHABARS_OFF,
-			ansiBands    : 0,
-			background   : BG_COVER,
-			bandCount    : BANDS_FFT,
-			barSpace     : .2,
-			bgImageDim   : .3,
-			bgImageFit   : BGFIT_CENTER,
-			channelLayout: LAYOUT_SINGLE,
-			colorMode    : COLORMODE_GRADIENT,
-			fftSize      : 8192,
-			fillAlpha    : .3,
-			freqMax      : 20000,
-			freqMin      : 20,
-			freqScale    : SCALE_LOG,
-			ledDisplay   : LEDS_OFF,
-			ledFormat    : LEDFORMAT_REGULAR,
-			linearAmpl   : 1,
-			lineWidth    : 1,
-			linkGrads    : 0,
-			loRes        : 0,
-			micSource    : 0,
-			mirror       : MIRROR_OFF,
-			mode         : MODE_BARS,
-			mute         : 0,
-			outlineBars  : 0,
-			radial       : 0,
-			radius       : .5,
-			randomMode   : 0,
-			reflex       : 0,
-			repeat       : 0,
-			roundBars    : 0,
-			sensitivity  : 1,
-			showFPS      : 0,
-			showLedMask  : 1,
-			showPeaks    : PEAKS_DROP,
-			showScaleX   : LABELS_X_FREQS,
-			showScaleY   : LABELS_Y_OFF,
-			showSong     : 1,
-			showSubtitles: 1,
-			smoothing    : .7,
-			spin         : 2,
-			splitGrad    : 0,
-			themes       : 'prism',
-			volume       : 1,
-			weighting    : FILTER_TILT3
-		}
 	}
+	// additional presets are populated from config.yaml contents
 ];
+
+// Fallback default preset - NOTE: `volume` property is required for first-run initialization!
+const DEFAULT_PRESET = {
+	key: PRESET_KEY_DEFAULT,
+	name: 'Defaults',
+	options: {
+		alphaBars    : ALPHABARS_OFF,
+		ansiBands    : 0,
+		background   : BG_COVER,
+		bandCount    : BANDS_FFT,
+		barSpace     : .2,
+		bgImageDim   : .3,
+		bgImageFit   : BGFIT_CENTER,
+		channelLayout: LAYOUT_SINGLE,
+		colorMode    : COLORMODE_GRADIENT,
+		fftSize      : 8192,
+		fillAlpha    : .3,
+		freqMax      : 20000,
+		freqMin      : 20,
+		freqScale    : SCALE_LOG,
+		ledDisplay   : LEDS_OFF,
+		ledFormat    : LEDFORMAT_REGULAR,
+		linearAmpl   : 1,
+		lineWidth    : 1,
+		linkGrads    : 0,
+		loRes        : 0,
+		micSource    : 0,
+		mirror       : MIRROR_OFF,
+		mode         : MODE_BARS,
+		mute         : 0,
+		outlineBars  : 0,
+		radial       : 0,
+		radius       : .5,
+		randomMode   : 0,
+		reflex       : 0,
+		repeat       : 0,
+		roundBars    : 0,
+		sensitivity  : 1,
+		showFPS      : 0,
+		showLedMask  : 1,
+		showPeaks    : PEAKS_DROP,
+		showScaleX   : LABELS_X_FREQS,
+		showScaleY   : LABELS_Y_OFF,
+		showSong     : 1,
+		showSubtitles: 1,
+		smoothing    : .7,
+		spin         : 2,
+		splitGrad    : 0,
+		themes       : 'prism',
+		volume       : 1,
+		weighting    : FILTER_TILT3
+	}
+};
 
 // Color theme definitions
 const THEMES = {
@@ -1060,20 +943,20 @@ const getCurrentThemes = () => {
 
 // get the array index for a preset key, or validate a given index; if invalid or not found returns -1
 const getPresetIndex = key => {
-	const index = isNumeric( key ) ? key : presets.findIndex( item => item.key == key );
-	return ( index < 0 || index > presets.length - 1 ) ? -1 : index;
+	const index = isNumeric( key ) ? key : BUILTIN_PRESETS.findIndex( item => item.key == key );
+	return ( index < 0 || index > BUILTIN_PRESETS.length - 1 ) ? -1 : index;
 }
 
 // get the configurations options of a preset
 const getPreset = key => {
 	const index = getPresetIndex( key );
-	return ( index == -1 ) ? {} : presets[ index ].options;
+	return ( index == -1 ) ? {} : BUILTIN_PRESETS[ index ].options;
 }
 
 // get the name of a preset
 const getPresetName = key => {
 	const index = getPresetIndex( key );
-	return ( index == -1 ) ? false : presets[ index ].name;
+	return ( index == -1 ) ? false : BUILTIN_PRESETS[ index ].name;
 }
 
 // return selected theme(s) for canvas OSD message
@@ -1243,7 +1126,7 @@ const setPreset = ( key, options ) => {
 	const index = getPresetIndex( key );
 	if ( index == -1 )
 		return;
-	presets[ index ].options = options;
+	BUILTIN_PRESETS[ index ].options = options;
 }
 
 // set attributes of "range" or "number" input elements
@@ -2332,12 +2215,8 @@ function loadPreferences( serverConfig ) {
 
 	delete lastConfig.version;
 
-	// for compatibility with v24.6 (down to v21.11), when FFT size and smoothing were stored in the general settings
-	const storedGeneralOptions   = userSettings[ KEY_LEGACY_GENERAL_OPTS ] || loadFromStorage( KEY_LEGACY_GENERAL_OPTS ) || {},
-		  { fftSize, smoothing } = storedGeneralOptions;
-
-	// Merge defaults with the last session settings (if any)
-	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), fftSize, smoothing, ...lastConfig } );
+	// Merge defaults with the last session settings (if any) - This ensures the defaults are loaded on app's first run!
+	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), ...lastConfig } );
 
 	// Load user presets
 	userPresets = loadFromStorage( KEY_CUSTOM_PRESETS ) || loadFromStorage( KEY_LEGACY_CUSTOM_PRESETS ) || [];
@@ -2413,7 +2292,9 @@ function loadPreferences( serverConfig ) {
 
 	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
 
-	const { preserveFilenames } = serverConfig;
+	const { preserveFilenames } = serverConfig,
+		  storedGeneralOptions  = userSettings[ KEY_LEGACY_GENERAL_OPTS ] || loadFromStorage( KEY_LEGACY_GENERAL_OPTS ) || {};
+
 	setGeneralOptions( { ...generalOptionsDefaults, preserveFilenames, ...storedGeneralOptions } );
 
 	// On-screen display options
@@ -2536,7 +2417,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	}
 
 	const keyIsObj    = isObject( key ),
-		  thisPreset  = keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ),
+		  thisPreset  = deepCloneObject( keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ) ),
 		  defaults    = getPreset( PRESET_KEY_DEFAULT ),
 		  description = keyIsObj || ! alert ? '' : isNumeric( key ) ? `User Preset #${ +key + 1 }` : `"${ getPresetName( key ) }" preset`;
 
@@ -2686,7 +2567,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	audioMotion.setTheme( getCurrentThemes() );
 
-	if ( key == 'demo' )
+	if ( key == PRESET_KEY_DEMO )
 		randomizeNow();
 
 	if ( alert )
@@ -3176,7 +3057,8 @@ function populatePresets() {
 	if ( savedPresets.length )
 		addGroup( 'User Presets', savedPresets );
 
-	addGroup( 'Built-in Presets', presets.filter( item => ! [ PRESET_KEY_LAST_SESSION, PRESET_KEY_DEFAULT ].includes( item.key ) ).map( item => [ item.key, item.name ] ) );
+	if ( BUILTIN_PRESETS.length > 2 )
+		addGroup( 'Built-in Presets', BUILTIN_PRESETS.filter( item => ! [ PRESET_KEY_LAST_SESSION, PRESET_KEY_DEFAULT ].includes( item.key ) ).map( item => [ item.key, item.name ] ) );
 }
 
 /**
@@ -5523,6 +5405,7 @@ function updateRangeValue( el ) {
 	$$('.app-version').forEach( el => el.innerText = VERSION );
 
 	// Load server configuration options from config.yaml
+
 	let response;
 
 	try {
@@ -5540,9 +5423,43 @@ function updateRangeValue( el ) {
 		serverConfig = {};
 	}
 
+	let { presets } = serverConfig;
+	delete serverConfig.presets;
 	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
+
+	// Load built-in presets defined in config.yaml
+
+	if ( isArray( presets ) ) {
+		for ( const item of presets ) {
+			if ( isEmpty( item ) )
+				continue;
+			for ( const [ key, name ] of Object.entries( item ) ) {
+				let response,
+					file = `preset_${ key }.json`;
+				try {
+					response = await fetch( file );
+					if ( response.ok ) {
+						let options = await response.json();
+						// if it's the Defaults preset, make sure all properties are present
+						BUILTIN_PRESETS.push({ key, name, options: key == PRESET_KEY_DEFAULT ? { ...DEFAULT_PRESET.options, ...options } : options });
+					}
+					else
+						response = null; // file not found lands here
+				}
+				catch( e ) {
+					response = null; // json parse error lands here
+				}
+				if ( ! response )
+					consoleLog( `Unable to load preset file: ${ file } - Make sure file exists and is valid JSON.`, true );
+			}
+		}
+	}
+
+	// make sure there is a "Defaults" preset
+	if ( getPresetIndex( PRESET_KEY_DEFAULT ) == -1 )
+		BUILTIN_PRESETS.push( DEFAULT_PRESET );
 
 	// check options enabled via URL parameters
 
