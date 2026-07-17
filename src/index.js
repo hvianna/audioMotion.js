@@ -990,7 +990,7 @@ const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).l
 const isNumberControl = el => el.type == 'number';
 
 // check if given value is numeric
-const isNumeric = val => ! isArray( val ) && val == +val; // note: +[] == []
+const isNumeric = val => val !== '' && ! isArray( val ) && val == +val; // note: +[] == [] and +'' == '' (both equal 0) *rolls eyes*
 
 // check if given value is an object (not null or array, which are also considered objects)
 const isObject = val => typeof val == 'object' && !! val && ! isArray( val );
@@ -2784,8 +2784,8 @@ function openThemeEditorNew( makeCopy ) {
 			name: 'New Theme',
 			bgColor: DEFAULT_BG_COLOR,
 			colorStops: [
-				{ pos: .1, color: '#222222' },
-				{ pos: 1, color: '#eeeeee' }
+				{ color: '#222222' },
+				{ color: '#eeeeee' }
 			],
 			disabled: false,
 			key: '', // using this to keep track of the key of the theme object in the theme list - will be set by saveTheme()
@@ -3035,7 +3035,6 @@ function populateThemes() {
 	}
 }
 
-
 /**
  * Populate presets selection box
  */
@@ -3252,6 +3251,12 @@ function removeFromStorage( ...keys ) {
 function renderThemeEditor() {
 	if ( currentTheme == null ) throw new Error("Current theme must be set before editing theme")
 
+	// normalize all colorStops and generate missing `level` and `pos` properties
+	const tempName = '___temp';
+	audioMotion.registerTheme( tempName, currentTheme );
+	currentTheme.colorStops = audioMotion.getThemeData( tempName ).colorStops;
+	audioMotion.unregisterTheme( tempName );
+
 	// empty table
 	const table = $('#grad-color-table');
 	deleteChildren( table );
@@ -3285,12 +3290,14 @@ function renderColorRow(index, stop) {
 	const colorPicker = template.querySelector('.grad-color-picker');
 	const colorValue = template.querySelector('.grad-color-value');
 	const colorStop = template.querySelector('.grad-color-stop');
+	const colorLevel = template.querySelector('.grad-color-level');
 	const addColorButton = template.querySelector('.grad-add-stop');
 	const removeColorButton = template.querySelector('.grad-remove-stop');
 
 	colorPicker.value = stop.color;
 	colorValue.value = stop.color;
 	colorStop.value = stop.pos;
+	colorLevel.value = stop.level;
 
 	colorPicker.addEventListener('input', (e) => {
 		colorValue.value = e.target.value;
@@ -3303,33 +3310,20 @@ function renderColorRow(index, stop) {
 	});
 
 	colorStop.addEventListener('input', (e) => {
-		currentTheme.colorStops[index].pos = parseFloat(e.target.value);
+		currentTheme.colorStops[index].pos = isNumeric( e.target.value ) ? +e.target.value : undefined;
+	});
+
+	colorLevel.addEventListener('input', (e) => {
+		currentTheme.colorStops[index].level = isNumeric( e.target.value ) ? +e.target.value : undefined;
 	});
 
 	addColorButton.addEventListener('click', () => {
-		const idealColorPos = () => {
-			// if this is the last color stop, set the second to last stop's position as the midpoint between the last
-			// and the second to last, then return this stop's position
-			// if not, return the midpoint between this and the next stop
-			if (index === currentTheme.colorStops.length - 1) {
-				const lastPos = currentTheme.colorStops[currentTheme.colorStops.length - 1].pos
-				currentTheme.colorStops[currentTheme.colorStops.length - 1].pos =
-					(currentTheme.colorStops[currentTheme.colorStops.length - 2].pos + lastPos) / 2;
-				return lastPos;
-			} else {
-				return (currentTheme.colorStops[index].pos + currentTheme.colorStops[index + 1].pos) / 2;
-			}
-		}
-
-		currentTheme.colorStops.splice(index + 1, 0, {
-			pos: idealColorPos(),
-			color: '#111111',
-		});
+		currentTheme.colorStops.splice(index + 1, 0, { color: '#111111' });
 		renderThemeEditor();
 	});
 
 	// prevent from being able to delete stops if there are two stops
-	if (currentTheme.colorStops.length === 2) {
+	if (currentTheme.colorStops.length === 1) {
 		removeColorButton.setAttribute('disabled', 'true');
 	} else {
 		removeColorButton.addEventListener('click', () => {
@@ -4804,6 +4798,18 @@ function setUIEventListeners() {
 			currentTheme.peakColor = undefined;
 			$('#new-theme-peakcolor').value = undefined;
 		}
+	});
+
+	$('#new-theme-auto-pos').addEventListener( 'click', () => {
+		for ( const cs of currentTheme.colorStops )
+			delete cs.pos;
+		renderThemeEditor();
+	});
+
+	$('#new-theme-auto-level').addEventListener( 'click', () => {
+		for ( const cs of currentTheme.colorStops )
+			delete cs.level;
+		renderThemeEditor();
 	});
 
 	// Configuration panel accordion

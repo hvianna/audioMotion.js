@@ -746,7 +746,7 @@
 		<a href="#config" title="Close" class="modal-close"></a>
 		<div>
 			<a href="#config" title="Close" class="modal-close-internal"></a>
-			<div><span class="config-label"><label for="new-theme-name">Name</label></span></div>
+			<div><span class="config-label"><label for="new-theme-name">Theme Name</label></span></div>
 			<div class="mt-5px"><input type="text" id="new-theme-name"></div>
 
 			<div class="mt-1"><span class="config-label"><label for="new-theme-bkgd">Background Color</label></span></div>
@@ -757,23 +757,30 @@
 
 				<table id="grad-color-table-template">
 					<tr id="grad-row-label-template">
-						<td colspan="2"><span class="config-label">Gradient Colors</span></td>
+						<td colspan="2"><span class="config-label">Colors</span></td>
 						<td><span class="config-label">Offset</span></td>
+						<td><span class="config-label">Level</span></td>
 					</tr>
 					<tr id="grad-row-template" class="grad-color-row">
 						<td><input class="grad-color-picker" type="color"></td>
 						<td><input class="grad-color-value" type="text" size="10" pattern="^#[0-9A-Fa-f]{0,6}$"></td>
 						<td><input class="grad-color-stop" type="text" size="5"></td>
+						<td><input class="grad-color-level" type="text" size="5"></td>
 						<td><button class="grad-remove-stop"></button></td>
 						<td><button class="grad-add-stop"></button></td>
 					</tr>
 				</table>
 			</div>
 
+			<div class="mt-5px">
+				<button id="new-theme-auto-pos">Balance Offsets</button> &nbsp;
+				<button id="new-theme-auto-level">Balance Levels</button>
+			</div>
+
 			<div class="mt-1"><span class="config-label"><label>Modifiers</label></span></div>
 			<div class="mt-5px">
 				<label><input type="checkbox" id="new-theme-horizontal">Horizontal</label> &nbsp;
-				<label><input type="checkbox" id="new-theme-reverse">Reverse</label> &nbsp;
+				<label><input type="checkbox" id="new-theme-reverse">Reverse</label>
 			</div>
 
 			<div class="mt-1"><span class="config-label"><label for="new-theme-peakcolor">Peak Color</label></span></div>
@@ -783,7 +790,7 @@
 			</div>
 
 			<div class="grid grid-2-cols gap-lg mt-2">
-				<button id="btn-delete-theme">Delete</button>
+				<button id="btn-delete-theme" class="danger">Delete</button>
 				<button id="btn-save-theme">Save</button>
 			</div>
 			<div class="grid grid-2-cols gap-lg mt-1">

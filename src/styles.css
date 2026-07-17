@@ -73,8 +73,19 @@ button:not([disabled]):active {
 	border-color: var(--border-color-active);
 	box-shadow: var(--glass-active-glow);
 	color: #293d00;
-	font-weight: 600;
 	text-shadow: var(--glass-active-glow);
+}
+
+button.danger:hover {
+	background: linear-gradient(180deg, #fbe8e8 0%, #fbcece 50%, #e6bfbf 51%, #f6caca); /*linear-gradient(180deg, #ffd3d3 0%, #f1c5c5 50%, #e1b5b5 51%, #f6caca);*/
+	border-color: #bc0000;
+}
+button.danger:active {
+	background: linear-gradient(180deg, #f8cfcf 0%, #d4a0a0 50%, #cc8b8b 51%, #e2a4a4); /* linear-gradient(180deg, #ffb3b3 0%, #e59a9a 50%, #d75353 51%, #e58f8f); */
+	border-color: #bc0000;
+	box-shadow: 0 0 6px #ff3535;
+	color: #3d0000;
+	text-shadow: 0 0 6px #ff3535;
 }
 
 canvas {
