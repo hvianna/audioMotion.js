@@ -772,8 +772,8 @@
 				</table>
 			</div>
 
-			<div class="mt-5px">
-				<button id="new-theme-auto-pos">Balance Offsets</button> &nbsp;
+			<div class="grid grid-2-cols gap-lg mt-1">
+				<button id="new-theme-auto-pos">Balance Offsets</button>
 				<button id="new-theme-auto-level">Balance Levels</button>
 			</div>
 
@@ -785,8 +785,15 @@
 
 			<div class="mt-1"><span class="config-label"><label for="new-theme-peakcolor">Peak Color</label></span></div>
 			<div class="mt-5px">
-				<input type="color" id="new-theme-peakcolor"> &nbsp;
-				<labeL><input type="checkbox" id="new-theme-peakcolor-disable">Disabled (use gradient colors)</labeL>
+				<labeL><input type="checkbox" id="new-theme-peakcolor-enable">Enable</labeL> &nbsp;
+				<input type="color" id="new-theme-peakcolor">
+			</div>
+
+			<div class="grid grid-2-cols gap-md mt-2 justify-center">
+				<div class="config-label">Gradient Preview (Offsets)</div>
+				<div class="config-label">LEDs Preview (Levels)</div>
+				<div id="preview-gradient" class="preview"></div>
+				<div id="preview-leds" class="preview"></div>
 			</div>
 
 			<div class="grid grid-2-cols gap-lg mt-2">

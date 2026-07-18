@@ -588,10 +588,10 @@ const THEMES = {
 					],
 					disabled: true },
 
-	rainbow:  	  { name: 'Rainbow', horizontal: 1, disabled: false },
+	rainbow:  	  { name: 'Rainbow', horizontal: true, disabled: false },
 
 	rainbow_old:  { name: 'Rainbow (legacy)',
-					horizontal: 1,
+					horizontal: true,
 					colorStops: [
 						'hsl( 0, 100%, 50% )',
 						'hsl( 60, 100%, 50% )',
@@ -791,6 +791,8 @@ let audioElement = [],
 	noRadialStreak = 0,
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
 	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
+	previewGradient,
+	previewLEDs,
 	queueIndex, 				// index to the current song in the play queue
 	randomModeTimer,
 	serverHasMedia,				// music directory found on web server
@@ -3248,36 +3250,74 @@ function removeFromStorage( ...keys ) {
 /**
  * Renders #grad-color-table based upon values of currentTheme.
  */
-function renderThemeEditor() {
+function renderThemeEditor( rebuildColorTable = true ) {
 	if ( currentTheme == null ) throw new Error("Current theme must be set before editing theme")
 
-	// normalize all colorStops and generate missing `level` and `pos` properties
-	const tempName = '___temp';
-	audioMotion.registerTheme( tempName, currentTheme );
-	currentTheme.colorStops = audioMotion.getThemeData( tempName ).colorStops;
-	audioMotion.unregisterTheme( tempName );
+	const previewName = 'preview',
+		  previewOptions = {
+			bandResolution: BANDS_OCTAVE_FULL,
+			barSpace: .55,
+			height: 210,
+			minFreq: 30,
+			maxFreq: 65,
+			showScaleX: LABELS_X_OFF,
+			showScaleY: LABELS_Y_PERCENT,
+			start: false,
+			width: 100
+		  },
+		  horizontal = !! currentTheme.horizontal,
+		  reverse = !! currentTheme.reverse;
 
-	// empty table
-	const table = $('#grad-color-table');
-	deleteChildren( table );
+	if ( ! previewGradient ) {
+		previewGradient = new AudioMotionAnalyzer( $('#preview-gradient'), {
+			...previewOptions
+		});
+	}
+	if ( ! previewLEDs ) {
+		previewLEDs = new AudioMotionAnalyzer( $('#preview-leds'), {
+			...previewOptions,
+			ledBars: LEDS_VINTAGE
+		});
+	}
+
+	// register theme in the preview instances
+	previewGradient.registerTheme( previewName, currentTheme );
+	previewGradient.setTheme( previewName, { horizontal, reverse } );
+	previewGradient.renderFrame([1]);
+
+	previewLEDs.registerTheme( previewName, currentTheme );
+	previewLEDs.setTheme( previewName, { horizontal, reverse } );
+	previewLEDs.renderFrame([1]);
+
+	$$('.preview').forEach( el => el.style.background = currentTheme.bgColor ?? DEFAULT_BG_COLOR );
+
+	// obtain normalized colorStops (generates any missing `level` and `pos` properties)
+	currentTheme.colorStops = previewGradient.getThemeData( previewName ).colorStops;
 
 	// set name
 	$('#new-theme-name').value = currentTheme.name;
 
-	const tableLabels = $('#grad-row-label-template').cloneNode(true);
-	tableLabels.removeAttribute("id");
-	table.appendChild(tableLabels);
+	if ( rebuildColorTable ) {
+		// empty table
+		const table = $('#grad-color-table');
+		deleteChildren( table );
 
-	// build row for each stop in the gradient
-	currentTheme.colorStops.forEach((stop, i) => {
-		renderColorRow( i, currentTheme.colorStops[ i ] );
-	});
+		const tableLabels = $('#grad-row-label-template').cloneNode(true);
+		tableLabels.removeAttribute("id");
+		table.appendChild(tableLabels);
+
+		// build row for each stop in the gradient
+		currentTheme.colorStops.forEach((stop, i) => {
+			renderColorRow( i, currentTheme.colorStops[ i ] );
+		});
+	}
 
 	$('#new-theme-bkgd').value = currentTheme.bgColor ?? DEFAULT_BG_COLOR;
-	$('#new-theme-horizontal').checked = currentTheme.horizontal == 1;
-	$('#new-theme-reverse').checked = currentTheme.reverse == 1;
+	$('#new-theme-horizontal').checked = horizontal;
+	$('#new-theme-reverse').checked = reverse;
 	$('#new-theme-peakcolor').value = currentTheme.peakColor;
-	$('#new-theme-peakcolor-disable').checked = ! currentTheme.peakColor;
+	$('#new-theme-peakcolor').disabled = ! currentTheme.peakColor;
+	$('#new-theme-peakcolor-enable').checked = !! currentTheme.peakColor;
 }
 
 /**
@@ -3299,22 +3339,26 @@ function renderColorRow(index, stop) {
 	colorStop.value = stop.pos;
 	colorLevel.value = stop.level;
 
-	colorPicker.addEventListener('input', (e) => {
+	colorPicker.addEventListener('input', (e) => { // note: 'input' triggers in real-time, 'change' triggers on blur
 		colorValue.value = e.target.value;
 		currentTheme.colorStops[index].color = colorPicker.value;
+		renderThemeEditor( false ); // don't rebuild the color table to avoid losing focus
 	});
 
-	colorValue.addEventListener('input', (e) => {
+	colorValue.addEventListener('change', (e) => {
 		colorPicker.value = e.target.value;
 		currentTheme.colorStops[index].color = colorPicker.value;
+		renderThemeEditor();
 	});
 
-	colorStop.addEventListener('input', (e) => {
+	colorStop.addEventListener('change', (e) => {
 		currentTheme.colorStops[index].pos = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		renderThemeEditor();
 	});
 
-	colorLevel.addEventListener('input', (e) => {
+	colorLevel.addEventListener('change', (e) => {
 		currentTheme.colorStops[index].level = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		renderThemeEditor();
 	});
 
 	addColorButton.addEventListener('click', () => {
@@ -4778,26 +4822,30 @@ function setUIEventListeners() {
 
 	$('#new-theme-bkgd').addEventListener('input', (e) => {
 		currentTheme.bgColor = e.target.value;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-horizontal').addEventListener('input', (e) => {
 		currentTheme.horizontal = +e.target.checked;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-reverse').addEventListener('input', (e) => {
 		currentTheme.reverse = +e.target.checked;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-peakcolor').addEventListener('input', (e) => {
-		$('#new-theme-peakcolor-disable').checked = false;
 		currentTheme.peakColor = e.target.value;
+		renderThemeEditor();
 	});
 
-	$('#new-theme-peakcolor-disable').addEventListener('input', (e) => {
-		if ( e.target.checked ) {
-			currentTheme.peakColor = undefined;
-			$('#new-theme-peakcolor').value = undefined;
-		}
+	$('#new-theme-peakcolor-enable').addEventListener('input', (e) => {
+		if ( e.target.checked )
+			currentTheme.peakColor = $('#new-theme-peakcolor').value;
+		else
+			delete currentTheme.peakColor;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-auto-pos').addEventListener( 'click', () => {

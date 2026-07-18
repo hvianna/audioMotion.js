@@ -92,6 +92,14 @@ canvas {
 	display: block;
 	width: 100%;
 }
+.preview {
+	padding-top: 5px;
+	width: 120px;
+}
+.preview canvas {
+	margin: 0 auto;
+	width: auto;
+}
 
 header {
 	align-items: baseline;
@@ -536,6 +544,9 @@ a.button:visited {
 }
 .space-around {
 	justify-content: space-around;
+}
+.justify-center {
+	justify-items: center;
 }
 .justify-left {
 	justify-content: start;
