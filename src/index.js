@@ -588,10 +588,10 @@ const THEMES = {
 					],
 					disabled: true },
 
-	rainbow:  	  { name: 'Rainbow', horizontal: 1, disabled: false },
+	rainbow:  	  { name: 'Rainbow', horizontal: true, disabled: false },
 
 	rainbow_old:  { name: 'Rainbow (legacy)',
-					horizontal: 1,
+					horizontal: true,
 					colorStops: [
 						'hsl( 0, 100%, 50% )',
 						'hsl( 60, 100%, 50% )',
@@ -791,11 +791,14 @@ let audioElement = [],
 	noRadialStreak = 0,
 	overwritePreset = false,    // flag to overwrite user preset during fullscreen
 	panNode,					// stereoPanner node used to fix mono audio behavior on stereo
+	previewGradient,
+	previewLEDs,
 	queueIndex, 				// index to the current song in the play queue
 	randomModeTimer,
 	serverHasMedia,				// music directory found on web server
 	skipping = false,
 	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.yaml)
+	unsavedChanges = false,		// used by the theme editor
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
@@ -990,7 +993,7 @@ const isEmpty = obj => ! obj || typeof obj != 'object' || ! Object.keys( obj ).l
 const isNumberControl = el => el.type == 'number';
 
 // check if given value is numeric
-const isNumeric = val => ! isArray( val ) && val == +val; // note: +[] == []
+const isNumeric = val => val !== '' && ! isArray( val ) && val == +val; // note: +[] == [] and +'' == '' (both equal 0) *rolls eyes*
 
 // check if given value is an object (not null or array, which are also considered objects)
 const isObject = val => typeof val == 'object' && !! val && ! isArray( val );
@@ -1500,6 +1503,7 @@ function deleteTheme() {
 	savePreferences( KEY_CUSTOM_THEMES );
 	savePreferences( KEY_CONFIGURATION ); // to save disabled gradients - TO-DO: check if still needed (can we still delete the only enabled theme?)
 
+	unsavedChanges = false;
 	currentTheme = null;
 	location.href = '#config';
 }
@@ -2768,6 +2772,7 @@ function openThemeEdit( key ) {
 	toggleDisplay( $('#btn-export-theme'), true );
 	toggleDisplay( $('#btn-save-theme-copy'), true );
 
+	unsavedChanges = false;
 	location.href = '#theme-editor';
 }
 
@@ -2784,8 +2789,8 @@ function openThemeEditorNew( makeCopy ) {
 			name: 'New Theme',
 			bgColor: DEFAULT_BG_COLOR,
 			colorStops: [
-				{ pos: .1, color: '#222222' },
-				{ pos: 1, color: '#eeeeee' }
+				{ color: '#222222' },
+				{ color: '#eeeeee' }
 			],
 			disabled: false,
 			key: '', // using this to keep track of the key of the theme object in the theme list - will be set by saveTheme()
@@ -2800,6 +2805,7 @@ function openThemeEditorNew( makeCopy ) {
 	toggleDisplay( $('#btn-export-theme'), false );
 	toggleDisplay( $('#btn-save-theme-copy'), false );
 
+	unsavedChanges = true;
 	location.href = '#theme-editor';
 }
 
@@ -3035,7 +3041,6 @@ function populateThemes() {
 	}
 }
 
-
 /**
  * Populate presets selection box
  */
@@ -3249,30 +3254,74 @@ function removeFromStorage( ...keys ) {
 /**
  * Renders #grad-color-table based upon values of currentTheme.
  */
-function renderThemeEditor() {
+function renderThemeEditor( rebuildColorTable = true ) {
 	if ( currentTheme == null ) throw new Error("Current theme must be set before editing theme")
 
-	// empty table
-	const table = $('#grad-color-table');
-	deleteChildren( table );
+	const previewName = 'preview',
+		  previewOptions = {
+			bandResolution: BANDS_OCTAVE_FULL,
+			barSpace: .55,
+			height: 210,
+			minFreq: 30,
+			maxFreq: 65,
+			showScaleX: LABELS_X_OFF,
+			showScaleY: LABELS_Y_PERCENT,
+			start: false,
+			width: 100
+		  },
+		  horizontal = !! currentTheme.horizontal,
+		  reverse = !! currentTheme.reverse;
+
+	if ( ! previewGradient ) {
+		previewGradient = new AudioMotionAnalyzer( $('#preview-gradient'), {
+			...previewOptions
+		});
+	}
+	if ( ! previewLEDs ) {
+		previewLEDs = new AudioMotionAnalyzer( $('#preview-leds'), {
+			...previewOptions,
+			ledBars: LEDS_VINTAGE
+		});
+	}
+
+	// register theme in the preview instances
+	previewGradient.registerTheme( previewName, currentTheme );
+	previewGradient.setTheme( previewName, { horizontal, reverse } );
+	previewGradient.renderFrame([1]);
+
+	previewLEDs.registerTheme( previewName, currentTheme );
+	previewLEDs.setTheme( previewName, { horizontal, reverse } );
+	previewLEDs.renderFrame([1]);
+
+	$$('.preview').forEach( el => el.style.background = currentTheme.bgColor ?? DEFAULT_BG_COLOR );
+
+	// obtain normalized colorStops (generates any missing `level` and `pos` properties)
+	currentTheme.colorStops = previewGradient.getThemeData( previewName ).colorStops;
 
 	// set name
 	$('#new-theme-name').value = currentTheme.name;
 
-	const tableLabels = $('#grad-row-label-template').cloneNode(true);
-	tableLabels.removeAttribute("id");
-	table.appendChild(tableLabels);
+	if ( rebuildColorTable ) {
+		// empty table
+		const table = $('#grad-color-table');
+		deleteChildren( table );
 
-	// build row for each stop in the gradient
-	currentTheme.colorStops.forEach((stop, i) => {
-		renderColorRow( i, currentTheme.colorStops[ i ] );
-	});
+		const tableLabels = $('#grad-row-label-template').cloneNode(true);
+		tableLabels.removeAttribute("id");
+		table.appendChild(tableLabels);
+
+		// build row for each stop in the gradient
+		currentTheme.colorStops.forEach((stop, i) => {
+			renderColorRow( i, currentTheme.colorStops[ i ] );
+		});
+	}
 
 	$('#new-theme-bkgd').value = currentTheme.bgColor ?? DEFAULT_BG_COLOR;
-	$('#new-theme-horizontal').checked = currentTheme.horizontal == 1;
-	$('#new-theme-reverse').checked = currentTheme.reverse == 1;
+	$('#new-theme-horizontal').checked = horizontal;
+	$('#new-theme-reverse').checked = reverse;
 	$('#new-theme-peakcolor').value = currentTheme.peakColor;
-	$('#new-theme-peakcolor-disable').checked = ! currentTheme.peakColor;
+	$('#new-theme-peakcolor').disabled = ! currentTheme.peakColor;
+	$('#new-theme-peakcolor-enable').checked = !! currentTheme.peakColor;
 }
 
 /**
@@ -3285,55 +3334,55 @@ function renderColorRow(index, stop) {
 	const colorPicker = template.querySelector('.grad-color-picker');
 	const colorValue = template.querySelector('.grad-color-value');
 	const colorStop = template.querySelector('.grad-color-stop');
+	const colorLevel = template.querySelector('.grad-color-level');
 	const addColorButton = template.querySelector('.grad-add-stop');
 	const removeColorButton = template.querySelector('.grad-remove-stop');
 
 	colorPicker.value = stop.color;
 	colorValue.value = stop.color;
 	colorStop.value = stop.pos;
+	colorLevel.value = stop.level;
 
-	colorPicker.addEventListener('input', (e) => {
+	colorPicker.addEventListener('input', (e) => { // note: 'input' triggers in real-time, 'change' triggers on blur only
 		colorValue.value = e.target.value;
-		currentTheme.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[ index ].color = colorPicker.value;
+		unsavedChanges = true;
+		renderThemeEditor( false ); // don't rebuild the color table to avoid losing focus
 	});
 
-	colorValue.addEventListener('input', (e) => {
+	colorValue.addEventListener('change', (e) => {
 		colorPicker.value = e.target.value;
-		currentTheme.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[ index ].color = colorPicker.value;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
-	colorStop.addEventListener('input', (e) => {
-		currentTheme.colorStops[index].pos = parseFloat(e.target.value);
+	colorStop.addEventListener('change', (e) => {
+		currentTheme.colorStops[ index ].pos = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		unsavedChanges = true;
+		renderThemeEditor();
+	});
+
+	colorLevel.addEventListener('change', (e) => {
+		currentTheme.colorStops[ index ].level = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
 	addColorButton.addEventListener('click', () => {
-		const idealColorPos = () => {
-			// if this is the last color stop, set the second to last stop's position as the midpoint between the last
-			// and the second to last, then return this stop's position
-			// if not, return the midpoint between this and the next stop
-			if (index === currentTheme.colorStops.length - 1) {
-				const lastPos = currentTheme.colorStops[currentTheme.colorStops.length - 1].pos
-				currentTheme.colorStops[currentTheme.colorStops.length - 1].pos =
-					(currentTheme.colorStops[currentTheme.colorStops.length - 2].pos + lastPos) / 2;
-				return lastPos;
-			} else {
-				return (currentTheme.colorStops[index].pos + currentTheme.colorStops[index + 1].pos) / 2;
-			}
-		}
-
-		currentTheme.colorStops.splice(index + 1, 0, {
-			pos: idealColorPos(),
-			color: '#111111',
-		});
+		currentTheme.colorStops.splice( index + 1, 0, { color: '#111111' } );
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	// prevent from being able to delete stops if there are two stops
-	if (currentTheme.colorStops.length === 2) {
+	if (currentTheme.colorStops.length === 1) {
 		removeColorButton.setAttribute('disabled', 'true');
-	} else {
+	}
+	else {
 		removeColorButton.addEventListener('click', () => {
 			currentTheme.colorStops.splice(index, 1);
+			unsavedChanges = true;
 			renderThemeEditor();
 		});
 	}
@@ -3508,6 +3557,7 @@ function saveTheme( isImported ) {
 	populateEnabledThemes();
 	savePreferences( KEY_CUSTOM_THEMES );
 
+	unsavedChanges = false;
 	currentTheme = null;
 	location.href = '#config';
 }
@@ -4748,7 +4798,7 @@ function setUIEventListeners() {
 		mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
 	}
 
-	// Set event listeners for Theme Editor controls
+	// Theme Editor
 
 	$('#add_theme').addEventListener('click', () => openThemeEditorNew() );
 	$('#btn-save-theme').addEventListener( 'click', () => saveTheme() );
@@ -4761,6 +4811,22 @@ function setUIEventListeners() {
 		});
 	});
 	$('#btn-export-theme').addEventListener( 'click', () => downloadObject( currentTheme, `audioMotion-theme-${ currentTheme.key }` ) );
+
+	const confirmUnsaved = evt => {
+		if ( unsavedChanges ) {
+			notie.confirm({
+				text: 'You have unsaved changes that will be lost if you leave this window!',
+				submitText: 'LEAVE AND LOSE CHANGES',
+				submitCallback: () => {
+					location.href = evt.target.href;
+				}
+			});
+			evt.preventDefault();
+		}
+	};
+
+	$('#theme-editor .modal-close').addEventListener( 'click', confirmUnsaved )
+	$('#theme-editor .modal-close-internal').addEventListener( 'click', confirmUnsaved )
 
 	const btnImportTheme = $('#import_theme');
 	btnImportTheme.addEventListener( 'input', () => {
@@ -4780,30 +4846,54 @@ function setUIEventListeners() {
 
 	$('#new-theme-name').addEventListener('input', (e) => {
 		currentTheme.name = e.target.value;
+		unsavedChanges = true;
 	});
 
 	$('#new-theme-bkgd').addEventListener('input', (e) => {
 		currentTheme.bgColor = e.target.value;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-horizontal').addEventListener('input', (e) => {
 		currentTheme.horizontal = +e.target.checked;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-reverse').addEventListener('input', (e) => {
 		currentTheme.reverse = +e.target.checked;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
 	$('#new-theme-peakcolor').addEventListener('input', (e) => {
-		$('#new-theme-peakcolor-disable').checked = false;
 		currentTheme.peakColor = e.target.value;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
-	$('#new-theme-peakcolor-disable').addEventListener('input', (e) => {
-		if ( e.target.checked ) {
-			currentTheme.peakColor = undefined;
-			$('#new-theme-peakcolor').value = undefined;
-		}
+	$('#new-theme-peakcolor-enable').addEventListener('input', (e) => {
+		if ( e.target.checked )
+			currentTheme.peakColor = $('#new-theme-peakcolor').value;
+		else
+			delete currentTheme.peakColor;
+		unsavedChanges = true;
+		renderThemeEditor();
+	});
+
+	$('#new-theme-auto-pos').addEventListener( 'click', () => {
+		for ( const cs of currentTheme.colorStops )
+			delete cs.pos;
+		unsavedChanges = true;
+		renderThemeEditor();
+	});
+
+	$('#new-theme-auto-level').addEventListener( 'click', () => {
+		for ( const cs of currentTheme.colorStops )
+			delete cs.level;
+		unsavedChanges = true;
+		renderThemeEditor();
 	});
 
 	// Configuration panel accordion
