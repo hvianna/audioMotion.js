@@ -798,6 +798,7 @@ let audioElement = [],
 	serverHasMedia,				// music directory found on web server
 	skipping = false,
 	supportsFileSystemAPI,		// browser supports File System API (may be disabled via config.yaml)
+	unsavedChanges = false,		// used by the theme editor
 	useFileSystemAPI,			// load music from local device when in web server mode
 	userPresets,
 	waitingMetadata = 0,
@@ -1502,6 +1503,7 @@ function deleteTheme() {
 	savePreferences( KEY_CUSTOM_THEMES );
 	savePreferences( KEY_CONFIGURATION ); // to save disabled gradients - TO-DO: check if still needed (can we still delete the only enabled theme?)
 
+	unsavedChanges = false;
 	currentTheme = null;
 	location.href = '#config';
 }
@@ -2770,6 +2772,7 @@ function openThemeEdit( key ) {
 	toggleDisplay( $('#btn-export-theme'), true );
 	toggleDisplay( $('#btn-save-theme-copy'), true );
 
+	unsavedChanges = false;
 	location.href = '#theme-editor';
 }
 
@@ -2802,6 +2805,7 @@ function openThemeEditorNew( makeCopy ) {
 	toggleDisplay( $('#btn-export-theme'), false );
 	toggleDisplay( $('#btn-save-theme-copy'), false );
 
+	unsavedChanges = true;
 	location.href = '#theme-editor';
 }
 
@@ -3339,39 +3343,46 @@ function renderColorRow(index, stop) {
 	colorStop.value = stop.pos;
 	colorLevel.value = stop.level;
 
-	colorPicker.addEventListener('input', (e) => { // note: 'input' triggers in real-time, 'change' triggers on blur
+	colorPicker.addEventListener('input', (e) => { // note: 'input' triggers in real-time, 'change' triggers on blur only
 		colorValue.value = e.target.value;
-		currentTheme.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[ index ].color = colorPicker.value;
+		unsavedChanges = true;
 		renderThemeEditor( false ); // don't rebuild the color table to avoid losing focus
 	});
 
 	colorValue.addEventListener('change', (e) => {
 		colorPicker.value = e.target.value;
-		currentTheme.colorStops[index].color = colorPicker.value;
+		currentTheme.colorStops[ index ].color = colorPicker.value;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	colorStop.addEventListener('change', (e) => {
-		currentTheme.colorStops[index].pos = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		currentTheme.colorStops[ index ].pos = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	colorLevel.addEventListener('change', (e) => {
-		currentTheme.colorStops[index].level = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		currentTheme.colorStops[ index ].level = isNumeric( e.target.value ) ? +e.target.value : undefined;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	addColorButton.addEventListener('click', () => {
-		currentTheme.colorStops.splice(index + 1, 0, { color: '#111111' });
+		currentTheme.colorStops.splice( index + 1, 0, { color: '#111111' } );
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	// prevent from being able to delete stops if there are two stops
 	if (currentTheme.colorStops.length === 1) {
 		removeColorButton.setAttribute('disabled', 'true');
-	} else {
+	}
+	else {
 		removeColorButton.addEventListener('click', () => {
 			currentTheme.colorStops.splice(index, 1);
+			unsavedChanges = true;
 			renderThemeEditor();
 		});
 	}
@@ -3546,6 +3557,7 @@ function saveTheme( isImported ) {
 	populateEnabledThemes();
 	savePreferences( KEY_CUSTOM_THEMES );
 
+	unsavedChanges = false;
 	currentTheme = null;
 	location.href = '#config';
 }
@@ -4786,7 +4798,7 @@ function setUIEventListeners() {
 		mediaSession.setActionHandler( 'nexttrack', () => playNextSong() );
 	}
 
-	// Set event listeners for Theme Editor controls
+	// Theme Editor
 
 	$('#add_theme').addEventListener('click', () => openThemeEditorNew() );
 	$('#btn-save-theme').addEventListener( 'click', () => saveTheme() );
@@ -4799,6 +4811,22 @@ function setUIEventListeners() {
 		});
 	});
 	$('#btn-export-theme').addEventListener( 'click', () => downloadObject( currentTheme, `audioMotion-theme-${ currentTheme.key }` ) );
+
+	const confirmUnsaved = evt => {
+		if ( unsavedChanges ) {
+			notie.confirm({
+				text: 'You have unsaved changes that will be lost if you leave this window!',
+				submitText: 'LEAVE AND LOSE CHANGES',
+				submitCallback: () => {
+					location.href = evt.target.href;
+				}
+			});
+			evt.preventDefault();
+		}
+	};
+
+	$('#theme-editor .modal-close').addEventListener( 'click', confirmUnsaved )
+	$('#theme-editor .modal-close-internal').addEventListener( 'click', confirmUnsaved )
 
 	const btnImportTheme = $('#import_theme');
 	btnImportTheme.addEventListener( 'input', () => {
@@ -4818,25 +4846,30 @@ function setUIEventListeners() {
 
 	$('#new-theme-name').addEventListener('input', (e) => {
 		currentTheme.name = e.target.value;
+		unsavedChanges = true;
 	});
 
 	$('#new-theme-bkgd').addEventListener('input', (e) => {
 		currentTheme.bgColor = e.target.value;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	$('#new-theme-horizontal').addEventListener('input', (e) => {
 		currentTheme.horizontal = +e.target.checked;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	$('#new-theme-reverse').addEventListener('input', (e) => {
 		currentTheme.reverse = +e.target.checked;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	$('#new-theme-peakcolor').addEventListener('input', (e) => {
 		currentTheme.peakColor = e.target.value;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
@@ -4845,18 +4878,21 @@ function setUIEventListeners() {
 			currentTheme.peakColor = $('#new-theme-peakcolor').value;
 		else
 			delete currentTheme.peakColor;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	$('#new-theme-auto-pos').addEventListener( 'click', () => {
 		for ( const cs of currentTheme.colorStops )
 			delete cs.pos;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
 	$('#new-theme-auto-level').addEventListener( 'click', () => {
 		for ( const cs of currentTheme.colorStops )
 			delete cs.level;
+		unsavedChanges = true;
 		renderThemeEditor();
 	});
 
