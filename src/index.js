@@ -3146,6 +3146,7 @@ function randomizeSettings( force = elSource.checked ) {
 	// helper functions
 	const themesHaveEnoughColors = () => THEMES[ elTheme0.value ]?.colorStops.length > 2 && THEMES[ elTheme1.value ]?.colorStops.length > 2;
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
+	const isImageOrVideoBg = () => isVideoLoaded() || ! [ BG_DEFAULT, BG_BLACK ].includes( getControlValue( elBackground )[0] );
 
 	if ( isEnabled( RND_PRESETS ) ) {
 		const validIndexes = userPresets.map( ( item, index ) => isEmpty( item ) ? null : index ).filter( item => item !== null ),
@@ -3173,15 +3174,15 @@ function randomizeSettings( force = elSource.checked ) {
 	}
 
 	if ( isEnabled( RND_ALPHA ) ) {
-		// no FULL alpha bars when LEDs are on and background is image or video
-		randomizeControl( elAlphaBars, newVal => newVal != ALPHABARS_FULL || ! audioMotion.overlay || getControlValue( elLedDisplay ) == LEDS_OFF );
+		// no full alphaBars when LEDs are on and background is image or video
+		randomizeControl( elAlphaBars, newVal => newVal != ALPHABARS_FULL || ! isImageOrVideoBg() || getControlValue( elLedDisplay ) == LEDS_OFF );
 	}
 
 	if ( isEnabled( RND_BACKGROUND ) )
 		randomizeControl( elBackground );
 
 	if ( isEnabled( RND_BANDCOUNT ) ) {
-		// no full-octave bands with square LEDs
+		// no full-octave bands with square LEDs (avoid huge LEDs)
 		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == MODE_GRAPH || newVal > BANDS_OCTAVE_FULL || getControlValue( elLedFormat ) != LEDFORMAT_SQUARE );
 	}
 
@@ -3194,8 +3195,8 @@ function randomizeSettings( force = elSource.checked ) {
 	}
 
 	if ( isEnabled( RND_LEDS ) ) {
-		// avoid vintage LEDs on themes with less than 3 colors
-		randomizeControl( elLedDisplay, newVal => newVal != LEDS_VINTAGE || themesHaveEnoughColors() );
+		// avoid LEDs with full alphaBars on image/video background, and vintage LEDs on themes with less than 3 colors
+		randomizeControl( elLedDisplay, newVal => ( newVal != LEDS_VINTAGE || themesHaveEnoughColors() ) && ( newVal == LEDS_OFF || getControlValue( elAlphaBars ) != ALPHABARS_FULL || ! isImageOrVideoBg() ) );
 	}
 
 	if ( isEnabled( RND_LED_FORMAT ) ) {
@@ -3214,8 +3215,9 @@ function randomizeSettings( force = elSource.checked ) {
 
 	if ( isEnabled( RND_REFLEX ) ) {
 		// randomize reflex value among [ 0, .25, .5 ]
-		// no mirrored reflex with LEDs and no reflex at all in compact analyzer
-		setControlValue( elReflex, isCompactAnalyzer ? 0 : .25 * randomInt( getControlValue( elLedDisplay ) == LEDS_OFF ? 3 : 2 ) );
+		// no mirrored reflex with LEDs and no reflex at all with square/thin LEDs or in compact analyzer
+		const isLedsOn = getControlValue( elLedDisplay ) != LEDS_OFF;
+		setControlValue( elReflex, isCompactAnalyzer || ( isLedsOn && getControlValue( elLedFormat ) != LEDFORMAT_REGULAR ) ? 0 : .25 * randomInt( isLedsOn ? 2 : 3 ) );
 		setProperty( elReflex );
 	}
 
