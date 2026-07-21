@@ -858,8 +858,14 @@ const getIndex = node => {
 
 // returns the text/label of a settings control
 const getText = el => {
+	if ( el.classList.contains( CSS_CLASS_DISABLED ) )
+		return 'currently disabled';
+
 	let text = el.value ?? '';
-	if ( isCustomRadio( el ) ) {
+
+	if ( isCustomSwitch( el ) )
+		text = onOff( el );
+	else if ( isCustomRadio( el ) ) {
 		const option = el.querySelector(':checked ~ label');
 		if ( option )
 			text = option.textContent;
@@ -1414,17 +1420,24 @@ function consoleLog( msg, error, clear ) {
 }
 
 /**
- * Select next or previous option in a `select` HTML element or custom radio buttons, cycling around when necessary
+ * Select next or previous option in any UI control, cycling around when necessary
  *
  * @param el {object} HTML object
- * @param [prev] {boolean} true to select previous option
+ * @param [prev] {boolean} `true` to select previous option
+ * @returns {boolean} `true` on success, `false` if control is disabled
  */
 function cycleElement( el, prev ) {
+	if ( el.classList.contains( CSS_CLASS_DISABLED ) )
+		return false;
+
 	if ( isRangeControl( el ) ) {
 		const { min, max, step } = el,
 			  newVal = fixFloating( +el.value + step * ( prev ? -1 : 1 ) );
 
 		setControlValue( el, newVal > max ? min : newVal < min ? max : newVal );
+	}
+	else if ( isCustomSwitch( el ) ) {
+		el.dataset.active = +!+el.dataset.active;
 	}
 	else {
 		const options = isCustomRadio( el ) ? el.elements[ el.dataset.prop ] : el.options;
@@ -1443,6 +1456,7 @@ function cycleElement( el, prev ) {
 	}
 
 	setProperty( el );
+	return true;
 }
 
 /**
