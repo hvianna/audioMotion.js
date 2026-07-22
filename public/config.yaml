@@ -25,3 +25,33 @@ presets:
 - reflex: Octave Bands + Reflex
 - radial: Radial, Color by Level
 - roundbars: Round Bars, Color by Index
+
+# Keyboard shortcuts
+# refer to docs/server.md for available options
+shortcuts:
+  A: randomize
+  B: background
+  C: band_count
+  D: display_info
+  E: shuffle
+  F: fullscreen
+  G:
+  H: fps
+  I: track_info
+  J:
+  K: led_format
+  L: led_bars
+  M: analyzer_mode
+  N: sensitivity
+  O: lores
+  P: peaks
+  Q:
+  R: repeat
+  S:
+  T: theme
+  U:
+  V:
+  W:
+  X: x_labels
+  Y: y_labels
+  Z:

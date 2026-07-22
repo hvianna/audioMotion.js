@@ -29,6 +29,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as _c from './constants.js';
+import * as _d from './defaults.js';
+
 import {
 	AudioMotionAnalyzer,
 	ALPHABARS_FULL,
@@ -156,6 +159,7 @@ const CSS_CLASS_COMPACT   = 'compact',
 	  CSS_CLASS_FIT_VIDEO = 'fit-video',
 	  CSS_CLASS_NO_IMAGE  = 'no-image',
 	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
+	  CSS_CLASS_SHORTCUT  = 'custom-shortcut',
 	  CSS_CLASS_WARNING   = 'warning';
 
 // default theme modifiers
@@ -187,6 +191,7 @@ const FREQ_LO_MIN = 1,
 const KEY_CONFIGURATION  = 'audioMotion-config',
 	  KEY_CUSTOM_THEMES  = 'audioMotion-themes',
 	  KEY_CUSTOM_PRESETS = 'audioMotion-presets',
+	  KEY_KBD_SHORTCUTS  = 'audioMotion-shortcuts',
 	  KEY_LAST_SESSION   = 'audioMotion-session',
   	  KEY_FORCE_FS_API   = 'force-filesystem';
 
@@ -407,6 +412,54 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elVolume        = $('#volume'),
 	  elWarp          = $('#warp'),				// "warp" effect layer
 	  elWeighting     = $('#weighting');
+
+// UI controls that can be assigned to keyboard shortcuts
+const CONTROLS = {
+	[ _c.UI_ALPHABARS    ]: { name: 'Alpha Bars',              el: elAlphaBars     },
+	[ _c.UI_ANALYZERMODE ]: { name: 'Analyzer Mode',           el: elMode          },
+	[ _c.UI_BANDCOUNT    ]: { name: 'Band Count',              el: elBandCount     },
+	[ _c.UI_BANDSTD      ]: { name: 'Bands Standard',          el: elAnsiBands     },
+	[ _c.UI_BARSPACING   ]: { name: 'Bar Spacing',             el: elBarSpace      },
+	[ _c.UI_BACKGROUND   ]: { name: 'Background',              el: elBackground    },
+	[ _c.UI_BGDIM        ]: { name: 'Background Dim',          el: elBgImageDim    },
+	[ _c.UI_BGFIT        ]: { name: 'Background Image Fit',    el: elBgImageFit    },
+	[ _c.UI_COLORMODE    ]: { name: 'Bar Color Mode',          el: elColorMode     },
+	[ _c.UI_FILLOPACITY  ]: { name: 'Fill Opacity',            el: elFillAlpha     },
+	[ _c.UI_FPS          ]: { name: 'FPS',                     el: elFPS           },
+	[ _c.UI_FREQSCALE    ]: { name: 'Frequency Scale',         el: elFreqScale     },
+	[ _c.UI_FULLSCREEN   ]: { name: 'Fullscreen',              func: fullscreen    },
+	[ _c.UI_HORIZONTAL0  ]: { name: 'Horizontal (main/left)',  el: elHorizontal0   },
+	[ _c.UI_HORIZONTAL1  ]: { name: 'Horizontal (right)',      el: elHorizontal1   },
+	[ _c.UI_LAYOUT       ]: { name: 'Channel Layout',          el: elChnLayout     },
+	[ _c.UI_LEDBARS      ]: { name: 'LED Bars',                el: elLedDisplay    },
+	[ _c.UI_LEDFORMAT    ]: { name: 'LED Format',              el: elLedFormat     },
+	[ _c.UI_LEDMASK      ]: { name: 'LED Mask',                el: elLedMask       },
+	[ _c.UI_LEVELSCALE   ]: { name: 'Level Scale',             el: elLinearAmpl    },
+	[ _c.UI_LINEWIDTH    ]: { name: 'Line Width',              el: elLineWidth     },
+	[ _c.UI_LORES        ]: { name: 'LO-RES',                  el: elLoRes         },
+	[ _c.UI_MIRROR       ]: { name: 'Mirror',                  el: elMirror        },
+	[ _c.UI_OUTLINE      ]: { name: 'Outline bars',            el: elOutline       },
+	[ _c.UI_OSD          ]: { name: 'Display info',            func: toggleInfo    },
+	[ _c.UI_PEAKS        ]: { name: 'Peaks',                   el: elShowPeaks     },
+	[ _c.UI_RADIAL       ]: { name: 'Radial',                  el: elRadial        },
+	[ _c.UI_RADIALSIZE   ]: { name: 'Radial Size',             el: elRadius        },
+	[ _c.UI_RANDOMIZE    ]: { name: 'Randomize',               el: elRandomMode    },
+	[ _c.UI_REFLEX       ]: { name: 'Reflex',                  el: elReflex        },
+	[ _c.UI_REPEAT       ]: { name: 'Queue repeat',            el: elRepeat        },
+	[ _c.UI_ROUNDBARS    ]: { name: 'Round bars',              el: elRoundBars     },
+	[ _c.UI_LABELSX      ]: { name: 'X-Axis Labels',           el: elScaleX        },
+	[ _c.UI_LABELSY      ]: { name: 'Y-Axis Labels',           el: elScaleY        },
+	[ _c.UI_SHUFFLE      ]: { name: 'Queue shuffle',           func: shufflePlayQueue, msg: 'Shuffle' },
+	[ _c.UI_SENSITIVITY  ]: { name: 'Sensitivity',             el: elSensitivity   },
+	[ _c.UI_RADIALSPIN   ]: { name: 'Radial Spin',             el: elSpin          },
+	[ _c.UI_REVERSE0     ]: { name: 'Reverse (main/left)',     el: elReverse0      },
+	[ _c.UI_REVERSE1     ]: { name: 'Reverse (right)',         el: elReverse1      },
+	[ _c.UI_SUBTITLES    ]: { name: 'Subtitles',               el: elShowSubtitles },
+	[ _c.UI_THEME0       ]: { name: 'Color Theme (main/left)', el: elTheme0        },
+	[ _c.UI_THEME1       ]: { name: 'Color Theme (right)',     el: elTheme1        },
+	[ _c.UI_TRACKINFO    ]: { name: 'Track Info',              el: elShowSong      },
+	[ _c.UI_WEIGHTING    ]: { name: 'Weighting Filter',        el: elWeighting     }
+};
 
 // Compute minimum window height to fit the app interface with no scroll - used by toggleFrontPanel()
 const PANEL_MIN_HEIGHT  = $('.player-panel').clientHeight + $('.bottom-panel').clientHeight,
@@ -783,6 +836,7 @@ let audioElement = [],
 	fastSearchTimeout,
 	folderImages = {}, 			// folder cover images for songs with no picture in the metadata
 	isFastSearch = false,
+	keyboardShortcuts = {},
 	latency = 0,
 	mediaNodes = [],			// mediaElementSource nodes for the video elements - used to connect to the stereoPanner node
 	micStream,
@@ -1595,6 +1649,10 @@ function doConfigPanel() {
 
 	populateEnabledThemes();
 
+	// Custom keyboard shortcuts configuration
+
+	populateCustomShortcuts();
+
 	// Randomize configuration
 
 	const elProperties = $('#random_properties');
@@ -1882,122 +1940,67 @@ function keyboardControls( event ) {
 				loadPreset( index );
 		}
 		else {
-			switch ( event.code ) {
-				case 'Delete': 		// delete selected songs from the playlist
-				case 'Backspace':	// for Mac
-					elPlayqueue.querySelectorAll('.selected').forEach( e => {
-						revokeBlobURL( e );
-						e.remove();
-					});
-					const current = getIndex( elPlayqueue.querySelector('.current') );
-					if ( current !== undefined )
-						setQueueIndex( current ); // keep the pointer at the current track, if it hasn't been deleted
-					else if ( queueIndex > queueLength() - 1 )
-						setQueueIndex( queueLength() - 1 );
-					else
-						setQueueIndex( queueIndex - 1 );
-					if ( queueLength() )
-						loadSong( NEXT_TRACK );
-					else {
-						clearAudioElement( nextAudio );
-						if ( ! isPlaying() )
-							clearAudioElement();
+			const key = event.code.match( /^Key(?<key>[A-Z])$/ )?.groups.key; // is it A-Z key?
+			if ( key ) {
+				const action = keyboardShortcuts[ key ]; // is there a shortcut assigned to this key?
+				if ( action ) {
+					const { name, el, func, msg } = CONTROLS[ action ];
+					if ( func ) {
+						func();
+						if ( msg )
+							setCanvasMsg( msg );
 					}
-					storePlayQueue( true );
-					break;
-				case 'Space': 		// play / pause
-					setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
-					playPause();
-					break;
-				case 'ArrowLeft': 	// previous song
-				case 'KeyJ':
-					if ( ! finishFastSearch() && ! isShiftKey ) {
-						setCanvasMsg( 'Previous track', 1 );
-						skipTrack(true);
+					else if ( el ) {
+						cycleElement( el, isShiftKey );
+						setCanvasMsg( `${ name }: ` + getText( el ) );
 					}
-					break;
-				case 'ArrowRight': 	// next song
-				case 'KeyK':
-					if ( ! finishFastSearch() && ! isShiftKey ) {
-						setCanvasMsg( 'Next track', 1 );
-						skipTrack();
-					}
-					break;
-				case 'KeyA': 		// cycle thru Randomize options
-					cycleElement( elRandomMode, isShiftKey );
-					setCanvasMsg( 'Randomize: ' + getText( elRandomMode ) );
-					setProperty( elRandomMode );
-					break;
-				case 'KeyB': 		// background or image fit (shift)
-					cycleElement( isShiftKey ? elBgImageFit : elBackground );
-					const bgOption = elBackground.value[0];
-					setCanvasMsg( 'Background: ' + getText( elBackground ) + ( bgOption > 1 && bgOption < 7 ? ` (${getText( elBgImageFit )})` : '' ) );
-					break;
-				case 'KeyC': 		// radial
-					cycleElement( elRadial, isShiftKey );
-					setCanvasMsg( 'Radial: ' + getText( elRadial ) );
-					break;
-				case 'KeyD': 		// display information
-					toggleInfo();
-					break;
-				case 'KeyE': 		// shuffle queue
-					if ( queueLength() > 0 ) {
-						shufflePlayQueue();
-						setCanvasMsg( 'Shuffle' );
-					}
-					break;
-				case 'KeyF': 		// toggle fullscreen
-					fullscreen();
-					break;
-				case 'KeyH': 		// toggle fps display
-					elFPS.click();
-					break;
-				case 'KeyI': 		// toggle info display on track change
-					elShowSong.click();
-					setCanvasMsg( 'Song info display ' + onOff( elShowSong ) );
-					break;
-				case 'KeyL': 		// toggle LED display effect
-					cycleElement( elLedDisplay, isShiftKey );
-					setCanvasMsg( 'LED bars: ' + getText( elLedDisplay ) );
-					break;
-				case 'KeyM': 		// visualization mode
-				case 'KeyV':
-					cycleElement( elMode, isShiftKey );
-					setCanvasMsg( 'Mode: ' + getText( elMode ) );
-					break;
-				case 'KeyN': 		// increase or reduce sensitivity
-					cycleElement( elSensitivity, isShiftKey );
-					setCanvasMsg( getText( elSensitivity ).toUpperCase() + ' sensitivity' );
-					break;
-				case 'KeyO': 		// toggle resolution
-					elLoRes.click();
-					setCanvasMsg( ( isSwitchOn( elLoRes ) ? 'LOW' : 'HIGH' ) + ' Resolution' );
-					break;
-				case 'KeyP': 		// toggle peaks display
-					cycleElement( elShowPeaks, isShiftKey );
-					setCanvasMsg( 'Peaks ' + getText( elShowPeaks ) );
-					break;
-				case 'KeyR': 		// toggle play queue repeat
-					elRepeat.click();
-					setCanvasMsg( 'Queue repeat ' + onOff( elRepeat ) );
-					break;
-				case 'KeyS': 		// cycle scale labels for X- and Y- axes
-					const scaleEl = isShiftKey ? elScaleY : elScaleX;
-					cycleElement( scaleEl );
-					setCanvasMsg( `${ isShiftKey ? 'Y' : 'X' }-axis Labels: ${ getText( scaleEl ) }` );
-					break;
-				case 'KeyT': 		// theme
-					cycleElement( elTheme0, isShiftKey );
-					setCanvasMsg( getSelectedThemes() );
-					break;
-				case 'KeyX':
-					cycleElement( elReflex, isShiftKey );
-					setCanvasMsg( 'Reflex: ' + getText( elReflex ) );
-					break;
-				default:
-					// no key match - quit and keep default behavior
-					return;
-			} // switch
+				}
+			}
+			else {
+				switch ( event.code ) {
+					case 'Delete': 		// delete selected songs from the playlist
+					case 'Backspace':	// for Mac
+						elPlayqueue.querySelectorAll('.selected').forEach( e => {
+							revokeBlobURL( e );
+							e.remove();
+						});
+						const current = getIndex( elPlayqueue.querySelector('.current') );
+						if ( current !== undefined )
+							setQueueIndex( current ); // keep the pointer at the current track, if it hasn't been deleted
+						else if ( queueIndex > queueLength() - 1 )
+							setQueueIndex( queueLength() - 1 );
+						else
+							setQueueIndex( queueIndex - 1 );
+						if ( queueLength() )
+							loadSong( NEXT_TRACK );
+						else {
+							clearAudioElement( nextAudio );
+							if ( ! isPlaying() )
+								clearAudioElement();
+						}
+						storePlayQueue( true );
+						break;
+					case 'Space': 		// play / pause
+						setCanvasMsg( isPlaying() ? 'Pause' : 'Play', 1 );
+						playPause();
+						break;
+					case 'ArrowLeft': 	// previous song
+						if ( ! finishFastSearch() && ! isShiftKey ) {
+							setCanvasMsg( 'Previous track', 1 );
+							skipTrack(true);
+						}
+						break;
+					case 'ArrowRight': 	// next song
+						if ( ! finishFastSearch() && ! isShiftKey ) {
+							setCanvasMsg( 'Next track', 1 );
+							skipTrack();
+						}
+						break;
+					default:
+						// no key match - quit and keep default behavior
+						return;
+				} // switch
+			} // if ( key )
 		}
 	} // else if ( event.type == 'keydown' )
 
@@ -2365,6 +2368,9 @@ function loadPreferences( serverConfig ) {
 	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
 	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( userSettings[ KEY_LEGACY_SUBTITLES_OPTS ] || loadFromStorage( KEY_LEGACY_SUBTITLES_OPTS ) || {} ) } );
 
+	// Custom keyboard shortcuts
+	keyboardShortcuts = { ...keyboardShortcuts, ...( loadFromStorage( KEY_KBD_SHORTCUTS ) || {} ) };
+
 	// Show update message if needed
 	const elBanner = $('#update-banner');
 
@@ -2434,10 +2440,10 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		};
 	}
 
-	const keyIsObj    = isObject( key ),
-		  thisPreset  = deepCloneObject( keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ) ),
-		  defaults    = getPreset( PRESET_KEY_DEFAULT ),
-		  description = keyIsObj || ! alert ? '' : isNumeric( key ) ? `User Preset #${ +key + 1 }` : `"${ getPresetName( key ) }" preset`;
+	const keyIsObj      = isObject( key ),
+		  thisPreset    = deepCloneObject( keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ) ),
+		  defaultPreset = getPreset( PRESET_KEY_DEFAULT ),
+		  description   = keyIsObj || ! alert ? '' : isNumeric( key ) ? `User Preset #${ +key + 1 }` : `"${ getPresetName( key ) }" preset`;
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
 		return;
@@ -2500,7 +2506,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	// set themes and modifiers UI controls
 	if ( thisPreset.themes || init ) {
-		let themes = thisPreset.themes || defaults.themes;
+		let themes = thisPreset.themes || defaultPreset.themes;
 
 		if ( ! isArray( themes ) )
 			themes = [ themes ];
@@ -2529,7 +2535,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		if ( prop == 'themes' )
 			return;
 
-		const val = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaults[ prop ] : undefined;
+		const val = thisPreset[ prop ] !== undefined ? thisPreset[ prop ] : init ? defaultPreset[ prop ] : undefined;
 
 		if ( val !== undefined && ( el != elRandomMode || ! keepRandomize ) )
 			setControlValue( el, val );
@@ -2980,6 +2986,58 @@ function populateCustomRadio( element, options, name ) {
 		label.innerText = text;
 
 		element.append( button, label );
+	}
+}
+
+/**
+ * Build select elements for custom keyboard shortcuts in config and update the help window
+ *
+ * @param {boolean} if `false` does not rebuild config, only updates help
+ */
+function populateCustomShortcuts( rebuild = true ) {
+	const elShortcuts = $('#custom_shortcuts'), // config panel
+		  helpTable   = $('#custom_shortcuts_help'), // help window
+		  keys        = Object.keys( keyboardShortcuts ).sort(),
+		  controls    = Object.entries( CONTROLS ).sort( ( a, b ) => a[1].name > b[1].name ? 1 : a[1].name < b[1].name ? -1 : 0 );
+
+	const buildOptions = selected => {
+		let html = '<option value=""></option>';
+		for ( const [ key, data ] of controls )
+			html += `<option value="${ key }"${ key == selected ? ' selected' : '' }>${ data.name }</option>`;
+		return html;
+	}
+
+	if ( rebuild ) {
+		elShortcuts.innerHTML = '';
+	}
+	helpTable.innerHTML = '';
+
+	keys.forEach( key => {
+		if ( rebuild ) {
+			elShortcuts.innerHTML += `
+				<label>
+					${ key }
+					<select class="${ CSS_CLASS_SHORTCUT }" data-key="${ key }">
+						${ buildOptions( keyboardShortcuts[ key ] ) }
+					</select>
+				</label>
+			`;
+		}
+
+		helpTable.innerHTML += `
+			<tr>
+				<td><kbd>${ key }</kbd></td>
+				<td>${ keyboardShortcuts[ key ] ? CONTROLS[ keyboardShortcuts[ key ] ].name : '<em>not assigned</em>' }</td>
+			</tr>
+		`;
+	});
+
+	if ( rebuild ) {
+		$$(`.${ CSS_CLASS_SHORTCUT }`).forEach( el => el.addEventListener( 'change', () => {
+			keyboardShortcuts[ el.dataset.key ] = el.value;
+			populateCustomShortcuts( false ); // update help only
+			savePreferences( KEY_KBD_SHORTCUTS );
+		}) );
 	}
 }
 
@@ -3674,6 +3732,9 @@ function savePreferences( key ) {
 
 	if ( ! key || key == KEY_CUSTOM_PRESETS )
 		saveToStorage( KEY_CUSTOM_PRESETS, userPresets );
+
+	if ( key == KEY_KBD_SHORTCUTS )
+		saveToStorage( KEY_KBD_SHORTCUTS, keyboardShortcuts );
 
 	if ( key == KEY_LAST_SESSION ) {
 		saveToStorage( KEY_LAST_SESSION, {
@@ -5529,8 +5590,9 @@ function updateRangeValue( el ) {
 		serverConfig = {};
 	}
 
-	let { presets } = serverConfig;
+	let { presets, shortcuts } = serverConfig;
 	delete serverConfig.presets;
+	delete serverConfig.shortcuts;
 	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
@@ -5567,7 +5629,14 @@ function updateRangeValue( el ) {
 	if ( getPresetIndex( PRESET_KEY_DEFAULT ) == -1 )
 		BUILTIN_PRESETS.push( DEFAULT_PRESET );
 
-	// check options enabled via URL parameters
+	// Validate and assign keyboard shortcuts
+	for ( const key in shortcuts ) {
+		if ( ! ( key in _d.DEFAULT_KBD_SHORTCUTS ) )
+			delete shortcuts[ key ];
+	}
+	keyboardShortcuts = { ..._d.DEFAULT_KBD_SHORTCUTS, ...shortcuts };
+
+	// Check options enabled via URL parameters
 
 	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : loadFromStorage( KEY_FORCE_FS_API ) ) );
 

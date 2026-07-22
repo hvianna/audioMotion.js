@@ -99,34 +99,30 @@
 					</div>
 					<h2>Keyboard shortcuts</h2>
 					<table class="kbd-table">
-						<tr><td><kbd>0</kbd></td><td>Randomize settings</td></tr>
-						<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>Load a User Preset</td></tr>
-						<tr><td><kbd>Shift</kbd> + <kbd>1</kbd> - <kbd>9</kbd></td><td>Save current settings to User Preset slot</td></tr>
-						<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Volume up / down</td></tr>
-						<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Fullscreen analyzer height</td></tr>
-						<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>Previous / next track<br>(<strong>Hold</strong> for rewind / fast forward)</td></tr>
-						<tr><td><kbd class="wide">Space</kbd></td><td>Play / Pause</td></tr>
-						<tr><td><kbd>A</kbd></td><td>Randomize</td></tr>
-						<tr><td><kbd>B</kbd></td><td>Background</td></tr>
-						<tr><td><kbd>Shift</kbd> + <kbd>B</kbd></td><td>Background Image Fit</td></tr>
-						<tr><td><kbd>C</kbd></td><td>RADIAL</td></tr>
-						<tr><td><kbd>D</kbd><br>(or click analyzer)</td><td>Display track information<br>(press again for more info, and again to hide)</td></tr>
-						<tr><td><kbd>E</kbd></td><td>Shuffle</td></tr>
-						<tr><td><kbd>F</kbd></td><td>Fullscreen</td></tr>
-						<tr><td><kbd>H</kbd></td><td>FPS</td></tr>
-						<tr><td><kbd>I</kbd></td><td>TRACK INFO</td></tr>
-						<tr><td><kbd>L</kbd></td><td>LED Bars</td></tr>
-						<tr><td><kbd>M</kbd></td><td>Analyzer Mode</td></tr>
-						<tr><td><kbd>N</kbd></td><td>Sensitivity</td></tr>
-						<tr><td><kbd>O</kbd></td><td>LO-RES</td></tr>
-						<tr><td><kbd>P</kbd></td><td>Peaks</td></tr>
-						<tr><td><kbd>R</kbd></td><td>Repeat</td></tr>
-						<tr><td><kbd>S</kbd> / <kbd>Shift</kbd> + <kbd>S</kbd></td><td>X-Axis / Y-Axis Labels</td></tr>
-						<tr><td><kbd>T</kbd></td><td>Theme</td></tr>
-						<tr><td><kbd>X</kbd></td><td>Reflex</td></tr>
-						<tr><td><kbd>Esc</kbd></td><td>Exit fullscreen</td></tr>
-						<tr><td><kbd>F1</kbd></td><td>Help (this panel) - also works in fullscreen</td></tr>
+						<thead>
+							<tr><th>Key</th><th>Action</th></tr>
+						</thead>
+						<tbody>
+							<tr><td><kbd>0</kbd></td><td>Randomize settings</td></tr>
+							<tr><td><kbd>1</kbd> - <kbd>9</kbd></td><td>Load a User Preset</td></tr>
+							<tr><td><kbd>Shift</kbd> + <kbd>1</kbd> - <kbd>9</kbd></td><td>Save current settings to User Preset slot</td></tr>
+							<tr><td><kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Volume up / down</td></tr>
+							<tr><td><kbd>Shift</kbd> + <kbd>&uarr;</kbd> / <kbd>&darr;</kbd></td><td>Fullscreen analyzer height</td></tr>
+							<tr><td><kbd class="narrow">&lt;-</kbd> / <kbd class="narrow">-&gt;</kbd></td><td>Previous / next track<br>(<strong>Hold</strong> for rewind / fast forward)</td></tr>
+							<tr><td><kbd class="wide">Space</kbd></td><td>Play / Pause</td></tr>
+							<tr><td><kbd>Esc</kbd></td><td>Exit fullscreen</td></tr>
+							<tr><td><kbd>F1</kbd></td><td>Help (this panel) - also works in fullscreen</td></tr>
+							<tr><td>Click analyzer</td><td>Display info<br>(click again for more info, and again to hide)</td></tr>
+						</tbody>
 					</table>
+
+					<p class="align-left">The shortcuts below can be customized in <strong>Configuration</strong>.</p>
+
+					<table class="kbd-table">
+						<thead><tr><th>Key</th><th>Action</th></tr></thead>
+						<tbody id="custom_shortcuts_help"></tbody>
+					</table>
+
 					<p class="align-left">For most shortcuts, holding <kbd>Shift</kbd> lets you cycle backward through options.</p>
 				</div>
 			</div> <!-- #help -->
@@ -468,7 +464,7 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help" data-help="/docs/#/advanced?id=octave-bands">Octave Bands</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=bands-standard">Bands Standard</span>
 					<form id="ansi_bands" class="custom-radio-buttons" data-prop="ansiBands"></form>
 				</div>
 
@@ -623,6 +619,11 @@
 
 					<p class="colspan-3"><br><button id="reset_general">Reset to defaults</button></p>
 				</div>
+			</details>
+
+			<details>
+				<summary class="colspan-2">Keyboard shortcuts <span class="link-to-docs" data-help="docs/#/configuration?id=keyboard-shortcuts"></span></summary>
+				<div id="custom_shortcuts" class="grid grid-2-cols align-center"></div>
 			</details>
 
 			<details>
