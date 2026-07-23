@@ -29,68 +29,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as _c from './constants.js';
+import * as _  from './constants.js';
 import * as _d from './defaults.js';
+import THEMES  from './themes.js';
 
-import {
-	AudioMotionAnalyzer,
-	ALPHABARS_FULL,
-	ALPHABARS_OFF,
-	ALPHABARS_ON,
-	BANDS_FFT,
-	BANDS_OCTAVE_FULL,
-	BANDS_OCTAVE_HALF,
-	BANDS_OCTAVE_3RD,
-	BANDS_OCTAVE_4TH,
-	BANDS_OCTAVE_6TH,
-	BANDS_OCTAVE_8TH,
-	BANDS_OCTAVE_12TH,
-	BANDS_OCTAVE_24TH,
-	COLORMODE_GRADIENT,
-	COLORMODE_INDEX,
-	COLORMODE_LEVEL,
-	FILTER_NONE,
-	FILTER_A,
-	FILTER_B,
-	FILTER_C,
-	FILTER_D,
-	FILTER_468,
-	FILTER_TILT3,
-	FILTER_TILT45,
-	LABELS_X_FREQS,
-	LABELS_X_NOTES,
-	LABELS_X_OFF,
-	LABELS_Y_DB,
-	LABELS_Y_PERCENT,
-	LABELS_Y_OFF,
-	LAYOUT_COMBINED,
-	LAYOUT_HORIZONTAL,
-	LAYOUT_SINGLE,
-	LAYOUT_VERTICAL,
-	LEDS_MODERN,
-	LEDS_OFF,
-	LEDS_VINTAGE,
-	MIRROR_LEFT,
-	MIRROR_OFF,
-	MIRROR_RIGHT,
-	MODE_BARS,
-	MODE_GRAPH,
-	PEAKS_DROP,
-	PEAKS_FADE,
-	PEAKS_OFF,
-	RADIAL_INWARD,
-	RADIAL_OFF,
-	RADIAL_OUTWARD,
-	REASON_CREATE,
-	REASON_FULLSCREENCHANGE,
-	REASON_LORES,
-	REASON_RESIZE,
-	REASON_USER,
-	SCALE_BARK,
-	SCALE_LINEAR,
-	SCALE_LOG,
-	SCALE_MEL
-} from 'audiomotion-analyzer';
+import AudioMotionAnalyzer, * as _am from 'audiomotion-analyzer';
 
 import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
@@ -110,253 +53,54 @@ import './styles.css';
 const URL_ORIGIN = location.origin + location.pathname,
 	  VERSION    = packageJson.version;
 
-const AUTOHIDE_DELAY        = 500,				// delay for triggering front panel auto-collapse (in milliseconds)
-	  BG_DIRECTORY          = 'backgrounds/', 	// server folder name for built-in backgrounds (must end with a slash!)
-	  MAX_METADATA_REQUESTS = 4,				// max concurrent metadata requests
-	  MAX_QUEUED_SONGS      = 2000,
-	  NEXT_TRACK            = -1;				// for loadSong()
-
-// Background option values
-const BG_DEFAULT = '0',
-	  BG_BLACK   = '1',
-	  BG_COVER   = '2',
-	  BG_IMAGE   = '3',
-	  BG_VIDEO   = '4',
-	  DEFAULT_BG_COLOR = '#111111'; // for themes with no `bgColor` property; must be a full hex string for color picker compatibility
-
-// Backgrounds folder options
-const BGFOLDER_NONE   = '0',
-	  BGFOLDER_SERVER = '1',
-	  BGFOLDER_LOCAL  = '2';
-
-// Background image fit option values
-const BGFIT_ADJUST   = '0',
-	  BGFIT_CENTER   = '1',
-	  BGFIT_REPEAT   = '2',
-	  BGFIT_PULSE    = '3',
-	  BGFIT_ZOOM_IN  = '4',
-	  BGFIT_ZOOM_OUT = '5',
-	  BGFIT_WARP     = '6',
-	  BGFIT_WARP_ANI = '7',
-	  BGFIT_WARP_ROT = '8';
-
-// Dataset template for play queue items and audio elements
-const DATASET_TEMPLATE = {
-	album: '',
-	artist: '',
-	codec: '',
-	cover: '',
-	duration: '',
-	file: '',
-	filename: '',
-	quality: '',
-	title: ''
-};
-
-// CSS classes
-const CSS_CLASS_COMPACT   = 'compact',
-	  CSS_CLASS_DISABLED  = 'disabled',
-	  CSS_CLASS_FIT_VIDEO = 'fit-video',
-	  CSS_CLASS_NO_IMAGE  = 'no-image',
-	  CSS_CLASS_PRESERVE_FILENAMES = 'preserve-filenames',
-	  CSS_CLASS_SHORTCUT  = 'custom-shortcut',
-	  CSS_CLASS_WARNING   = 'warning';
-
-// default theme modifiers
-const DEFAULT_MODIFIERS = {
-	horizontal: false,
-	reverse: false
-};
-
-// Error codes
-const ERR_ABORT = 20; // AbortError
-
-// Recognized file extensions
-const FILE_EXT_AUDIO = ['mp3','flac','m4a','aac','ogg','wav'],
-	  FILE_EXT_IMAGE = ['jpg','jpeg','webp','avif','png','gif','bmp'],
-	  FILE_EXT_PLIST = ['m3u','m3u8'],
-	  FILE_EXT_VIDEO = ['mkv','mpg','webm','mp4','avi','mov'];
-
-// File mode access options
-const FILEMODE_SERVER = 'server',
-	  FILEMODE_LOCAL  = 'local';
-
-// Limit values for frequency range selection
-const FREQ_LO_MIN = 1,
-	  FREQ_LO_MAX = 2000,
-	  FREQ_HI_MIN = 1000,
-	  FREQ_HI_MAX = 24000;
-
-// localStorage keys
-const KEY_CONFIGURATION  = 'audioMotion-config',
-	  KEY_CUSTOM_THEMES  = 'audioMotion-themes',
-	  KEY_CUSTOM_PRESETS = 'audioMotion-presets',
-	  KEY_KBD_SHORTCUTS  = 'audioMotion-shortcuts',
-	  KEY_LAST_SESSION   = 'audioMotion-session',
-  	  KEY_FORCE_FS_API   = 'force-filesystem';
-
-// legacy localStorage keys (consolidated into `audioMotion-config` entry, except for grads and presets)
-const KEY_LEGACY_CUSTOM_GRADS   = 'custom-grads',
-	  KEY_LEGACY_CUSTOM_PRESETS = 'custom-preset',
-	  KEY_LEGACY_DISABLED_BGFIT = 'disabled-bgfit',
-	  KEY_LEGACY_DISABLED_GRADS = 'disabled-gradients',
-	  KEY_LEGACY_DISABLED_PROPS = 'disabled-properties',
-	  KEY_LEGACY_DISPLAY_OPTS   = 'display-options',
-	  KEY_LEGACY_GENERAL_OPTS   = 'general-settings',
-	  KEY_LEGACY_LAST_CONFIG    = 'last-config',
-  	  KEY_LEGACY_LAST_VERSION   = 'last-version',
-	  KEY_LEGACY_PEAK_OPTIONS   = 'peak-settings',
-	  KEY_LEGACY_SENSITIVITY    = 'sensitivity-presets',
-	  KEY_LEGACY_SUBTITLES_OPTS = 'subtitles-settings';
-
-// indexedDB data keys
-const KEY_DB_BGDIR_HANDLE = 'bgDir',
-	  KEY_DB_LAST_DIR     = 'last-dir', // also used in localStorage for webserver mode
-	  KEY_DB_PLAYLISTS    = 'playlists',
-	  KEY_DB_PLAYQUEUE    = 'playqueue',
-	  PLAYLIST_PREFIX     = 'pl_';
-
-// Options for LED format
-const LEDFORMAT_REGULAR = 0,
-	  LEDFORMAT_THIN    = 1,
-	  LEDFORMAT_SQUARE  = 2;
-
-// LED properties for each bandCount (for Regular format)
-const LEDPROPS = {
-	[ BANDS_FFT ]: [],
-	[ BANDS_OCTAVE_FULL ]: [ 12, 8 ],
-	[ BANDS_OCTAVE_HALF ]: [ 10, 6 ],
-	[ BANDS_OCTAVE_3RD  ]: [  8, 5 ],
-	[ BANDS_OCTAVE_4TH  ]: [  8, 5 ],
-	[ BANDS_OCTAVE_6TH  ]: [  6, 4 ],
-	[ BANDS_OCTAVE_8TH  ]: [  6, 4 ],
-	[ BANDS_OCTAVE_12TH ]: [  4, 3 ],
-	[ BANDS_OCTAVE_24TH ]: [  4, 3 ]
-};
-
-// Legacy visualization modes (for preset migration)
-const LEGACY_MODE_BARS     = '11',
- 	  LEGACY_MODE_DISCRETE = '0',
-	  LEGACY_MODE_GRAPH    = '10',
-	  LEGACY_MODE_LINE     = '101';
-
-// Options for OSD font size and style
-const OSD_SIZE_S = '0',
-	  OSD_SIZE_M = '1',
-	  OSD_SIZE_L = '2',
-	  OSD_STYLE_OUTLINE = '0',
-	  OSD_STYLE_SHADOW  = '1';
-
-// Valid values for the `frontPanel` URL parameter and config.yaml option
-const PANEL_CLOSE = 'close',
-	  PANEL_OPEN  = 'open';
-
-// Keynames for "special" built-in presets
-const PRESET_KEY_DEFAULT      = 'defaults',
-	  PRESET_KEY_DEMO         = 'demo',     // triggers randomizeNow() when loaded
-	  PRESET_KEY_LAST_SESSION = 'last';
-
-// User presets placeholders
-const PRESET_EMPTY  = 'Empty slot',
-	  PRESET_NONAME = 'No description';
-
-// Property keys for Randomize settings
-const RND_ALPHA      = 'alpha',
-	  RND_BACKGROUND = 'nobg',
-	  RND_BANDCOUNT  = 'bands',
-	  RND_BGIMAGEFIT = 'imgfit',
-	  RND_COLORMODE  = 'colormode',
-	  RND_HORIZONTAL = 'horizontal',
-	  RND_LEDS       = 'leds',
-	  RND_LED_FORMAT = 'ledformat',
-	  RND_LED_MASK   = 'ledmask',
-	  RND_MODE       = 'mode',
-	  RND_OUTLINE    = 'outline',
-	  RND_PEAKS      = 'peaks',
-	  RND_PRESETS    = 'presets',
-	  RND_RADIAL     = 'radial',
-	  RND_REFLEX     = 'reflex',
-	  RND_REVERSE    = 'reverse',
-	  RND_ROUND      = 'round',
-	  RND_SPLIT      = 'split',
-	  RND_THEMES     = 'gradient',
-	  MIN_STREAK_FOR_GRAPH  = 3,
-	  MIN_STREAK_FOR_RADIAL = 5;
-
-// Server configuration filename and default values
-const SERVERCFG_FILE     = 'config.yaml',
-	  SERVERCFG_DEFAULTS = {
-	  	defaultAccessMode: FILEMODE_LOCAL,
-		enableLocalAccess: true,
-		frontPanel       : PANEL_OPEN,
-		preserveFilenames: false
-	  };
-
-// Subtitles settings options
-const SUBS_BG_NONE      = 'none',
-	  SUBS_BG_SHADOW    = 'shadow',
-	  SUBS_BG_SOLID     = 'solid',
-	  SUBS_COLOR_GOLD   = 'gold',
-	  SUBS_COLOR_GRAY   = 'gray',
-	  SUBS_COLOR_WHITE  = 'white',
-	  SUBS_COLOR_YELLOW = 'yellow',
-	  SUBS_CSS_BG       = 'subs-bg-', // CSS class prefix
-	  SUBS_CSS_COLOR    = 'subs-color-',
-	  SUBS_POS_BOTTOM   = 'bottom',
-	  SUBS_POS_CENTER   = 'center',
-	  SUBS_POS_TOP      = 'top';
-
-// Update banner settings
-const UPDATE_BANNER_TIMEOUT = 10000,  // time visible (milliseconds)
-	  UPDATE_SHOW_CSS_CLASS = 'show'; // active CSS class
-
 // selector shorthand functions
 const $  = document.querySelector.bind( document ),
+	  $_ = document.getElementById.bind( document ),
 	  $$ = document.querySelectorAll.bind( document );
 
 // UI HTML elements
-const elAlphaBars     = $('#alpha_bars'),
+const elAlphaBars     = $_( _.UI_ALPHABARS ),
 	  elAnalyzer      = $('#analyzer'),			// analyzer canvas container
 	  elAnsiBands     = $('#ansi_bands'),
 	  elAutoHide      = $('#auto_hide'),
-	  elBackground    = $('#background'),
-	  elBandCount     = $('#band_count'),
-	  elBarSpace      = $('#bar_space'),
-	  elBgImageDim    = $('#bg_img_dim'),
-	  elBgImageFit    = $('#bg_img_fit'),
+	  elBackground    = $_( _.UI_BACKGROUND ),
+	  elBandCount     = $_( _.UI_BANDCOUNT ),
+	  elBarSpace      = $_( _.UI_BARSPACING ),
+	  elBgImageDim    = $_( _.UI_BGDIM ),
+	  elBgImageFit    = $_( _.UI_BGFIT ),
 	  elBgLocation    = $('#bg_location'),
 	  elBgMaxItems    = $('#bg_max_items'),
-	  elChnLayout     = $('#channel_layout'),
-	  elColorMode     = $('#color_mode'),
+	  elChnLayout     = $_( _.UI_LAYOUT ),
+	  elColorMode     = $_( _.UI_COLORMODE ),
 	  elContainer     = $('#bg_container'),		// outer container with background image
 	  elDebug         = $('#debug'),
 	  elDim           = $('#bg_dim'),			// background image/video darkening layer
 	  elEnabledThemes = $('#enabled_themes'),
 	  elEndTimeout    = $('#end_timeout'),
 	  elFFTsize       = $('#fft_size'),
-	  elFillAlpha     = $('#fill_alpha'),
-	  elFPS           = $('#fps'),
-	  elFreqScale     = $('#freq_scale'),
+	  elFillAlpha     = $_( _.UI_FILLOPACITY ),
+	  elFPS           = $_( _.UI_FPS ),
+	  elFreqScale     = $_( _.UI_FREQSCALE ),
 	  elFsHeight      = $('#fs_height'),
-	  elHorizontal0   = $('#horizontal_0'),
-	  elHorizontal1   = $('#horizontal_1'),
+	  elHorizontal0   = $_( _.UI_HORIZONTAL0 ),
+	  elHorizontal1   = $_( _.UI_HORIZONTAL1 ),
 	  elInfoTimeout   = $('#info_timeout'),
 	  elInvertVolume  = $('#invert_volume'),
-	  elLedDisplay    = $('#led_display'),
-	  elLedFormat     = $('#led_format'),
-	  elLedMask       = $('#led_mask'),
-	  elLinearAmpl    = $('#linear_amplitude'),
-	  elLineWidth     = $('#line_width'),
+	  elLedDisplay    = $_( _.UI_LEDBARS ),
+	  elLedFormat     = $_( _.UI_LEDFORMAT ),
+	  elLedMask       = $_( _.UI_LEDMASK ),
+	  elLinearAmpl    = $_( _.UI_LEVELSCALE ),
+	  elLineWidth     = $_( _.UI_LINEWIDTH ),
 	  elLinkGrads     = $('#link_grads'),
-	  elLoRes         = $('#lo_res'),
+	  elLoRes         = $_( _.UI_LORES ),
 	  elMaxFPS        = $('#max_fps'),
 	  elMediaPanel    = $('#files_panel'),
-	  elMirror        = $('#mirror'),
-	  elMode          = $('#mode'),
+	  elMirror        = $_( _.UI_MIRROR ),
+	  elMode          = $_( _.UI_ANALYZERMODE ),
 	  elMute          = $('#mute'),
 	  elNoDimSubs     = $('#no_dim_subs'),
 	  elNoDimVideo    = $('#no_dim_video'),
-	  elOutline       = $('#outline'),
+	  elOutline       = $_( _.UI_OUTLINE ),
 	  elOSD           = $('#osd'),				// message canvas
 	  elOSDFontSize   = $('#osd_font_size'),
 	  elOSDTextStyle  = $('#osd_text_style'),
@@ -369,96 +113,98 @@ const elAlphaBars     = $('#alpha_bars'),
 	  elPreserveFilenames = $('#preserve_filenames'),
 	  elPreserveModifiers = $('#preserve_modifiers'),
 	  elPresets       = $('#presets'),
-	  elRadial        = $('#radial'),
-	  elRadius        = $('#radius'),
-	  elRandomMode    = $('#random_mode'),
+	  elRadial        = $_( _.UI_RADIAL ),
+	  elRadius        = $_( _.UI_RADIALSIZE ),
+	  elRandomMode    = $_( _.UI_RANDOMIZE ),
 	  elRangeMax      = $('#freq_max'),
 	  elRangeMin      = $('#freq_min'),
 	  elReduceOnSubs  = $('#reduce_subs'),
 	  elReduceOnVideo = $('#reduce_video'),
-	  elReflex        = $('#reflex'),
-	  elRepeat        = $('#repeat'),
-	  elReverse0      = $('#reverse_0'),
-	  elReverse1      = $('#reverse_1'),
-	  elRoundBars     = $('#round_bars'),
+	  elReflex        = $_( _.UI_REFLEX ),
+	  elRepeat        = $_( _.UI_REPEAT ),
+	  elReverse0      = $_( _.UI_REVERSE0 ),
+	  elReverse1      = $_( _.UI_REVERSE1 ),
+	  elRoundBars     = $_( _.UI_ROUNDBARS ),
 	  elSaveDir       = $('#save_dir'),
 	  elSaveQueue     = $('#save_queue'),
-	  elScaleX        = $('#scaleX'),
-	  elScaleY        = $('#scaleY'),
-	  elSensitivity   = $('#sensitivity'),
+	  elScaleX        = $_( _.UI_LABELSX ),
+	  elScaleY        = $_( _.UI_LABELSY ),
+	  elSensitivity   = $_( _.UI_SENSITIVITY ),
 	  elShowCount     = $('#show_count'),
 	  elShowCover     = $('#show_cover'),
-	  elShowPeaks     = $('#show_peaks'),
-	  elShowSong      = $('#show_song'),
-	  elShowSubtitles = $('#show_subs'),
+	  elShowPeaks     = $_( _.UI_PEAKS ),
+	  elShowSong      = $_( _.UI_TRACKINFO ),
+	  elShowSubtitles = $_( _.UI_SUBTITLES ),
 	  elSmoothing     = $('#smoothing'),
 	  elSongDuration  = $('#song_duration'),
 	  elSongPosition  = $('#current_time'),
 	  elSongProgress  = $('#progress'),
 	  elSource        = $('#source'),
-	  elSpin		  = $('#spin'),
+	  elSpin		  = $_( _.UI_RADIALSPIN ),
 	  elSplitGrad     = $('#split_grad'),
 	  elSubsBackground= $('#subs_background'),
 	  elSubsColor     = $('#subs_color'),
 	  elSubsPosition  = $('#subs_position'),
 	  elSubsPosAudio  = $('#subs_position_audio'),
   	  elSurround      = $('#enable_surround'),
-	  elTheme0        = $('#theme_0'),
-	  elTheme1        = $('#theme_1'),
+	  elTheme0        = $_( _.UI_THEME0 ),
+	  elTheme1        = $_( _.UI_THEME1 ),
 	  elTogglePanel   = $('#toggle_panel'),
 	  elTrackTimeout  = $('#track_timeout'),
 	  elVideo         = $('#video'),			// background video
 	  elVideoFill     = $('#video_fill'),
 	  elVolume        = $('#volume'),
 	  elWarp          = $('#warp'),				// "warp" effect layer
-	  elWeighting     = $('#weighting');
+	  elWeighting     = $_( _.UI_WEIGHTING );
 
 // UI controls that can be assigned to keyboard shortcuts
 const CONTROLS = {
-	[ _c.UI_ALPHABARS    ]: { name: 'Alpha Bars',              el: elAlphaBars     },
-	[ _c.UI_ANALYZERMODE ]: { name: 'Analyzer Mode',           el: elMode          },
-	[ _c.UI_BANDCOUNT    ]: { name: 'Band Count',              el: elBandCount     },
-	[ _c.UI_BANDSTD      ]: { name: 'Bands Standard',          el: elAnsiBands     },
-	[ _c.UI_BARSPACING   ]: { name: 'Bar Spacing',             el: elBarSpace      },
-	[ _c.UI_BACKGROUND   ]: { name: 'Background',              el: elBackground    },
-	[ _c.UI_BGDIM        ]: { name: 'Background Dim',          el: elBgImageDim    },
-	[ _c.UI_BGFIT        ]: { name: 'Background Image Fit',    el: elBgImageFit    },
-	[ _c.UI_COLORMODE    ]: { name: 'Bar Color Mode',          el: elColorMode     },
-	[ _c.UI_FILLOPACITY  ]: { name: 'Fill Opacity',            el: elFillAlpha     },
-	[ _c.UI_FPS          ]: { name: 'FPS',                     el: elFPS           },
-	[ _c.UI_FREQSCALE    ]: { name: 'Frequency Scale',         el: elFreqScale     },
-	[ _c.UI_FULLSCREEN   ]: { name: 'Fullscreen',              func: fullscreen    },
-	[ _c.UI_HORIZONTAL0  ]: { name: 'Horizontal (main/left)',  el: elHorizontal0   },
-	[ _c.UI_HORIZONTAL1  ]: { name: 'Horizontal (right)',      el: elHorizontal1   },
-	[ _c.UI_LAYOUT       ]: { name: 'Channel Layout',          el: elChnLayout     },
-	[ _c.UI_LEDBARS      ]: { name: 'LED Bars',                el: elLedDisplay    },
-	[ _c.UI_LEDFORMAT    ]: { name: 'LED Format',              el: elLedFormat     },
-	[ _c.UI_LEDMASK      ]: { name: 'LED Mask',                el: elLedMask       },
-	[ _c.UI_LEVELSCALE   ]: { name: 'Level Scale',             el: elLinearAmpl    },
-	[ _c.UI_LINEWIDTH    ]: { name: 'Line Width',              el: elLineWidth     },
-	[ _c.UI_LORES        ]: { name: 'LO-RES',                  el: elLoRes         },
-	[ _c.UI_MIRROR       ]: { name: 'Mirror',                  el: elMirror        },
-	[ _c.UI_OUTLINE      ]: { name: 'Outline bars',            el: elOutline       },
-	[ _c.UI_OSD          ]: { name: 'Display info',            func: toggleInfo    },
-	[ _c.UI_PEAKS        ]: { name: 'Peaks',                   el: elShowPeaks     },
-	[ _c.UI_RADIAL       ]: { name: 'Radial',                  el: elRadial        },
-	[ _c.UI_RADIALSIZE   ]: { name: 'Radial Size',             el: elRadius        },
-	[ _c.UI_RANDOMIZE    ]: { name: 'Randomize',               el: elRandomMode    },
-	[ _c.UI_REFLEX       ]: { name: 'Reflex',                  el: elReflex        },
-	[ _c.UI_REPEAT       ]: { name: 'Queue repeat',            el: elRepeat        },
-	[ _c.UI_ROUNDBARS    ]: { name: 'Round bars',              el: elRoundBars     },
-	[ _c.UI_LABELSX      ]: { name: 'X-Axis Labels',           el: elScaleX        },
-	[ _c.UI_LABELSY      ]: { name: 'Y-Axis Labels',           el: elScaleY        },
-	[ _c.UI_SHUFFLE      ]: { name: 'Queue shuffle',           func: shufflePlayQueue, msg: 'Shuffle' },
-	[ _c.UI_SENSITIVITY  ]: { name: 'Sensitivity',             el: elSensitivity   },
-	[ _c.UI_RADIALSPIN   ]: { name: 'Radial Spin',             el: elSpin          },
-	[ _c.UI_REVERSE0     ]: { name: 'Reverse (main/left)',     el: elReverse0      },
-	[ _c.UI_REVERSE1     ]: { name: 'Reverse (right)',         el: elReverse1      },
-	[ _c.UI_SUBTITLES    ]: { name: 'Subtitles',               el: elShowSubtitles },
-	[ _c.UI_THEME0       ]: { name: 'Color Theme (main/left)', el: elTheme0        },
-	[ _c.UI_THEME1       ]: { name: 'Color Theme (right)',     el: elTheme1        },
-	[ _c.UI_TRACKINFO    ]: { name: 'Track Info',              el: elShowSong      },
-	[ _c.UI_WEIGHTING    ]: { name: 'Weighting Filter',        el: elWeighting     }
+	[ _.UI_ALPHABARS    ]: { name: 'Alpha Bars',              el: elAlphaBars     },
+	[ _.UI_ANALYZERMODE ]: { name: 'Analyzer Mode',           el: elMode          },
+	[ _.UI_BANDCOUNT    ]: { name: 'Band Count',              el: elBandCount     },
+	[ _.UI_BACKGROUND   ]: { name: 'Background',              el: elBackground    },
+	[ _.UI_BGDIM        ]: { name: 'Background Dim',          el: elBgImageDim    },
+	[ _.UI_BGFIT        ]: { name: 'Background Image Fit',    el: elBgImageFit    },
+	[ _.UI_COLORMODE    ]: { name: 'Bar Color Mode',          el: elColorMode     },
+	[ _.UI_THEME0       ]: { name: 'Color Theme (main/left)', el: elTheme0        },
+	[ _.UI_THEME1       ]: { name: 'Color Theme (right)',     el: elTheme1        },
+	[ _.UI_FPS          ]: { name: 'FPS',                     el: elFPS           },
+	[ _.UI_HORIZONTAL0  ]: { name: 'Horizontal (main/left)',  el: elHorizontal0   },
+	[ _.UI_HORIZONTAL1  ]: { name: 'Horizontal (right)',      el: elHorizontal1   },
+	[ _.UI_REVERSE0     ]: { name: 'Reverse (main/left)',     el: elReverse0      },
+	[ _.UI_REVERSE1     ]: { name: 'Reverse (right)',         el: elReverse1      },
+	[ _.UI_LEDBARS      ]: { name: 'LED Bars',                el: elLedDisplay    },
+	[ _.UI_LEDFORMAT    ]: { name: 'LED Format',              el: elLedFormat     },
+	[ _.UI_LEDMASK      ]: { name: 'LED Mask',                el: elLedMask       },
+	[ _.UI_LORES        ]: { name: 'LO-RES',                  el: elLoRes         },
+	[ _.UI_MIRROR       ]: { name: 'Mirror',                  el: elMirror        },
+	[ _.UI_OUTLINE      ]: { name: 'Outline bars',            el: elOutline       },
+	[ _.UI_OSD          ]: { name: 'Display info',            func: toggleInfo    },
+	[ _.UI_PEAKS        ]: { name: 'Peaks',                   el: elShowPeaks     },
+	[ _.UI_RADIAL       ]: { name: 'Radial',                  el: elRadial        },
+	[ _.UI_RANDOMIZE    ]: { name: 'Randomize',               el: elRandomMode    },
+	[ _.UI_REFLEX       ]: { name: 'Reflex',                  el: elReflex        },
+	[ _.UI_ROUNDBARS    ]: { name: 'Round bars',              el: elRoundBars     },
+	[ _.UI_SENSITIVITY  ]: { name: 'Sensitivity',             el: elSensitivity   },
+	[ _.UI_SUBTITLES    ]: { name: 'Subtitles',               el: elShowSubtitles },
+	[ _.UI_TRACKINFO    ]: { name: 'Track Info',              el: elShowSong      },
+	[ _.UI_LABELSX      ]: { name: 'X-Axis Labels',           el: elScaleX        },
+	[ _.UI_LABELSY      ]: { name: 'Y-Axis Labels',           el: elScaleY        },
+
+	[ _.UI_FULLSCREEN   ]: { name: 'Fullscreen',              func: fullscreen    },
+	[ _.UI_REPEAT       ]: { name: 'Queue repeat',            el: elRepeat        },
+	[ _.UI_SHUFFLE      ]: { name: 'Queue shuffle',           func: shufflePlayQueue, msg: 'Shuffle' },
+
+// advanced settings
+	[ _.UI_BARSPACING   ]: { name: 'Bar Spacing',             el: elBarSpace      },
+	[ _.UI_LAYOUT       ]: { name: 'Channel Layout',          el: elChnLayout     },
+	[ _.UI_FILLOPACITY  ]: { name: 'Fill Opacity',            el: elFillAlpha     },
+	[ _.UI_FREQSCALE    ]: { name: 'Frequency Scale',         el: elFreqScale     },
+	[ _.UI_LEVELSCALE   ]: { name: 'Level Scale',             el: elLinearAmpl    },
+	[ _.UI_LINEWIDTH    ]: { name: 'Line Width',              el: elLineWidth     },
+	[ _.UI_RADIALSIZE   ]: { name: 'Radial Size',             el: elRadius        },
+	[ _.UI_RADIALSPIN   ]: { name: 'Radial Spin',             el: elSpin          },
+	[ _.UI_WEIGHTING    ]: { name: 'Weighting Filter',        el: elWeighting     }
 };
 
 // Compute minimum window height to fit the app interface with no scroll - used by toggleFrontPanel()
@@ -468,297 +214,66 @@ const PANEL_MIN_HEIGHT  = $('.player-panel').clientHeight + $('.bottom-panel').c
 // Configuration presets
 const BUILTIN_PRESETS = [
 	{
-		key: PRESET_KEY_LAST_SESSION,
+		key: _.PRESET_KEY_LAST_SESSION,
 		name: 'Session start',
 		options: {}
 	}
 	// additional presets are populated from config.yaml contents
 ];
 
-// Fallback default preset - NOTE: `volume` property is required for first-run initialization!
-const DEFAULT_PRESET = {
-	key: PRESET_KEY_DEFAULT,
-	name: 'Defaults',
-	options: {
-		alphaBars    : ALPHABARS_OFF,
-		ansiBands    : 0,
-		background   : BG_COVER,
-		bandCount    : BANDS_FFT,
-		barSpace     : .2,
-		bgImageDim   : .3,
-		bgImageFit   : BGFIT_CENTER,
-		channelLayout: LAYOUT_SINGLE,
-		colorMode    : COLORMODE_GRADIENT,
-		fftSize      : 8192,
-		fillAlpha    : .3,
-		freqMax      : 20000,
-		freqMin      : 20,
-		freqScale    : SCALE_LOG,
-		ledDisplay   : LEDS_OFF,
-		ledFormat    : LEDFORMAT_REGULAR,
-		linearAmpl   : 1,
-		lineWidth    : 1,
-		linkGrads    : 0,
-		loRes        : 0,
-		micSource    : 0,
-		mirror       : MIRROR_OFF,
-		mode         : MODE_BARS,
-		mute         : 0,
-		outlineBars  : 0,
-		radial       : 0,
-		radius       : .5,
-		randomMode   : 0,
-		reflex       : 0,
-		repeat       : 0,
-		roundBars    : 0,
-		sensitivity  : 1,
-		showFPS      : 0,
-		showLedMask  : 1,
-		showPeaks    : PEAKS_DROP,
-		showScaleX   : LABELS_X_FREQS,
-		showScaleY   : LABELS_Y_OFF,
-		showSong     : 1,
-		showSubtitles: 1,
-		smoothing    : .7,
-		spin         : 2,
-		splitGrad    : 0,
-		themes       : 'prism',
-		volume       : 1,
-		weighting    : FILTER_TILT3
-	}
-};
-
-// Color theme definitions
-const THEMES = {
-	apple:  	  { name: 'Apple ][',
-					colorStops: [
-						{ pos: .1667, color: '#61bb46' },
-						{ pos: .3333, color: '#fdb827' },
-						{ pos: .5, color: '#f5821f' },
-						{ pos: .6667, color: '#e03a3e' },
-						{ pos: .8333, color: '#963d97' },
-						{ pos: 1, color: '#009ddc' }
-					],
-					disabled: false },
-
-	aurora:   	  { name: 'Aurora',
-					bgColor: '#0e172a',
-					colorStops: [
-						{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
-						{ pos:  1, color: 'hsl( 216, 100%, 50% )' }
-					],
-					disabled: false },
-
-	borealis:     { name: 'Borealis',
-					bgColor: '#0d1526',
-					colorStops: [
-						{ pos: .1, color: 'hsl( 120, 100%, 50% )' },
-						{ pos: .5, color: 'hsl( 189, 100%, 40% )' },
-						{ pos:  1, color: 'hsl( 290, 60%, 40% )' }
-					],
-					disabled: false },
-
-	candy:  	  { name: 'Candy',
-					bgColor: '#0d0619',
-					colorStops: [
-						{ pos: .1, color: '#ffaf7b' },
-						{ pos: .5, color: '#d76d77' },
-						{ pos: 1, color: '#3a1c71' }
-					],
-					disabled: false },
-
-	classic: 	  { name: 'Classic', disabled: false },
-
-	cool:   	  { name: 'Cool',
-					bgColor: '#0b202b',
-					colorStops: [
-						'hsl( 208, 0%, 100% )',
-						'hsl( 208, 100%, 35% )'
-					],
-					disabled: false },
-
-	dusk:   	  { name: 'Dusk',
-					bgColor: '#0e172a',
-					colorStops: [
-						{ pos: .2, color: 'hsl( 55, 100%, 50% )' },
-						{ pos:  1, color: 'hsl( 16, 100%, 50% )' }
-					],
-					disabled: false },
-
-	miami: 		  { name: 'Miami',
-					bgColor: '#110a11',
-					colorStops: [
-						{ pos: .024, color: 'rgb( 251, 198, 6 )' },
-						{ pos: .283, color: 'rgb( 224, 82, 95 )' },
-						{ pos: .462, color: 'rgb( 194, 78, 154 )' },
-						{ pos: .794, color: 'rgb( 32, 173, 190 )' },
-						{ pos: 1, color: 'rgb( 22, 158, 95 )' }
-					],
-					disabled: false },
-
-	mono: 		  { name: 'Mono (BETA!)',
-					colorStops: [ '#eee' ],
-					peakColor: 'red',
-					disabled: false },
-
-	orient: 	  { name: 'Orient',
-					bgColor: '#100',
-					colorStops: [
-						{ pos: .1, color: '#f00' },
-						{ pos: 1, color: '#600' }
-					],
-					disabled: false },
-
-	outrun: 	  { name: 'Outrun',
-					bgColor: '#101',
-					colorStops: [
-						{ pos: 0, color: 'rgb( 255, 223, 67 )' },
-						{ pos: .182, color: 'rgb( 250, 84, 118 )' },
-						{ pos: .364, color: 'rgb( 198, 59, 243 )' },
-						{ pos: .525, color: 'rgb( 133, 80, 255 )' },
-						{ pos: .688, color: 'rgb( 74, 104, 247 )' },
-						{ pos: 1, color: 'rgb( 35, 210, 255 )' }
-					],
-					disabled: false },
-
-	pacific:  	  { name: 'Pacific Dream',
-					bgColor: '#051319',
-					colorStops: [
-						{ pos: .1, color: '#34e89e' },
-						{ pos: 1, color: '#0f3443' }
-					],
-					disabled: false },
-
-	prism:  	  { name: 'Prism', disabled: false },
-
-	prism_old: 	  { name: 'Prism (legacy)',
-					colorStops: [
-						'hsl( 0, 100%, 50% )',
-						'hsl( 60, 100%, 50% )',
-						'hsl( 120, 100%, 50% )',
-						'hsl( 180, 100%, 50% )',
-						'hsl( 240, 100%, 50% )'
-					],
-					disabled: true },
-
-	rainbow:  	  { name: 'Rainbow', horizontal: true, disabled: false },
-
-	rainbow_old:  { name: 'Rainbow (legacy)',
-					horizontal: true,
-					colorStops: [
-						'hsl( 0, 100%, 50% )',
-						'hsl( 60, 100%, 50% )',
-						'hsl( 120, 100%, 50% )',
-						'hsl( 180, 100%, 47% )',
-						'hsl( 240, 100%, 58% )',
-						'hsl( 300, 100%, 50% )',
-						'hsl( 360, 100%, 50% )'
-					],
-					disabled: true },
-
-	shahabi:  	  { name: 'Shahabi',
-					bgColor: '#060613',
-					colorStops: [
-						{ pos: .1, color: '#66ff00' },
-						{ pos: 1, color: '#a80077' }
-					],
-					disabled: false },
-
-	summer: 	  { name: 'Summer',
-					bgColor: '#041919',
-					colorStops: [
-						{ pos: .1, color: '#fdbb2d' },
-						{ pos: 1, color: '#22c1c3' }
-					],
-					disabled: false },
-
-	sunset: 	  { name: 'Sunset',
-					bgColor: '#021119',
-					colorStops: [
-						{ pos: .1, color: '#f56217' },
-						{ pos: 1, color: '#0b486b' }
-					],
-					disabled: false },
-
-	tiedye: 	  { name: 'Tie Dye',
-					colorStops: [
-						{ pos: .038, color: 'rgb( 15, 209, 165 )' },
-						{ pos: .208, color: 'rgb( 15, 157, 209 )' },
-						{ pos: .519, color: 'rgb( 133, 13, 230 )' },
-						{ pos: .731, color: 'rgb( 230, 13, 202 )' },
-						{ pos: .941, color: 'rgb( 242, 180, 107 )' }
-					],
-					disabled: false }
-};
-
 // Visualization modes
 const modeOptions = [
-	[ MODE_BARS,  'Bars'  ],
-	[ MODE_GRAPH, 'Graph' ]
+	[ _am.MODE_BARS,  'Bars'  ],
+	[ _am.MODE_GRAPH, 'Graph' ]
 ];
 
 // Channel Layout options
 const channelLayoutOptions = [
-	[ LAYOUT_SINGLE,     'Single' ],
-	[ LAYOUT_COMBINED,   'Comb'   ],
-	[ LAYOUT_HORIZONTAL, 'Horiz'  ],
-	[ LAYOUT_VERTICAL,   'Vert'   ]
+	[ _am.LAYOUT_SINGLE,     'Single' ],
+	[ _am.LAYOUT_COMBINED,   'Comb'   ],
+	[ _am.LAYOUT_HORIZONTAL, 'Horiz'  ],
+	[ _am.LAYOUT_VERTICAL,   'Vert'   ]
 ];
 
 // Randomize options
 const randomProperties = [
-	{ value: RND_PRESETS,     text: 'User Presets',  disabled: true  },
-	{ value: RND_ALPHA,       text: 'Alpha Bars',    disabled: false },
-	{ value: RND_MODE,        text: 'Analyzer Mode', disabled: false },
-	{ value: RND_BACKGROUND,  text: 'Background',    disabled: false },
-	{ value: RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
-	{ value: RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
-	{ value: RND_COLORMODE,   text: 'Color Mode',    disabled: false },
-	{ value: RND_THEMES,      text: 'Color Themes',  disabled: false },
-	{ value: RND_HORIZONTAL,  text: 'Horizontal',    disabled: false },
-	{ value: RND_REVERSE,     text: 'Reverse',       disabled: false },
-	{ value: RND_LEDS,        text: 'LED Bars',      disabled: false },
-	{ value: RND_LED_FORMAT,  text: 'LED Format',    disabled: false },
-	{ value: RND_LED_MASK,    text: 'LED Mask',      disabled: false },
-	{ value: RND_OUTLINE,     text: 'Outline',       disabled: false },
-	{ value: RND_PEAKS,       text: 'Peaks',         disabled: false },
-	{ value: RND_RADIAL,      text: 'Radial',        disabled: false },
-	{ value: RND_REFLEX,      text: 'Reflex',        disabled: false },
-	{ value: RND_ROUND,       text: 'Round',         disabled: false },
-	{ value: RND_SPLIT,       text: 'Spread',        disabled: false },
+	{ value: _.RND_PRESETS,     text: 'User Presets',  disabled: true  },
+	{ value: _.RND_ALPHA,       text: 'Alpha Bars',    disabled: false },
+	{ value: _.RND_MODE,        text: 'Analyzer Mode', disabled: false },
+	{ value: _.RND_BACKGROUND,  text: 'Background',    disabled: false },
+	{ value: _.RND_BGIMAGEFIT,  text: 'BG Image Fit',  disabled: false },
+	{ value: _.RND_BANDCOUNT,   text: 'Band Count',    disabled: false },
+	{ value: _.RND_COLORMODE,   text: 'Color Mode',    disabled: false },
+	{ value: _.RND_THEMES,      text: 'Color Themes',  disabled: false },
+	{ value: _.RND_HORIZONTAL,  text: 'Horizontal',    disabled: false },
+	{ value: _.RND_REVERSE,     text: 'Reverse',       disabled: false },
+	{ value: _.RND_LEDS,        text: 'LED Bars',      disabled: false },
+	{ value: _.RND_LED_FORMAT,  text: 'LED Format',    disabled: false },
+	{ value: _.RND_LED_MASK,    text: 'LED Mask',      disabled: false },
+	{ value: _.RND_OUTLINE,     text: 'Outline',       disabled: false },
+	{ value: _.RND_PEAKS,       text: 'Peaks',         disabled: false },
+	{ value: _.RND_RADIAL,      text: 'Radial',        disabled: false },
+	{ value: _.RND_REFLEX,      text: 'Reflex',        disabled: false },
+	{ value: _.RND_ROUND,       text: 'Round',         disabled: false },
+	{ value: _.RND_SPLIT,       text: 'Spread',        disabled: false },
 ];
 
-// Sensitivity presets
-const sensitivityDefaults = [
-	{ min: -84, max: -21, boost: 1 },   // low
-	{ min: -90, max: -30, boost: 1.6 }, // medium
-	{ min: -96, max: -36, boost: 2.4 }  // high
-];
 
 // On-screen information display options
 const infoOptionsElements = [ elEndTimeout, elInfoTimeout, elOSDFontSize, elOSDTextStyle, elShowCount, elShowCover, elTrackTimeout ];
 
-const infoDisplayDefaults = {
-	info  : 5,	  // display time (secs) when requested via click or keyboard shortcut
-	track : 10,   // display time (secs) on track change
-	end   : 10,   // display time (secs) at the end of the song
-	covers: true, // show album covers in song information
-	count : true, // show song number and play queue count
-	osdFontSize: OSD_SIZE_M,
-	osdTextStyle: OSD_STYLE_OUTLINE
-}
 
 // Background Image Fit options
 const bgFitOptions = [
-	{ value: BGFIT_ADJUST,   text: 'Adjust',      disabled: false },
-	{ value: BGFIT_CENTER,   text: 'Center',      disabled: false },
-	{ value: BGFIT_PULSE,    text: 'Pulse',       disabled: false },
-	{ value: BGFIT_REPEAT,   text: 'Repeat',      disabled: false },
-	{ value: BGFIT_WARP,     text: 'Warp',        disabled: false },
-	{ value: BGFIT_WARP_ANI, text: 'Warp Drive',  disabled: false },
-	{ value: BGFIT_WARP_ROT, text: 'Wormhole',    disabled: false },
-	{ value: BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
-	{ value: BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
+	{ value: _.BGFIT_ADJUST,   text: 'Adjust',      disabled: false },
+	{ value: _.BGFIT_CENTER,   text: 'Center',      disabled: false },
+	{ value: _.BGFIT_PULSE,    text: 'Pulse',       disabled: false },
+	{ value: _.BGFIT_REPEAT,   text: 'Repeat',      disabled: false },
+	{ value: _.BGFIT_WARP,     text: 'Warp',        disabled: false },
+	{ value: _.BGFIT_WARP_ANI, text: 'Warp Drive',  disabled: false },
+	{ value: _.BGFIT_WARP_ROT, text: 'Wormhole',    disabled: false },
+	{ value: _.BGFIT_ZOOM_IN,  text: 'Zoom In',     disabled: false },
+	{ value: _.BGFIT_ZOOM_OUT, text: 'Zoom Out',    disabled: false },
 ];
 
 // General settings
@@ -766,7 +281,7 @@ const generalOptionsElements = [ elAutoHide, elBgLocation, elBgMaxItems, elFsHei
 
 const generalOptionsDefaults = {
 	autoHide   : false,
-	bgLocation : BGFOLDER_SERVER,
+	bgLocation : _.BGFOLDER_SERVER,
 	bgMaxItems : 100,
 	fsHeight   : 100,
 	invertVol  : false,
@@ -805,12 +320,12 @@ const peakOptionsDefaults = {
 const subsOptionsElements = [ elNoDimSubs, elNoDimVideo, elReduceOnSubs, elReduceOnVideo, elSubsBackground, elSubsColor, elSubsPosition, elSubsPosAudio, elVideoFill ];
 
 const subsOptionsDefaults = {
-	background   : SUBS_BG_SHADOW,
-	color        : SUBS_COLOR_WHITE,
+	background   : _.SUBS_BG_SHADOW,
+	color        : _.SUBS_COLOR_WHITE,
 	noDimVideo   : true,
 	noDimSubs    : true,
-	posAudio     : SUBS_POS_TOP,
-	position     : SUBS_POS_BOTTOM,
+	posAudio     : _.SUBS_POS_TOP,
+	position     : _.SUBS_POS_BOTTOM,
 	reduceOnSubs : false,
 	reduceOnVideo: true,
 	videoFill    : true
@@ -912,7 +427,7 @@ const getIndex = node => {
 
 // returns the text/label of a settings control
 const getText = el => {
-	if ( el.classList.contains( CSS_CLASS_DISABLED ) )
+	if ( el.classList.contains( _.CSS_CLASS_DISABLED ) )
 		return 'currently disabled';
 
 	let text = el.value ?? '';
@@ -945,7 +460,7 @@ const getControlValue = el => {
 }
 
 // Returns an object with the current analyzer settings (Settings and Advanced panels)
-const getCurrentSettings = _ => ({
+const getCurrentSettings = () => ({
 	alphaBars    : getControlValue( elAlphaBars ),
 	ansiBands    : getControlValue( elAnsiBands ),
 	background   : getControlValue( elBackground ),
@@ -1024,12 +539,12 @@ const getPresetName = key => {
 
 // return selected theme(s) for canvas OSD message
 const getSelectedThemes = () => {
-	const isDual = getControlValue( elChnLayout ) != LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
+	const isDual = getControlValue( elChnLayout ) != _am.LAYOUT_SINGLE && ! isSwitchOn( elLinkGrads );
 	return `Theme${ isDual ? 's' : ''}: ${ THEMES[ elTheme0.value ].name + ( isDual ? ' / ' + THEMES[ elTheme1.value ].name : '' ) }`;
 }
 
 // return a list of user preset slots and descriptions
-const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ PRESET_EMPTY }</em>` : item.name || PRESET_NONAME }` );
+const getUserPresets = () => userPresets.map( ( item, index ) => `<strong>[${ index + 1 }]</strong>&nbsp; ${ isEmpty( item ) ? `<em class="empty">${ _.PRESET_EMPTY }</em>` : item.name || _.PRESET_NONAME }` );
 
 // shorthand for Array.isArray()
 const { isArray } = Array;
@@ -1059,7 +574,7 @@ const isNumeric = val => val !== '' && ! isArray( val ) && val == +val; // note:
 const isObject = val => typeof val == 'object' && !! val && ! isArray( val );
 
 // check if PIP is active
-const isPIP = _ => elContainer.classList.contains('pip');
+const isPIP = () => elContainer.classList.contains('pip');
 
 // check if audio is playing
 const isPlaying = ( audioEl = audioElement[ currAudio ] ) => audioEl && audioEl.currentTime > 0 && ! audioEl.paused && ! audioEl.ended;
@@ -1077,7 +592,7 @@ const isSwitchOn = el => !! +getControlValue( el );
 const isValidRange = el => el.type != 'number' || ( +el.value >= +el.min && +el.value <= +el.max );
 
 // check if a video file is loaded in the media element
-const isVideoLoaded = ( audioEl = audioElement[ currAudio ] ) => FILE_EXT_VIDEO.includes( parsePath( audioEl.dataset.file ).extension );
+const isVideoLoaded = ( audioEl = audioElement[ currAudio ] ) => _.FILE_EXT_VIDEO.includes( parsePath( audioEl.dataset.file ).extension );
 
 // normalize slashes in path to Linux format
 const normalizeSlashes = path => typeof path == 'string' ? path.replace( /\\/g, '/' ) : path;
@@ -1120,7 +635,7 @@ const parseTrackName = name => {
 }
 
 // returns the count of queued songs
-const queueLength = _ => elPlayqueue.children.length;
+const queueLength = () => elPlayqueue.children.length;
 
 // returns a random integer in the range [ 0, n-1 ]
 const randomInt = ( n = 2 ) => Math.random() * n | 0;
@@ -1128,9 +643,9 @@ const randomInt = ( n = 2 ) => Math.random() * n | 0;
 // helper function to save a path to localStorage or IndexedDB
 const saveLastDir = path => {
 	if ( useFileSystemAPI )
-		set( KEY_DB_LAST_DIR, path ); // IndexedDB
+		set( _.KEY_DB_LAST_DIR, path ); // IndexedDB
 	else if ( webServer )
-		saveToStorage( KEY_DB_LAST_DIR, path );
+		saveToStorage( _.KEY_DB_LAST_DIR, path );
 }
 
 // format a value in seconds to a string in the format 'hh:mm:ss'
@@ -1234,7 +749,7 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 	const promises = files.map( entry => addToPlayQueue( entry, autoplay ) );
 	Promise.all( promises ).then( added => {
 		const total = added.reduce( ( sum, val ) => sum + val, 0 ),
-			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
+			  text  = `${total} song${ total > 1 ? 's' : '' } added to the queue${ queueLength() < _.MAX_QUEUED_SONGS ? '' : '. Queue is full!' }`;
 		notie.alert({ text, time: 5 });
 		storePlayQueue( true );
 	});
@@ -1291,7 +806,7 @@ function addMetadata( metadata, target ) {
 function addSongToPlayQueue( fileObject, content ) {
 
 	return new Promise( resolve => {
-		if ( queueLength() >= MAX_QUEUED_SONGS ) {
+		if ( queueLength() >= _.MAX_QUEUED_SONGS ) {
 			resolve(0);
 			return;
 		}
@@ -1301,7 +816,7 @@ function addSongToPlayQueue( fileObject, content ) {
 			  newEl     = document.createElement('li'), // create new list element
 			  trackData = newEl.dataset;
 
-		Object.assign( trackData, DATASET_TEMPLATE ); // initialize element's dataset attributes
+		Object.assign( trackData, _.DATASET_TEMPLATE ); // initialize element's dataset attributes
 
 		if ( ! content )
 			content = parseTrackName( baseName );
@@ -1320,7 +835,7 @@ function addSongToPlayQueue( fileObject, content ) {
 
 		elPlayqueue.appendChild( newEl );
 
-		if ( FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
+		if ( _.FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
 			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
 			trackData.retrieve = 1; // flag this item as needing metadata
 			retrieveMetadata();
@@ -1333,7 +848,7 @@ function addSongToPlayQueue( fileObject, content ) {
 		else {
 			// if the queue pointer was at the last song, load the newly added song into the secondary media element
 			if ( queueIndex == queueLength() - 2 )
-				loadSong( NEXT_TRACK );
+				loadSong( _.NEXT_TRACK );
 			resolve(1);
 		}
 	});
@@ -1346,7 +861,7 @@ function addToPlayQueue( fileObject, autoplay = false ) {
 
 	let ret;
 
-	if ( FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
+	if ( _.FILE_EXT_PLIST.includes( parsePath( fileObject.file ).extension ) )
 		ret = loadPlaylist( fileObject );
 	else
 		ret = addSongToPlayQueue( fileObject );
@@ -1386,7 +901,7 @@ function changeVolume( incr ) {
 
 	setVolume( newVal );
 	setCanvasMsg( `Volume: ${ newVal * 20 }` );
-	savePreferences( KEY_LAST_SESSION );
+	savePreferences( _.KEY_LAST_SESSION );
 }
 
 /**
@@ -1400,7 +915,7 @@ function clearAudioElement( n = currAudio ) {
 
 	loadAudioSource( audioEl, null ); // remove .src attribute
 	loadSubs( audioEl ); // clear subtitles track
-	Object.assign( trackData, DATASET_TEMPLATE ); // clear data attributes
+	Object.assign( trackData, _.DATASET_TEMPLATE ); // clear data attributes
 	audioEl.load();
 
 	if ( n == currAudio )
@@ -1461,11 +976,11 @@ function consoleLog( msg, error, clear ) {
 
 	if ( clear ) {
 		content.innerHTML = '';
-		elToggleConsole.classList.remove( CSS_CLASS_WARNING );
+		elToggleConsole.classList.remove( _.CSS_CLASS_WARNING );
 	}
 
 	if ( error && elToggleConsole )
-		elToggleConsole.classList.add( CSS_CLASS_WARNING );
+		elToggleConsole.classList.add( _.CSS_CLASS_WARNING );
 
 	if ( msg )
 		content.innerHTML += `<div ${ error ? 'class="error"' : '' }>${ time } &gt; ${msg}</div>`;
@@ -1481,7 +996,7 @@ function consoleLog( msg, error, clear ) {
  * @returns {boolean} `true` on success, `false` if control is disabled
  */
 function cycleElement( el, prev ) {
-	if ( el.classList.contains( CSS_CLASS_DISABLED ) )
+	if ( el.classList.contains( _.CSS_CLASS_DISABLED ) )
 		return false;
 
 	if ( isRangeControl( el ) ) {
@@ -1568,8 +1083,8 @@ function deleteTheme() {
 
 	populateThemes();
 	populateEnabledThemes();
-	savePreferences( KEY_CUSTOM_THEMES );
-	savePreferences( KEY_CONFIGURATION ); // to save disabled gradients - TO-DO: check if still needed (can we still delete the only enabled theme?)
+	savePreferences( _.KEY_CUSTOM_THEMES );
+	savePreferences( _.KEY_CONFIGURATION ); // to save disabled gradients - TO-DO: check if still needed (can we still delete the only enabled theme?)
 
 	unsavedChanges = false;
 	currentTheme = null;
@@ -1586,15 +1101,15 @@ function deletePlaylist( index ) {
 			submitText: 'Delete',
 			submitCallback: async () => {
 				const keyName   = elPlaylists[ index ].value,
-					  key       = PLAYLIST_PREFIX + keyName,
-					  playlists = await get( KEY_DB_PLAYLISTS );
+					  key       = _.PLAYLIST_PREFIX + keyName,
+					  playlists = await get( _.KEY_DB_PLAYLISTS );
 
 				if ( playlists )
 					delete playlists[ keyName ];
 
 				// delete playlist from indexedDB and update list of playlists
 				await del( key );
-				await set( KEY_DB_PLAYLISTS, playlists );
+				await set( _.KEY_DB_PLAYLISTS, playlists );
 
 				notie.alert({ text: 'Playlist deleted' });
 				loadSavedPlaylists();
@@ -1633,7 +1148,7 @@ function doConfigPanel() {
 				if ( opt ) {
 					opt.disabled = ! element.checked;
 					populateSelect( parent, options );
-					savePreferences( KEY_CONFIGURATION );
+					savePreferences( _.KEY_CONFIGURATION );
 				}
 			});
 		});
@@ -1650,21 +1165,20 @@ function doConfigPanel() {
 	populateEnabledThemes();
 
 	// Custom keyboard shortcuts configuration
-
-	populateCustomShortcuts();
+	populateCustomShortcuts( true );
 
 	// Randomize configuration
 
 	const elProperties = $('#random_properties');
 
 	randomProperties.forEach( prop => {
-		elProperties.innerHTML += `<label${ prop.value == RND_PRESETS ? ' class="colspan-3"' : '' }><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
+		elProperties.innerHTML += `<label${ prop.value == _.RND_PRESETS ? ' class="colspan-3"' : '' }><input type="checkbox" class="randomProperty" value="${prop.value}" ${prop.disabled ? '' : 'checked'}> ${prop.text}</label>`;
 	});
 
 	$$('.randomProperty').forEach( el => {
 		el.addEventListener( 'click', event => {
 			randomProperties.find( item => item.value == el.value ).disabled = ! el.checked;
-			savePreferences( KEY_CONFIGURATION );
+			savePreferences( _.KEY_CONFIGURATION );
 		});
 	});
 
@@ -1672,16 +1186,17 @@ function doConfigPanel() {
 	$$( '[data-preset]' ).forEach( el => {
 		if ( el.className == 'reset-sens' ) {
 			el.addEventListener( 'click', () => {
-				const preset = el.dataset.preset;
-				$(`.min-db[data-preset="${preset}"]`).value = sensitivityDefaults[ preset ].min;
-				$(`.max-db[data-preset="${preset}"]`).value = sensitivityDefaults[ preset ].max;
-				$(`.linear-boost[data-preset="${preset}"]`).value = sensitivityDefaults[ preset ].boost;
-				$$(`[data-preset="${preset}"]`).forEach( field => {
+				const { preset } = el.dataset,
+					  { min, max, boost } = _d.sensitivityDefaults[ preset ];
+				$(`.min-db[data-preset="${ preset }"]`).value = min;
+				$(`.max-db[data-preset="${ preset }"]`).value = max;
+				$(`.linear-boost[data-preset="${ preset }"]`).value = boost;
+				$$(`[data-preset="${ preset }"]`).forEach( field => {
 					field.classList.remove('field-error');
 				});
-				if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
+				if ( preset == getControlValue( elSensitivity ) ) // current preset has been changed
 					setProperty( elSensitivity, false );
-				savePreferences( KEY_CONFIGURATION );
+				savePreferences( _.KEY_CONFIGURATION );
 			});
 		}
 		else {
@@ -1689,7 +1204,7 @@ function doConfigPanel() {
 				if ( isValidRange( el ) ) {
 					if ( el.dataset.preset == getControlValue( elSensitivity ) ) // current preset has been changed
 						setProperty( elSensitivity, false );
-					savePreferences( KEY_CONFIGURATION );
+					savePreferences( _.KEY_CONFIGURATION );
 				}
 				el.classList.toggle( 'field-error', ! isValidRange( el ) );
 			});
@@ -1707,7 +1222,7 @@ function doConfigPanel() {
 
 	// Reset On-screen display settings
 	$('#reset_osd').addEventListener( 'click', () => {
-		setInfoOptions( infoDisplayDefaults );
+		setInfoOptions( _d.infoDisplayDefaults );
 		setProperty( infoOptionsElements );
 	});
 
@@ -1773,7 +1288,7 @@ function eraseUserPreset( index, force ) {
 
 	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = {};
-	savePreferences( KEY_CUSTOM_PRESETS );
+	savePreferences( _.KEY_CUSTOM_PRESETS );
 
 	notie.alert({ text: `Deleted ${ userPresetText }` });
 
@@ -1943,7 +1458,7 @@ function keyboardControls( event ) {
 			const key = event.code.match( /^Key(?<key>[A-Z])$/ )?.groups.key; // is it A-Z key?
 			if ( key ) {
 				const action = keyboardShortcuts[ key ]; // is there a shortcut assigned to this key?
-				if ( action ) {
+				if ( action && CONTROLS[ action ] ) {    // is it a valid control?
 					const { name, el, func, msg } = CONTROLS[ action ];
 					if ( func ) {
 						func();
@@ -1972,7 +1487,7 @@ function keyboardControls( event ) {
 						else
 							setQueueIndex( queueIndex - 1 );
 						if ( queueLength() )
-							loadSong( NEXT_TRACK );
+							loadSong( _.NEXT_TRACK );
 						else {
 							clearAudioElement( nextAudio );
 							if ( ! isPlaying() )
@@ -2165,7 +1680,7 @@ function loadPlaylist( fileObject ) {
 		if ( ! path ) {
 			resolve( -1 );
 		}
-		else if ( typeof path == 'string' && FILE_EXT_PLIST.includes( parsePath( path ).extension ) ) {
+		else if ( typeof path == 'string' && _.FILE_EXT_PLIST.includes( parsePath( path ).extension ) ) {
 			if ( fileObject.handle ) {
 				fileObject.handle.getFile()
 					.then( fileBlob => fileBlob.text() )
@@ -2193,7 +1708,7 @@ function loadPlaylist( fileObject ) {
 			}
 		}
 		else { // try to load playlist or last play queue from indexedDB
-			const list = await get( path === true ? KEY_DB_PLAYQUEUE : PLAYLIST_PREFIX + path );
+			const list = await get( path === true ? _.KEY_DB_PLAYQUEUE : _.PLAYLIST_PREFIX + path );
 
 			if ( isArray( list ) ) {
 				list.forEach( entry => {
@@ -2201,7 +1716,7 @@ function loadPlaylist( fileObject ) {
 					promises.push( addSongToPlayQueue( { file, handle, dirHandle, ...( handle && ! dirHandle ? { subs } : {} ) }, content ) );
 					// keep subs from old saved playlists only for filesystem entries, since they don't have the dirHandle stored
 				});
-				resolveAddedSongs( list != KEY_DB_PLAYQUEUE ); // save playqueue when loading an internal playlist
+				resolveAddedSongs( list != _.KEY_DB_PLAYQUEUE ); // save playqueue when loading an internal playlist
 			}
 			else {
 				if ( path !== true ) // avoid error message if no play queue found on storage
@@ -2229,18 +1744,18 @@ function loadPreferences( serverConfig ) {
 		}
 	}
 
-	const lastConfig    = loadFromStorage( KEY_LAST_SESSION ) || loadFromStorage( KEY_LEGACY_LAST_CONFIG ) || {},
-		  lastVersion   = lastConfig.version || loadFromStorage( KEY_LEGACY_LAST_VERSION ),
+	const lastConfig    = loadFromStorage( _.KEY_LAST_SESSION ) || loadFromStorage( _.KEY_LEGACY_LAST_CONFIG ) || {},
+		  lastVersion   = lastConfig.version || loadFromStorage( _.KEY_LEGACY_LAST_VERSION ),
 	 	  isLastSession = ! isEmpty( lastConfig ),
-	 	  userSettings  = loadFromStorage( KEY_CONFIGURATION ) || {};
+	 	  userSettings  = loadFromStorage( _.KEY_CONFIGURATION ) || {};
 
 	delete lastConfig.version;
 
 	// Merge defaults with the last session settings (if any) - This ensures the defaults are loaded on app's first run!
-	setPreset( PRESET_KEY_LAST_SESSION, { ...getPreset( PRESET_KEY_DEFAULT ), ...lastConfig } );
+	setPreset( _.PRESET_KEY_LAST_SESSION, { ...getPreset( _.PRESET_KEY_DEFAULT ), ...lastConfig } );
 
 	// Load user presets
-	userPresets = loadFromStorage( KEY_CUSTOM_PRESETS ) || loadFromStorage( KEY_LEGACY_CUSTOM_PRESETS ) || [];
+	userPresets = loadFromStorage( _.KEY_CUSTOM_PRESETS ) || loadFromStorage( _.KEY_LEGACY_CUSTOM_PRESETS ) || [];
 	if ( ! isArray( userPresets ) )
 		userPresets = [ { name: 'Custom', options: userPresets } ]; // convert old custom preset (version <= 21.11)
 	for ( let i = 0; i < 9; i++ ) {
@@ -2251,10 +1766,10 @@ function loadPreferences( serverConfig ) {
 	}
 
 	// Load disabled background image fit options
-	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_BGFIT ] || loadFromStorage( KEY_LEGACY_DISABLED_BGFIT ), bgFitOptions );
+	parseDisabled( userSettings[ _.KEY_LEGACY_DISABLED_BGFIT ] || loadFromStorage( _.KEY_LEGACY_DISABLED_BGFIT ), bgFitOptions );
 
 	// Load custom themes
-	const customThemes = loadFromStorage( KEY_CUSTOM_THEMES ) || loadFromStorage( KEY_LEGACY_CUSTOM_GRADS );
+	const customThemes = loadFromStorage( _.KEY_CUSTOM_THEMES ) || loadFromStorage( _.KEY_LEGACY_CUSTOM_GRADS );
 	if ( customThemes ) {
 		Object.keys( customThemes ).forEach( key => {
 			const theme = customThemes[ key ];
@@ -2272,10 +1787,10 @@ function loadPreferences( serverConfig ) {
 	}
 
 	// Load disabled gradients preference
-	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_GRADS ] || loadFromStorage( KEY_LEGACY_DISABLED_GRADS ), THEMES );
+	parseDisabled( userSettings[ _.KEY_LEGACY_DISABLED_GRADS ] || loadFromStorage( _.KEY_LEGACY_DISABLED_GRADS ), THEMES );
 
 	// Load disabled random properties preference
-	parseDisabled( userSettings[ KEY_LEGACY_DISABLED_PROPS ] || loadFromStorage( KEY_LEGACY_DISABLED_PROPS ), randomProperties );
+	parseDisabled( userSettings[ _.KEY_LEGACY_DISABLED_PROPS ] || loadFromStorage( _.KEY_LEGACY_DISABLED_PROPS ), randomProperties );
 
 	// Sensitivity presets
 	const elMinSens = $$('.min-db');
@@ -2287,12 +1802,12 @@ function loadPreferences( serverConfig ) {
 	const elLinearBoost = $$('.linear-boost');
 	elLinearBoost.forEach( el => setRangeAtts( el, 1, 5, .2 ) );
 
-	const sensitivityPresets = userSettings[ KEY_LEGACY_SENSITIVITY ] || loadFromStorage( KEY_LEGACY_SENSITIVITY ) || sensitivityDefaults;
+	const sensitivityPresets = userSettings[ _.KEY_LEGACY_SENSITIVITY ] || loadFromStorage( _.KEY_LEGACY_SENSITIVITY ) || _d.sensitivityDefaults;
 
 	sensitivityPresets.forEach( ( preset, index ) => {
 		elMinSens[ index ].value = preset.min;
 		elMaxSens[ index ].value = preset.max;
-		elLinearBoost[ index ].value = preset.boost || sensitivityDefaults[ index ].boost;
+		elLinearBoost[ index ].value = preset.boost || _d.sensitivityDefaults[ index ].boost;
 	});
 
 	// General settings
@@ -2304,9 +1819,9 @@ function loadPreferences( serverConfig ) {
 	populateSelect( elMaxFPS, maxFpsOptions );
 
 	populateSelect( elBgLocation, [
-		[ BGFOLDER_NONE,   'Disable'  ],
-		[ BGFOLDER_SERVER, 'Built-in' ],
-		[ ...( supportsFileSystemAPI ? [ BGFOLDER_LOCAL, 'Local folder' ] : [] ) ]
+		[ _.BGFOLDER_NONE,   'Disable'  ],
+		[ _.BGFOLDER_SERVER, 'Built-in' ],
+		[ ...( supportsFileSystemAPI ? [ _.BGFOLDER_LOCAL, 'Local folder' ] : [] ) ]
 	]);
 
 	setRangeAtts( elBgMaxItems, 0, 1000 );
@@ -2314,25 +1829,25 @@ function loadPreferences( serverConfig ) {
 	elSurround.disabled = audioMotion.audioCtx.destination.maxChannelCount <= 2;
 
 	const { preserveFilenames } = serverConfig,
-		  storedGeneralOptions  = userSettings[ KEY_LEGACY_GENERAL_OPTS ] || loadFromStorage( KEY_LEGACY_GENERAL_OPTS ) || {};
+		  storedGeneralOptions  = userSettings[ _.KEY_LEGACY_GENERAL_OPTS ] || loadFromStorage( _.KEY_LEGACY_GENERAL_OPTS ) || {};
 
 	setGeneralOptions( { ...generalOptionsDefaults, preserveFilenames, ...storedGeneralOptions } );
 
 	// On-screen display options
 
 	populateSelect( elOSDFontSize, [
-		[ OSD_SIZE_S, 'Small'  ],
-		[ OSD_SIZE_M, 'Medium' ],
-		[ OSD_SIZE_L, 'Large'  ]
+		[ _.OSD_SIZE_S, 'Small'  ],
+		[ _.OSD_SIZE_M, 'Medium' ],
+		[ _.OSD_SIZE_L, 'Large'  ]
 	]);
 
 	populateSelect( elOSDTextStyle, [
-		[ OSD_STYLE_OUTLINE, 'Outlined' ],
-		[ OSD_STYLE_SHADOW,  'Shadowed' ]
+		[ _.OSD_STYLE_OUTLINE, 'Outlined' ],
+		[ _.OSD_STYLE_SHADOW,  'Shadowed' ]
 	]);
 
 	// merge saved options (if any) with the defaults and set UI fields
-	setInfoOptions( { ...infoDisplayDefaults, ...( userSettings[ KEY_LEGACY_DISPLAY_OPTS ] || loadFromStorage( KEY_LEGACY_DISPLAY_OPTS ) || {} ) } );
+	setInfoOptions( { ..._d.infoDisplayDefaults, ...( userSettings[ _.KEY_LEGACY_DISPLAY_OPTS ] || loadFromStorage( _.KEY_LEGACY_DISPLAY_OPTS ) || {} ) } );
 
 	// Peak settings
 
@@ -2340,36 +1855,36 @@ function loadPreferences( serverConfig ) {
 
 	setRangeAtts( elPeakHold, 0, 5000, 50 );
 
-	setPeakOptions( { ...peakOptionsDefaults, ...( userSettings[ KEY_LEGACY_PEAK_OPTIONS ] || loadFromStorage( KEY_LEGACY_PEAK_OPTIONS ) || {} ) } );
+	setPeakOptions( { ...peakOptionsDefaults, ...( userSettings[ _.KEY_LEGACY_PEAK_OPTIONS ] || loadFromStorage( _.KEY_LEGACY_PEAK_OPTIONS ) || {} ) } );
 
 	// Subtitles configuration
 
 	populateSelect( elSubsBackground, [
-		[ SUBS_BG_NONE,   'None'   ],
-		[ SUBS_BG_SHADOW, 'Shadow' ],
-		[ SUBS_BG_SOLID,  'Solid'  ]
+		[ _.SUBS_BG_NONE,   'None'   ],
+		[ _.SUBS_BG_SHADOW, 'Shadow' ],
+		[ _.SUBS_BG_SOLID,  'Solid'  ]
 	]);
 
 	populateSelect( elSubsColor, [
-		[ SUBS_COLOR_GOLD,   'Gold'   ],
-		[ SUBS_COLOR_GRAY,   'Gray'   ],
-		[ SUBS_COLOR_WHITE,  'White'  ],
-		[ SUBS_COLOR_YELLOW, 'Yellow' ]
+		[ _.SUBS_COLOR_GOLD,   'Gold'   ],
+		[ _.SUBS_COLOR_GRAY,   'Gray'   ],
+		[ _.SUBS_COLOR_WHITE,  'White'  ],
+		[ _.SUBS_COLOR_YELLOW, 'Yellow' ]
 	]);
 
 	const subsPositionOptions = [
-		[ SUBS_POS_TOP,    'Top'    ],
-		[ SUBS_POS_CENTER, 'Center' ],
-		[ SUBS_POS_BOTTOM, 'Bottom' ]
+		[ _.SUBS_POS_TOP,    'Top'    ],
+		[ _.SUBS_POS_CENTER, 'Center' ],
+		[ _.SUBS_POS_BOTTOM, 'Bottom' ]
 	];
 	populateSelect( elSubsPosition, subsPositionOptions );
 	populateSelect( elSubsPosAudio, subsPositionOptions );
 
 	// compatibility: add stored general settings object to get `noDimSubs` and `noDimVideo` from version <= 24.6
-	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( userSettings[ KEY_LEGACY_SUBTITLES_OPTS ] || loadFromStorage( KEY_LEGACY_SUBTITLES_OPTS ) || {} ) } );
+	setSubtitlesOptions( { ...subsOptionsDefaults, ...storedGeneralOptions, ...( userSettings[ _.KEY_LEGACY_SUBTITLES_OPTS ] || loadFromStorage( _.KEY_LEGACY_SUBTITLES_OPTS ) || {} ) } );
 
 	// Custom keyboard shortcuts
-	keyboardShortcuts = { ...keyboardShortcuts, ...( loadFromStorage( KEY_KBD_SHORTCUTS ) || {} ) };
+	keyboardShortcuts = { ...keyboardShortcuts, ...( loadFromStorage( _.KEY_KBD_SHORTCUTS ) || {} ) };
 
 	// Show update message if needed
 	const elBanner = $('#update-banner');
@@ -2379,29 +1894,29 @@ function loadPreferences( serverConfig ) {
 
 	if ( lastVersion != VERSION ) {
 		if ( lastVersion != null ) {
-			elBanner.classList.add( UPDATE_SHOW_CSS_CLASS );
-			elBanner.addEventListener( 'click', () => elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS ) );
+			elBanner.classList.add( _.UPDATE_SHOW_CSS_CLASS );
+			elBanner.addEventListener( 'click', () => elBanner.classList.remove( _.UPDATE_SHOW_CSS_CLASS ) );
 			setTimeout( () => {
-				elBanner.classList.remove( UPDATE_SHOW_CSS_CLASS );
-			}, UPDATE_BANNER_TIMEOUT );
+				elBanner.classList.remove( _.UPDATE_SHOW_CSS_CLASS );
+			}, _.UPDATE_BANNER_TIMEOUT );
 		}
 	}
 
 	// localStorage clean-up
 	const storageKeys = [],
 		  legacyKeys  = [
-			KEY_LEGACY_CUSTOM_GRADS,
-			KEY_LEGACY_CUSTOM_PRESETS,
-			KEY_LEGACY_DISABLED_BGFIT,
-			KEY_LEGACY_DISABLED_GRADS,
-			KEY_LEGACY_DISABLED_PROPS,
-			KEY_LEGACY_LAST_CONFIG,
-			KEY_LEGACY_LAST_VERSION,
-			KEY_LEGACY_SENSITIVITY,
-			KEY_LEGACY_DISPLAY_OPTS,
-			KEY_LEGACY_GENERAL_OPTS,
-			KEY_LEGACY_PEAK_OPTIONS,
-			KEY_LEGACY_SUBTITLES_OPTS
+			_.KEY_LEGACY_CUSTOM_GRADS,
+			_.KEY_LEGACY_CUSTOM_PRESETS,
+			_.KEY_LEGACY_DISABLED_BGFIT,
+			_.KEY_LEGACY_DISABLED_GRADS,
+			_.KEY_LEGACY_DISABLED_PROPS,
+			_.KEY_LEGACY_LAST_CONFIG,
+			_.KEY_LEGACY_LAST_VERSION,
+			_.KEY_LEGACY_SENSITIVITY,
+			_.KEY_LEGACY_DISPLAY_OPTS,
+			_.KEY_LEGACY_GENERAL_OPTS,
+			_.KEY_LEGACY_PEAK_OPTIONS,
+			_.KEY_LEGACY_SUBTITLES_OPTS
 		  ];
 
 	for ( let i = 0; i < localStorage.length; i++ )
@@ -2431,18 +1946,18 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	const convertThemeNameToObject = name => {
 		const theme          = THEMES[ name ] || THEMES[ Object.keys( THEMES )[0] ],
-			  validKeys      = Object.keys( DEFAULT_MODIFIERS ),
+			  validKeys      = Object.keys( _d.DEFAULT_THEME_MODIFIERS ),
 			  themeModifiers = Object.fromEntries( Object.entries( theme ).filter( ([key]) => validKeys.includes( key ) ) ); // note: a simple destructuring may generate `undefined` properties
 
 		return {
 			name,
-			modifiers: { ...DEFAULT_MODIFIERS, ...themeModifiers }
+			modifiers: { ..._d.DEFAULT_THEME_MODIFIERS, ...themeModifiers }
 		};
 	}
 
 	const keyIsObj      = isObject( key ),
 		  thisPreset    = deepCloneObject( keyIsObj ? key : ( isNumeric( key ) ? userPresets[ key ].options : getPreset( key ) ) ),
-		  defaultPreset = getPreset( PRESET_KEY_DEFAULT ),
+		  defaultPreset = getPreset( _.PRESET_KEY_DEFAULT ),
 		  description   = keyIsObj || ! alert ? '' : isNumeric( key ) ? `User Preset #${ +key + 1 }` : `"${ getPresetName( key ) }" preset`;
 
 	if ( isEmpty( thisPreset ) ) // invalid or empty preset
@@ -2451,7 +1966,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	if ( description )
 		consoleLog( `Loading ${ description }.` );
 
-	if ( key == PRESET_KEY_DEFAULT )
+	if ( key == _.PRESET_KEY_DEFAULT )
 		delete thisPreset.volume; // don't reset the volume when restoring to defaults!
 
 	// translate legacy options
@@ -2460,10 +1975,10 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		thisPreset.reflex = [ 0, .4, .5, .25 ][ +thisPreset.reflex ];
 
 	if ( isNumeric( thisPreset.showScaleX ) )
-		thisPreset.showScaleX = [ LABELS_X_OFF, LABELS_X_FREQS, LABELS_X_NOTES ][ +thisPreset.showScaleX ];
+		thisPreset.showScaleX = [ _am.LABELS_X_OFF, _am.LABELS_X_FREQS, _am.LABELS_X_NOTES ][ +thisPreset.showScaleX ];
 
 	if ( isNumeric( thisPreset.showScaleY ) ) // ver =< 25.9 (on/off only)
-		thisPreset.showScaleY = [ LABELS_Y_OFF, LABELS_Y_DB ][ +thisPreset.showScaleY ];
+		thisPreset.showScaleY = [ _am.LABELS_Y_OFF, _am.LABELS_Y_DB ][ +thisPreset.showScaleY ];
 
 	if ( thisPreset.weighting !== undefined )
 		thisPreset.weighting = thisPreset.weighting.toLowerCase();
@@ -2475,24 +1990,24 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 		thisPreset.barSpace = 1;
 
 	if ( +thisPreset.fadePeaks && +thisPreset.showPeaks ) // boolean fadePeaks / showPeaks (ver =< 24.6)
-		thisPreset.showPeaks = PEAKS_FADE;
+		thisPreset.showPeaks = _am.PEAKS_FADE;
 
-	if ( ! [ MODE_BARS, MODE_GRAPH ].includes( thisPreset.mode ) ) {
-		thisPreset.bandCount = [ LEGACY_MODE_DISCRETE, LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? 0 : 9 - thisPreset.mode;
-		thisPreset.mode = [ LEGACY_MODE_GRAPH, LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? MODE_GRAPH : MODE_BARS;
+	if ( ! [ _am.MODE_BARS, _am.MODE_GRAPH ].includes( thisPreset.mode ) ) {
+		thisPreset.bandCount = [ _.LEGACY_MODE_DISCRETE, _.LEGACY_MODE_GRAPH, _.LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? 0 : 9 - thisPreset.mode;
+		thisPreset.mode = [ _.LEGACY_MODE_GRAPH, _.LEGACY_MODE_LINE ].includes( thisPreset.mode ) ? _am.MODE_GRAPH : _am.MODE_BARS;
 	}
 
-	if ( +thisPreset.noteLabels && thisPreset.showScaleX != LABELS_X_OFF )
-		thisPreset.showScaleX = LABELS_X_NOTES;
+	if ( +thisPreset.noteLabels && thisPreset.showScaleX != _am.LABELS_X_OFF )
+		thisPreset.showScaleX = _am.LABELS_X_NOTES;
 
 	if ( isNumeric( thisPreset.alphaBars ) )
-		thisPreset.alphaBars = thisPreset.alphaBars ? ALPHABARS_ON : ALPHABARS_OFF;
+		thisPreset.alphaBars = thisPreset.alphaBars ? _am.ALPHABARS_ON : _am.ALPHABARS_OFF;
 
 	if ( thisPreset.lumiBars )
-		thisPreset.alphaBars = ALPHABARS_FULL;
+		thisPreset.alphaBars = _am.ALPHABARS_FULL;
 
 	if ( isNumeric( thisPreset.ledDisplay ) )
-		thisPreset.ledDisplay = thisPreset.ledDisplay ? LEDS_MODERN : LEDS_OFF;
+		thisPreset.ledDisplay = thisPreset.ledDisplay ? _am.LEDS_MODERN : _am.LEDS_OFF;
 
 	if ( thisPreset.gradient || thisPreset.gradientRight ) {
 		thisPreset.themes = [
@@ -2502,7 +2017,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 	}
 
 	if ( isNumeric( thisPreset.showPeaks ) ) // ver =< 25.9
-		thisPreset.showPeaks = [ PEAKS_OFF, PEAKS_DROP, PEAKS_FADE ][ thisPreset.showPeaks ] ?? PEAKS_DROP;
+		thisPreset.showPeaks = [ _am.PEAKS_OFF, _am.PEAKS_DROP, _am.PEAKS_FADE ][ thisPreset.showPeaks ] ?? _am.PEAKS_DROP;
 
 	// set themes and modifiers UI controls
 	if ( thisPreset.themes || init ) {
@@ -2519,7 +2034,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 				themes[ ch ] = convertThemeNameToObject( themes[ ch ] );
 
 			const name	    = getValidThemeName( themes[ ch ].name ),
-				  modifiers = { ...DEFAULT_MODIFIERS, ...THEMES[ name ].modifiers, ...themes[ ch ].modifiers };
+				  modifiers = { ..._d.DEFAULT_THEME_MODIFIERS, ...THEMES[ name ].modifiers, ...themes[ ch ].modifiers };
 
 			setControlValue( ch ? elTheme1 : elTheme0, name );
 			setControlValue( ch ? elHorizontal1 : elHorizontal0, modifiers.horizontal );
@@ -2591,7 +2106,7 @@ function loadPreset( key, alert = true, init, keepRandomize ) {
 
 	audioMotion.setTheme( getCurrentThemes() );
 
-	if ( key == PRESET_KEY_DEMO )
+	if ( key == _.PRESET_KEY_DEMO )
 		randomizeNow();
 
 	if ( alert )
@@ -2614,14 +2129,14 @@ async function loadSavedPlaylists( keyName ) {
 	elPlaylists.options[ elPlaylists.options.length ] = item;
 
 	// load list of playlists from indexedDB
-	let playlists = await get( KEY_DB_PLAYLISTS );
+	let playlists = await get( _.KEY_DB_PLAYLISTS );
 
 	// migrate playlists from localStorage (for compatibility with versions up to 24.2-beta.1)
-	const oldPlaylists = loadFromStorage( KEY_DB_PLAYLISTS );
+	const oldPlaylists = loadFromStorage( _.KEY_DB_PLAYLISTS );
 
 	if ( oldPlaylists ) {
 		for ( const key of Object.keys( oldPlaylists ) ) {
-			const plKey    = PLAYLIST_PREFIX + key,
+			const plKey    = _.PLAYLIST_PREFIX + key,
 				  contents = loadFromStorage( plKey );
 
 			let songs = [];
@@ -2634,8 +2149,8 @@ async function loadSavedPlaylists( keyName ) {
 			playlists[ key ] = oldPlaylists[ key ];
 		}
 
-		await set( KEY_DB_PLAYLISTS, playlists ); // save updated list to indexedDB
-		removeFromStorage( KEY_DB_PLAYLISTS );
+		await set( _.KEY_DB_PLAYLISTS, playlists ); // save updated list to indexedDB
+		removeFromStorage( _.KEY_DB_PLAYLISTS );
 	}
 
 	// add playlists to the selection box
@@ -2662,8 +2177,8 @@ async function loadSavedPlaylists( keyName ) {
  * @returns {Promise} resolves to a boolean indicating success or failure
  */
 async function loadSong( n, playIt ) {
-	const isCurrent = n !== NEXT_TRACK || playIt, // if requested to play, always use the primary media element
-		  index     = n !== NEXT_TRACK ? n : ( ( queueIndex < queueLength() - 1 ) ? queueIndex + 1 : 0 ),
+	const isCurrent = n !== _.NEXT_TRACK || playIt, // if requested to play, always use the primary media element
+		  index     = n !== _.NEXT_TRACK ? n : ( ( queueIndex < queueLength() - 1 ) ? queueIndex + 1 : 0 ),
 		  mediaEl   = isCurrent ? currAudio : nextAudio, // next track is (usually) loaded in the secondary element
 		  audioEl   = audioElement[ mediaEl ],
 		  song      = elPlayqueue.children[ index ];
@@ -2708,9 +2223,9 @@ async function loadSong( n, playIt ) {
 		}
 
 		if ( ! success && playIt )	// in case of error and play was requested, try the next track
-			loadSong( NEXT_TRACK, playIt );
+			loadSong( _.NEXT_TRACK, playIt );
 		else if ( isCurrent )		// load the next track in the secondary element
-			loadSong( NEXT_TRACK );
+			loadSong( _.NEXT_TRACK );
 //		else
 //			audioEl.load(); // intended to improve gapless playback, but its effectiveness was inconclusive (generates additional abort/emptied events)
 
@@ -2807,7 +2322,7 @@ function openThemeEditorNew( makeCopy ) {
 	else {
 		currentTheme = {
 			name: 'New Theme',
-			bgColor: DEFAULT_BG_COLOR,
+			bgColor: _.DEFAULT_BG_COLOR,
 			colorStops: [
 				{ color: '#222222' },
 				{ color: '#eeeeee' }
@@ -2858,17 +2373,17 @@ function playNextSong( play ) {
 	const audioEl = audioElement[ currAudio ];
 	if ( play && audioEl.src ) { // note: play() on empty element never resolves!
 		audioEl.play()
-		.then( () => loadSong( NEXT_TRACK ) )
+		.then( () => loadSong( _.NEXT_TRACK ) )
 		.catch( err => {
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
-			if ( err.code != ERR_ABORT ) {
+			if ( err.code != _.ERR_ABORT ) {
 				consoleLog( err, true );
-				loadSong( NEXT_TRACK, play );
+				loadSong( _.NEXT_TRACK, play );
 			}
 		});
 	}
 	else
-		loadSong( NEXT_TRACK );
+		loadSong( _.NEXT_TRACK );
 
 	return true;
 }
@@ -2887,7 +2402,7 @@ function playPause( play ) {
 	else
 		audioElement[ currAudio ].play().catch( err => {
 			// ignore AbortError when play promise is interrupted by a new load request or call to pause()
-			if ( err.code != ERR_ABORT ) {
+			if ( err.code != _.ERR_ABORT ) {
 				consoleLog( err, true )
 				playNextSong( true );
 			}
@@ -2928,9 +2443,9 @@ function playSong( n ) {
 function populateBackgrounds() {
 	// basic background options
 	let bgOptions = [
-		{ value: BG_COVER,   text: "Album cover"              },
-		{ value: BG_BLACK,   text: "Black"                    },
-		{ value: BG_DEFAULT, text: "Theme's background color" }
+		{ value: _.BG_COVER,   text: "Album cover"              },
+		{ value: _.BG_BLACK,   text: "Black"                    },
+		{ value: _.BG_DEFAULT, text: "Theme's background color" }
 	];
 
 	const basicCount = bgOptions.length,
@@ -2940,15 +2455,15 @@ function populateBackgrounds() {
 	// add image and video files from the backgrounds folder
 	bgOptions = [
 		...bgOptions,
-		...bgImages.map( ( item, idx ) => ({ value: BG_IMAGE + item.name, text: '🖼️ ' + item.name, idx }) ),
-		...bgVideos.map( ( item, idx ) => ({ value: BG_VIDEO + item.name, text: '🎬 ' + item.name, idx }) )
+		...bgImages.map( ( item, idx ) => ({ value: _.BG_IMAGE + item.name, text: '🖼️ ' + item.name, idx }) ),
+		...bgVideos.map( ( item, idx ) => ({ value: _.BG_VIDEO + item.name, text: '🎬 ' + item.name, idx }) )
 	].slice( 0, basicCount + +elBgMaxItems.value ); // coerce field value to number
 
 	if ( videoCount )
-		bgOptions.splice( basicCount, 0, { value: BG_VIDEO, text: 'Random video' } );
+		bgOptions.splice( basicCount, 0, { value: _.BG_VIDEO, text: 'Random video' } );
 
 	if ( imageCount )
-		bgOptions.splice( basicCount, 0, { value: BG_IMAGE, text: 'Random image' } );
+		bgOptions.splice( basicCount, 0, { value: _.BG_IMAGE, text: 'Random image' } );
 
 	populateSelect( elBackground, bgOptions ); // add more background options
 }
@@ -2992,14 +2507,15 @@ function populateCustomRadio( element, options, name ) {
 /**
  * Build select elements for custom keyboard shortcuts in config and update the help window
  *
- * @param {boolean} if `false` does not rebuild config, only updates help
+ * @param {boolean} if `true` (re)builds the select elements in the config section, otherwise only updates help
  */
-function populateCustomShortcuts( rebuild = true ) {
+function populateCustomShortcuts( initialize ) {
 	const elShortcuts = $('#custom_shortcuts'), // config panel
 		  helpTable   = $('#custom_shortcuts_help'), // help window
 		  keys        = Object.keys( keyboardShortcuts ).sort(),
 		  controls    = Object.entries( CONTROLS ).sort( ( a, b ) => a[1].name > b[1].name ? 1 : a[1].name < b[1].name ? -1 : 0 );
 
+	// helper function
 	const buildOptions = selected => {
 		let html = '<option value=""></option>';
 		for ( const [ key, data ] of controls )
@@ -3007,17 +2523,20 @@ function populateCustomShortcuts( rebuild = true ) {
 		return html;
 	}
 
-	if ( rebuild ) {
+	// find shortcut key by control keyname
+	const findShortcutFor = keyname => keys.find( key => keyboardShortcuts[ key ] == keyname ) || '';
+
+	if ( initialize ) {
 		elShortcuts.innerHTML = '';
 	}
 	helpTable.innerHTML = '';
 
 	keys.forEach( key => {
-		if ( rebuild ) {
+		if ( initialize ) {
 			elShortcuts.innerHTML += `
 				<label>
 					${ key }
-					<select class="${ CSS_CLASS_SHORTCUT }" data-key="${ key }">
+					<select class="${ _.CSS_CLASS_SHORTCUT }" data-key="${ key }">
 						${ buildOptions( keyboardShortcuts[ key ] ) }
 					</select>
 				</label>
@@ -3027,17 +2546,24 @@ function populateCustomShortcuts( rebuild = true ) {
 		helpTable.innerHTML += `
 			<tr>
 				<td><kbd>${ key }</kbd></td>
-				<td>${ keyboardShortcuts[ key ] ? CONTROLS[ keyboardShortcuts[ key ] ].name : '<em>not assigned</em>' }</td>
+				<td>${ keyboardShortcuts[ key ] && CONTROLS[ keyboardShortcuts[ key ] ] ? CONTROLS[ keyboardShortcuts[ key ] ].name : '<em>not assigned</em>' }</td>
 			</tr>
 		`;
 	});
 
-	if ( rebuild ) {
-		$$(`.${ CSS_CLASS_SHORTCUT }`).forEach( el => el.addEventListener( 'change', () => {
+	if ( initialize ) {
+		$$(`.${ _.CSS_CLASS_SHORTCUT }`).forEach( el => el.addEventListener( 'change', () => {
 			keyboardShortcuts[ el.dataset.key ] = el.value;
-			populateCustomShortcuts( false ); // update help only
-			savePreferences( KEY_KBD_SHORTCUTS );
+			populateCustomShortcuts(); // update help only
+			savePreferences( _.KEY_KBD_SHORTCUTS );
 		}) );
+	}
+
+	// update shortcut hints
+	for ( const keyname of Object.keys( CONTROLS ) ) {
+		const hint = $(`[data-hint="${ keyname }"]`);
+		if ( hint )
+			hint.innerText = findShortcutFor( keyname );
 	}
 }
 
@@ -3074,7 +2600,7 @@ function populateEnabledThemes() {
 			}
 			THEMES[ el.dataset.theme ].disabled = ! el.checked;
 			populateThemes();
-			savePreferences( KEY_CONFIGURATION );
+			savePreferences( _.KEY_CONFIGURATION );
 		});
 	});
 
@@ -3135,7 +2661,7 @@ function populatePresets() {
 		addGroup( 'User Presets', savedPresets );
 
 	if ( BUILTIN_PRESETS.length > 2 )
-		addGroup( 'Built-in Presets', BUILTIN_PRESETS.filter( item => ! [ PRESET_KEY_LAST_SESSION, PRESET_KEY_DEFAULT ].includes( item.key ) ).map( item => [ item.key, item.name ] ) );
+		addGroup( 'Built-in Presets', BUILTIN_PRESETS.filter( item => ! [ _.PRESET_KEY_LAST_SESSION, _.PRESET_KEY_DEFAULT ].includes( item.key ) ).map( item => [ item.key, item.name ] ) );
 }
 
 /**
@@ -3213,96 +2739,96 @@ function randomizeSettings( force = elSource.checked ) {
 	if ( ! isPlaying() && ! force )
 		return;
 
-	const isCompactAnalyzer = elAnalyzer.classList.contains( CSS_CLASS_COMPACT );
+	const isCompactAnalyzer = elAnalyzer.classList.contains( _.CSS_CLASS_COMPACT );
 
 	// helper functions
 	const themesHaveEnoughColors = () => THEMES[ elTheme0.value ]?.colorStops.length > 2 && THEMES[ elTheme1.value ]?.colorStops.length > 2;
 	const isEnabled = prop => ! randomProperties.find( item => item.value == prop ).disabled;
-	const isImageOrVideoBg = () => isVideoLoaded() || ! [ BG_DEFAULT, BG_BLACK ].includes( getControlValue( elBackground )[0] );
+	const isImageOrVideoBg = () => isVideoLoaded() || ! [ _.BG_DEFAULT, _.BG_BLACK ].includes( getControlValue( elBackground )[0] );
 
-	if ( isEnabled( RND_PRESETS ) ) {
+	if ( isEnabled( _.RND_PRESETS ) ) {
 		const validIndexes = userPresets.map( ( item, index ) => isEmpty( item ) ? null : index ).filter( item => item !== null ),
 			  count = validIndexes.length;
 		if ( count )
 			loadPreset( validIndexes[ randomInt( count ) ], false, false, true );
 	}
 
-	if ( isEnabled( RND_THEMES ) ) {
+	if ( isEnabled( _.RND_THEMES ) ) {
 		for ( const el of [ elTheme0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elTheme1 ] ) ] )
 			randomizeControl( el );
 	}
-	if ( isEnabled( RND_HORIZONTAL ) ) {
+	if ( isEnabled( _.RND_HORIZONTAL ) ) {
 		for ( const el of [ elHorizontal0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elHorizontal1 ] ) ] )
 			randomizeControl( el );
 	}
-	if ( isEnabled( RND_REVERSE ) ) {
+	if ( isEnabled( _.RND_REVERSE ) ) {
 		for ( const el of [ elReverse0, ...( isSwitchOn( elLinkGrads ) ? [] : [ elReverse1 ] ) ] )
 			randomizeControl( el );
 	}
 
-	if ( isEnabled( RND_MODE ) ) {
-		randomizeControl( elMode, newVal => newVal == MODE_BARS || noGraphStreak > MIN_STREAK_FOR_GRAPH );
-		noGraphStreak = getControlValue( elMode ) == MODE_GRAPH ? 0 : noGraphStreak + 1;
+	if ( isEnabled( _.RND_MODE ) ) {
+		randomizeControl( elMode, newVal => newVal == _am.MODE_BARS || noGraphStreak > _.MIN_STREAK_FOR_GRAPH );
+		noGraphStreak = getControlValue( elMode ) == _am.MODE_GRAPH ? 0 : noGraphStreak + 1;
 	}
 
-	if ( isEnabled( RND_ALPHA ) ) {
+	if ( isEnabled( _.RND_ALPHA ) ) {
 		// no full alphaBars when LEDs are on and background is image or video
-		randomizeControl( elAlphaBars, newVal => newVal != ALPHABARS_FULL || ! isImageOrVideoBg() || getControlValue( elLedDisplay ) == LEDS_OFF );
+		randomizeControl( elAlphaBars, newVal => newVal != _am.ALPHABARS_FULL || ! isImageOrVideoBg() || getControlValue( elLedDisplay ) == _am.LEDS_OFF );
 	}
 
-	if ( isEnabled( RND_BACKGROUND ) )
+	if ( isEnabled( _.RND_BACKGROUND ) )
 		randomizeControl( elBackground );
 
-	if ( isEnabled( RND_BANDCOUNT ) ) {
+	if ( isEnabled( _.RND_BANDCOUNT ) ) {
 		// no full-octave bands with square LEDs (avoid huge LEDs)
-		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == MODE_GRAPH || newVal > BANDS_OCTAVE_FULL || getControlValue( elLedFormat ) != LEDFORMAT_SQUARE );
+		randomizeControl( elBandCount, newVal => getControlValue( elMode ) == _am.MODE_GRAPH || newVal > _am.BANDS_OCTAVE_FULL || getControlValue( elLedFormat ) != _.LEDFORMAT_SQUARE );
 	}
 
-	if ( isEnabled( RND_BGIMAGEFIT ) )
+	if ( isEnabled( _.RND_BGIMAGEFIT ) )
 		randomizeControl( elBgImageFit );
 
-	if ( isEnabled( RND_COLORMODE ) ) {
+	if ( isEnabled( _.RND_COLORMODE ) ) {
 		// avoid non-gradient color modes on themes with less than 3 colors
-		randomizeControl( elColorMode, newVal => newVal == COLORMODE_GRADIENT || themesHaveEnoughColors() );
+		randomizeControl( elColorMode, newVal => newVal == _am.COLORMODE_GRADIENT || themesHaveEnoughColors() );
 	}
 
-	if ( isEnabled( RND_LEDS ) ) {
+	if ( isEnabled( _.RND_LEDS ) ) {
 		// avoid LEDs with full alphaBars on image/video background, and vintage LEDs on themes with less than 3 colors
-		randomizeControl( elLedDisplay, newVal => ( newVal != LEDS_VINTAGE || themesHaveEnoughColors() ) && ( newVal == LEDS_OFF || getControlValue( elAlphaBars ) != ALPHABARS_FULL || ! isImageOrVideoBg() ) );
+		randomizeControl( elLedDisplay, newVal => ( newVal != _am.LEDS_VINTAGE || themesHaveEnoughColors() ) && ( newVal == _am.LEDS_OFF || getControlValue( elAlphaBars ) != _am.ALPHABARS_FULL || ! isImageOrVideoBg() ) );
 	}
 
-	if ( isEnabled( RND_LED_FORMAT ) ) {
+	if ( isEnabled( _.RND_LED_FORMAT ) ) {
 		// no square LEDs for full-octave bands (avoid huge LEDs)
-		randomizeControl( elLedFormat, newVal => newVal != LEDFORMAT_SQUARE || getControlValue( elBandCount ) > BANDS_OCTAVE_FULL );
+		randomizeControl( elLedFormat, newVal => newVal != _.LEDFORMAT_SQUARE || getControlValue( elBandCount ) > _am.BANDS_OCTAVE_FULL );
 	}
 
-	if ( isEnabled( RND_LED_MASK ) )
+	if ( isEnabled( _.RND_LED_MASK ) )
 		randomizeControl( elLedMask );
 
-	if ( isEnabled( RND_OUTLINE ) )
+	if ( isEnabled( _.RND_OUTLINE ) )
 		randomizeControl( elOutline );
 
-	if ( isEnabled( RND_PEAKS ) )
+	if ( isEnabled( _.RND_PEAKS ) )
 		randomizeControl( elShowPeaks );
 
-	if ( isEnabled( RND_REFLEX ) ) {
+	if ( isEnabled( _.RND_REFLEX ) ) {
 		// randomize reflex value among [ 0, .25, .5 ]
 		// no mirrored reflex with LEDs and no reflex at all with square/thin LEDs or in compact analyzer
-		const isLedsOn = getControlValue( elLedDisplay ) != LEDS_OFF;
-		setControlValue( elReflex, isCompactAnalyzer || ( isLedsOn && getControlValue( elLedFormat ) != LEDFORMAT_REGULAR ) ? 0 : .25 * randomInt( isLedsOn ? 2 : 3 ) );
+		const isLedsOn = getControlValue( elLedDisplay ) != _am.LEDS_OFF;
+		setControlValue( elReflex, isCompactAnalyzer || ( isLedsOn && getControlValue( elLedFormat ) != _.LEDFORMAT_REGULAR ) ? 0 : .25 * randomInt( isLedsOn ? 2 : 3 ) );
 		setProperty( elReflex );
 	}
 
-	if ( isEnabled( RND_RADIAL ) ) {
+	if ( isEnabled( _.RND_RADIAL ) ) {
 		// no radial in compact analyzer, otherwise limit how often it is activated
-		randomizeControl( elRadial, newVal => newVal == RADIAL_OFF || ! isCompactAnalyzer && noRadialStreak > MIN_STREAK_FOR_RADIAL );
-		noRadialStreak = getControlValue( elRadial ) == RADIAL_OFF ? noRadialStreak + 1 : 0;
+		randomizeControl( elRadial, newVal => newVal == _am.RADIAL_OFF || ! isCompactAnalyzer && noRadialStreak > _.MIN_STREAK_FOR_RADIAL );
+		noRadialStreak = getControlValue( elRadial ) == _am.RADIAL_OFF ? noRadialStreak + 1 : 0;
 	}
 
-	if ( isEnabled( RND_ROUND ) )
+	if ( isEnabled( _.RND_ROUND ) )
 		randomizeControl( elRoundBars );
 
-	if ( isEnabled( RND_SPLIT ) )
+	if ( isEnabled( _.RND_SPLIT ) )
 		randomizeControl( elSplitGrad );
 
 }
@@ -3333,13 +2859,13 @@ function renderThemeEditor( rebuildColorTable = true ) {
 
 	const previewName = 'preview',
 		  previewOptions = {
-			bandResolution: BANDS_OCTAVE_FULL,
+			bandResolution: _am.BANDS_OCTAVE_FULL,
 			barSpace: .55,
 			height: 210,
 			minFreq: 30,
 			maxFreq: 65,
-			showScaleX: LABELS_X_OFF,
-			showScaleY: LABELS_Y_PERCENT,
+			showScaleX: _am.LABELS_X_OFF,
+			showScaleY: _am.LABELS_Y_PERCENT,
 			start: false,
 			width: 100
 		  },
@@ -3354,7 +2880,7 @@ function renderThemeEditor( rebuildColorTable = true ) {
 	if ( ! previewLEDs ) {
 		previewLEDs = new AudioMotionAnalyzer( $('#preview-leds'), {
 			...previewOptions,
-			ledBars: LEDS_VINTAGE
+			ledBars: _am.LEDS_VINTAGE
 		});
 	}
 
@@ -3367,7 +2893,7 @@ function renderThemeEditor( rebuildColorTable = true ) {
 	previewLEDs.setTheme( previewName, { horizontal, reverse } );
 	previewLEDs.renderFrame([1]);
 
-	$$('.preview').forEach( el => el.style.background = currentTheme.bgColor ?? DEFAULT_BG_COLOR );
+	$$('.preview').forEach( el => el.style.background = currentTheme.bgColor ?? _.DEFAULT_BG_COLOR );
 
 	// obtain normalized colorStops (generates any missing `level` and `pos` properties)
 	currentTheme.colorStops = previewGradient.getThemeData( previewName ).colorStops;
@@ -3390,7 +2916,7 @@ function renderThemeEditor( rebuildColorTable = true ) {
 		});
 	}
 
-	$('#new-theme-bkgd').value = currentTheme.bgColor ?? DEFAULT_BG_COLOR;
+	$('#new-theme-bkgd').value = currentTheme.bgColor ?? _.DEFAULT_BG_COLOR;
 	$('#new-theme-horizontal').checked = horizontal;
 	$('#new-theme-reverse').checked = reverse;
 	$('#new-theme-peakcolor').value = currentTheme.peakColor;
@@ -3471,29 +2997,29 @@ function renderColorRow(index, stop) {
  */
 async function retrieveBackgrounds() {
 	const bgLocation = elBgLocation.value,
-		  imageExtensions = new RegExp( '\\.(' + FILE_EXT_IMAGE.join('|') + ')$', 'i' ),
-		  videoExtensions = new RegExp( '\\.(' + FILE_EXT_VIDEO.join('|') + ')$', 'i' );
+		  imageExtensions = new RegExp( '\\.(' + _.FILE_EXT_IMAGE.join('|') + ')$', 'i' ),
+		  videoExtensions = new RegExp( '\\.(' + _.FILE_EXT_VIDEO.join('|') + ')$', 'i' );
 
 	bgImages = [];
 	bgVideos = [];
 
-	if ( bgLocation == BGFOLDER_SERVER ) {
+	if ( bgLocation == _.BGFOLDER_SERVER ) {
 		try {
-			const response = await fetch( BG_DIRECTORY ),
+			const response = await fetch( _.BG_DIRECTORY ),
 				  content  = await response.text();
 
 			for ( const { url, file } of fileExplorer.parseWebIndex( content ) ) {
 				const name = parsePath( file ).baseName;
 				if ( imageExtensions.test( file ) )
-					bgImages.push( { name, url: BG_DIRECTORY + url } );
+					bgImages.push( { name, url: _.BG_DIRECTORY + url } );
 				else if ( videoExtensions.test( file ) )
-					bgVideos.push( { name, url: BG_DIRECTORY + url } );
+					bgVideos.push( { name, url: _.BG_DIRECTORY + url } );
 			}
 		}
 		catch( e ) {} // fail silently (possibly directory not found on server)
 	}
-	else if ( bgLocation == BGFOLDER_LOCAL ) {
-		const bgDirHandle = await get( KEY_DB_BGDIR_HANDLE );
+	else if ( bgLocation == _.BGFOLDER_LOCAL ) {
+		const bgDirHandle = await get( _.KEY_DB_BGDIR_HANDLE );
 
 		try {
 			if ( bgDirHandle ) {
@@ -3518,7 +3044,7 @@ async function retrieveBackgrounds() {
 		catch( e ) {} // needs permission to access local device
 	}
 
-	if ( bgLocation != BGFOLDER_NONE ) {
+	if ( bgLocation != _.BGFOLDER_NONE ) {
 		const imageCount = bgImages.length,
 			  videoCount = bgVideos.length;
 
@@ -3533,7 +3059,7 @@ async function retrieveBackgrounds() {
  */
 async function retrieveMetadata() {
 	// leave when we already have enough concurrent requests pending
-	if ( waitingMetadata >= MAX_METADATA_REQUESTS )
+	if ( waitingMetadata >= _.MAX_METADATA_REQUESTS )
 		return;
 
 	// find the first play queue item for which we haven't retrieved the metadata yet
@@ -3629,7 +3155,7 @@ function saveTheme( isImported ) {
 
 	populateThemes();
 	populateEnabledThemes();
-	savePreferences( KEY_CUSTOM_THEMES );
+	savePreferences( _.KEY_CUSTOM_THEMES );
 
 	unsavedChanges = false;
 	currentTheme = null;
@@ -3664,7 +3190,7 @@ function savePreferences( key ) {
 	// helper function
 	const getDisabledItems = items => items.map( ( { value, disabled } ) => ( { value, disabled } ) );
 
-	if ( ! key || key == KEY_CONFIGURATION ) {
+	if ( ! key || key == _.KEY_CONFIGURATION ) {
 		const sensitivityPresets = [];
 		for ( const i of [0,1,2] ) {
 			sensitivityPresets.push( {
@@ -3675,11 +3201,11 @@ function savePreferences( key ) {
 		}
 
 		const userSettings = {
-			[ KEY_LEGACY_DISABLED_BGFIT ]: getDisabledItems( bgFitOptions ),
-			[ KEY_LEGACY_DISABLED_GRADS ]: Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ),
-			[ KEY_LEGACY_DISABLED_PROPS ]: getDisabledItems( randomProperties ),
-			[ KEY_LEGACY_SENSITIVITY ]   : sensitivityPresets,
-			[ KEY_LEGACY_DISPLAY_OPTS]   : {
+			[ _.KEY_LEGACY_DISABLED_BGFIT ]: getDisabledItems( bgFitOptions ),
+			[ _.KEY_LEGACY_DISABLED_GRADS ]: Object.keys( THEMES ).map( key => ( { value: key, disabled: THEMES[ key ].disabled } ) ),
+			[ _.KEY_LEGACY_DISABLED_PROPS ]: getDisabledItems( randomProperties ),
+			[ _.KEY_LEGACY_SENSITIVITY ]   : sensitivityPresets,
+			[ _.KEY_LEGACY_DISPLAY_OPTS]   : {
 				info  : elInfoTimeout.value,
 				track : elTrackTimeout.value,
 				end   : elEndTimeout.value,
@@ -3688,7 +3214,7 @@ function savePreferences( key ) {
 				osdFontSize : elOSDFontSize.value,
 				osdTextStyle: elOSDTextStyle.value
 			},
-			[ KEY_LEGACY_GENERAL_OPTS]   : {
+			[ _.KEY_LEGACY_GENERAL_OPTS]   : {
 				autoHide   : elAutoHide.checked,
 				bgLocation : elBgLocation.value,
 				bgMaxItems : elBgMaxItems.value,
@@ -3702,11 +3228,11 @@ function savePreferences( key ) {
 				saveQueue  : elSaveQueue.checked,
 				surround   : elSurround.checked
 			},
-			[ KEY_LEGACY_PEAK_OPTIONS ]  : {
+			[ _.KEY_LEGACY_PEAK_OPTIONS ]  : {
 				peakFade: elPeakDecay.value,
 				peakHold: elPeakHold.value
 			},
-			[ KEY_LEGACY_SUBTITLES_OPTS] : {
+			[ _.KEY_LEGACY_SUBTITLES_OPTS] : {
 				background   : elSubsBackground.value,
 				color        : elSubsColor.value,
 				noDimSubs    : elNoDimSubs.checked,
@@ -3719,25 +3245,25 @@ function savePreferences( key ) {
 			}
 		}
 
-		saveToStorage( KEY_CONFIGURATION, userSettings );
+		saveToStorage( _.KEY_CONFIGURATION, userSettings );
 	}
 
-	if ( ! key || key == KEY_CUSTOM_THEMES ) {
+	if ( ! key || key == _.KEY_CUSTOM_THEMES ) {
 		const customThemes = {};
 		Object.keys( THEMES )
 			.filter( key => THEMES[ key ].key ) // if it has a `key` property it's a custom theme
 			.forEach( key => customThemes[ key ] = THEMES [ key ] );
-		saveToStorage( KEY_CUSTOM_THEMES, customThemes );
+		saveToStorage( _.KEY_CUSTOM_THEMES, customThemes );
 	}
 
-	if ( ! key || key == KEY_CUSTOM_PRESETS )
-		saveToStorage( KEY_CUSTOM_PRESETS, userPresets );
+	if ( ! key || key == _.KEY_CUSTOM_PRESETS )
+		saveToStorage( _.KEY_CUSTOM_PRESETS, userPresets );
 
-	if ( key == KEY_KBD_SHORTCUTS )
-		saveToStorage( KEY_KBD_SHORTCUTS, keyboardShortcuts );
+	if ( key == _.KEY_KBD_SHORTCUTS )
+		saveToStorage( _.KEY_KBD_SHORTCUTS, keyboardShortcuts );
 
-	if ( key == KEY_LAST_SESSION ) {
-		saveToStorage( KEY_LAST_SESSION, {
+	if ( key == _.KEY_LAST_SESSION ) {
+		saveToStorage( _.KEY_LAST_SESSION, {
 			...getCurrentSettings(),
 			micSource: elSource.checked,
 			mute     : elMute.checked,
@@ -3802,7 +3328,7 @@ function saveUserPreset( index, options, name, force ) {
 				submitText: 'Save',
 				value: currentName,
 				maxlength: 40,
-				submitCallback: newName => { saveUserPreset( index, options, newName.trim() || PRESET_NONAME, true ); },
+				submitCallback: newName => { saveUserPreset( index, options, newName.trim() || _.PRESET_NONAME, true ); },
 				cancelCallback: () => {	notie.alert({ text: 'Save canceled!' }) }
 			});
 			return;
@@ -3810,12 +3336,12 @@ function saveUserPreset( index, options, name, force ) {
 	}
 
 	// avoid saving the placeholder text
-	if ( name == PRESET_NONAME )
+	if ( name == _.PRESET_NONAME )
 		name = '';
 
 	// Update presets array in memory and save updated contents to storage
 	userPresets[ index ] = { name, options };
-	savePreferences( KEY_CUSTOM_PRESETS );
+	savePreferences( _.KEY_CUSTOM_PRESETS );
 
 	const text = `Saved to ${ userPresetText }`;
 	if ( isFullscreen )
@@ -3881,7 +3407,7 @@ function setCanvasMsg( msg, timer = 2, dir = -1 ) {
  */
 function setCurrentCover() {
 	coverImage.src = audioElement[ currAudio ].dataset.cover;
-	if ( elBackground.value == BG_COVER )
+	if ( elBackground.value == _.BG_COVER )
 		setBackgroundImage( coverImage.src );
 }
 
@@ -3925,7 +3451,7 @@ function setOverlay() {
 	const bgOption  = elBackground.value[0],
 		  hasSubs   = isSwitchOn( elShowSubtitles ) && !! audioElement[ currAudio ].querySelector('track').src,
 		  isVideo   = isVideoLoaded(),
-		  isOverlay = isVideo || hasSubs || ( bgOption != BG_DEFAULT && bgOption != BG_BLACK ),
+		  isOverlay = isVideo || hasSubs || ( bgOption != _.BG_DEFAULT && bgOption != _.BG_BLACK ),
 		  isCompact = ( elReduceOnVideo.checked && isVideo ) || ( elReduceOnSubs.checked && hasSubs );
 
 	// set visibility of video elements
@@ -3933,18 +3459,18 @@ function setOverlay() {
 		toggleDisplay( audioEl, ( isVideo || hasSubs ) && audioEl == audioElement[ currAudio ] );
 
 	// enable/disable background image and set background color
-	elContainer.classList.toggle( CSS_CLASS_NO_IMAGE, isVideo );
-	elAnalyzer.style.backgroundColor = isOverlay || bgOption == BG_BLACK ? '' : THEMES[ getControlValue( elTheme0 ) ].bgColor || DEFAULT_BG_COLOR;
+	elContainer.classList.toggle( _.CSS_CLASS_NO_IMAGE, isVideo );
+	elAnalyzer.style.backgroundColor = isOverlay || bgOption == _.BG_BLACK ? '' : THEMES[ getControlValue( elTheme0 ) ].bgColor || _.DEFAULT_BG_COLOR;
 
 	// set visibility of background video layer
-	toggleDisplay( elVideo, bgOption == BG_VIDEO && ! isVideo );
+	toggleDisplay( elVideo, bgOption == _.BG_VIDEO && ! isVideo );
 
 	// enable/disable background dim layer
 	toggleDisplay( elDim, ( ! isVideo || ! elNoDimVideo.checked ) && ( ! hasSubs || ! elNoDimSubs.checked ) );
 
 	// toggle reduced analyzer
-	elAnalyzer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
-	elContainer.classList.toggle( CSS_CLASS_COMPACT, isCompact );
+	elAnalyzer.classList.toggle( _.CSS_CLASS_COMPACT, isCompact );
+	elContainer.classList.toggle( _.CSS_CLASS_COMPACT, isCompact );
 
 	return isOverlay;
 }
@@ -3971,7 +3497,7 @@ function setProperty( elems, save = true ) {
 
 	// helper function
 	const toggleDualChannelThemeOptions = () => {
-		const isDual       = getControlValue( elChnLayout ) != LAYOUT_SINGLE,
+		const isDual       = getControlValue( elChnLayout ) != _am.LAYOUT_SINGLE,
 		 	  enableTheme1 = isDual && ! isLinkGrads;
 
 		for ( const el of $$('#themes_grid > *:nth-child(2n+2)') )
@@ -4006,7 +3532,7 @@ function setProperty( elems, save = true ) {
 					  index     = elBackground[ elBackground.selectedIndex ].idx,
 					  isOverlay = setOverlay(); // configures overlay for video playback or background media
 
-				if ( bgOption == BG_VIDEO ) {
+				if ( bgOption == _.BG_VIDEO ) {
 					setBackgroundImage(); // clear background image
 
 					// if there's no index, pick a random video from the array
@@ -4023,8 +3549,8 @@ function setProperty( elems, save = true ) {
 					}
 				}
 				else {
-					if ( isOverlay && ! [ BG_DEFAULT, BG_BLACK ].includes( bgOption ) ) {
-						if ( bgOption == BG_COVER )
+					if ( isOverlay && ! [ _.BG_DEFAULT, _.BG_BLACK ].includes( bgOption ) ) {
+						if ( bgOption == _.BG_COVER )
 							setBackgroundImage( coverImage.src );
 						else
 							setBackgroundImage( bgImages[ index === undefined ? randomInt( bgImages.length ) : index ].url );
@@ -4040,17 +3566,17 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBarSpace:
-				audioMotion.barSpace = ( getControlValue( elAlphaBars ) == ALPHABARS_FULL && audioMotion.isAlphaBars ) || elValue == 1 ? 1.5 : elValue;
+				audioMotion.barSpace = ( getControlValue( elAlphaBars ) == _am.ALPHABARS_FULL && audioMotion.isAlphaBars ) || elValue == 1 ? 1.5 : elValue;
 				break;
 
 			case elBgImageFit:
-				const isWarp = elValue == BGFIT_WARP || elValue == BGFIT_WARP_ANI || elValue == BGFIT_WARP_ROT;
-				elContainer.classList.toggle( 'repeat', elValue == BGFIT_REPEAT );
-				elContainer.classList.toggle( 'cover', elValue == BGFIT_ADJUST || isWarp );
+				const isWarp = elValue == _.BGFIT_WARP || elValue == _.BGFIT_WARP_ANI || elValue == _.BGFIT_WARP_ROT;
+				elContainer.classList.toggle( 'repeat', elValue == _.BGFIT_REPEAT );
+				elContainer.classList.toggle( 'cover', elValue == _.BGFIT_ADJUST || isWarp );
 				elContainer.style.backgroundSize = '';
 				toggleDisplay( elWarp, isWarp );
-				elWarp.classList.toggle( 'rotating', elValue == BGFIT_WARP_ROT );
-				elWarp.classList.toggle( 'paused', elValue == BGFIT_WARP );
+				elWarp.classList.toggle( 'rotating', elValue == _.BGFIT_WARP_ROT );
+				elWarp.classList.toggle( 'paused', elValue == _.BGFIT_WARP );
 				break;
 
 			case elBgImageDim:
@@ -4058,20 +3584,20 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elBgLocation:
-				if ( elBgLocation.value == BGFOLDER_LOCAL ) {
+				if ( elBgLocation.value == _.BGFOLDER_LOCAL ) {
 					window.showDirectoryPicker({ startIn: 'pictures' })
 						.then( handle => {
-							set( KEY_DB_BGDIR_HANDLE, handle );
+							set( _.KEY_DB_BGDIR_HANDLE, handle );
 						})
 						.catch( e => {
 							// disable if user denies access
-							elBgLocation.value = BGFOLDER_NONE;
-							del( KEY_DB_BGDIR_HANDLE );
+							elBgLocation.value = _.BGFOLDER_NONE;
+							del( _.KEY_DB_BGDIR_HANDLE );
 						})
 						.finally( () => retrieveBackgrounds() );
 				}
 				else {
-					del( KEY_DB_BGDIR_HANDLE );
+					del( _.KEY_DB_BGDIR_HANDLE );
 					retrieveBackgrounds();
 				}
 				break;
@@ -4193,7 +3719,7 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elPreserveFilenames:
-				elPlayqueue.classList.toggle( CSS_CLASS_PRESERVE_FILENAMES, elPreserveFilenames.checked );
+				elPlayqueue.classList.toggle( _.CSS_CLASS_PRESERVE_FILENAMES, elPreserveFilenames.checked );
 				break;
 
 			case elRadial:
@@ -4212,14 +3738,14 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elRangeMin:
-				elRangeMin.value = clamp( +elRangeMin.value, FREQ_LO_MIN, FREQ_LO_MAX );
-				elRangeMax.value = clamp( +elRangeMax.value, Math.max( FREQ_HI_MIN, +elRangeMin.value << 2 ), FREQ_HI_MAX );
+				elRangeMin.value = clamp( +elRangeMin.value, _.FREQ_LO_MIN, _.FREQ_LO_MAX );
+				elRangeMax.value = clamp( +elRangeMax.value, Math.max( _.FREQ_HI_MIN, +elRangeMin.value << 2 ), _.FREQ_HI_MAX );
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
 			case elRangeMax:
-				elRangeMax.value = clamp( +elRangeMax.value, FREQ_HI_MIN, FREQ_HI_MAX );
-				elRangeMin.value = clamp( +elRangeMin.value, FREQ_LO_MIN, Math.min( +elRangeMax.value >> 2, FREQ_LO_MAX ) );
+				elRangeMax.value = clamp( +elRangeMax.value, _.FREQ_HI_MIN, _.FREQ_HI_MAX );
+				elRangeMin.value = clamp( +elRangeMin.value, _.FREQ_LO_MIN, Math.min( +elRangeMax.value >> 2, _.FREQ_LO_MAX ) );
 				audioMotion.setFreqRange( elRangeMin.value, elRangeMax.value );
 				break;
 
@@ -4250,8 +3776,8 @@ function setProperty( elems, save = true ) {
 				if ( elSaveDir.checked )
 					saveLastDir( fileExplorer.getPath() );
 				else {
-					del( KEY_DB_LAST_DIR ); // IndexedDB
-					removeFromStorage( KEY_DB_LAST_DIR );
+					del( _.KEY_DB_LAST_DIR ); // IndexedDB
+					removeFromStorage( _.KEY_DB_LAST_DIR );
 				}
 				break;
 
@@ -4259,7 +3785,7 @@ function setProperty( elems, save = true ) {
 				if ( elSaveQueue.checked )
 					storePlayQueue( true );
 				else
-					del( KEY_DB_PLAYQUEUE );
+					del( _.KEY_DB_PLAYQUEUE );
 				break;
 
 			case elScaleX:
@@ -4315,12 +3841,8 @@ function setProperty( elems, save = true ) {
 				break;
 
 			case elLedFormat:
-				let [ ledHeight, gapHeight ] = LEDPROPS[ getControlValue( elBandCount ) ];
-
-				if ( elValue == LEDFORMAT_SQUARE )
-					ledHeight = gapHeight = 0;
-				else if ( elValue == LEDFORMAT_THIN )
-					ledHeight = 2;
+				const ledProps = _.LEDPROPS[ getControlValue( elBandCount ) ],
+					  [ ledHeight, gapHeight ] = elValue == _.LEDFORMAT_SQUARE ? [ 0, 0 ] : elValue == _.LEDFORMAT_THIN ? [ ...ledProps ].reverse() : ledProps;
 
 				audioMotion.setLedProps({ ledHeight, gapHeight });
 				break;
@@ -4364,12 +3886,12 @@ function setProperty( elems, save = true ) {
 				}
 
 				audioMotion.setTheme( getCurrentThemes() );
-				if ( getControlValue( elBackground ) == BG_DEFAULT )
+				if ( getControlValue( elBackground ) == _.BG_DEFAULT )
 					setOverlay();
 				break;
 
 			case elVideoFill:
-				elContainer.classList.toggle( CSS_CLASS_FIT_VIDEO, ! elVideoFill.checked );
+				elContainer.classList.toggle( _.CSS_CLASS_FIT_VIDEO, ! elVideoFill.checked );
 				break;
 
 			case elWeighting:
@@ -4380,9 +3902,9 @@ function setProperty( elems, save = true ) {
 
 		if ( save ) {
 			if ( [ ...generalOptionsElements, ...infoOptionsElements, ...peakOptionsElements, ...subsOptionsElements ].includes( el ) )
-				savePreferences( KEY_CONFIGURATION );
+				savePreferences( _.KEY_CONFIGURATION );
 			else
-				savePreferences( KEY_LAST_SESSION );
+				savePreferences( _.KEY_LAST_SESSION );
 		}
 
 	} // for
@@ -4390,11 +3912,11 @@ function setProperty( elems, save = true ) {
 	// Enable/disable UI controls based on current settings
 
 	const { alphaBars, colorMode, ledBars, isAlphaBars, isBandsMode, isLedBars, isOutlineBars, mode, radial } = audioMotion,
-		  isBars     = mode == MODE_BARS,
-		  isGradient = colorMode == COLORMODE_GRADIENT,
-		  isGraph    = mode == MODE_GRAPH,
-		  isLumi     = isAlphaBars && alphaBars == ALPHABARS_FULL,
-		  isRadial   = radial != RADIAL_OFF;
+		  isBars     = mode == _am.MODE_BARS,
+		  isGradient = colorMode == _am.COLORMODE_GRADIENT,
+		  isGraph    = mode == _am.MODE_GRAPH,
+		  isLumi     = isAlphaBars && alphaBars == _am.ALPHABARS_FULL,
+		  isRadial   = radial != _am.RADIAL_OFF;
 
 	const DISABLED_BY_ALPHABARS     = 'No effect with Full Alpha Bars',
 		  DISABLED_BY_BANDCOUNT     = 'No effect with current Band Count',
@@ -4412,7 +3934,7 @@ function setProperty( elems, save = true ) {
 	toggleEnableControl( [ elLedFormat, elLedMask ], isLedBars, DISABLED_BY_NOT_LEDBARS );
 	toggleEnableControl( [ elReflex ], ! isRadial && ! isLumi, isRadial ? DISABLED_BY_RADIAL : DISABLED_BY_ALPHABARS );
 	toggleEnableControl( [ elFillAlpha, elLineWidth ], isOutlineBars || isGraph, 'For Outline Bars or Graph mode only' );
-	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], ! isRadial && ( isGraph || ( isGradient && ( ! isLedBars || ledBars != LEDS_VINTAGE ) ) ), isRadial ? DISABLED_BY_RADIAL : isGradient ? 'No effect with Vintage LEDs' : DISABLED_BY_NOT_GRADIENT );
+	toggleEnableControl( [ elHorizontal0, elHorizontal1 ], ! isRadial && ( isGraph || ( isGradient && ( ! isLedBars || ledBars != _am.LEDS_VINTAGE ) ) ), isRadial ? DISABLED_BY_RADIAL : isGradient ? 'No effect with Vintage LEDs' : DISABLED_BY_NOT_GRADIENT );
 	toggleEnableControl( [ elRadius, elSpin ], isRadial, DISABLED_BY_NOT_RADIAL );
 }
 
@@ -4471,9 +3993,9 @@ async function setSource( isMicSource, callback ) {
  */
 function setSubtitlesColors() {
 	// remove all CSS classes related to subtitles
-	elContainer.className = elContainer.className.replace( new RegExp( `(${ SUBS_CSS_BG }|${ SUBS_CSS_COLOR })\\S*`, 'gi' ), '' ); // /(subs-bg-|subs-color-)\S*/gi
+	elContainer.className = elContainer.className.replace( new RegExp( `(${ _.SUBS_CSS_BG }|${ _.SUBS_CSS_COLOR })\\S*`, 'gi' ), '' ); // /(subs-bg-|subs-color-)\S*/gi
 	// add classes for the current settings
-	elContainer.classList.add( SUBS_CSS_BG + elSubsBackground.value, SUBS_CSS_COLOR + elSubsColor.value );
+	elContainer.classList.add( _.SUBS_CSS_BG + elSubsBackground.value, _.SUBS_CSS_COLOR + elSubsColor.value );
 }
 
 /**
@@ -4518,17 +4040,17 @@ function setSubtitlesPosition( event ) {
 		const desiredPos = ( isVideoLoaded( target.parentElement ) ? elSubsPosition : elSubsPosAudio ).value;
 
 		switch ( desiredPos ) {
-			case SUBS_POS_BOTTOM:
+			case _.SUBS_POS_BOTTOM:
 				align = 'end';
 				line  = 95;
 				break;
 
-			case SUBS_POS_CENTER:
+			case _.SUBS_POS_CENTER:
 				align = 'center';
 				line  = 50;
 				break;
 
-			default: // SUBS_POS_TOP
+			default: // _.SUBS_POS_TOP
 				align = 'start';
 				line  = 1;
 				snap  = true;
@@ -4561,7 +4083,7 @@ function setUIEventListeners() {
 	let autoHideTimeout;
 	elContainer.addEventListener( 'mouseenter', () => {
 		if ( elAutoHide.checked && ! audioMotion.isFullscreen )
-			autoHideTimeout = setTimeout( () => toggleFrontPanel( false ), AUTOHIDE_DELAY );
+			autoHideTimeout = setTimeout( () => toggleFrontPanel( false ), _.AUTOHIDE_DELAY );
 	});
 	elContainer.addEventListener( 'mouseleave', () => clearTimeout( autoHideTimeout ) );
 
@@ -4589,7 +4111,7 @@ function setUIEventListeners() {
 			panelButtons.forEach( el => $(`#${ el.value }`).classList.toggle( 'active', el == evt.target ) );
 			toggleFrontPanel( true ); // make sure the main panel is expanded
 			if ( btn.value == 'console' ) {
-				elToggleConsole.classList.remove( CSS_CLASS_WARNING );
+				elToggleConsole.classList.remove( _.CSS_CLASS_WARNING );
 				consoleLog(); // update scroll only
 			}
 		});
@@ -4616,7 +4138,7 @@ function setUIEventListeners() {
 	// settings switches
 	$$('.switch').forEach( el => {
 		el.addEventListener( 'click', evt => {
-			if ( el.classList.contains( CSS_CLASS_DISABLED ) ) {
+			if ( el.classList.contains( _.CSS_CLASS_DISABLED ) ) {
 				evt.preventDefault();
 				return false;
 			}
@@ -4630,7 +4152,7 @@ function setUIEventListeners() {
 		if ( isCustomRadio( el ) ) {
 			el.elements[ el.dataset.prop ].forEach( btn => {
 				btn.addEventListener( 'click', evt => {
-					if ( el.classList.contains( CSS_CLASS_DISABLED ) ) {
+					if ( el.classList.contains( _.CSS_CLASS_DISABLED ) ) {
 						evt.preventDefault();
 						return false;
 					}
@@ -4733,10 +4255,10 @@ function setUIEventListeners() {
 		});
 	});
 
-	for ( const [ el, key ] of [ [ $('#preset_last'), PRESET_KEY_LAST_SESSION ], [ $('#preset_default'), PRESET_KEY_DEFAULT ] ] ) {
+	for ( const [ el, key ] of [ [ $('#preset_last'), _.PRESET_KEY_LAST_SESSION ], [ $('#preset_default'), _.PRESET_KEY_DEFAULT ] ] ) {
 		el.addEventListener( 'click', () => {
 			notie.confirm({
-				text: `Restore all options in <strong>Settings</strong> and <strong>Advanced</strong> panels to ${ key == PRESET_KEY_DEFAULT ? 'defaults' : 'session start' }?`,
+				text: `Restore all options in <strong>Settings</strong> and <strong>Advanced</strong> panels to ${ key == _.PRESET_KEY_DEFAULT ? 'defaults' : 'session start' }?`,
 				submitText: 'RESTORE',
 				submitCallback: () => loadPreset( key )
 			});
@@ -4775,11 +4297,11 @@ function setUIEventListeners() {
 		setToggleButtonIcon();
 		btnToggleFS.addEventListener( 'click', async () => {
 			useFileSystemAPI = ! useFileSystemAPI;
-			const lastDir = useFileSystemAPI ? await get( KEY_DB_LAST_DIR ) : loadFromStorage( KEY_DB_LAST_DIR );
+			const lastDir = useFileSystemAPI ? await get( _.KEY_DB_LAST_DIR ) : loadFromStorage( _.KEY_DB_LAST_DIR );
 			if ( ! useFileSystemAPI || ! lastDir || await lastDir[0].handle.requestPermission() == 'granted' ) {
 				fileExplorer.switchMode( lastDir );
 				setToggleButtonIcon();
-				saveToStorage( KEY_FORCE_FS_API, useFileSystemAPI );
+				saveToStorage( _.KEY_FORCE_FS_API, useFileSystemAPI );
 			}
 			else // revert on permission deny
 				useFileSystemAPI = false;
@@ -4976,7 +4498,7 @@ function setUIEventListeners() {
 	// Configuration panel accordion
 
 	const accordionItems      = $$('details'),
-		  closeAccordionItems = _ => accordionItems.forEach( item => item.open = false );
+		  closeAccordionItems = () => accordionItems.forEach( item => item.open = false );
 
 	accordionItems.forEach( el => {
 		el.addEventListener( 'click', () => {
@@ -5086,7 +4608,7 @@ async function storePlayQueue( name, update = true ) {
 		if ( ! isSaveQueue && ! update ) {
 			safename = generateSafeKeyName( name, '_' );
 
-			let playlists = await get( KEY_DB_PLAYLISTS ) || {},
+			let playlists = await get( _.KEY_DB_PLAYLISTS ) || {},
 				attempt   = 0,
 				basename  = safename;
 
@@ -5096,7 +4618,7 @@ async function storePlayQueue( name, update = true ) {
 			}
 
 			playlists[ safename ] = name;
-			await set( KEY_DB_PLAYLISTS, playlists ); // save list to indexedDB
+			await set( _.KEY_DB_PLAYLISTS, playlists ); // save list to indexedDB
 			loadSavedPlaylists( safename );
 		}
 
@@ -5109,9 +4631,9 @@ async function storePlayQueue( name, update = true ) {
 		}
 
 		if ( isSaveQueue )
-			set( KEY_DB_PLAYQUEUE, songs );
+			set( _.KEY_DB_PLAYQUEUE, songs );
 		else
-			set( PLAYLIST_PREFIX + safename, songs ).then( () => notie.alert({ text: `Playlist saved!` }) );
+			set( _.PLAYLIST_PREFIX + safename, songs ).then( () => notie.alert({ text: `Playlist saved!` }) );
 	}
 	else {
 		notie.input({
@@ -5227,7 +4749,7 @@ function toggleEnableControl( elements, enable, message ) {
 		elements = [ elements ];
 
 	for ( const el of elements ) {
-		el.classList.toggle( CSS_CLASS_DISABLED, ! enable );
+		el.classList.toggle( _.CSS_CLASS_DISABLED, ! enable );
 		if ( isRangeControl( el ) )
 			el.disabled = ! enable;
 		// when control is disabled add informative message to the element's title
@@ -5262,7 +4784,7 @@ function translateRangeValue( el ) {
 		if ( val == 9 )
 			return 'FFT frequencies';
 
-		const isOctaves = getControlValue( elFreqScale ) == SCALE_LOG,
+		const isOctaves = getControlValue( elFreqScale ) == _am.SCALE_LOG,
 			  bands = isOctaves
 					  ? [ '', '', 'half-', '1/3rd-', '1/4th-', '1/6th-', '1/8th-', '1/12th-', '1/24th-' ]
 					  : [ '', '10', '20', '30', '40', '60', '80', '120', '240' ];
@@ -5284,11 +4806,11 @@ function translateRangeValue( el ) {
  * Update range elements value div
  */
 function updateRangeValue( el ) {
-	const elVal = el.previousElementSibling;
-	if ( ! elVal || elVal.className != 'value' )
+	const elOutput = $(`output[for="${ el.id }"]`);
+	if ( ! elOutput )
 		return;
 
-	elVal.innerText = translateRangeValue( el );
+	elOutput.value = translateRangeValue( el );
 }
 
 
@@ -5307,17 +4829,17 @@ function updateRangeValue( el ) {
 
 		let msg;
 		switch ( reason ) {
-			case REASON_CREATE:
+			case _am.REASON_CREATE:
 				consoleLog( `Display resolution: ${ fsWidth } x ${ fsHeight } px (pixelRatio: ${ window.devicePixelRatio }).` );
 				msg = 'Canvas created';
 				break;
-			case REASON_LORES:
+			case _am.REASON_LORES:
 				msg = `Lo-res ${ loRes ? 'ON' : 'OFF' } (pixelRatio = ${ pixelRatio })`;
 				break;
-			case REASON_FULLSCREENCHANGE:
+			case _am.REASON_FULLSCREENCHANGE:
 				msg = `${ isFullscreen ? 'Enter' : 'Exit' }ed fullscreen`;
 				break;
-			case REASON_USER:
+			case _am.REASON_USER:
 				msg = `${ isPIP() ? 'Resized for' : 'Closed' } PIP`;
 				break;
 			default:
@@ -5352,7 +4874,7 @@ function updateRangeValue( el ) {
 			  bgOption   = elBackground.value[0],
 			  bgImageFit = elBgImageFit.value,
 			  interval   = latency + 1 / instance.fps, // audio context latency + refresh rate interval
-			  noShadow   = elOSDTextStyle.value == OSD_STYLE_OUTLINE,
+			  noShadow   = elOSDTextStyle.value == _.OSD_STYLE_OUTLINE,
 			  pixelRatio = instance.pixelRatio,
 			  { timestamp } = data;
 
@@ -5368,16 +4890,16 @@ function updateRangeValue( el ) {
 
 		// compute background image size for pulse and zoom in/out effects
 		if (
-			( bgImageFit == BGFIT_PULSE || bgImageFit == BGFIT_ZOOM_IN || bgImageFit == BGFIT_ZOOM_OUT ) &&
-			( bgOption == BG_COVER || bgOption == BG_IMAGE )
+			( bgImageFit == _.BGFIT_PULSE || bgImageFit == _.BGFIT_ZOOM_IN || bgImageFit == _.BGFIT_ZOOM_OUT ) &&
+			( bgOption == _.BG_COVER || bgOption == _.BG_IMAGE )
 		) {
 			let size;
 
-			if ( bgImageFit == BGFIT_PULSE )
+			if ( bgImageFit == _.BGFIT_PULSE )
 				size = ( instance.getEnergy() * 70 | 0 ) - 25;
 			else {
 				const songProgress = audioEl.currentTime / audioEl.duration;
-				size = ( bgImageFit == BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
+				size = ( bgImageFit == _.BGFIT_ZOOM_IN ? songProgress : 1 - songProgress ) * 100;
 			}
 
 			elContainer.style.backgroundSize = `auto ${ 100 + size }%`;
@@ -5436,7 +4958,7 @@ function updateRangeValue( el ) {
 				drawText( getSelectedThemes(), centerPos, topLine1, maxWidthTop );
 
 				canvasCtx.textAlign = 'left';
-				drawText( getText( getControlValue( elMode ) == MODE_BARS ? elBandCount : elMode ), baseSize, topLine1, maxWidthTop );
+				drawText( getText( getControlValue( elMode ) == _am.MODE_BARS ? elBandCount : elMode ), baseSize, topLine1, maxWidthTop );
 				drawText( `Randomize: ${ getText( elRandomMode ) }`, baseSize, topLine2, maxWidthTop );
 
 				canvasCtx.textAlign = 'right';
@@ -5576,7 +5098,7 @@ function updateRangeValue( el ) {
 	let response;
 
 	try {
-		response = await fetch( SERVERCFG_FILE );
+		response = await fetch( _.SERVERCFG_FILE );
 	}
 	catch( e ) {}
 
@@ -5586,14 +5108,14 @@ function updateRangeValue( el ) {
 		serverConfig = yaml.load(serverConfig);
 	}
 	catch( err ) {
-		consoleLog( `Error parsing ${ SERVERCFG_FILE } - ${ err }`, true );
+		consoleLog( `Error parsing ${ _.SERVERCFG_FILE } - ${ err }`, true );
 		serverConfig = {};
 	}
 
 	let { presets, shortcuts } = serverConfig;
 	delete serverConfig.presets;
 	delete serverConfig.shortcuts;
-	serverConfig = { ...SERVERCFG_DEFAULTS, ...serverConfig };
+	serverConfig = { ..._d.SERVERCFG_DEFAULTS, ...serverConfig };
 
 	supportsFileSystemAPI = serverConfig.enableLocalAccess && !! window.showDirectoryPicker;
 
@@ -5611,7 +5133,7 @@ function updateRangeValue( el ) {
 					if ( response.ok ) {
 						let options = await response.json();
 						// if it's the Defaults preset, make sure all properties are present
-						BUILTIN_PRESETS.push({ key, name, options: key == PRESET_KEY_DEFAULT ? { ...DEFAULT_PRESET.options, ...options } : options });
+						BUILTIN_PRESETS.push({ key, name, options: key == _.PRESET_KEY_DEFAULT ? { ..._d.DEFAULT_PRESET.options, ...options } : options });
 					}
 					else
 						response = null; // file not found lands here
@@ -5626,8 +5148,8 @@ function updateRangeValue( el ) {
 	}
 
 	// make sure there is a "Defaults" preset
-	if ( getPresetIndex( PRESET_KEY_DEFAULT ) == -1 )
-		BUILTIN_PRESETS.push( DEFAULT_PRESET );
+	if ( getPresetIndex( _.PRESET_KEY_DEFAULT ) == -1 )
+		BUILTIN_PRESETS.push( _d.DEFAULT_PRESET );
 
 	// Validate and assign keyboard shortcuts
 	for ( const key in shortcuts ) {
@@ -5638,12 +5160,12 @@ function updateRangeValue( el ) {
 
 	// Check options enabled via URL parameters
 
-	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == FILEMODE_LOCAL ? true : ( userMode == FILEMODE_SERVER ? false : loadFromStorage( KEY_FORCE_FS_API ) ) );
+	let forceFileSystemAPI = serverConfig.enableLocalAccess && ( ! isSelfHosted || userMode == _.FILEMODE_LOCAL ? true : ( userMode == _.FILEMODE_SERVER ? false : loadFromStorage( _.KEY_FORCE_FS_API ) ) );
 
 	if ( forceFileSystemAPI === null )
-		forceFileSystemAPI = serverConfig.defaultAccessMode == FILEMODE_LOCAL;
+		forceFileSystemAPI = serverConfig.defaultAccessMode == _.FILEMODE_LOCAL;
 
-	if ( userFrontPanel == PANEL_CLOSE || ( serverConfig.frontPanel == PANEL_CLOSE && userFrontPanel != PANEL_OPEN ) )
+	if ( userFrontPanel == _.PANEL_CLOSE || ( serverConfig.frontPanel == _.PANEL_CLOSE && userFrontPanel != _.PANEL_OPEN ) )
 		toggleFrontPanel( false );
 
 	// Create audioMotion analyzer
@@ -5686,7 +5208,7 @@ function updateRangeValue( el ) {
 			if ( evt.newIndex == 0 && ! isPlaying() )
 				loadSong(0);
 			else
-				loadSong( NEXT_TRACK );
+				loadSong( _.NEXT_TRACK );
 			storePlayQueue( true );
 		}
 	});
@@ -5733,8 +5255,8 @@ function updateRangeValue( el ) {
 
 	populatePresets();
 
-	setRangeAtts( elRangeMin, FREQ_LO_MIN, FREQ_LO_MAX );
-	setRangeAtts( elRangeMax, FREQ_HI_MIN, FREQ_HI_MAX );
+	setRangeAtts( elRangeMin, _.FREQ_LO_MIN, _.FREQ_LO_MAX );
+	setRangeAtts( elRangeMax, _.FREQ_HI_MIN, _.FREQ_HI_MAX );
 
 	populateCustomRadio( elMode, modeOptions );
 
@@ -5758,77 +5280,77 @@ function updateRangeValue( el ) {
 	]);
 
 	populateCustomRadio( elAlphaBars, [
-		[ ALPHABARS_OFF,  'Off'  ],
-		[ ALPHABARS_ON,   'On'   ],
-		[ ALPHABARS_FULL, 'Full' ],
+		[ _am.ALPHABARS_OFF,  'Off'  ],
+		[ _am.ALPHABARS_ON,   'On'   ],
+		[ _am.ALPHABARS_FULL, 'Full' ],
 	]);
 
 	populateCustomRadio( elLedDisplay, [
-		[ LEDS_OFF,     'Off'     ],
-		[ LEDS_MODERN,  'Modern'  ],
-		[ LEDS_VINTAGE, 'Vintage' ]
+		[ _am.LEDS_OFF,     'Off'     ],
+		[ _am.LEDS_MODERN,  'Modern'  ],
+		[ _am.LEDS_VINTAGE, 'Vintage' ]
 	]);
 
 	populateCustomRadio( elLedFormat, [
-		[ LEDFORMAT_REGULAR, 'Regular' ],
-		[ LEDFORMAT_THIN,    'Thin'    ],
-		[ LEDFORMAT_SQUARE,  'Square'  ]
+		[ _.LEDFORMAT_REGULAR, 'Regular' ],
+		[ _.LEDFORMAT_THIN,    'Thin'    ],
+		[ _.LEDFORMAT_SQUARE,  'Square'  ]
 	]);
 
 	populateCustomRadio( elRadial, [
-		[ RADIAL_OFF,     'Off'     ],
-		[ RADIAL_INWARD,  'Inward'  ],
-		[ RADIAL_OUTWARD, 'Outward' ]
+		[ _am.RADIAL_OFF,     'Off'     ],
+		[ _am.RADIAL_INWARD,  'Inward'  ],
+		[ _am.RADIAL_OUTWARD, 'Outward' ]
 	]);
 
 	populateSelect( elBgImageFit, bgFitOptions );
 
 	populateCustomRadio( elMirror, [
-		[ MIRROR_LEFT,  'Left'  ],
-		[ MIRROR_OFF,   'Off'   ],
-		[ MIRROR_RIGHT, 'Right' ]
+		[ _am.MIRROR_LEFT,  'Left'  ],
+		[ _am.MIRROR_OFF,   'Off'   ],
+		[ _am.MIRROR_RIGHT, 'Right' ]
 	]);
 
 	populateCustomRadio( elFreqScale, [
-		[ SCALE_BARK,   'Bark'   ],
-		[ SCALE_LINEAR, 'Linear' ],
-		[ SCALE_LOG,    'Log'    ],
-		[ SCALE_MEL,    'Mel'    ]
+		[ _am.SCALE_BARK,   'Bark'   ],
+		[ _am.SCALE_LINEAR, 'Linear' ],
+		[ _am.SCALE_LOG,    'Log'    ],
+		[ _am.SCALE_MEL,    'Mel'    ]
 	]);
 
 	populateCustomRadio( elWeighting, [
-		[ FILTER_NONE,   'Off'    ],
-		[ FILTER_TILT3,  '3 dB'   ],
-		[ FILTER_TILT45, '4.5 dB' ],
-		[ FILTER_468,    '468'    ],
-		[ FILTER_A,      'A'      ],
-		[ FILTER_B,      'B'      ],
-		[ FILTER_C,      'C'      ],
-		[ FILTER_D,      'D'      ]
+		[ _am.FILTER_NONE,   'Off'    ],
+		[ _am.FILTER_TILT3,  '3 dB'   ],
+		[ _am.FILTER_TILT45, '4.5 dB' ],
+		[ _am.FILTER_468,    '468'    ],
+		[ _am.FILTER_A,      'A'      ],
+		[ _am.FILTER_B,      'B'      ],
+		[ _am.FILTER_C,      'C'      ],
+		[ _am.FILTER_D,      'D'      ]
 	]);
 
 	populateCustomRadio( elColorMode, [
-		[ COLORMODE_GRADIENT, 'Gradient' ],
-		[ COLORMODE_INDEX,    'Index'    ],
-		[ COLORMODE_LEVEL,    'Level'    ]
+		[ _am.COLORMODE_GRADIENT, 'Gradient' ],
+		[ _am.COLORMODE_INDEX,    'Index'    ],
+		[ _am.COLORMODE_LEVEL,    'Level'    ]
 	]);
 
 	populateCustomRadio( elShowPeaks, [
-		[ PEAKS_OFF,  'Off'  ],
-		[ PEAKS_DROP, 'Drop' ],
-		[ PEAKS_FADE, 'Fade' ]
+		[ _am.PEAKS_OFF,  'Off'  ],
+		[ _am.PEAKS_DROP, 'Drop' ],
+		[ _am.PEAKS_FADE, 'Fade' ]
 	]);
 
 	populateCustomRadio( elScaleX, [
-		[ LABELS_X_OFF,   'Off'   ],
-		[ LABELS_X_FREQS, 'Freqs' ],
-		[ LABELS_X_NOTES, 'Notes' ]
+		[ _am.LABELS_X_OFF,   'Off'   ],
+		[ _am.LABELS_X_FREQS, 'Freqs' ],
+		[ _am.LABELS_X_NOTES, 'Notes' ]
 	]);
 
 	populateCustomRadio( elScaleY, [
-		[ LABELS_Y_OFF,     'Off' ],
-		[ LABELS_Y_DB,      'dB'  ],
-		[ LABELS_Y_PERCENT, '%'   ],
+		[ _am.LABELS_Y_OFF,     'Off' ],
+		[ _am.LABELS_Y_DB,      'dB'  ],
+		[ _am.LABELS_Y_PERCENT, '%'   ],
 	]);
 
 	populateCustomRadio( elAnsiBands, [
@@ -5884,7 +5406,7 @@ function updateRangeValue( el ) {
 				if ( elSaveDir.checked && initDone ) // avoid saving the path during initialization
 					saveLastDir( path );
 			},
-			fileExtensions: [ ...FILE_EXT_AUDIO, ...FILE_EXT_PLIST, ...FILE_EXT_VIDEO ],
+			fileExtensions: [ ..._.FILE_EXT_AUDIO, ..._.FILE_EXT_PLIST, ..._.FILE_EXT_VIDEO ],
 			forceFileSystemAPI
 		}
 	).then( status => {
@@ -5902,7 +5424,7 @@ function updateRangeValue( el ) {
 		if ( ! supportsFileSystemAPI && serverConfig.enableLocalAccess )
 			consoleLog( 'No browser support for File System Access API. Cannot access files from local device. <a href="https://audiomotion.app/docs/#/known-issues?id=file-system-access-api" target="_blank">Learn more...</a>', forceFileSystemAPI );
 
-		saveToStorage( KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
+		saveToStorage( _.KEY_FORCE_FS_API, forceFileSystemAPI && supportsFileSystemAPI );
 		loadSavedPlaylists();
 
 		// initialize drag-and-drop in the file explorer
@@ -5986,13 +5508,13 @@ function updateRangeValue( el ) {
 			}
 		}
 
-		const lastDir         = useFileSystemAPI ? await get( KEY_DB_LAST_DIR ) : loadFromStorage( KEY_DB_LAST_DIR ),
-			  bgDirHandle     = await get( KEY_DB_BGDIR_HANDLE ),
+		const lastDir         = useFileSystemAPI ? await get( _.KEY_DB_LAST_DIR ) : loadFromStorage( _.KEY_DB_LAST_DIR ),
+			  bgDirHandle     = await get( _.KEY_DB_BGDIR_HANDLE ),
 			  isBgDirLocked   = supportsFileSystemAPI && bgDirHandle && await bgDirHandle.queryPermission() != 'granted',
 			  isLastDirLocked = useFileSystemAPI && isArray( lastDir ) && lastDir[0] && await lastDir[0].handle.queryPermission() != 'granted';
 
 		consoleLog( `Loading ${ isLastSession ? 'last session' : 'default' } settings.` );
-		loadPreset( PRESET_KEY_LAST_SESSION, false, true );
+		loadPreset( _.PRESET_KEY_LAST_SESSION, false, true );
 
 		if ( isBgDirLocked || isLastDirLocked ) {
 			elMediaPanel.classList.add('locked');

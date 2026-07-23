@@ -155,9 +155,9 @@
 				<li class="button help" id="btn_next"><i class="icons8-skip-this-track-2"></i>
 					<span class="tooltip">Next song / Fast forward (Hold) <kbd class="narrow">-&gt;</kbd></span>
 				<li class="button help" id="btn_shuf"><i class="icons8-shuffle"></i>
-					<span class="tooltip">Shuffle queue <kbd>E</kbd></span>
+					<span class="tooltip">Shuffle queue<kbd data-hint="shuffle"></kbd></span>
 				<li class="button switch help" id="repeat"><i class="icons8-repeat"></i>
-					<span class="tooltip">Repeat queue <kbd>R</kbd></span>
+					<span class="tooltip">Repeat queue <kbd data-hint="repeat"></kbd></span>
 			</ul>
 
 			<div class="controls-right">
@@ -191,7 +191,7 @@
 			<button id="toggle_panel" class="material-symbols-rounded"></button>
 			<ul class="button-bar function-buttons">
 				<li id="btn_pip"><a href="#!">PIP</a>
-				<li id="btn_fullscreen"><a href="#!"><u>F</u>ullscreen</a>
+				<li id="btn_fullscreen"><a href="#!">Fullscreen<kbd data-hint="fullscreen"></kbd></a>
 				<li><a href="#config">Configuration</a>
 				<li><a href="#help">Help</a>
 			</ul>
@@ -213,8 +213,8 @@
 				</div>
 
 				<div class="rowspan-2">
-					<span class="config-label help" data-help="docs/#/settings?id=randomize">R<u>a</u>ndomize</span>
-					<form id="random_mode" class="custom-radio-buttons multiline" data-prop="randomMode"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=randomize">Randomize<kbd data-hint="randomize"></kbd></span>
+					<form id="randomize" class="custom-radio-buttons multiline" data-prop="randomMode"></form>
 
 					<div class="button-bar">
 						<button id="randomize_now">Randomize now</button>
@@ -233,46 +233,46 @@
 
 			<!-- COLUMN 2 -->
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=analyzer-mode">Analyzer <u>M</u>ode</span>
-					<form id="mode" class="custom-radio-buttons" data-prop="mode"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=analyzer-mode">Analyzer Mode<kbd data-hint="analyzer_mode"></kbd></span>
+					<form id="analyzer_mode" class="custom-radio-buttons" data-prop="mode"></form>
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=band-count">Band Count</span>
-					<div class="value"></div>
+					<span class="config-label help" data-help="docs/#/settings?id=band-count">Band Count<kbd data-hint="band_count"></kbd></span>
+					<output for="band_count"></output>
 					<input id="band_count" data-prop="bandCount" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=bar-color-mode">Bar Color Mode</span>
+					<span class="config-label help" data-help="docs/#/settings?id=bar-color-mode">Bar Color Mode<kbd data-hint="color_mode"></kbd></span>
 					<form id="color_mode" class="custom-radio-buttons" data-prop="colorMode"></form>
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=radial">Radial</span>
+					<span class="config-label help" data-help="docs/#/settings?id=radial">Radial<kbd data-hint="radial"></kbd></span>
 					<form id="radial" class="custom-radio-buttons" data-prop="radial"></form>
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help" data-help="docs/#/settings?id=sensitivity">Se<u>n</u>sitivity</span>
+					<span class="config-label help" data-help="docs/#/settings?id=sensitivity">Sensitivity<kbd data-hint="sensitivity"></kbd></span>
 					<form id="sensitivity" class="custom-radio-buttons" data-prop="sensitivity"></form>
 				</div>
 
 			<!-- COLUMN 3 -->
 				<div class="column rowspan-2">
-					<span class="config-label help" data-help="docs/#/settings?id=color-theme">Color <u>T</u>heme</span>
+					<span class="config-label help" data-help="docs/#/settings?id=color-theme">Color Theme</span>
 
 					<div id="themes_grid" class="grid grid-2-cols">
-						<select id="theme_0" data-prop="themes"></select>
-						<select id="theme_1" data-prop="themes"></select>
+						<select id="theme" data-prop="themes"></select>
+						<select id="theme_right" data-prop="themes"></select>
 
 						<ul class="switch-bar">
-							<li class="switch" id="horizontal_0" data-prop="themes">HORIZONTAL
-							<li class="switch" id="reverse_0" data-prop="themes">REVERSE
+							<li class="switch" id="horizontal" data-prop="themes">HORIZONTAL
+							<li class="switch" id="reverse" data-prop="themes">REVERSE
 						</ul>
 						<ul class="switch-bar">
-							<li class="switch" id="horizontal_1" data-prop="themes">HOR
-							<li class="switch" id="reverse_1" data-prop="themes">REV
+							<li class="switch" id="horizontal_right" data-prop="themes">HOR
+							<li class="switch" id="reverse_right" data-prop="themes">REV
 						</ul>
 					</div>
 
@@ -287,40 +287,40 @@
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=background"><u>B</u>ackground</span>
+					<span class="config-label help" data-help="docs/#/settings?id=background">Background<kbd data-hint="background"></kbd></span>
 					<select id="background" data-prop="background"></select>
 				</div>
 
 				<div>
 					<div>
-						<span class="config-label help" data-help="docs/#/settings?id=background-image-fit">Background Image Fit</span>
-						<select id="bg_img_fit" data-prop="bgImageFit"></select>
+						<span class="config-label help" data-help="docs/#/settings?id=background-image-fit">Background Image Fit<kbd data-hint="background_fit"></kbd></span>
+						<select id="background_fit" data-prop="bgImageFit"></select>
 					</div>
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=background-dim">Background Dim</span>
-					<div class="value"></div>
-					<input id="bg_img_dim" type="range" data-prop="bgImageDim" class="custom-slider">
+					<span class="config-label help" data-help="docs/#/settings?id=background-dim">Background Dim<kbd data-hint="background_dim"></kbd></span>
+					<output for="background_dim"></output>
+					<input id="background_dim" type="range" data-prop="bgImageDim" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 4 -->
 				<div>
-					<span class="config-label help" data-help="docs/#/settings?id=alpha-bars">Alpha Bars</span>
+					<span class="config-label help" data-help="docs/#/settings?id=alpha-bars">Alpha Bars<kbd data-hint="alpha_bars"></kbd></span>
 					<form id="alpha_bars" class="custom-radio-buttons" data-prop="alphaBars"></form>
 				</div>
 
 				<div>
 					<span class="config-label help" data-help="docs/#/settings?id=bar-effects">Bar effects</span>
 					<ul class="switch-bar">
-						<li class="switch" id="outline" data-prop="outlineBars">OUTLINE
-						<li class="switch" id="round_bars" data-prop="roundBars">ROUND
+						<li class="switch" id="outline_bars" data-prop="outlineBars">OUTLINE<kbd data-hint="outline_bars"></kbd>
+						<li class="switch" id="round_bars" data-prop="roundBars">ROUND<kbd data-hint="round_bars"></kbd>
 					</ul>
 				</div>
 
 				<div class="rowspan-2">
-					<span class="config-label help" data-help="docs/#/settings?id=led-bars"><u>L</u>ED Bars</span>
-					<form id="led_display" class="custom-radio-buttons" data-prop="ledDisplay"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=led-bars">LED Bars<kbd data-hint="led_bars"></kbd></span>
+					<form id="led_bars" class="custom-radio-buttons" data-prop="ledDisplay"></form>
 					<form id="led_format" class="custom-radio-buttons" data-prop="ledFormat"></form>
 					<ul class="switch-bar">
 						<li class="switch" id="led_mask" data-prop="showLedMask">LED MASK
@@ -328,8 +328,8 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help" data-help="docs/#/settings?id=reflex">Refle<u>x</u></span>
-					<div class="value"></div>
+					<span class="config-label help" data-help="docs/#/settings?id=reflex">Reflex<kbd data-hint="reflex"></kbd></span>
+					<output for="reflex"></output>
 					<input id="reflex" data-prop="reflex" type="range" class="custom-slider">
 				</div>
 
@@ -337,26 +337,26 @@
 				<div class="rowspan-2 last-column">
 					<span class="config-label help" data-help="docs/#/settings?id=display">Display</span>
 					<ul class="switch-bar">
-						<li class="switch" id="show_song" data-prop="showSong">TRACK <u>I</u>NFO
-						<li class="switch" id="show_subs" data-prop="showSubtitles">SUBTITLES
-						<li class="switch" id="fps" data-prop="showFPS">FPS
-						<li class="switch" id="lo_res" data-prop="loRes">L<u>O</u>-RES
+						<li class="switch" id="track_info" data-prop="showSong">TRACK INFO<kbd data-hint="track_info"></kbd>
+						<li class="switch" id="toggle_subs" data-prop="showSubtitles">SUBTITLES<kbd data-hint="toggle_subs"></kbd>
+						<li class="switch" id="fps" data-prop="showFPS">FPS<kbd data-hint="fps"></kbd>
+						<li class="switch" id="lores" data-prop="loRes">LO-RES<kbd data-hint="lores"></kbd>
 					</ul>
 				</div>
 
 				<div class="last-column">
-					<span class="config-label help" data-help="docs/#/settings?id=peaks"><u>P</u>eaks</u></span>
-					<form id="show_peaks" class="custom-radio-buttons" data-prop="showPeaks"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=peaks">Peaks<kbd data-hint="peaks"></kbd></span>
+					<form id="peaks" class="custom-radio-buttons" data-prop="showPeaks"></form>
 				</div>
 
 				<div class="last-column">
-					<span class="config-label help" data-help="docs/#/settings?id=x-axis-labels">X-Axis Label<u>s</u></span>
-					<form id="scaleX" class="custom-radio-buttons" data-prop="showScaleX"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=x-axis-labels">X-Axis Labels<kbd data-hint="x_labels"></kbd></span>
+					<form id="x_labels" class="custom-radio-buttons" data-prop="showScaleX"></form>
 				</div>
 
 				<div class="last-column last-row">
-					<span class="config-label help" data-help="docs/#/settings?id=y-axis-labels">Y-Axis Label<u>s</u></span>
-					<form id="scaleY" class="custom-radio-buttons" data-prop="showScaleY"></form>
+					<span class="config-label help" data-help="docs/#/settings?id=y-axis-labels">Y-Axis Labels<kbd data-hint="y_labels"></kbd></span>
+					<form id="y_labels" class="custom-radio-buttons" data-prop="showScaleY"></form>
 				</div>
 
 			</div> <!-- .controls -->
@@ -366,12 +366,12 @@
 			<div class="controls panel-internal">
 			<!-- COLUMN 1 -->
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=channel-layout">Channel Layout</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=channel-layout">Channel Layout<kbd data-hint="channel_layout"></kbd></span>
 					<form id="channel_layout" class="custom-radio-buttons" data-prop="channelLayout"></form>
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=mirror">Mirror</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=mirror">Mirror<kbd data-hint="mirror"></kbd></span>
 					<form id="mirror" class="custom-radio-buttons" data-prop="mirror"></form>
 				</div>
 
@@ -389,33 +389,33 @@
 
 			<!-- COLUMN 2 -->
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=bar-spacing">Bar Spacing</span>
-					<div class="value"></div>
-					<input id="bar_space" data-prop="barSpace" type="range" class="custom-slider">
+					<span class="config-label help" data-help="/docs/#/advanced?id=bar-spacing">Bar Spacing<kbd data-hint="bar_spacing"></kbd></span>
+					<output for="bar_spacing"></output>
+					<input id="bar_spacing" data-prop="barSpace" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=fill-opacity">Fill Opacity</span>
-					<div class="value"></div>
-					<input id="fill_alpha" data-prop="fillAlpha" type="range" class="custom-slider">
+					<span class="config-label help" data-help="/docs/#/advanced?id=fill-opacity">Fill Opacity<kbd data-hint="fill_opacity"></kbd></span>
+					<output for="fill_opacity"></output>
+					<input id="fill_opacity" data-prop="fillAlpha" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=line-width">Line Width</span>
-					<div class="value"></div>
+					<span class="config-label help" data-help="/docs/#/advanced?id=line-width">Line Width<kbd data-hint="line_width"></kbd></span>
+					<output for="line_width"></output>
 					<input id="line_width" data-prop="lineWidth" type="range" class="custom-slider">
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=radial-size">Radial Size</span>
-					<div class="value"></div>
-					<input id="radius" data-prop="radius" type="range" class="custom-slider">
+					<span class="config-label help" data-help="/docs/#/advanced?id=radial-size">Radial Size<kbd data-hint="radial_size"></kbd></span>
+					<output for="radial_size"></output>
+					<input id="radial_size" data-prop="radius" type="range" class="custom-slider">
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help" data-help="/docs/#/advanced?id=radial-spin">Radial Spin</span>
-					<div class="value"></div>
-					<input id="spin" data-prop="spin" type="range" class="custom-slider">
+					<span class="config-label help" data-help="/docs/#/advanced?id=radial-spin">Radial Spin<kbd data-hint="radial_spin"></kbd></span>
+					<output for="radial_spin"></output>
+					<input id="radial_spin" data-prop="spin" type="range" class="custom-slider">
 				</div>
 
 			<!-- COLUMN 3 -->
@@ -450,13 +450,13 @@
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=frequency-scale">Frequency Scale</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=frequency-scale">Frequency Scale<kbd data-hint="freq_scale"></kbd></span>
 					<form id="freq_scale" class="custom-radio-buttons" data-prop="freqScale"></form>
 				</div>
 
 				<div>
-					<span class="config-label help" data-help="/docs/#/advanced?id=level-scale">Level Scale</span>
-					<form id="linear_amplitude" class="custom-radio-buttons" data-prop="linearAmpl"></form>
+					<span class="config-label help" data-help="/docs/#/advanced?id=level-scale">Level Scale<kbd data-hint="level_scale"></kbd></span>
+					<form id="level_scale" class="custom-radio-buttons" data-prop="linearAmpl"></form>
 				</div>
 
 				<div>
@@ -464,7 +464,7 @@
 				</div>
 
 				<div class="last-row">
-					<span class="config-label help" data-help="/docs/#/advanced?id=bands-standard">Bands Standard</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=octave-bands-standard">Octave Bands Standard</span>
 					<form id="ansi_bands" class="custom-radio-buttons" data-prop="ansiBands"></form>
 				</div>
 
@@ -476,7 +476,7 @@
 
 				<div class="last-column">
 					<span class="config-label help" data-help="/docs/#/advanced?id=fft-smoothing">FFT Smoothing</span>
-					<div class="value"></div>
+					<output for="smoothing"></output>
 					<input id="smoothing" data-prop="smoothing" type="range" class="custom-slider">
 				</div>
 
@@ -485,7 +485,7 @@
 				</div>
 
 				<div class="last-column rowspan-2 align-end">
-					<span class="config-label help" data-help="/docs/#/advanced?id=weighting-filter">Weighting Filter</span>
+					<span class="config-label help" data-help="/docs/#/advanced?id=weighting-filter">Weighting Filter<kbd data-hint="weighting"></kbd></span>
 					<form id="weighting" class="custom-radio-buttons multiline" data-prop="weighting"></form>
 				</div>
 
@@ -672,7 +672,7 @@
 			</details>
 
 			<details>
-				<summary>Randomize <span class="link-to-docs" data-help="docs/#/configuration?id=randomize"></span></summary>
+				<summary>Randomize settings <span class="link-to-docs" data-help="docs/#/configuration?id=randomize-settings"></span></summary>
 				<div id="random_properties" class="grid grid-3-cols gap-sm"></div>
 			</details>
 

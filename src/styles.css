@@ -52,6 +52,10 @@ select {
 	padding: .25em 0;
 }
 
+output {
+	float: right;
+}
+
 button,
 .button {
 	background: var(--glass-gradient);
@@ -204,6 +208,22 @@ a.button:visited {
 }
 .controls .align-end {
 	align-content: end;
+}
+:not(.tooltip) [data-hint] {
+	font-size: .75em;
+	height: 1.5em;
+	padding: 1px 4px;
+	position: absolute;
+	margin-left: 4px;
+	top: 0;
+}
+.function-buttons [data-hint],
+.switch > [data-hint] {
+	background: #ccc3;
+	top: 6px;
+}
+[data-hint]:empty {
+	display: none;
 }
 
 /* custom range inputs - thanks https://www.smashingmagazine.com/2021/12/create-custom-range-input-consistent-browsers/ */
@@ -745,10 +765,6 @@ a.button:visited {
 	height: 2px;
 	margin: 0;
 	padding: 6px 0 10px;
-}
-
-.value {
-	float: right;
 }
 
 /* Switches */
@@ -1901,7 +1917,7 @@ button.grad-add-stop:hover {
 	.progress-bar {
 		padding: 0;
 	}
-	.value {
+	output {
 		height: 1em;
 		max-width: 40%;
 		overflow: hidden;
