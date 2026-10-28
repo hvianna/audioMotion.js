@@ -65,12 +65,10 @@ And all the developers and artists, for the following resources:
 
 ### JavaScript libraries <!-- {docsify-ignore} -->
 
-* [buffer](https://www.npmjs.com/package/buffer) - Node.js Buffer API, for the browser
 * [http-server](https://www.npmjs.com/package/http-server) - a simple zero-configuration command-line http server
 * [idb-keyval](https://www.npmjs.com/package/idb-keyval) - super-simple promise-based keyval store implemented with IndexedDB
-* [music-metadata-browser](https://www.npmjs.com/package/music-metadata-browser) - stream and file based music metadata parser for the browser
+* [music-metadata](https://www.npmjs.com/package/music-metadata) - Metadata parser for audio and video media files. Supports file and stream inputs in Node.js and browser environments, extracting format, tag, and duration information.
 * [notie](https://www.npmjs.com/package/notie) - clean and simple notification, input, and selection suite for javascript, with no dependencies
-* [process](https://www.npmjs.com/package/process) - process information for node.js and browsers
 * [scrollIntoViewIfNeeded 4 everyone](https://gist.github.com/hsablonniere/2581101) - polyfill for non-standard scrollIntoViewIfNeeded() method
 * [sortablejs](https://www.npmjs.com/package/sortablejs) - JavaScript library for reorderable drag-and-drop lists
 * [webpack](https://www.npmjs.com/package/webpack) - JavaScript module bundler for the browser

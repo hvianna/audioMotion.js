@@ -22,6 +22,11 @@ module.exports = {
 	module: {
 		rules: [
 			{
+				test: /\.m?js$/,
+				exclude: /[\\/]core-js[\\/]/,
+				use: 'babel-loader'
+			},
+			{
 				test: /\.css$/,
 				use: [
 					'style-loader', // Use style-loader instead of MiniCssExtractPlugin in dev
@@ -35,10 +40,6 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.HotModuleReplacementPlugin(),
-		new webpack.ProvidePlugin({
-			Buffer: ['buffer', 'Buffer'],
-			process: 'process/browser.js',
-		}),
 	],
 	output: {
 		filename: 'audioMotion.js',
