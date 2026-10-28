@@ -761,7 +761,7 @@ function addBatchToPlayQueue( files, autoplay = false ) {
 function addMetadata( metadata, target ) {
 	const trackData  = target.dataset,
 		  sourceData = metadata.dataset,
-		  { album, artist, picture, title, year } = metadata.common || {},
+		  { album, artist, picture, title, year, track } = metadata.common || {},
 		  { bitrate, bitsPerSample, codec, codecProfile, container,
 		    duration, lossless, numberOfChannels, sampleRate } = metadata.format || {};
 
@@ -773,6 +773,10 @@ function addMetadata( metadata, target ) {
 		trackData.title  = title || trackData.title;
 		trackData.album  = album ? album + ( year ? ' (' + year + ')' : '' ) : trackData.album;
 		trackData.codec  = codec || container ? ( codec || container ) + ' (' + numberOfChannels + 'ch)' : trackData.codec;
+		trackData.trackNumber = track && track.no || trackData.trackNumber || '';
+		trackData.fullTrackName = title ?
+			( trackData.trackNumber ? trackData.trackNumber + ': ' : '' ) + title + ( artist ? ' - ' + artist : '' ) :
+			trackData.title;
 
 		const khz = sampleRate ? Math.round( sampleRate / 1000 ) + 'kHz' : '';
 
@@ -824,6 +828,7 @@ function addSongToPlayQueue( fileObject, content ) {
 		trackData.album    = content.album || '';
 		trackData.artist   = content.artist || '';
 		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
+		trackData.fullTrackName = trackData.title;
 		trackData.duration = content.duration || '';
 		trackData.codec    = content.codec || extension.toUpperCase();
 //		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
