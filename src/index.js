@@ -803,55 +803,52 @@ function addMetadata( metadata, target ) {
  * @param {object} { album, artist, codec, duration, title }
  * @returns {Promise} resolves to 1 when song added, or 0 if queue is full
  */
-function addSongToPlayQueue( fileObject, content ) {
+async function addSongToPlayQueue( fileObject, content ) {
 
-	return new Promise( resolve => {
-		if ( queueLength() >= _.MAX_QUEUED_SONGS ) {
-			resolve(0);
-			return;
-		}
+	if ( queueLength() >= _.MAX_QUEUED_SONGS ) {
+		return 0;
+	}
 
-		const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
-			  uri       = normalizeSlashes( fileObject.file ),
-			  newEl     = document.createElement('li'), // create new list element
-			  trackData = newEl.dataset;
+	const { fileName, baseName, extension } = parsePath( fileExplorer.decodeChars( fileObject.file ) ),
+		  uri       = normalizeSlashes( fileObject.file ),
+		  newEl     = document.createElement('li'), // create new list element
+		  trackData = newEl.dataset;
 
-		Object.assign( trackData, _.DATASET_TEMPLATE ); // initialize element's dataset attributes
+	Object.assign( trackData, _.DATASET_TEMPLATE ); // initialize element's dataset attributes
 
-		if ( ! content )
-			content = parseTrackName( baseName );
+	if ( ! content )
+		content = parseTrackName( baseName );
 
-		trackData.album    = content.album || '';
-		trackData.artist   = content.artist || '';
-		trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
-		trackData.duration = content.duration || '';
-		trackData.codec    = content.codec || extension.toUpperCase();
+	trackData.album    = content.album || '';
+	trackData.artist   = content.artist || '';
+	trackData.title    = content.title || fileName || uri.slice( uri.lastIndexOf('//') + 2 );
+	trackData.duration = content.duration || '';
+	trackData.codec    = content.codec || extension.toUpperCase();
 //		trackData.subs     = + !! fileObject.subs; // show 'subs' badge in the playqueue (TO-DO: resolve CSS conflict)
-		trackData.filename = fileName;
-		trackData.file     = uri; 				// full path for web server access
-		newEl.handle       = fileObject.handle; // for File System API access
-		newEl.dirHandle    = fileObject.dirHandle;
-		newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
+	trackData.filename = fileName;
+	trackData.file     = uri; 				// full path for web server access
+	newEl.handle       = fileObject.handle; // for File System API access
+	newEl.dirHandle    = fileObject.dirHandle;
+	newEl.subs         = fileObject.subs;	// only defined when coming from the file explorer (not playlists)
 
-		elPlayqueue.appendChild( newEl );
+	elPlayqueue.appendChild( newEl );
 
-		if ( _.FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
-			// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
-			trackData.retrieve = 1; // flag this item as needing metadata
-			retrieveMetadata();
-		}
+	if ( _.FILE_EXT_AUDIO.includes( extension ) || ! extension ) {
+		// disable retrieving metadata of video files for now - https://github.com/Borewit/music-metadata-browser/issues/950
+		trackData.retrieve = 1; // flag this item as needing metadata
+		retrieveMetadata();
+	}
 
-		if ( queueLength() == 1 && ! isPlaying() ) {
-			// if the added song is the only one in the queue and no audio is currently playing, load it into the primary media element
-			loadSong(0).then( () => resolve(1) );
-		}
-		else {
-			// if the queue pointer was at the last song, load the newly added song into the secondary media element
-			if ( queueIndex == queueLength() - 2 )
-				loadSong( _.NEXT_TRACK );
-			resolve(1);
-		}
-	});
+	if ( queueLength() == 1 && ! isPlaying() ) {
+		// if the added song is the only one in the queue and no audio is currently playing, load it into the primary media element
+		await loadSong(0);
+	}
+	else {
+		// if the queue pointer was at the last song, load the newly added song into the secondary media element
+		if ( queueIndex == queueLength() - 2 )
+			loadSong( _.NEXT_TRACK );
+	}
+	return 1;
 }
 
 /**
