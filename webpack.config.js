@@ -1,4 +1,3 @@
-const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
@@ -8,6 +7,11 @@ module.exports = {
   entry: './src/index.js',
   module: {
     rules: [
+      {
+        test: /\.m?js$/,
+        exclude: /[\\/]core-js[\\/]/,
+        use: 'babel-loader'
+      },
       {
         test: /\.css$/,
         use: [
@@ -35,10 +39,6 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: 'styles.css',
-    }),
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-      process: 'process/browser.js',
     }),
   ],
   output: {

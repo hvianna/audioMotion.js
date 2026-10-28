@@ -1,6 +1,6 @@
 # Building audioMotion
 
-These steps require [Node.js](https://nodejs.org) installed in your computer.
+These steps require [Node.js](https://nodejs.org) 22.18+ (22.x) or 24.11+ installed in your computer.
 
 First, [clone the project](https://github.com/hvianna/audioMotion.js) from GitHub or download the latest version of the source code from the [Releases page](https://github.com/hvianna/audioMotion.js/releases/latest).
 
