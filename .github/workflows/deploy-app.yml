@@ -15,6 +15,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Build app
+        run: |
+          npm install
+          npm run build
       - name: Create and edit files
         run: |
           echo "audiomotion.app" > public/CNAME
@@ -35,6 +43,7 @@ jobs:
           git config user.email "$USERNAME@$ADDRESS_SUFFIX"
           git mv src/manifest.json public
           git add .
+          git add -f public/audioMotion.js public/audioMotion.js.LICENSE.txt public/vendors.js public/vendors.js.LICENSE.txt public/styles.css
           git commit -m "Deploy app"
           git subtree split --prefix public -b gh-pages
           git push -f origin gh-pages:gh-pages

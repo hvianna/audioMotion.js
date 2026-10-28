@@ -1,0 +1,39 @@
+name: Build Distribution
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm install
+      - name: Build project
+        run: npm run build
+      - name: Create distribution
+        run: |
+          mkdir dist
+          cp README.md LICENSE dist/
+          cp -r public dist/public
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: audioMotion.js
+          path: dist
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Add artifact link to summary
+        run: echo "[Download audioMotion.js distribution](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> "$GITHUB_STEP_SUMMARY"
