@@ -37,7 +37,8 @@ import AudioMotionAnalyzer, * as _am from 'audiomotion-analyzer';
 
 import packageJson from '../package.json';
 import * as fileExplorer from './file-explorer.js';
-import * as mm from 'music-metadata-browser';
+import './Blob-arrayBuffer-polyfill.js';
+import { parseBlob, parseWebStream } from 'music-metadata';
 import './scrollIntoViewIfNeeded-polyfill.js';
 import { get, set, del } from 'idb-keyval';
 import * as yaml from 'js-yaml';
@@ -1594,7 +1595,7 @@ function loadThemeIntoCurrentTheme( themeKey ) {
 /**
  * Load a music file from the user's computer
  */
-function loadLocalFile( obj ) {
+async function loadLocalFile( obj ) {
 	const fileBlob = obj.files[0];
 
 	if ( fileBlob ) {
@@ -1603,11 +1604,16 @@ function loadLocalFile( obj ) {
 		audioEl.dataset.file = fileBlob.name;
 		audioEl.dataset.title = parsePath( fileBlob.name ).baseName;
 
-		// load and play
-		loadFileBlob( fileBlob, audioEl, true )
-			.then( url => mm.fetchFromUrl( url ) )
-			.then( metadata => addMetadata( metadata, audioEl ) )
-			.catch( e => {} );
+		// Start playback and metadata parsing together, handling both promises immediately.
+		try {
+			await Promise.all( [
+				loadFileBlob( fileBlob, audioEl, true ),
+				parseBlob( fileBlob ).then( metadata => addMetadata( metadata, audioEl ) )
+			] );
+		}
+		catch( error ) {
+			consoleLog( 'Failed to load local file: ' + error, true );
+		}
 	}
 }
 
@@ -3058,56 +3064,62 @@ async function retrieveBackgrounds() {
  * Retrieve metadata for files in the play queue
  */
 async function retrieveMetadata() {
-	// leave when we already have enough concurrent requests pending
+	// Keep the existing progressive queue loading and concurrency limit.
 	if ( waitingMetadata >= _.MAX_METADATA_REQUESTS )
 		return;
 
-	// find the first play queue item for which we haven't retrieved the metadata yet
 	const queueItem = Array.from( elPlayqueue.children ).find( el => el.dataset.retrieve );
 
 	if ( queueItem ) {
-
-		let uri    = queueItem.dataset.file,
-			revoke = false;
-
 		waitingMetadata++;
 		delete queueItem.dataset.retrieve;
 
-		queryMetadata: {
+		try {
+			let metadata;
 			if ( queueItem.handle ) {
-				try {
-					if ( await queueItem.handle.requestPermission() != 'granted' )
-						break queryMetadata;
+				if ( await queueItem.handle.requestPermission() != 'granted' )
+					return;
 
-					uri = URL.createObjectURL( await queueItem.handle.getFile() );
-					revoke = true;
-				}
-				catch( e ) {
-					break queryMetadata;
-				}
+				metadata = await parseBlob( await queueItem.handle.getFile(), { skipPostHeaders: true } );
 			}
+			else {
+				const controller = new AbortController();
+				try {
+					const response = await fetch( queueItem.dataset.file, { signal: controller.signal } );
+					if ( ! response.ok )
+						throw new Error( 'HTTP ' + response.status );
 
-			try {
-				const metadata = await mm.fetchFromUrl( uri, { skipPostHeaders: true } );
-				if ( metadata ) {
-					addMetadata( metadata, queueItem ); // add metadata to play queue item
-					syncMetadataToAudioElements( queueItem );
-					if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
-						getFolderCover( queueItem ).then( cover => {
-							queueItem.dataset.cover = cover;
-							syncMetadataToAudioElements( queueItem );
-						});
+					if ( response.body && response.body.getReader ) {
+						const contentSize = Number( response.headers.get( 'Content-Length' ) );
+						metadata = await parseWebStream( response.body, {
+							mimeType: response.headers.get( 'Content-Type' ),
+							size: Number.isSafeInteger( contentSize ) && contentSize > 0 ? contentSize : undefined
+						}, { skipPostHeaders: true } );
+					}
+					else {
+						metadata = await parseBlob( await response.blob(), { skipPostHeaders: true } );
 					}
 				}
+				finally {
+					// Stop the HTTP download even when parsing ends before EOF or fails.
+					controller.abort();
+				}
 			}
-			catch( e ) {}
 
-			if ( revoke )
-				URL.revokeObjectURL( uri );
+			addMetadata( metadata, queueItem );
+			syncMetadataToAudioElements( queueItem );
+			if ( ! ( metadata.common.picture && metadata.common.picture.length ) ) {
+				queueItem.dataset.cover = await getFolderCover( queueItem );
+				syncMetadataToAudioElements( queueItem );
+			}
 		}
-
-		waitingMetadata--;
-		retrieveMetadata(); // call again to continue processing the queue
+		catch( error ) {
+			consoleLog( 'Failed to retrieve metadata for ' + queueItem.dataset.file + ': ' + error, true );
+		}
+		finally {
+			waitingMetadata--;
+			retrieveMetadata(); // continue after success, denied permission or any failure
+		}
 	}
 }
 

@@ -1,0 +1,15 @@
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    [
+      "babel-plugin-polyfill-corejs3",
+      {
+        "method": "usage-global",
+        "version": "3.51"
+      }
+    ]
+  ],
+  "sourceType": "unambiguous"
+}
